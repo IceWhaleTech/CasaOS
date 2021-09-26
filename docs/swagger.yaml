@@ -1,0 +1,1753 @@
+basePath: /v1
+host: 192.168.2.114:8089
+info:
+  contact:
+    email: lauren.pan@icewhale.org
+    name: lauren.pan
+    url: https://www.zimaboard.com
+  description: Oasis v1版本api
+  title: Oasis API
+  version: 1.0.0
+paths:
+  /app/appinfo/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 应用详情
+      tags:
+      - app
+  /app/category:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取远程分类列表
+      tags:
+      - app
+  /app/check/{port}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 端口号
+        in: path
+        name: port
+        required: true
+        type: integer
+      - description: 端口类型 udp/tcp
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 检查端口是否可用
+      tags:
+      - app
+  /app/getport:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 端口类型 udp/tcp
+        in: query
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取一个可用端口
+      tags:
+      - app
+  /app/info/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: appid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取容器详情
+      tags:
+      - app
+  /app/install/{id}:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 主端口
+        in: formData
+        name: port
+        required: true
+        type: integer
+      - description: tcp端口
+        in: formData
+        name: tcp
+        type: string
+      - description: udp端口
+        in: formData
+        name: udp
+        type: string
+      - description: 环境变量
+        in: formData
+        name: env
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 安装app(该接口需要post json数据)
+      tags:
+      - app
+  /app/install/config:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取安装所需要的数据
+      tags:
+      - app
+  /app/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 页码
+        in: query
+        name: index
+        type: integer
+      - description: 每页数量
+        in: query
+        name: size
+        type: integer
+      - description: 分类id
+        in: query
+        name: category_id
+        type: integer
+      - description: rank,new
+        in: query
+        name: type
+        type: string
+      - description: search key
+        in: query
+        name: key
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取远程列表
+      tags:
+      - app
+  /app/logs/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: appid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 查看容器日志
+      tags:
+      - app
+  /app/mylist:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: index
+        in: query
+        name: index
+        type: integer
+      - description: size
+        in: query
+        name: size
+        type: integer
+      - description: 是否是首页应用
+        in: query
+        name: position
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 我的应用列表
+      tags:
+      - app
+  /app/rely/{id}/info:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: rely id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取依赖数据
+      tags:
+      - app
+  /app/speed/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 容器id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取安装进度
+      tags:
+      - app
+  /app/state/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 容器id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: type=1
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取容器状态
+      tags:
+      - app
+    put:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: appid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 是否停止 strat stop restart
+        in: query
+        name: state
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 修改app状态
+      tags:
+      - app
+  /app/uninstall/{id}:
+    delete:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 容器id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 卸载app
+      tags:
+      - app
+  /app/update/{id}/info:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: appid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取可更新数据
+      tags:
+      - app
+  /app/update/{id}/setting:
+    put:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 容器id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: cpu权重
+        in: formData
+        name: shares
+        type: string
+      - description: 内存大小MB
+        in: formData
+        name: mem
+        type: string
+      - description: 重启策略
+        in: formData
+        name: restart
+        type: string
+      - description: 应用名称
+        in: formData
+        name: label
+        type: string
+      - description: 是否放到首页
+        in: formData
+        name: position
+        required: true
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 更新设置
+      tags:
+      - app
+  /ddns/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 删除ddns
+      tags:
+      - ddns
+  /ddns/getlist:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取可以设置的ddns列表
+      tags:
+      - ddns
+  /ddns/ip:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取ip,仅做展示使用
+      tags:
+      - ddns
+  /ddns/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取已设置的列表
+      tags:
+      - ddns
+  /ddns/ping/{api_host}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: api地址
+        in: path
+        name: api_host
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 测试网址是否可以ping通
+      tags:
+      - ddns
+  /ddns/set:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 类型
+        in: formData
+        name: type
+        required: true
+        type: string
+      - description: host
+        in: formData
+        name: host
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 添加新的ddns（按给定模型返回内容）
+      tags:
+      - ddns
+  /disk/addpart:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 磁盘路径 例如/dev/sda
+        in: formData
+        name: path
+        required: true
+        type: string
+      - description: 需要分区容量大小(MB)
+        in: formData
+        name: size
+        required: true
+        type: string
+      - description: 磁盘符号
+        in: formData
+        name: num
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 添加分区
+      tags:
+      - disk
+  /disk/delpart:
+    delete:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 磁盘路径 例如/dev/sda1
+        in: formData
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 删除分区
+      tags:
+      - disk
+  /disk/format:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 磁盘路径 例如/dev/sda1
+        in: formData
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 磁盘详情
+      tags:
+      - disk
+  /disk/info:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 要获取的磁盘详情 例如/dev/sda
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 磁盘详情
+      tags:
+      - disk
+  /disk/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取磁盘列表
+      tags:
+      - disk
+  /disk/lists:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取磁盘列表
+      tags:
+      - disk
+  /disk/type:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取支持的格式
+      tags:
+      - disk
+  /file/dirpath:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 路径
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取目录列表
+      tags:
+      - file
+  /file/download:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 路径
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 下载文件
+      tags:
+      - file
+  /file/mkdir:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 路径
+        in: formData
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 上传文件
+      tags:
+      - file
+  /file/read:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 路径
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 读取文件
+      tags:
+      - file
+  /file/rename:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 旧的路径
+        in: formData
+        name: oldpath
+        required: true
+        type: string
+      - description: 新路径
+        in: formData
+        name: newpath
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 重命名目录或文件
+      tags:
+      - file
+  /notify/read/{id}:
+    put:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 标记notify已读
+      tags:
+      - notify
+  /notify/ws: {}
+  /share/add:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 要分享的文件路径
+        in: formData
+        name: path
+        required: true
+        type: string
+      - description: 名称
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: 描述
+        in: formData
+        name: comment
+        required: true
+        type: string
+      - description: 是否只读
+        in: formData
+        name: read_only
+        type: boolean
+      - description: 是否可写
+        in: formData
+        name: writeable
+        type: boolean
+      - description: 是否可浏览
+        in: formData
+        name: browseable
+        type: boolean
+      - description: 用户
+        in: formData
+        name: user
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 添加文件共享
+      tags:
+      - share
+  /share/del/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 删除分享
+      tags:
+      - share
+  /share/info/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 分享详情
+      tags:
+      - share
+  /share/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取列表
+      tags:
+      - share
+  /share/update/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 要分享的文件路径
+        in: formData
+        name: path
+        required: true
+        type: string
+      - description: 名称
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: 描述
+        in: formData
+        name: comment
+        required: true
+        type: string
+      - description: 是否只读
+        in: formData
+        name: read_only
+        type: boolean
+      - description: 是否可写
+        in: formData
+        name: writeable
+        type: boolean
+      - description: 是否可浏览
+        in: formData
+        name: browseable
+        type: boolean
+      - description: 用户
+        in: formData
+        name: user
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 更新分享详情
+      tags:
+      - share
+  /shortcuts/add:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: url
+        in: formData
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 添加shortcuts
+      tags:
+      - shortcuts
+  /shortcuts/del/{id}:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 删除shortcuts
+      tags:
+      - shortcuts
+  /shortcuts/edit:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: title
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: url
+        in: formData
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 编辑shortcuts
+      tags:
+      - shortcuts
+  /shortcuts/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: User name
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: password
+        in: formData
+        name: pwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取短链列表
+      tags:
+      - shortcuts
+  /sys/chackversion:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 系统信息
+      tags:
+      - sys
+  /task/completion/{id}:
+    put:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 标记task已完成
+      tags:
+      - task
+  /task/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取task列表
+      tags:
+      - task
+  /user/changhead:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 用户头像
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 修改配置文件
+      tags:
+      - user
+  /user/changuserinfo:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: User Name
+        in: formData
+        name: username
+        type: string
+      - description: Email
+        in: formData
+        name: email
+        type: string
+      - description: Description
+        in: formData
+        name: description
+        type: string
+      - description: Password
+        in: formData
+        name: pwd
+        type: string
+      - description: Old password
+        in: formData
+        name: oldpwd
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 修改用户信息
+      tags:
+      - user
+  /user/changusername:
+    put:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: User name
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Old user name
+        in: formData
+        name: oldname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 修改用户名
+      tags:
+      - user
+  /user/changuserpwd:
+    put:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Password
+        in: formData
+        name: pwd
+        required: true
+        type: string
+      - description: Old password
+        in: formData
+        name: oldpwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 修改密码
+      tags:
+      - user
+  /user/info:
+    get:
+      consumes:
+      - mapplication/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取用户详情
+      tags:
+      - user
+  /user/login:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: User name
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: password
+        in: formData
+        name: pwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: 登录
+      tags:
+      - user
+  /user/setusernamepwd:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: User name
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: password
+        in: formData
+        name: pwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 设置用户名和密码
+      tags:
+      - user
+  /zerotier/create:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: create new network
+      tags:
+      - zerotier
+  /zerotier/edit/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: network id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: json数据
+        in: formData
+        name: json
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 修改网络
+      tags:
+      - zerotier
+  /zerotier/info/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: network id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取zerotier网络详情
+      tags:
+      - zerotier
+  /zerotier/islogin:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: false:需要登录，true:不需要登录
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 是否需要登录zerotier
+      tags:
+      - zerotier
+  /zerotier/join/{id}:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: network id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 加入网络
+      tags:
+      - zerotier
+  /zerotier/joined/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取已加入的网络
+      tags:
+      - zerotier
+  /zerotier/leave/{id}:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: network id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取zerotier网络列表
+      tags:
+      - zerotier
+  /zerotier/list:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取zerotier网络列表
+      tags:
+      - zerotier
+  /zerotier/login:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: User name
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: password
+        in: formData
+        name: pwd
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 登录zerotier获取token
+      tags:
+      - zerotier
+  /zerotier/member/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: network id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 网络列表
+      tags:
+      - zerotier
+  /zerotier/member/{id}/del/{mId}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: network id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: member_id
+        in: path
+        name: mId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 删除网络中的用户
+      tags:
+      - zerotier
+  /zerotier/member/{id}/edit/{mId}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: network id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: mId
+        in: path
+        name: mId
+        required: true
+        type: string
+      - description: json数据
+        in: formData
+        name: json
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 修改网络用户信息
+      tags:
+      - zerotier
+  /zerotier/network/{id}/del:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: network id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 删除网络
+      tags:
+      - zerotier
+  /zerotier/register:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: first name
+        in: formData
+        name: firstName
+        required: true
+        type: string
+      - description: password
+        in: formData
+        name: pwd
+        required: true
+        type: string
+      - description: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: last name
+        in: formData
+        name: lastName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 注册zerotier
+      tags:
+      - zerotier
+  /zima/getcpuinfo:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取cpu信息
+      tags:
+      - zima
+  /zima/getdiskinfo:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取硬盘信息
+      tags:
+      - zima
+  /zima/getinfo:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取信息
+      tags:
+      - zima
+  /zima/getmeminfo:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取内存信息
+      tags:
+      - zima
+  /zima/getnetinfo:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取网络信息
+      tags:
+      - zima
+  /zima/sysinfo:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      security:
+      - ApiKeyAuth: []
+      summary: 获取信息系统信息
+      tags:
+      - zima
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -1,0 +1,8 @@
+# copy to /etc/systemd/system path
+[Unit]
+Description=Mount USB Drive on %i
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/oasis/util/shell/usb-mount.sh add %i
+ExecStop=/oasis/util/shell/usb-mount.sh remove %i

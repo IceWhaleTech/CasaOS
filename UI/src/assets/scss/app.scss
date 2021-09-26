@@ -1,0 +1,429 @@
+@import "~bulma/sass/utilities/initial-variables";
+@import "~bulma/sass/utilities/functions";
+// 1. Set your own initial variables and derived
+//    variables in _variables.scss
+@import "variables";
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;1,100;1,300;1,400;1,500;1,700&display=swap");
+
+// 2. Setup your Custom Colors
+$linkedin: #0077b5;
+$linkedin-invert: findColorInvert($linkedin);
+$twitter: #55acee;
+$twitter-invert: findColorInvert($twitter);
+$github: #333;
+$github-invert: findColorInvert($github);
+
+@import "~bulma/sass/utilities/derived-variables";
+
+// 3. Add new color variables to the color map.
+$addColors: (
+  "twitter": (
+    $twitter,
+    $twitter-invert,
+  ),
+  "linkedin": (
+    $linkedin,
+    $linkedin-invert,
+  ),
+  "github": (
+    $github,
+    $github-invert,
+  ),
+);
+$colors: map-merge($colors, $addColors);
+
+@import "~bulma";
+@import "~buefy/src/scss/buefy";
+
+$backDropColor: rgba(123, 123, 123, 0.16);
+$backDropBlur: blur(1rem);
+$backDropBorderRadius: 0.5rem;
+
+// 4. Provide custom buefy overrides and site styles here
+body,
+html {
+  overflow: hidden;
+  font-family: "Roboto", sans-serif;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+.top-bar {
+  position: relative;
+  z-index: 10;
+
+  height: 3rem;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(180.282px);
+  .navbar-brand {
+    .dropdown-menu {
+      margin-top: 0.5rem;
+      min-width: 20rem;
+      .dropdown-content {
+        .dropdown-item {
+          padding: 1.25rem;
+          text-align: left;
+          .item {
+            height: 2rem;
+          }
+        }
+      }
+    }
+  }
+  .field {
+    line-height: 1rem;
+  }
+  .switch {
+    &.is-flex-direction-row-reverse {
+      .control-label {
+        padding-left: 0;
+        padding-right: calc(0.75em - 1px);
+      }
+    }
+  }
+  .update-container {
+    .button.is-rounded {
+      border-radius: 9999px !important;
+      padding-left: calc(1em + 0.25em);
+      padding-right: calc(1em + 0.25em);
+    }
+  }
+  .button{
+    &.is-small{
+      height: 2em;
+    }
+  }
+}
+
+.brand-bar {
+  position: fixed;
+  left: 2rem;
+  bottom: 2rem;
+}
+
+.contact-bar {
+  position: fixed;
+  right: 2rem;
+  bottom: 2rem;
+  height: 3.5rem;
+  background: rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(24px);
+  border-radius: 4px;
+  font-size: 1.5rem;
+  a {
+    color: $white;
+    margin: 0.5rem;
+    display: flex;
+    align-items: center;
+    &:hover {
+      color: #0077b5;
+    }
+  }
+}
+
+.contents {
+  flex: 1;
+  overflow: auto;
+}
+
+.side-bar {
+  width: 16rem;
+  position: fixed;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 17.5rem;
+}
+
+.pt-7 {
+  padding-top: 4rem;
+}
+
+.pt-55 {
+  padding-top: 2rem;
+}
+.p-55 {
+  padding: 2rem !important;
+}
+.button.is-light {
+  background-color: #a6afb9;
+  color: white;
+}
+.label {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.button,
+.input,
+.textarea,
+.taginput .taginput-container.is-focusable,
+.select select,
+.file-cta,
+.file-name,
+.pagination-previous,
+.pagination-next,
+.pagination-link,
+.pagination-ellipsis {
+  &:focus {
+    box-shadow: none;
+  }
+}
+.image.is-72x72 {
+  height: 72px;
+  width: 72px;
+}
+
+// widgets
+.widget {
+  background: $backDropColor;
+  backdrop-filter: $backDropBlur;
+  border-radius: $backDropBorderRadius;
+  padding: 0.875rem 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+// Cards
+.wuji-card {
+  background: $backDropColor;
+  backdrop-filter: $backDropBlur;
+  border-radius: $backDropBorderRadius;
+  padding: 1.5rem;
+  color: $white;
+  position: relative;
+
+  .info {
+    flex: 1;
+    margin-right: 1rem;
+    color: white;
+  }
+
+  .simg {
+    img {
+      border-radius: 4px;
+    }
+  }
+  .icon-img {
+    position: relative;
+    &.stop::after {
+      position: absolute;
+      content: "";
+      width: 0.75rem;
+      height: 0.75rem;
+      background-color: #ff1616;
+      border-radius: 50%;
+      right: -0.375rem;
+      top: -0.375rem;
+    }
+    img {
+      border-radius: 8px;
+      margin: 0 auto;
+    }
+  }
+  .b-image-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    &.stop::after {
+      position: absolute;
+      content: "";
+      width: 0.75rem;
+      height: 0.75rem;
+      background-color: #ff1616;
+      border-radius: 50%;
+      right: -0.375rem;
+      top: -0.375rem;
+    }
+    img {
+      border-radius: 8px;
+      margin: 0 auto;
+    }
+  }
+  .action-btn {
+    position: absolute;
+    right: 0.5rem;
+    top: 1rem;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.2s;
+  }
+  p {
+    font-weight: 500;
+  }
+  .one-line {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow: hidden;
+  }
+  .two-line {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  &:hover {
+    .action-btn {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+  a {
+    color: white;
+    p {
+      color: white;
+    }
+  }
+}
+.flex1 {
+  flex: 1;
+}
+.title-bar {
+  margin-bottom: 1.5rem;
+  .title {
+    flex: 1;
+    margin-bottom: 0;
+  }
+}
+.ii {
+  .dropdown-menu {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: $backDropBlur;
+    border-radius: $backDropBorderRadius;
+    overflow: hidden;
+    padding-top: 0;
+
+    .dropdown-content {
+      background: none;
+      padding: 0;
+      .button {
+        border-radius: 0;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+        &.is-text {
+          text-decoration: none;
+          justify-content: flex-start;
+          outline: none;
+          transition: all 0.2s;
+          border: none !important;
+          &.running {
+            color: #779e2a !important;
+          }
+          &.exited {
+            color: #ff1616 !important;
+          }
+        }
+        &:active {
+          background: none;
+          outline: none;
+        }
+        &:focus {
+          background: none;
+          box-shadow: none;
+          outline: none;
+        }
+      }
+      .bbor {
+        overflow: hidden;
+        border-top: #2c3e50 1px solid;
+        .is-text {
+          text-decoration: none;
+          justify-content: center !important ;
+        }
+        .column:first-child {
+          border-right: #2c3e50 1px solid;
+        }
+      }
+    }
+  }
+}
+//Panel
+.modal-background {
+  background: rgba(0, 0, 0, 0.8);
+}
+.modal-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: $backDropBlur;
+  border-radius: $backDropBorderRadius;
+  .modal-card-head,
+  .modal-card-body,
+  .modal-card-foot {
+    background-color: transparent;
+    border: none;
+  }
+  .modal-card-head {
+    padding: 3rem;
+  }
+  .modal-card-body {
+    padding: 0 3rem;
+    .button.is-static,
+    .input,
+    .textarea,
+    .taginput .taginput-container.is-focusable,
+    .select select,
+    .file-cta,
+    .file-name,
+    .pagination-previous,
+    .pagination-next,
+    .pagination-link,
+    .pagination-ellipsis {
+      font-size: 0.875rem;
+      height: 2.714em;
+      border: 1px solid #cfcfcf !important;
+      border-radius: 4px;
+      &:focus {
+        box-shadow: none;
+      }
+    }
+    .media {
+      padding: 0rem;
+    }
+    .field:last-child {
+      margin-bottom: 0.5rem;
+    }
+    .field-body {
+      .field:last-child {
+        margin-bottom: 0rem;
+      }
+    }
+
+    .port-item:not(:last-child) {
+      .field {
+        margin-bottom: 0;
+      }
+    }
+  }
+  .modal-card-foot {
+    padding: 1rem 3rem 2rem 3rem;
+    .button {
+      border-radius: 9999px;
+      padding-left: calc(1em + 0.25em);
+      padding-right: calc(1em + 0.25em);
+    }
+  }
+}
+
+.import-area .textarea {
+  max-height: 40em;
+  min-height: 16em;
+}
+
+.app-card {
+  .loading-background {
+    background: none !important;
+    border-radius: $backDropBorderRadius;
+  }
+}
