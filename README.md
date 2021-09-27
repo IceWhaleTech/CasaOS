@@ -1,4 +1,4 @@
-# CasaOS - A simple, easy to use, beautiful open source home server system.
+# CasaOS - A simple, easy-to-use, elegant open-source home server system.
 
 ![CasaOS](https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_aldeyjarfoss.png)
 
@@ -8,35 +8,34 @@
 [![GitHub Stars](https://img.shields.io/github/stars/IceWhaleTech/CasaOS?color=162453&logo=github&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/stargazers)
 [![Discord](https://img.shields.io/discord/884667213326463016?color=162453&label=Chat&logo=discord&logoColor=fff&style=flat-square)](https://discord.gg/Gx4BCEtHjx)
 
-CasaOS is an open source home server system based on Docker ecology and designed for home scenarios. It is committed to building the world's most simple, easy-to-use and beautiful home intelligence hub system. 
+CasaOS is an open-source home server system based on the Docker ecosystem and designed for home scenarios. It is committed to building the world's most simple, easy-to-use, and elegant home hub system.
 
-The team promotes a community-driven collaborative innovation model to create a home intelligence hub through open communication with global enthusiasts and developers.
+IceWhale team believes that through community-driven collaborative innovation and open communication with global developers, we can reshape the digital home experience like never before.
 
 
 ## Features
 
- - UI Designed for home scenarios - simple, beautiful and easy to use
- - Custom Docker app installation in 3 steps
+ - UI designed for home scenarios - simple, elegant, and easy-to-use
+ - Quick Docker app installation with only three steps
  - Automatic Docker application management
- - Private Cloud App Store 🚧
- - Home file data/digital asset management 🚧
- - Smart Home Device Management 🚧
+ - App Store for private cloud 🚧
+ - Home data/digital asset management 🚧
+ - Smart home manager 🚧
 
-🚧 is under development...
+🚧 is under development.
 
-We are actively moving forward with development and welcome you to discuss ideas with us in [Discord](https://discord.gg/Gx4BCEtHjx)!
+We are actively moving forward with development, and you are more than welcome to share any idea in the [Discord server](https://discord.gg/Gx4BCEtHjx)!
 
 
 ## Community
 
-Casa is derived from the Spanish word for "home".
-The CasaOS project originated as a pre-installed system for IceWhale's hardware product ZimaBoard.
+The word Casa comes from the Spanish word for "home". Project CasaOS originated as a pre-installed system for crowdfunded product [ZimaBoard](https://www.zimaboard.com) on Kickstarter.
 
-After researching a large number of operating systems and software on the market, the team found that there was no server system designed for home scenarios.
+After looking at many systems and software on the market, the team found no server system designed for home scenarios, sadly true.
 
-So, we chose to launch this open source project to develop CasaOS with our friends in the community and you.
+So, we set out to build this open source project to develop CasaOS with our own hands, everyone in the community, and you.
 
-> Sincerely welcome you to propose and discuss your great ideas in [Discord](https://discord.gg/Gx4BCEtHjx)!
+> A warm welcome for you to share and discuss your great ideas in the [Discord server](https://discord.gg/Gx4BCEtHjx)!
 
 [![Discord Card](https://discordapp.com/api/guilds/884667213326463016/widget.png?style=banner2)](https://discord.gg/Gx4BCEtHjx)
 
@@ -45,7 +44,7 @@ So, we chose to launch this open source project to develop CasaOS with our frien
 
 > ⚠️ Note: 
 > 
-> CasaOS is still in a very early version and may be very different from the final release. Feel free to experience and discuss with us in the [Discord](https://discord.gg/Gx4BCEtHjx)!
+> CasaOS is still in the early development stage and may vary significantly with the final release. Feel free to test run and share your feedback in the [Discord server](https://discord.gg/Gx4BCEtHjx)!
 
 ### System Compatibility
 
@@ -57,7 +56,7 @@ So, we chose to launch this open source project to develop CasaOS with our frien
 
 ### Quick Setup CasaOS
 
-Install a fresh system from the above list and run this command:
+Fresh install a system from the above list and run the below command:
 
 ```sh
 curl -fsSL https://get.icewhale.io/casaos.sh | bash
@@ -67,9 +66,9 @@ curl -fsSL https://get.icewhale.io/casaos.sh | bash
 
 **v 0.1.x**
 
- - [x] A beautiful UI for home
+ - [x] An elegant UI for home scenarios
  - [x] Custom installation of Docker Apps
- - [x] Docker Apps update, stop, uninstall, restart, etc.
+ - [x] Update, stop, uninstall, restart, etc. of Docker apps
  - [x] Docker CLI parser
  - [x] System Update
  - [ ] Getting Started tutorial
@@ -86,4 +85,4 @@ curl -fsSL https://get.icewhale.io/casaos.sh | bash
   - Zyaiire Ann
   - John Guan
 - CasaOS Community
-  - Waiting for you
+  - More seats vacant for the right person
