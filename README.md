@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/static/v1?label=CasaOS&message=v0.1.0&color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS)
 [![Pull Requests](https://img.shields.io/github/issues-pr/IceWhaleTech/CasaOS?color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/pulls)
 [![Issues](https://img.shields.io/github/issues/IceWhaleTech/CasaOS?color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/issues)
-[![Ideas](https://img.shields.io/github/stars/IceWhaleTech/CasaOS?color=162453&logo=github&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/stargazers)
+[![GitHub Stars](https://img.shields.io/github/stars/IceWhaleTech/CasaOS?color=162453&logo=github&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/stargazers)
 [![Discord](https://img.shields.io/discord/884667213326463016?color=162453&label=Chat&logo=discord&logoColor=fff&style=flat-square)](https://discord.gg/Gx4BCEtHjx)
 
 CasaOS is an open source home server system based on Docker ecology and designed for home scenarios. It is committed to building the world's most simple, easy-to-use and beautiful home intelligence hub system. 
