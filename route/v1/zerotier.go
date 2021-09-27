@@ -2,12 +2,12 @@ package v1
 
 import (
 	json2 "encoding/json"
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"oasis/model"
-	"oasis/pkg/config"
-	oasis_err2 "oasis/pkg/utils/oasis_err"
-	"oasis/service"
 )
 
 // @Summary 登录zerotier获取token

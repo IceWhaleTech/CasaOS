@@ -1,7 +1,7 @@
 package sort
 
 import (
-	"oasis/model"
+	"github.com/IceWhaleTech/CasaOS/model"
 	"sort"
 )
 

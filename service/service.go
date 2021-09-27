@@ -1,8 +1,8 @@
 package service
 
 import (
+	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"gorm.io/gorm"
-	loger2 "oasis/pkg/utils/loger"
 )
 
 var MyService Repository
@@ -40,7 +40,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		shareDirectory: NewShareDirService(db, log),
 		task:           NewTaskService(db, log),
 		rely:           NewRelyService(db, log),
-		system:         NewSystemService(),
+		system:         NewSystemService(log),
 		shortcuts:      NewShortcutsService(db),
 	}
 }

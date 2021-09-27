@@ -2,10 +2,10 @@ package sqlite
 
 import (
 	"fmt"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"oasis/pkg/utils/file"
-	model2 "oasis/service/model"
 	"time"
 )
 

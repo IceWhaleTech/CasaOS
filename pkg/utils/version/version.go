@@ -2,11 +2,11 @@ package version
 
 import (
 	json2 "encoding/json"
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/tidwall/gjson"
-	"oasis/model"
-	"oasis/pkg/config"
-	"oasis/pkg/utils/httper"
-	"oasis/types"
 	"strconv"
 	"strings"
 )

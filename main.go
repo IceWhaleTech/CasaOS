@@ -3,15 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
+	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/route"
+	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
 	"net/http"
-	"oasis/pkg/config"
-	"oasis/pkg/sqlite"
-	loger2 "oasis/pkg/utils/loger"
-	"oasis/route"
-	"oasis/service"
 	"time"
 )
 

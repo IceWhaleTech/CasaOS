@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/IceWhaleTech/CasaOS/pkg/ddns"
 	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
-	"oasis/pkg/ddns"
 	"time"
 )
 

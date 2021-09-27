@@ -1,13 +1,13 @@
 package v1
 
 import (
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/service"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/url"
-	"oasis/model"
-	"oasis/pkg/utils/oasis_err"
-	"oasis/service"
-	model2 "oasis/service/model"
 )
 
 // @Summary 获取短链列表

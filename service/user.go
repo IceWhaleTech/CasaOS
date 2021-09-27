@@ -1,9 +1,9 @@
 package service
 
 import (
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"io"
 	"mime/multipart"
-	"oasis/pkg/config"
 	"os"
 )
 

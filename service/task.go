@@ -2,13 +2,13 @@ package service
 
 import (
 	json2 "encoding/json"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
+	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/tidwall/gjson"
 	"gorm.io/gorm"
-	"oasis/pkg/config"
-	httper2 "oasis/pkg/utils/httper"
-	loger2 "oasis/pkg/utils/loger"
-	"oasis/service/model"
-	"oasis/types"
 	"strconv"
 )
 

@@ -3,12 +3,12 @@ package service
 import (
 	json2 "encoding/json"
 	"fmt"
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/tidwall/gjson"
-	"oasis/model"
-	"oasis/pkg/config"
-	command2 "oasis/pkg/utils/command"
-	loger2 "oasis/pkg/utils/loger"
 	"strconv"
 	"strings"
 )

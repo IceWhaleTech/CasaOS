@@ -1,8 +1,8 @@
 package ip_helper
 
 import (
+	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"net"
-	httper2 "oasis/pkg/utils/httper"
 	"strings"
 )
 

@@ -1,13 +1,12 @@
 package zerotier
 
 import (
+	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/tidwall/gjson"
 	"net/http"
-	httper2 "oasis/pkg/utils/httper"
 )
 
-func PostData(url,token string, data string) interface{} {
-
+func PostData(url, token string, data string) interface{} {
 
 	body, code := httper2.ZeroTierPostJson(url, data, GetHead(token))
 

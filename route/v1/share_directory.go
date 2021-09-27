@@ -1,12 +1,12 @@
 package v1
 
 import (
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/service"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"oasis/model"
-	"oasis/pkg/utils/oasis_err"
-	"oasis/service"
-	model2 "oasis/service/model"
 	"strconv"
 )
 

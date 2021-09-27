@@ -1,6 +1,6 @@
 package docker_base
 
-import "oasis/model"
+import "github.com/IceWhaleTech/CasaOS/model"
 
 //过滤mysql关键字
 func MysqlFilter(c MysqlConfig, envs model.EnvArrey) model.EnvArrey {

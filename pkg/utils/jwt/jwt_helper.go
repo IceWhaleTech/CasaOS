@@ -2,11 +2,11 @@ package jwt
 
 import (
 	"fmt"
+	"github.com/IceWhaleTech/CasaOS/model"
+	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"oasis/model"
-	loger2 "oasis/pkg/utils/loger"
-	oasis_err2 "oasis/pkg/utils/oasis_err"
 	"time"
 )
 

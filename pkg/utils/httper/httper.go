@@ -3,11 +3,11 @@ package httper
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/tidwall/gjson"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"oasis/pkg/config"
 	"time"
 )
 

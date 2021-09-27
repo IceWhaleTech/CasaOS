@@ -1,7 +1,7 @@
 package model
 
 import (
-	"oasis/model"
+	"github.com/IceWhaleTech/CasaOS/model"
 )
 
 const CONTAINERTABLENAME = "o_container"

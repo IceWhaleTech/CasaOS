@@ -3,9 +3,9 @@
 package route
 
 import (
+	_ "github.com/IceWhaleTech/CasaOS/docs"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
-	_ "oasis/docs"
 )
 
 func init() {

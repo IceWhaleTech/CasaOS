@@ -1,10 +1,10 @@
 package service
 
 import (
-	"fmt"
-	"oasis/model"
-	"oasis/pkg/config"
-	command2 "oasis/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"strconv"
 )
 
@@ -14,11 +14,15 @@ type SystemService interface {
 	GetSystemConfigDebug() []string
 }
 type systemService struct {
+	log loger.OLog
 }
 
 func (s *systemService) UpdateSystemVersion(version string) {
-	fmt.Println("source  " + config.AppInfo.ProjectPath + "/shell/tools.sh ;update " + version)
-	command2.OnlyExec("source  " + config.AppInfo.ProjectPath + "/shell/tools.sh ;update " + version)
+	s.log.Error(version)
+	//command2.OnlyExec(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
+	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
+	s.log.Error(command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/tools.sh ;update " + version))
+	//s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
 }
 func (s *systemService) GetSystemConfigDebug() []string {
 	return command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetSysInfo")
@@ -58,6 +62,6 @@ func (s *systemService) UpSystemConfig(systemConfig model.SystemConfig) {
 	}
 	config.Cfg.SaveTo("conf/conf.ini")
 }
-func NewSystemService() SystemService {
-	return &systemService{}
+func NewSystemService(log loger.OLog) SystemService {
+	return &systemService{log: log}
 }

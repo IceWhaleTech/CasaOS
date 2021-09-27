@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
+	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/go-ini/ini"
 	"log"
-	"oasis/model"
 	"os"
 	"path"
 	"path/filepath"
@@ -55,7 +55,8 @@ func InitSetup(config string) {
 	mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)
-	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
+	//	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
+
 }
 
 //映射

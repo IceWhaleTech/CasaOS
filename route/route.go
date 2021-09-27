@@ -1,13 +1,13 @@
 package route
 
 import (
+	"github.com/IceWhaleTech/CasaOS/middleware"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
+	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
+	"github.com/IceWhaleTech/CasaOS/web"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"oasis/middleware"
-	"oasis/pkg/config"
-	jwt2 "oasis/pkg/utils/jwt"
-	v1 "oasis/route/v1"
-	"oasis/web"
 )
 
 var swagHandler gin.HandlerFunc
@@ -19,9 +19,10 @@ func InitRouter(swagHandler gin.HandlerFunc) *gin.Engine {
 	gin.SetMode(config.ServerInfo.RunMode)
 
 	r.StaticFS("/ui", http.FS(web.Static))
-	r.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "ui/")
-	})
+	r.GET("/", WebUIHome)
+	//r.GET("/", func(c *gin.Context) {
+	//	c.Redirect(http.StatusMovedPermanently, "ui/")
+	//})
 	if swagHandler != nil {
 		r.GET("/swagger/*any", swagHandler)
 	}

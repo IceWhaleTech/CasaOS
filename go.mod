@@ -1,4 +1,4 @@
-module oasis
+module github.com/IceWhaleTech/CasaOS
 
 go 1.16
 
@@ -50,7 +50,6 @@ require (
 	golang.org/x/tools v0.1.3 // indirect
 	google.golang.org/grpc v1.39.0 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
-	gorm.io/driver/mysql v1.1.1 // indirect
 	gorm.io/driver/sqlite v1.1.5
 	gorm.io/gorm v1.21.15
 	src.techknowlogick.com/xgo v1.4.1-0.20210909190026-ce016894db20 // indirect

@@ -1,12 +1,12 @@
 package v1
 
 import (
+	"github.com/IceWhaleTech/CasaOS/model"
+	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/v3/disk"
 	"net/http"
-	"oasis/model"
-	oasis_err2 "oasis/pkg/utils/oasis_err"
-	"oasis/service"
 	"strings"
 	"time"
 	"unsafe"

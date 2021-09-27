@@ -2,9 +2,9 @@ package loger
 
 import (
 	"fmt"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	file2 "github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"log"
-	"oasis/pkg/config"
-	file2 "oasis/pkg/utils/file"
 	"os"
 	"path/filepath"
 	"runtime"

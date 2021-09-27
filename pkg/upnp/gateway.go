@@ -1,9 +1,9 @@
 package upnp
 
 import (
+	ip_helper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
 	"github.com/pkg/errors"
 	"net"
-	ip_helper2 "oasis/pkg/utils/ip_helper"
 	"strings"
 )
 

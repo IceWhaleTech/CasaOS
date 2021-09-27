@@ -2,15 +2,15 @@ package v1
 
 import (
 	"fmt"
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
+	"github.com/IceWhaleTech/CasaOS/service"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"oasis/model"
-	"oasis/pkg/config"
-	"oasis/pkg/utils/oasis_err"
-	"oasis/pkg/utils/version"
-	"oasis/service"
-	model2 "oasis/service/model"
-	"oasis/types"
 	"strconv"
 	"time"
 )
@@ -51,8 +51,10 @@ func CheckVersion(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/update [post]
 func SystemUpdate(c *gin.Context) {
+	fmt.Println("开始更新")
 	need, version := version.IsNeedUpdate()
 	if need {
+		fmt.Println("进入更新")
 		service.MyService.System().UpdateSystemVersion(version.Version)
 	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})

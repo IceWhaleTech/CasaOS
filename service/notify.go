@@ -1,9 +1,9 @@
 package service
 
 import (
+	"github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"gorm.io/gorm"
-	"oasis/service/model"
-	"oasis/types"
 )
 
 type NotifyServer interface {

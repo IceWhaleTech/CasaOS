@@ -1,11 +1,11 @@
 package service
 
 import (
+	ip_helper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
+	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/service/ddns"
+	"github.com/IceWhaleTech/CasaOS/service/model"
 	"gorm.io/gorm"
-	ip_helper2 "oasis/pkg/utils/ip_helper"
-	loger2 "oasis/pkg/utils/loger"
-	"oasis/service/ddns"
-	"oasis/service/model"
 	"os/exec"
 )
 

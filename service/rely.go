@@ -1,9 +1,9 @@
 package service
 
 import (
+	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"gorm.io/gorm"
-	loger2 "oasis/pkg/utils/loger"
-	model2 "oasis/service/model"
 )
 
 type RelyService interface {

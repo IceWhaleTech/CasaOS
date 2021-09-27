@@ -1,11 +1,11 @@
 package service
 
 import (
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/service/model"
 	"gorm.io/gorm"
-	"oasis/pkg/config"
-	"oasis/pkg/utils/command"
-	loger2 "oasis/pkg/utils/loger"
-	"oasis/service/model"
 	"os"
 	"strconv"
 )

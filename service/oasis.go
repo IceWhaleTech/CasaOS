@@ -2,11 +2,11 @@ package service
 
 import (
 	json2 "encoding/json"
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/tidwall/gjson"
-	"oasis/model"
-	"oasis/pkg/config"
-	httper2 "oasis/pkg/utils/httper"
-	model2 "oasis/service/model"
 	"strconv"
 )
 

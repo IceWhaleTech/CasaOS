@@ -2,13 +2,13 @@ package v1
 
 import (
 	json2 "encoding/json"
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/service"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"oasis/model"
-	"oasis/pkg/utils/oasis_err"
-	"oasis/service"
-	"oasis/types"
 	"time"
 )
 

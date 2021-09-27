@@ -1,14 +1,14 @@
 package v1
 
 import (
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/sort"
+	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"oasis/model"
-	"oasis/pkg/utils/file"
-	oasis_err2 "oasis/pkg/utils/oasis_err"
-	port2 "oasis/pkg/utils/port"
-	"oasis/pkg/utils/sort"
-	"oasis/service"
 	"strconv"
 )
 

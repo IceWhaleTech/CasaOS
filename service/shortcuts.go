@@ -1,8 +1,8 @@
 package service
 
 import (
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"gorm.io/gorm"
-	model2 "oasis/service/model"
 )
 
 type ShortcutsService interface {

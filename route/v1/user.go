@@ -2,13 +2,13 @@ package v1
 
 import (
 	"fmt"
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
+	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"oasis/model"
-	"oasis/pkg/config"
-	jwt2 "oasis/pkg/utils/jwt"
-	oasis_err2 "oasis/pkg/utils/oasis_err"
-	"oasis/service"
 )
 
 var user_service service.UserService
