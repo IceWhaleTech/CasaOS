@@ -2,7 +2,7 @@
 
 ![CasaOS](https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_aldeyjarfoss.png)
 
-[![Version](https://img.shields.io/static/v1?label=CasaOS&message=v0.1.0&color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS)
+[![Version](https://img.shields.io/github/v/release/IceWhaleTech/CasaOS?color=162453&label=CasaOS&style=flat-square)](https://github.com/IceWhaleTech/CasaOS)
 [![Pull Requests](https://img.shields.io/github/issues-pr/IceWhaleTech/CasaOS?color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/pulls)
 [![Issues](https://img.shields.io/github/issues/IceWhaleTech/CasaOS?color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/IceWhaleTech/CasaOS?color=162453&logo=github&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/stargazers)
