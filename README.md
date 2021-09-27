@@ -76,13 +76,10 @@ curl -fsSL https://get.icewhale.io/casaos.sh | bash
  - [ ] App config file import and export
  - [ ] macvlan network mode
 
-## Contributors
-
-- Icewhale Technology
-  - Jerry Liu
-  - Link Liang
-  - Ober Zhang
-  - Zyaiire Ann
-  - John Guan
-- CasaOS Community
-  - More seats vacant for the right person
+## Maintainers
+ - Jerry Liu
+ - Link Liang
+ - Ober Zhang
+ - Zyaire Ann
+ - John Guan
+ - More seats vacant for the right person
