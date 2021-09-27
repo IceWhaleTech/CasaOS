@@ -867,9 +867,13 @@ func UpdateSetting(c *gin.Context) {
 
 	}
 
-	if !reflect.DeepEqual(m.Ports, appInfo.Ports) || !reflect.DeepEqual(m.Envs, appInfo.Envs) || !reflect.DeepEqual(m.Volumes, appInfo.Volumes) || m.PortMap != appInfo.PortMap {
+	//如果容器端口均未修改,这不进行处理
+	portsStr, _ := json2.Marshal(m.Ports)
 
-		service.MyService.Docker().DockerContainerRemove(id)
+	envsStr, _ := json2.Marshal(m.Envs)
+	volumesStr, _ := json2.Marshal(m.Volumes)
+	devicesStr, _ := json2.Marshal(m.Devices)
+	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(string(volumesStr), appInfo.Volumes) || m.PortMap != appInfo.PortMap {
 
 		var err error
 
@@ -879,8 +883,9 @@ func UpdateSetting(c *gin.Context) {
 			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
 			return
 		}
+		service.MyService.Docker().DockerContainerRemove(id)
 
-	} else if !reflect.DeepEqual(m.Devices, appInfo.Devices) || m.CpuShares != appInfo.CpuShares || m.Memory != appInfo.Memory || m.Restart != appInfo.Restart {
+	} else if !reflect.DeepEqual(string(devicesStr), appInfo.Devices) || m.CpuShares != appInfo.CpuShares || m.Memory != appInfo.Memory || m.Restart != appInfo.Restart {
 		service.MyService.Docker().DockerContainerUpdate(cpd, id)
 	}
 
@@ -954,14 +959,10 @@ func UpdateSetting(c *gin.Context) {
 		//}
 	}
 
-	//如果容器端口均未修改,这不进行处理
-	portsStr, _ := json2.Marshal(m.Ports)
-	envsStr, _ := json2.Marshal(m.Envs)
-	volumesStr, _ := json2.Marshal(m.Volumes)
-	devicesStr, _ := json2.Marshal(m.Devices)
 	appInfo.ContainerId = containerId
 	appInfo.PortMap = m.PortMap
 	appInfo.Label = m.Label
+	appInfo.Index = m.Index
 	appInfo.Ports = string(portsStr)
 	appInfo.Envs = string(envsStr)
 	appInfo.Icon = m.Icon

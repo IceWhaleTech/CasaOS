@@ -410,7 +410,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 			}
 
 		}
-		err := file.IsNotExistMkDir(path)
+		err = file.IsNotExistMkDir(path)
 		if err != nil {
 			ds.log.Error("mkdir error", err)
 			continue
