@@ -1,0 +1,3 @@
+[submodule "UI/CasaOS-UI"]
+	path = UI/CasaOS-UI
+	url = https://github.com/IceWhaleTech/CasaOS-UI.git
