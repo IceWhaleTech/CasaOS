@@ -27,7 +27,7 @@ The team promotes a community-driven collaborative innovation model to create a 
 We are actively moving forward with development and welcome you to discuss ideas with us in [Discord](https://discord.gg/Gx4BCEtHjx)!
 
 
-## Comunity
+## Community
 
 Casa is derived from the Spanish word for "home".
 The CasaOS project originated as a pre-installed system for IceWhale's hardware product ZimaBoard.
