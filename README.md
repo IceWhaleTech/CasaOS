@@ -50,8 +50,8 @@ So, we chose to launch this open source project to develop CasaOS with our frien
 ### System Compatibility
 
  - Ubuntu Server 20.04 amd64 (✅ Recommend, Tested)
- - Debian 11 amd64 (⚠️ Not fully tested yet)
- - OpenWrt 21.02 amd64 (⚠️ Not fully tested yet)
+ - Debian 11 amd64 (⚠️ Not Fully Tested Yet)
+ - OpenWrt 21.02 amd64 (⚠️ Not Fully Tested Yet)
  - Raspberry Pi OS aarch64/arm64 (🚧 Under Planning)
  - OpenWrt 21.02 aarch64/arm64 (🚧 Under Planning)
 
