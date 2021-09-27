@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt"
 	"time"
 )
 
