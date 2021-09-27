@@ -4,7 +4,7 @@ build: build-ui build-backend
 
 
 build-ui:
-	cd UI && yarn install && yarn build
+	cd CasaOS-UI && yarn install && yarn build
 
 build-backend:
 	export CGO_ENABLED=1;export CGO_LDFLAGS=-static;go build -o ./casa main.go;upx --lzma --best casa
