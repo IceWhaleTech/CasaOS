@@ -1,6 +1,6 @@
 # CasaOS - A simple, easy to use, beautiful open source home server system.
 
-![CasaOS](https://github.com/IceWhaleTech/logo/raw/main/casaos/casaos_banner_aldeyjarfoss.png)
+![CasaOS](https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_aldeyjarfoss.png)
 
 [![Version](https://img.shields.io/static/v1?label=CasaOS&message=v0.1.0&color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS)
 [![Pull Requests](https://img.shields.io/github/issues-pr/IceWhaleTech/CasaOS?color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/pulls)
