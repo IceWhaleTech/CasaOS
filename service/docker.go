@@ -49,6 +49,7 @@ type DockerService interface {
 	DockerImageRemove(name string) error
 	DockerContainerRemove(name string) error
 	DockerContainerStop(id string) error
+	DockerContainerUpdateName(name, id string) (err error)
 	DockerContainerUpdate(m model.CustomizationPostData, id string) (err error)
 	DockerContainerLog(name string) (string, error)
 	DockerContainerCommit(name string)
@@ -698,6 +699,23 @@ func (ds *dockerService) DockerContainerUpdate(m model.CustomizationPostData, id
 		return err
 	}
 
+	return
+}
+
+//更新容器名称
+//param name 容器名称
+//param id 老的容器名称
+func (ds *dockerService) DockerContainerUpdateName(name, id string) (err error) {
+	cli, err := client2.NewClientWithOpts(client2.FromEnv)
+	if err != nil {
+		return err
+	}
+	defer cli.Close()
+
+	err = cli.ContainerRename(context.Background(), id, name)
+	if err != nil {
+		return err
+	}
 	return
 }
 

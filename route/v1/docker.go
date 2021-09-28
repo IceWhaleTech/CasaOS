@@ -875,15 +875,27 @@ func UpdateSetting(c *gin.Context) {
 	devicesStr, _ := json2.Marshal(m.Devices)
 	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(string(volumesStr), appInfo.Volumes) || m.PortMap != appInfo.PortMap {
 
+		var newUUid = uuid.NewV4().String()
 		var err error
 
-		containerId, err = service.MyService.Docker().DockerContainerCreate(appInfo.Image+":"+appInfo.Version, id, cpd, appInfo.NetModel)
+		containerId, err = service.MyService.Docker().DockerContainerCreate(appInfo.Image+":"+appInfo.Version, newUUid, cpd, appInfo.NetModel)
 
 		if err != nil {
 			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
 			return
 		}
-		service.MyService.Docker().DockerContainerRemove(id)
+
+		err = service.MyService.Docker().DockerContainerRemove(id)
+		if err != nil {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+			return
+		}
+
+		service.MyService.Docker().DockerContainerUpdateName(appInfo.CustomId, newUUid)
+		if err != nil {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+			return
+		}
 
 	} else if !reflect.DeepEqual(string(devicesStr), appInfo.Devices) || m.CpuShares != appInfo.CpuShares || m.Memory != appInfo.Memory || m.Restart != appInfo.Restart {
 		service.MyService.Docker().DockerContainerUpdate(cpd, id)

@@ -19,6 +19,7 @@ type TaskService interface {
 	Update(m *model.TaskDBModel)
 	Info(id string) model.TaskDBModel
 	SyncTaskService()
+	GetServerTasks() []model.TaskDBModel
 }
 
 type taskService struct {
@@ -60,7 +61,33 @@ func (s *taskService) Info(id string) model.TaskDBModel {
 	s.db.Where("id = ?", id).Delete(&m)
 	return m
 }
+func (s *taskService) GetServerTasks() []model.TaskDBModel {
+	var count int64
+	s.db.Model(&model.TaskDBModel{}).Count(&count)
+	head := make(map[string]string)
 
+	t := make(chan string)
+
+	go func() {
+		str := httper2.Get(config.ServerInfo.ServerApi+"/token", nil)
+
+		t <- gjson.Get(str, "data").String()
+	}()
+	head["Authorization"] = <-t
+
+	listS := httper2.Get(config.ServerInfo.ServerApi+"/v1/task/list/0?desc=true", head)
+
+	list := []model.TaskDBModel{}
+	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &list)
+
+	go func(list []model.TaskDBModel) {
+		for _, dbModel := range list {
+			dbModel.Id = 0
+			s.db.Create(&dbModel)
+		}
+	}(list)
+	return list
+}
 func (s *taskService) SyncTaskService() {
 	var count int64
 	s.db.Model(&model.TaskDBModel{}).Count(&count)
@@ -82,6 +109,7 @@ func (s *taskService) SyncTaskService() {
 
 	go func(list []model.TaskDBModel) {
 		for _, dbModel := range list {
+			dbModel.Id = 0
 			s.db.Create(&dbModel)
 		}
 	}(list)
@@ -105,11 +133,12 @@ func SyncTask(db *gorm.DB) {
 	list := []model.TaskDBModel{}
 	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &list)
 
-	go func(list []model.TaskDBModel) {
-		for _, dbModel := range list {
-			db.Create(&dbModel)
-		}
-	}(list)
+	//go func(list []model.TaskDBModel) {
+	//	for _, dbModel := range list {
+	//		dbModel.Id = 0
+	//		db.Create(&dbModel)
+	//	}
+	//}(list)
 }
 func NewTaskService(db *gorm.DB, log loger2.OLog) TaskService {
 	return &taskService{db: db, log: log}

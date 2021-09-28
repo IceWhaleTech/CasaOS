@@ -19,7 +19,8 @@ import (
 // @Success 200 {string} string "ok"
 // @Router /task/list [get]
 func GetTaskList(c *gin.Context) {
-	list := service.MyService.Task().List(true)
+	//list := service.MyService.Task().List(true)
+	list := service.MyService.Task().GetServerTasks()
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: list})
 }
 

@@ -1,3 +1,3 @@
 package types
 
-const CURRENTVERSION = "0.1.0"
+const CURRENTVERSION = "0.1.2"
