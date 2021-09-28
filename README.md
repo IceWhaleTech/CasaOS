@@ -13,18 +13,17 @@ CasaOS is an open-source home server system based on the Docker ecosystem and de
 IceWhale team believes that through community-driven collaborative innovation and open communication with global developers, we can reshape the digital home experience like never before.
 
 
-## Features
+## Key Features
 
  - UI designed for home scenarios - simple, elegant, and easy-to-use
- - Quick Docker app installation with only three steps
- - Automatic Docker application management
+ - Quick Docker app installation with only three steps, plus automatic management
  - App Store for private cloud 🚧
  - Home data/digital asset management 🚧
  - Smart home manager 🚧
 
 🚧 is under development.
 
-We are actively moving forward with development, and you are more than welcome to share any idea in the [Discord server](https://discord.gg/Gx4BCEtHjx)!
+We are actively moving forward with development, and you are more than welcome to share any idea with us!
 
 
 ## Community
@@ -84,4 +83,4 @@ curl -fsSL https://get.icewhale.io/casaos.sh | bash
  - Ober Zhang
  - Zyaire Ann
  - John Guan
- - More seats vacant for the right person
+ - Right here, waiting for YOU!
