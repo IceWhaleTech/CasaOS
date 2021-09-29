@@ -84,7 +84,7 @@ jobs:
           cd /workdir
           wget $PACK_SH_URL
           chmod +x $PACK_SH
-          /workdir/$PACK_SH
+          ./$PACK_SH
           echo "::set-output name=status::success"
           
       - name: Upload linux-amd64-casaos.tar.gz
