@@ -1,0 +1,102 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build CasaOS
+
+on:
+  release:
+    types:
+      - created
+  
+env:
+  REPO_URL: https://github.com/IceWhaleTech/CasaOS.git
+  REPO_BRANCH: main
+  PACK_SH_URL: https://raw.githubusercontent.com/jerrykuku/actions-casa/main/pack.sh
+  PACK_SH: pack.sh
+  TZ: Asia/Shanghai
+
+jobs:
+  xgo:
+    strategy:
+      fail-fast: false
+      matrix:
+        go_version:
+          - 1.17.1
+    runs-on: ubuntu-latest
+    steps:
+        
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.2.3
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        
+      - name: Initialization environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo timedatectl set-timezone "$TZ"
+          sudo mkdir -p /workdir
+          sudo chown $USER:$GROUPS /workdir
+          
+      - name: Clone source code
+        working-directory: /workdir
+        run: |
+          df -hT $PWD
+          git clone $REPO_URL -b $REPO_BRANCH --recursive casa
+          ln -sf /workdir/casa $GITHUB_WORKSPACE/casa
+          ls
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          
+      - name: Build frontend with nodejs and yarn
+        run: |
+          cd casa/UI
+          ls
+          yarn install
+          yarn build
+          
+      - name: Build with xgo
+        uses: crazy-max/ghaction-xgo@v1
+        with:
+          working_dir: /workdir/casa
+          xgo_version: latest
+          go_version: ${{ matrix.go_version }}
+          dest: build
+          prefix: casa
+          targets: linux/amd64,linux/arm64
+          v: true
+          x: false
+          race: false
+          ldflags: -s -w
+          buildmode: default
+          
+      - name: List Files
+        run: |
+          ls
+          cd casa/build
+          ls
+          echo "::set-output name=status::success"
+          
+      - name: Pack builds
+        run: |
+          cd /workdir
+          wget $PACK_SH_URL
+          chmod +x $PACK_SH
+          $GITHUB_WORKSPACE/$PACK_SH
+          echo "::set-output name=status::success"
+          
+      - name: Upload linux-amd64-casaos.tar.gz
+        id: upload_assets_amd64
+        uses: shogo82148/actions-upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: /workdir/casa/upload/linux-amd64-casaos.tar.gz
+          
+      - name: Upload linux-arm64-casaos.tar.gz
+        id: upload_assets_arm64
+        uses: shogo82148/actions-upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: /workdir/casa/upload/linux-arm64-casaos.tar.gz
