@@ -7,7 +7,6 @@ import (
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"time"
 )
 
 func JWT(swagHandler gin.HandlerFunc) gin.HandlerFunc {
@@ -22,13 +21,15 @@ func JWT(swagHandler gin.HandlerFunc) gin.HandlerFunc {
 			code = oasis_err2.INVALID_PARAMS
 		}
 		if swagHandler == nil {
-			claims, err := ParseToken(token)
+			//claims, err := ParseToken(token)
+			_, err := ParseToken(token)
 			if err != nil {
 				code = oasis_err2.ERROR_AUTH_TOKEN
 
-			} else if time.Now().Unix() > claims.ExpiresAt {
-				code = oasis_err2.ERROR_AUTH_TOKEN
 			}
+			//else if time.Now().Unix() > claims.ExpiresAt {
+			//	code = oasis_err2.ERROR_AUTH_TOKEN
+			//}
 		}
 
 		if code != oasis_err2.SUCCESS {

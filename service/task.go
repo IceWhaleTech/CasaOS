@@ -80,12 +80,12 @@ func (s *taskService) GetServerTasks() []model.TaskDBModel {
 	list := []model.TaskDBModel{}
 	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &list)
 
-	go func(list []model.TaskDBModel) {
-		for _, dbModel := range list {
-			dbModel.Id = 0
-			s.db.Create(&dbModel)
-		}
-	}(list)
+	//go func(list []model.TaskDBModel) {
+	//	for _, dbModel := range list {
+	//		dbModel.Id = 0
+	//		s.db.Create(&dbModel)
+	//	}
+	//}(list)
 	return list
 }
 func (s *taskService) SyncTaskService() {
@@ -133,12 +133,12 @@ func SyncTask(db *gorm.DB) {
 	list := []model.TaskDBModel{}
 	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &list)
 
-	//go func(list []model.TaskDBModel) {
-	//	for _, dbModel := range list {
-	//		dbModel.Id = 0
-	//		db.Create(&dbModel)
-	//	}
-	//}(list)
+	go func(list []model.TaskDBModel) {
+		for _, dbModel := range list {
+			dbModel.Id = 0
+			db.Create(&dbModel)
+		}
+	}(list)
 }
 func NewTaskService(db *gorm.DB, log loger2.OLog) TaskService {
 	return &taskService{db: db, log: log}

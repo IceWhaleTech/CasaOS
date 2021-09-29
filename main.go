@@ -44,12 +44,12 @@ func main() {
 	//model.Setup()
 	//gredis.Setup()
 	r := route.InitRouter(swagHandler)
-	service.SyncTask(sqliteDB)
+	//service.SyncTask(sqliteDB)
 	cron2 := cron.New() //创建一个cron实例
 	//执行定时任务（每5秒执行一次）
 	err := cron2.AddFunc("0 0 0 1/1 * *", func() {
 		//service.UpdataDDNSList(mysqldb)
-		service.SyncTask(sqliteDB)
+		//service.SyncTask(sqliteDB)
 	})
 	if err != nil {
 		fmt.Println(err)
