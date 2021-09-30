@@ -113,7 +113,8 @@ jobs:
           chmod +x $PACK_SH
           ./$PACK_SH pwd
           echo "::set-output name=status::success"
-
+      - name: list work
+        run: ls
 
 #      - name: move
 #        run: |
