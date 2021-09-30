@@ -100,13 +100,13 @@ jobs:
           race: false
           ldflags: -s -w
           buildmode: default
-
-      - name: List Files
-        run: |
-          ls
-          mkdir build
-          ls
-          echo "::set-output name=status::success"
+#
+#      - name: List Files
+#        run: |
+#          ls
+#          mkdir build
+#          ls
+#          echo "::set-output name=status::success"
 
       - name: Pack builds
         run: |
