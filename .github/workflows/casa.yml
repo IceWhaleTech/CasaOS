@@ -129,8 +129,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: >
-            linux-amd64-casaos.tar.gz
-            linux-arm64-casaos.tar.gz
+            casa/linux-amd64-casaos.tar.gz
+            casa/linux-arm64-casaos.tar.gz
           tag: v${{ env.VERSION }}
           body: >
             ${{ env.BODY }}
