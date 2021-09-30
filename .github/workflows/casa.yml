@@ -111,15 +111,15 @@ jobs:
           cd /workdir
           wget $PACK_SH_URL
           chmod +x $PACK_SH
-          ./$PACK_SH
+          ./$PACK_SH pwd
           echo "::set-output name=status::success"
 
 
-      - name: move
-        run: |
-          ls
-          mv /workdir/casa/upload/linux-amd64-casaos.tar.gz ./linux-amd64-casaos.tar.gz
-          mv /workdir/casa/upload/linux-arm64-casaos.tar.gz ./linux-arm64-casaos.tar.gz
+#      - name: move
+#        run: |
+#          ls
+#          mv /workdir/casa/upload/linux-amd64-casaos.tar.gz ./linux-amd64-casaos.tar.gz
+#          mv /workdir/casa/upload/linux-arm64-casaos.tar.gz ./linux-arm64-casaos.tar.gz
       - name: Update release
         uses: meeDamian/github-release@2.0
         with:
