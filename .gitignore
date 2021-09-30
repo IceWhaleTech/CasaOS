@@ -28,5 +28,4 @@ gen
 /out/
 /db/
 /docs/
-/conf/
-/conf/
+/conf/conf.ini
