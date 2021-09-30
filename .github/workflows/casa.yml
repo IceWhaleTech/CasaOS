@@ -2,15 +2,21 @@
 
 name: Build CasaOS
 
-on:
-  repository_dispatch:
-  workflow_dispatch:
-    inputs:
-      ssh:
-        description: 'SSH connection to Actions'
-        required: false
-        default: 'false'
+  #on:
+  #  repository_dispatch:
+  #  workflow_dispatch:
+  #    inputs:
+  #      ssh:
+  #        description: 'SSH connection to Actions'
+  #        required: false
+#        default: 'false'
 
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - 'v*'
 env:
   REPO_URL: https://github.com/IceWhaleTech/CasaOS.git
   REPO_BRANCH: main
@@ -28,11 +34,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-#      - name: Get release
-#        id: get_release
-#        uses: bruceadams/get-release@v1.2.3
-#        env:
-#          GITHUB_TOKEN: ${{ github.token }}
+      #      - name: Get release
+      #        id: get_release
+      #        uses: bruceadams/get-release@v1.2.3
+      #        env:
+      #          GITHUB_TOKEN: ${{ github.token }}
 
 
       - name: Initialization environment
@@ -112,7 +118,6 @@ jobs:
             ${{ env.BODY }}
           name: v${{ env.VERSION }}
           gzip: false
-          commitish: master
           allow_override: false
           prerelease: true
 #      - name: Upload linux-amd64-casaos.tar.gz
