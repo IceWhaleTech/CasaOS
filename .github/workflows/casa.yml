@@ -74,35 +74,37 @@ jobs:
         with:
           node-version: '14'
 
-      - name: Build frontend with nodejs and yarn
-        run: |
-          cd casa/UI
-          ls
-          yarn install
-          yarn build
+#      - name: Build frontend with nodejs and yarn
+#        run: |
+#          cd casa/UI
+#          ls
+#          yarn install
+#          yarn build
 
       - name: list work
         run: pwd
 
-      - name: Build with xgo
-        uses: crazy-max/ghaction-xgo@v1
-        with:
-          working_dir: /workdir/casa
-          xgo_version: latest
-          go_version: ${{ matrix.go_version }}
-          dest: build
-          prefix: casa
-          targets: linux/amd64,linux/arm64
-          v: true
-          x: false
-          race: false
-          ldflags: -s -w
-          buildmode: default
+#      - name: Build with xgo
+#        uses: crazy-max/ghaction-xgo@v1
+#        with:
+#          working_dir: /workdir/casa
+#          xgo_version: latest
+#          go_version: ${{ matrix.go_version }}
+#          dest: build
+#          prefix: casa
+#          targets: linux/amd64,linux/arm64
+#          v: true
+#          x: false
+#          race: false
+#          ldflags: -s -w
+#          buildmode: default
 
       - name: List Files
         run: |
           ls
           cd casa/build
+          touch casa-linux-amd64
+          touch casa-linux-arm64
           ls
           echo "::set-output name=status::success"
 
