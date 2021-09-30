@@ -79,7 +79,7 @@ jobs:
 
       - name: Build frontend with nodejs and yarn
         run: |
-          cd casa/UI
+          cd UI
           ls
           yarn install
           yarn build
