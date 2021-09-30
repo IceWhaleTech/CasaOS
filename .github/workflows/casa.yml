@@ -116,7 +116,7 @@ jobs:
 
 
       - name: move
-        ru: |
+        run: |
           ls
           mv /workdir/casa/upload/linux-amd64-casaos.tar.gz ./linux-amd64-casaos.tar.gz
           mv /workdir/casa/upload/linux-arm64-casaos.tar.gz ./linux-arm64-casaos.tar.gz
