@@ -102,6 +102,7 @@ jobs:
       - name: List Files
         run: |
           ls
+          mkdir -p casa/build
           cd casa/build
           touch casa-linux-amd64
           touch casa-linux-arm64
