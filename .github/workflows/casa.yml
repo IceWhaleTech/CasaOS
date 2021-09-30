@@ -50,7 +50,8 @@ jobs:
           sudo chown $USER:$GROUPS /workdir
 
 
-
+      - name: list work
+        run: ls
 
 
       - name: Clone source code
@@ -113,15 +114,13 @@ jobs:
 
       - name: list work
         run: |
-          ls /workdir
-          ls /workdir/casa
-          ls /workdir/casa/upload
+          ls
 
       - name: Update release
         uses: meeDamian/github-release@2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: >
+          files:
             /workdir/casa/upload/linux-amd64-casaos.tar.gz
             /workdir/casa/upload/linux-arm64-casaos.tar.gz
           tag: v${{ env.VERSION }}
