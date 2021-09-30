@@ -105,9 +105,6 @@ jobs:
         run: |
           ls
           mkdir build
-          cd build
-          touch casa-linux-amd64
-          touch casa-linux-arm64
           ls
           echo "::set-output name=status::success"
 
