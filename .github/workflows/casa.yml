@@ -40,32 +40,35 @@ jobs:
       #        env:
       #          GITHUB_TOKEN: ${{ github.token }}
 
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
+#      - name: Initialization environment
+#        env:
+#          DEBIAN_FRONTEND: noninteractive
+#        run: |
+#          sudo timedatectl set-timezone "$TZ"
+#          sudo mkdir -p /workdir
+#          sudo chown $USER:$GROUPS /workdir
 
-      - name: Initialization environment
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          sudo timedatectl set-timezone "$TZ"
-          sudo mkdir -p /workdir
-          sudo chown $USER:$GROUPS /workdir
 
 
 
 
-
-      - name: Clone source code
-        working-directory: /workdir
-        run: |
-          df -hT $PWD
-          git clone $REPO_URL -b $REPO_BRANCH --recursive casa
-          ln -sf /workdir/casa $GITHUB_WORKSPACE/casa
-          ls
+      #      - name: Clone source code
+      #        working-directory: /workdir
+      #        run: |
+      #          df -hT $PWD
+      #          git clone $REPO_URL -b $REPO_BRANCH --recursive casa
+      #          ln -sf /workdir/casa $GITHUB_WORKSPACE/casa
+      #          ls
 
 
       - name: Set enviroment for github-release
         run: |
-          echo "VERSION=$(cat /workdir/casa/types/system.go | grep CURRENTVERSION | awk '$2 == "CURRENTVERSION"{print $4}' | sed 's/"//g')" >>$GITHUB_ENV
-          echo "BODY=$(cat /workdir/casa/types/system.go | grep BODY | awk -F= '{print $2}' | sed 's/"//g')" >>$GITHUB_ENV
+          echo "VERSION=$(cat types/system.go | grep CURRENTVERSION | awk '$2 == "CURRENTVERSION"{print $4}' | sed 's/"//g')" >>$GITHUB_ENV
+          echo "BODY=$(cat types/system.go | grep BODY | awk -F= '{print $2}' | sed 's/"//g')" >>$GITHUB_ENV
 
 
 
@@ -74,36 +77,35 @@ jobs:
         with:
           node-version: '14'
 
-#      - name: Build frontend with nodejs and yarn
-#        run: |
-#          cd casa/UI
-#          ls
-#          yarn install
-#          yarn build
+      #      - name: Build frontend with nodejs and yarn
+      #        run: |
+      #          cd casa/UI
+      #          ls
+      #          yarn install
+      #          yarn build
 
       - name: list work
         run: pwd
 
-#      - name: Build with xgo
-#        uses: crazy-max/ghaction-xgo@v1
-#        with:
-#          working_dir: /workdir/casa
-#          xgo_version: latest
-#          go_version: ${{ matrix.go_version }}
-#          dest: build
-#          prefix: casa
-#          targets: linux/amd64,linux/arm64
-#          v: true
-#          x: false
-#          race: false
-#          ldflags: -s -w
-#          buildmode: default
+      #      - name: Build with xgo
+      #        uses: crazy-max/ghaction-xgo@v1
+      #        with:
+      #          xgo_version: latest
+      #          go_version: ${{ matrix.go_version }}
+      #          dest: build
+      #          prefix: casa
+      #          targets: linux/amd64,linux/arm64
+      #          v: true
+      #          x: false
+      #          race: false
+      #          ldflags: -s -w
+      #          buildmode: default
 
       - name: List Files
         run: |
           ls
-          mkdir -p casa/build
-          cd casa/build
+          mkdir build
+          cd build
           touch casa-linux-amd64
           touch casa-linux-arm64
           ls
@@ -111,26 +113,25 @@ jobs:
 
       - name: Pack builds
         run: |
-          cd /workdir
           wget $PACK_SH_URL
           chmod +x $PACK_SH
-          ./$PACK_SH $(pwd)
+          ./$PACK_SH
           echo "::set-output name=status::success"
       - name: list work
         run: ls
 
-#      - name: move
-#        run: |
-#          ls
-#          mv /workdir/casa/upload/linux-amd64-casaos.tar.gz ./linux-amd64-casaos.tar.gz
-#          mv /workdir/casa/upload/linux-arm64-casaos.tar.gz ./linux-arm64-casaos.tar.gz
+      #      - name: move
+      #        run: |
+      #          ls
+      #          mv /workdir/casa/upload/linux-amd64-casaos.tar.gz ./linux-amd64-casaos.tar.gz
+      #          mv /workdir/casa/upload/linux-arm64-casaos.tar.gz ./linux-arm64-casaos.tar.gz
       - name: Update release
         uses: meeDamian/github-release@2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: >
-            casa/linux-amd64-casaos.tar.gz
-            casa/linux-arm64-casaos.tar.gz
+            linux-amd64-casaos.tar.gz
+            linux-arm64-casaos.tar.gz
           tag: v${{ env.VERSION }}
           body: >
             ${{ env.BODY }}
