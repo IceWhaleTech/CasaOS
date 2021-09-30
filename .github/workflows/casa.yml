@@ -51,10 +51,6 @@ jobs:
 
 
 
-      - name: Set enviroment for github-release
-        run: |
-          echo "VERSION=$(cat /workdir/casa/types/system.go | grep CURRENTVERSION | awk '$2 == "CURRENTVERSION"{print $4}' | sed 's/"//g')" >>$GITHUB_ENV
-          echo "BODY=$(cat /workdir/casa/types/system.go | grep BODY | awk -F= '{print $2}' | sed 's/"//g')" >>$GITHUB_ENV
 
 
       - name: Clone source code
@@ -64,6 +60,14 @@ jobs:
           git clone $REPO_URL -b $REPO_BRANCH --recursive casa
           ln -sf /workdir/casa $GITHUB_WORKSPACE/casa
           ls
+
+
+      - name: Set enviroment for github-release
+        run: |
+          echo "VERSION=$(cat /workdir/casa/types/system.go | grep CURRENTVERSION | awk '$2 == "CURRENTVERSION"{print $4}' | sed 's/"//g')" >>$GITHUB_ENV
+          echo "BODY=$(cat /workdir/casa/types/system.go | grep BODY | awk -F= '{print $2}' | sed 's/"//g')" >>$GITHUB_ENV
+
+
 
       - name: Use Node.js
         uses: actions/setup-node@v2
