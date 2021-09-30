@@ -50,8 +50,7 @@ jobs:
           sudo chown $USER:$GROUPS /workdir
 
 
-      - name: list work
-        run: ls
+
 
 
       - name: Clone source code
@@ -81,6 +80,9 @@ jobs:
           ls
           yarn install
           yarn build
+
+      - name: list work
+        run: ls
 
       - name: Build with xgo
         uses: crazy-max/ghaction-xgo@v1
@@ -112,17 +114,19 @@ jobs:
           ./$PACK_SH
           echo "::set-output name=status::success"
 
-      - name: list work
-        run: |
-          ls
 
+      - name: move
+        ru: |
+          ls
+          mv /workdir/casa/upload/linux-amd64-casaos.tar.gz ./linux-amd64-casaos.tar.gz
+          mv /workdir/casa/upload/linux-arm64-casaos.tar.gz ./linux-arm64-casaos.tar.gz
       - name: Update release
         uses: meeDamian/github-release@2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files:
-            /workdir/casa/upload/linux-amd64-casaos.tar.gz
-            /workdir/casa/upload/linux-arm64-casaos.tar.gz
+          files: >
+            linux-amd64-casaos.tar.gz
+            linux-arm64-casaos.tar.gz
           tag: v${{ env.VERSION }}
           body: >
             ${{ env.BODY }}
