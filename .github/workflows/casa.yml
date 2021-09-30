@@ -28,11 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Get release
-        id: get_release
-        uses: bruceadams/get-release@v1.2.3
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+#      - name: Get release
+#        id: get_release
+#        uses: bruceadams/get-release@v1.2.3
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
 
 
       - name: Initialization environment
