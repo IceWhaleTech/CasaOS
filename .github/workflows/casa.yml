@@ -82,7 +82,7 @@ jobs:
           yarn build
 
       - name: list work
-        run: ls
+        run: pwd
 
       - name: Build with xgo
         uses: crazy-max/ghaction-xgo@v1
