@@ -110,6 +110,13 @@ jobs:
           chmod +x $PACK_SH
           ./$PACK_SH
           echo "::set-output name=status::success"
+
+      - name: list work
+        run: |
+          ls /workdir
+          ls /workdir/casa
+          ls /workdir/casa/upload
+
       - name: Update release
         uses: meeDamian/github-release@2.0
         with:
