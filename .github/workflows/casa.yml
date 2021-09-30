@@ -111,7 +111,7 @@ jobs:
           cd /workdir
           wget $PACK_SH_URL
           chmod +x $PACK_SH
-          ./$PACK_SH pwd
+          ./$PACK_SH $(pwd)
           echo "::set-output name=status::success"
       - name: list work
         run: ls
