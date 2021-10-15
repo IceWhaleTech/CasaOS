@@ -125,7 +125,7 @@ jobs:
           files: >
             linux-amd64-casaos.tar.gz
             linux-arm64-casaos.tar.gz
-            linux-armv7-casaos.tar.gz
+            linux-arm-7-casaos.tar.gz
           tag: v${{ env.VERSION }}
           body: >
             ${{ env.BODY }}
