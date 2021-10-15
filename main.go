@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
@@ -11,8 +14,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
-	"net/http"
-	"time"
 )
 
 var sqliteDB *gorm.DB
@@ -23,6 +24,7 @@ var configFlag = flag.String("c", "", "config address")
 func init() {
 	flag.Parse()
 	config.InitSetup(*configFlag)
+	config.UpdateSetup()
 	loger2.LogSetup()
 	sqliteDB = sqlite.GetDb(config.AppInfo.ProjectPath)
 	//gredis.GetRedisConn(config.RedisInfo),

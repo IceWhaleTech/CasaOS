@@ -1,8 +1,9 @@
 package upnp
 
 import (
-	ip_helper2 "oasis/pkg/utils/ip_helper"
 	"testing"
+
+	ip_helper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
 )
 
 func TestGetCtrlUrl(t *testing.T) {

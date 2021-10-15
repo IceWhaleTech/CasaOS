@@ -36,13 +36,6 @@ MaxActive = 30
 IdleTimeout = 200
 
 [system]
-AutoUpdate = true
-SearchSwitch = true
-WidgetsSwitch = false
-ShortcutsSwitch = true
-SearchEngine = google
-Background = http://google.com
-BackgroundType = 1
-
-
+ConfigStr = 
+WidgetList =
 

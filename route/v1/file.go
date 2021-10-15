@@ -4,16 +4,17 @@ import (
 	"bufio"
 	"encoding/csv"
 	"fmt"
-	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
-	"github.com/IceWhaleTech/CasaOS/service"
-	"github.com/gin-gonic/gin"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
+
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/service"
+	"github.com/gin-gonic/gin"
 )
 
 func downloadReadFile(c *gin.Context) {
@@ -215,6 +216,25 @@ func MkdirAll(c *gin.Context) {
 		return
 	}
 	code, _ = service.MyService.ZiMa().MkdirAll(path)
+	c.JSON(http.StatusOK, model.Result{Success: code, Message: oasis_err2.GetMsg(code)})
+}
+
+// @Summary 创建文件
+// @Produce  application/json
+// @Accept  multipart/form-data
+// @Tags file
+// @Security ApiKeyAuth
+// @Param path formData string false "路径"
+// @Success 200 {string} string "ok"
+// @Router /file/create [post]
+func PostCreateFile(c *gin.Context) {
+	path := c.PostForm("path")
+	var code int
+	if len(path) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+	code, _ = service.MyService.ZiMa().CreateFile(path)
 	c.JSON(http.StatusOK, model.Result{Success: code, Message: oasis_err2.GetMsg(code)})
 }
 

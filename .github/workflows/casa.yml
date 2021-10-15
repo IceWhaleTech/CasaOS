@@ -94,7 +94,7 @@ jobs:
           go_version: ${{ matrix.go_version }}
           dest: build
           prefix: casa
-          targets: linux/amd64,linux/arm64
+          targets: linux/amd64,linux/arm64,linux/arm-7
           v: true
           x: false
           race: false
@@ -125,6 +125,7 @@ jobs:
           files: >
             linux-amd64-casaos.tar.gz
             linux-arm64-casaos.tar.gz
+            linux-arm-7-casaos.tar.gz
           tag: v${{ env.VERSION }}
           body: >
             ${{ env.BODY }}

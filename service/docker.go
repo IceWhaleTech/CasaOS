@@ -7,27 +7,22 @@ import (
 	"encoding/binary"
 	json2 "encoding/json"
 	"fmt"
+	"syscall"
+
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	types2 "github.com/IceWhaleTech/CasaOS/types"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
-	"syscall"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+
 	//"github.com/containerd/containerd/oci"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/mount"
-	"github.com/docker/docker/api/types/network"
-	client2 "github.com/docker/docker/client"
-	"github.com/docker/go-connections/nat"
 	"io"
 	"io/ioutil"
 	"log"
@@ -35,6 +30,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
+	"github.com/docker/docker/api/types/network"
+	client2 "github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 )
 
 type DockerService interface {
@@ -79,6 +82,7 @@ func DockerNetwork() {
 	cli, _ := client2.NewClientWithOpts(client2.FromEnv)
 	defer cli.Close()
 	d, _ := cli.NetworkList(context.Background(), types.NetworkListOptions{})
+
 	for _, resource := range d {
 		if resource.Name == docker.NETWORKNAME {
 			return
@@ -337,9 +341,13 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	//	if net != "host" {
 	//		portMaps[nat.Port(fmt.Sprint(m.Port)+"/tcp")] = []nat.PortBinding{{HostIP: "", HostPort: m.PortMap}}
 	//	}
-
+	port := ""
 	for _, portMap := range m.Ports {
+		if portMap.CommendPort == m.PortMap && portMap.Protocol == "tcp" || portMap.Protocol == "both" {
+			port = portMap.ContainerPort
+		}
 		if portMap.Protocol == "tcp" {
+
 			tContainer, _ := strconv.Atoi(portMap.ContainerPort)
 			if tContainer > 0 {
 				ports[nat.Port(portMap.ContainerPort+"/tcp")] = struct{}{}
@@ -411,10 +419,18 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 			}
 
 		}
-		err = file.IsNotExistMkDir(path)
-		if err != nil {
-			ds.log.Error("mkdir error", err)
-			continue
+		if strings.HasSuffix(path, "/") {
+			err = file.IsNotExistMkDir(path)
+			if err != nil {
+				ds.log.Error("mkdir error", err)
+				continue
+			}
+		} else {
+			err = file.IsNotExistCreateFile(path)
+			if err != nil {
+				ds.log.Error("mkdir error", err)
+				continue
+			}
 		}
 
 		volumes = append(volumes, mount.Mount{
@@ -430,11 +446,23 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	if len(m.Restart) > 0 {
 		rp.Name = m.Restart
 	}
+	//fmt.Print(port)
+	healthTest := []string{}
+	if len(port) > 0 {
+		healthTest = []string{"CMD-SHELL", "curl -f http://localhost:" + port + m.Index + " || exit 1"}
+	}
 
+	health := &container.HealthConfig{
+		Test: healthTest,
+		//Test:        []string{},
+		StartPeriod: 0,
+		Retries:     1000,
+	}
 	config := &container.Config{
-		Image:  imageName,
-		Labels: map[string]string{"origin": m.Origin, m.Origin: m.Origin},
-		Env:    envArr,
+		Image:       imageName,
+		Labels:      map[string]string{"origin": m.Origin, m.Origin: m.Origin},
+		Env:         envArr,
+		Healthcheck: health,
 	}
 	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(net)}
 	//if net != "host" {
