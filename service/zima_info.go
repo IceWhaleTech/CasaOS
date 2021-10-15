@@ -2,20 +2,22 @@ package service
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"runtime"
+	"strconv"
+	"strings"
+
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/net"
-	"io/ioutil"
-	"os"
-	"runtime"
-	"strconv"
-	"strings"
 )
 
 //系统信息
@@ -30,6 +32,7 @@ type ZiMaService interface {
 	GetSysInfo() host.InfoStat
 	GetDirPath(path string) []model.Path
 	MkdirAll(path string) (int, error)
+	CreateFile(path string) (int, error)
 	RenameFile(oldF, newF string) (int, error)
 	GetCpuInfo() []cpu.InfoStat
 }
@@ -82,16 +85,11 @@ func (c *zima) GetDirPath(path string) []model.Path {
 	dirs := []model.Path{}
 
 	if strings.Count(path, "/") > 1 {
-
 		for _, l := range ls {
-			if !strings.HasPrefix(l.Name(), ".") && l.IsDir() {
-				dirs = append(dirs, model.Path{Name: l.Name(), Path: path + l.Name() + "/"})
-			}
+			dirs = append(dirs, model.Path{Name: l.Name(), Path: path + l.Name() + "/", IsDir: l.IsDir()})
 		}
 	} else {
-		dirs = append(dirs, model.Path{Name: "mnt", Path: "/mnt/"})
-		dirs = append(dirs, model.Path{Name: "media", Path: "/media/"})
-		dirs = append(dirs, model.Path{Name: "home", Path: "/home/"})
+		dirs = append(dirs, model.Path{Name: "DATA", Path: "/DATA/", IsDir: true})
 	}
 	return dirs
 }
@@ -132,6 +130,20 @@ func (c *zima) MkdirAll(path string) (int, error) {
 	} else {
 		if os.IsNotExist(err) {
 			os.MkdirAll(path, os.ModePerm)
+			return oasis_err.SUCCESS, nil
+		}
+	}
+	return oasis_err.ERROR, err
+}
+
+//create
+func (c *zima) CreateFile(path string) (int, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return oasis_err.DIR_ALREADY_EXISTS, nil
+	} else {
+		if os.IsNotExist(err) {
+			file.CreateFile(path)
 			return oasis_err.SUCCESS, nil
 		}
 	}

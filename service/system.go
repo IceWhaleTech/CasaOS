@@ -1,15 +1,13 @@
 package service
 
 import (
-	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
-	"strconv"
 )
 
 type SystemService interface {
-	UpSystemConfig(systemConfig model.SystemConfig)
+	UpSystemConfig(str string, widget string)
 	UpdateSystemVersion(version string)
 	GetSystemConfigDebug() []string
 }
@@ -27,38 +25,14 @@ func (s *systemService) UpdateSystemVersion(version string) {
 func (s *systemService) GetSystemConfigDebug() []string {
 	return command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetSysInfo")
 }
-func (s *systemService) UpSystemConfig(systemConfig model.SystemConfig) {
-	if systemConfig.AutoUpdate != config.SystemConfigInfo.AutoUpdate {
-		config.Cfg.Section("system").Key("AutoUpdate").SetValue(strconv.FormatBool(systemConfig.AutoUpdate))
-		config.SystemConfigInfo.AutoUpdate = systemConfig.AutoUpdate
+func (s *systemService) UpSystemConfig(str string, widget string) {
+	if len(str) > 0 && str != config.SystemConfigInfo.ConfigStr {
+		config.Cfg.Section("system").Key("ConfigStr").SetValue(str)
+		config.SystemConfigInfo.ConfigStr = str
 	}
-	if systemConfig.SearchSwitch != config.SystemConfigInfo.SearchSwitch {
-		config.Cfg.Section("system").Key("SearchSwitch").SetValue(strconv.FormatBool(systemConfig.SearchSwitch))
-		config.SystemConfigInfo.SearchSwitch = systemConfig.SearchSwitch
-	}
-	if systemConfig.WidgetsSwitch != config.SystemConfigInfo.WidgetsSwitch {
-		config.Cfg.Section("system").Key("WidgetsSwitch").SetValue(strconv.FormatBool(systemConfig.WidgetsSwitch))
-		config.SystemConfigInfo.WidgetsSwitch = systemConfig.WidgetsSwitch
-	}
-	if systemConfig.ShortcutsSwitch != config.SystemConfigInfo.ShortcutsSwitch {
-		config.Cfg.Section("system").Key("ShortcutsSwitch").SetValue(strconv.FormatBool(systemConfig.ShortcutsSwitch))
-		config.SystemConfigInfo.ShortcutsSwitch = systemConfig.ShortcutsSwitch
-	}
-	if len(systemConfig.SearchEngine) > 0 && systemConfig.SearchEngine != config.SystemConfigInfo.SearchEngine {
-		config.Cfg.Section("system").Key("SearchEngine").SetValue(systemConfig.SearchEngine)
-		config.SystemConfigInfo.SearchEngine = systemConfig.SearchEngine
-	}
-	//	if len(systemConfig.Version) > 0 && systemConfig.Version != config.SystemConfigInfo.Version {
-	//	config.Cfg.Section("system").Key("Version").SetValue(systemConfig.Version)
-	//	config.SystemConfigInfo.Version = systemConfig.Version
-	//}
-	if len(systemConfig.Background) > 0 && systemConfig.Background != config.SystemConfigInfo.Background {
-		config.Cfg.Section("system").Key("Background").SetValue(systemConfig.Background)
-		config.SystemConfigInfo.Background = systemConfig.Background
-	}
-	if len(systemConfig.BackgroundType) > 0 && systemConfig.BackgroundType != config.SystemConfigInfo.BackgroundType {
-		config.Cfg.Section("system").Key("BackgroundType").SetValue(systemConfig.BackgroundType)
-		config.SystemConfigInfo.BackgroundType = systemConfig.BackgroundType
+	if len(widget) > 0 && widget != config.SystemConfigInfo.WidgetList {
+		config.Cfg.Section("system").Key("WidgetList").SetValue(widget)
+		config.SystemConfigInfo.WidgetList = widget
 	}
 	config.Cfg.SaveTo("conf/conf.ini")
 }

@@ -23,6 +23,7 @@ type Repository interface {
 	Rely() RelyService
 	System() SystemService
 	Shortcuts() ShortcutsService
+	Search() SearchService
 }
 
 func NewService(db *gorm.DB, log loger2.OLog) Repository {
@@ -42,6 +43,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		rely:           NewRelyService(db, log),
 		system:         NewSystemService(log),
 		shortcuts:      NewShortcutsService(db),
+		search:         NewSearchService(),
 	}
 }
 
@@ -61,6 +63,7 @@ type store struct {
 	rely           RelyService
 	system         SystemService
 	shortcuts      ShortcutsService
+	search         SearchService
 }
 
 func (c *store) Rely() RelyService {
@@ -111,4 +114,7 @@ func (c *store) ShareDirectory() ShareDirService {
 }
 func (c *store) Task() TaskService {
 	return c.task
+}
+func (c *store) Search() SearchService {
+	return c.search
 }

@@ -1,9 +1,10 @@
 package gredis
 
 import (
-	"github.com/gomodule/redigo/redis"
-	"oasis/model"
 	"time"
+
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/gomodule/redigo/redis"
 )
 
 func GetRedisConn(m *model.RedisModel) *redis.Pool {

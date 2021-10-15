@@ -60,11 +60,6 @@ type RedisModel struct {
 }
 
 type SystemConfig struct {
-	SearchSwitch    bool   `json:"search_switch"` //搜索开关
-	SearchEngine    string `json:"search_engine"` //搜索引擎
-	ShortcutsSwitch bool   `json:"shortcuts_switch"`
-	WidgetsSwitch   bool   `json:"widgets_switch"`
-	BackgroundType  string `json:"background_type"`
-	Background      string `json:"background"`
-	AutoUpdate      bool   `json:"auto_update"`
+	ConfigStr  string `json:"config_str"`
+	WidgetList string `json:"widget_list"`
 }

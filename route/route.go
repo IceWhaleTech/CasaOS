@@ -1,13 +1,14 @@
 package route
 
 import (
+	"net/http"
+
 	"github.com/IceWhaleTech/CasaOS/middleware"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
 	"github.com/IceWhaleTech/CasaOS/web"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 var swagHandler gin.HandlerFunc
@@ -183,6 +184,8 @@ func InitRouter(swagHandler gin.HandlerFunc) *gin.Engine {
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
 			v1SysGroup.GET("/config", v1.GetSystemConfig)
 			v1SysGroup.POST("/config", v1.PostSetSystemConfig)
+			v1SysGroup.GET("/widget/config", v1.GetWidgetConfig)
+			v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)
 		}
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()
@@ -194,6 +197,7 @@ func InitRouter(swagHandler gin.HandlerFunc) *gin.Engine {
 			v1FileGroup.GET("/dirpath", v1.DirPath)
 			//创建目录
 			v1FileGroup.POST("/mkdir", v1.MkdirAll)
+			v1FileGroup.POST("/create", v1.PostCreateFile)
 
 			v1FileGroup.GET("/download", v1.GetDownloadFile)
 			//v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
@@ -251,6 +255,11 @@ func InitRouter(swagHandler gin.HandlerFunc) *gin.Engine {
 		{
 			v1NotifyGroup.GET("/ws", v1.NotifyWS)
 			v1NotifyGroup.PUT("/read/:id", v1.PutNotifyRead)
+		}
+		v1SearchGroup := v1Group.Group("/search")
+		v1SearchGroup.Use()
+		{
+			v1SearchGroup.GET("/search", v1.GetSearchList)
 		}
 	}
 	return r

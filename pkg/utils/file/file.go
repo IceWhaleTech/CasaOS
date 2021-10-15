@@ -100,10 +100,9 @@ func MustOpen(fileName, filePath string) (*os.File, error) {
 	return f, nil
 }
 
-
 // 判断所给路径文件/文件夹是否存在
 func Exists(path string) bool {
-	_, err := os.Stat(path)    //os.Stat获取文件信息
+	_, err := os.Stat(path) //os.Stat获取文件信息
 	if err != nil {
 		if os.IsExist(err) {
 			return true
@@ -125,4 +124,24 @@ func IsDir(path string) bool {
 // 判断所给路径是否为文件
 func IsFile(path string) bool {
 	return !IsDir(path)
+}
+
+func CreateFile(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	return nil
+}
+
+// IsNotExistMkDir create a directory if it does not exist
+func IsNotExistCreateFile(src string) error {
+	if notExist := CheckNotExist(src); notExist == true {
+		if err := CreateFile(src); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

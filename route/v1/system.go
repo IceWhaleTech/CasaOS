@@ -1,7 +1,12 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
@@ -10,9 +15,6 @@ import (
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 // @Summary 系统信息
@@ -62,7 +64,7 @@ func SystemUpdate(c *gin.Context) {
 
 //系统配置
 func GetSystemConfig(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: config.SystemConfigInfo})
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.ConfigStr)})
 }
 
 // @Summary 修改配置文件
@@ -74,16 +76,16 @@ func GetSystemConfig(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /user/changhead [post]
 func PostSetSystemConfig(c *gin.Context) {
-	var systemConfig model.SystemConfig
-	c.BindJSON(&systemConfig)
-	service.MyService.System().UpSystemConfig(systemConfig)
+	buf := make([]byte, 1024)
+	n, _ := c.Request.Body.Read(buf)
+
+	service.MyService.System().UpSystemConfig(string(buf[0:n]), "")
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: oasis_err.SUCCESS,
 			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
-			Data:    config.SystemConfigInfo,
+			Data:    json.RawMessage(config.SystemConfigInfo.ConfigStr),
 		})
-	return
 }
 
 //系统配置
@@ -97,4 +99,29 @@ func GetSystemConfigDebug(c *gin.Context) {
 }
 func Sys(c *gin.Context) {
 	service.DockerPull()
+}
+
+//widget配置
+func GetWidgetConfig(c *gin.Context) {
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.WidgetList)})
+}
+
+// @Summary 修改组件配置文件
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/widget/config[post]
+func PostSetWidgetConfig(c *gin.Context) {
+	buf := make([]byte, 1024)
+	n, _ := c.Request.Body.Read(buf)
+
+	service.MyService.System().UpSystemConfig("", string(buf[0:n]))
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Data:    json.RawMessage(config.SystemConfigInfo.WidgetList),
+		})
 }
