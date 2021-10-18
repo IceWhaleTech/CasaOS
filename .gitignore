@@ -30,3 +30,4 @@ gen
 /db/
 /docs/
 /conf/conf.ini
+__debug_bin

@@ -1,10 +1,4 @@
 package types
 
-const CURRENTVERSION = "0.1.5"
-const BODY = `
-<li>Add CPU RAM Status with widget</li> 
-<li>Add Disk Info with widget</li>
-<li>Enhance the Docker cli import experience and automatically fill in the folders that need to be mounted</li>
-<li>Realize automatic loading of widgets</li>
-<li>Fix display bugs when windows size less than 1024px</li>
-`
+const CURRENTVERSION = "0.1.6"
+const BODY = "<li>Add a file selector for app install.</li> <li>Fixed an issue with the app were it would disappear when the app was modified.</li>"
