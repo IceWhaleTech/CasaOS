@@ -10,7 +10,9 @@ const (
 	PWD_INVALID = 10001
 
 	//system
-	DIR_ALREADY_EXISTS = 20001
+	DIR_ALREADY_EXISTS  = 20001
+	FILE_ALREADY_EXISTS = 20002
+	FILE_OR_DIR_EXISTS  = 20003
 
 	//zerotier
 	GET_TOKEN_ERROR = 30001
@@ -38,8 +40,9 @@ var MsgFlags = map[int]string{
 	PWD_INVALID: "Password invalid",
 
 	//system
-	DIR_ALREADY_EXISTS: "Directory already exists",
-
+	DIR_ALREADY_EXISTS:  "Directory already exists",
+	FILE_ALREADY_EXISTS: "File already exists",
+	FILE_OR_DIR_EXISTS:  "File or directory already exists",
 
 	//zerotier
 	GET_TOKEN_ERROR: "Get token error,Please log in to zerotier's official website to confirm whether the account is available",

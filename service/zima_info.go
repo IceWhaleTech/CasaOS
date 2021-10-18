@@ -86,7 +86,12 @@ func (c *zima) GetDirPath(path string) []model.Path {
 
 	if strings.Count(path, "/") > 1 {
 		for _, l := range ls {
-			dirs = append(dirs, model.Path{Name: l.Name(), Path: path + l.Name() + "/", IsDir: l.IsDir()})
+			pathTemp := path + l.Name()
+			if l.IsDir() {
+				pathTemp += "/"
+			}
+
+			dirs = append(dirs, model.Path{Name: l.Name(), Path: pathTemp, IsDir: l.IsDir()})
 		}
 	} else {
 		dirs = append(dirs, model.Path{Name: "DATA", Path: "/DATA/", IsDir: true})
@@ -131,6 +136,8 @@ func (c *zima) MkdirAll(path string) (int, error) {
 		if os.IsNotExist(err) {
 			os.MkdirAll(path, os.ModePerm)
 			return oasis_err.SUCCESS, nil
+		} else if strings.Contains(err.Error(), ": not a directory") {
+			return oasis_err.FILE_OR_DIR_EXISTS, err
 		}
 	}
 	return oasis_err.ERROR, err
@@ -140,7 +147,7 @@ func (c *zima) MkdirAll(path string) (int, error) {
 func (c *zima) CreateFile(path string) (int, error) {
 	_, err := os.Stat(path)
 	if err == nil {
-		return oasis_err.DIR_ALREADY_EXISTS, nil
+		return oasis_err.FILE_OR_DIR_EXISTS, nil
 	} else {
 		if os.IsNotExist(err) {
 			file.CreateFile(path)
