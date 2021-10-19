@@ -84,14 +84,9 @@ func (c *zima) GetDirPath(path string) []model.Path {
 	ls, _ := ioutil.ReadDir(path)
 	dirs := []model.Path{}
 
-	if strings.Count(path, "/") > 1 {
+	if strings.Count(path, "/") > 0 {
 		for _, l := range ls {
-			pathTemp := path + l.Name()
-			if l.IsDir() {
-				pathTemp += "/"
-			}
-
-			dirs = append(dirs, model.Path{Name: l.Name(), Path: pathTemp, IsDir: l.IsDir()})
+			dirs = append(dirs, model.Path{Name: l.Name(), Path: path + "/" + l.Name(), IsDir: l.IsDir()})
 		}
 	} else {
 		dirs = append(dirs, model.Path{Name: "DATA", Path: "/DATA/", IsDir: true})
