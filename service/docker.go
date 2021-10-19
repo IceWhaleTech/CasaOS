@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	json2 "encoding/json"
 	"fmt"
+	"regexp"
 	"syscall"
 
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -417,9 +418,10 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 			if len(path) == 0 {
 				continue
 			}
-
 		}
-		if strings.HasSuffix(path, "/") {
+		reg1 := regexp.MustCompile(`([^<>/\\\|:""\*\?]+\.\w+$)`)
+		result1 := reg1.FindAllStringSubmatch(path, -1)
+		if len(result1) == 0 {
 			err = file.IsNotExistMkDir(path)
 			if err != nil {
 				ds.log.Error("mkdir error", err)
