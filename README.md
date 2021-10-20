@@ -12,6 +12,7 @@ CasaOS is an open-source home server system based on the Docker ecosystem and de
 
 IceWhale team believes that through community-driven collaborative innovation and open communication with global developers, we can reshape the digital home experience like never before.
 
+![CasaOS Snapshot](snapshot.png)
 
 ## Getting Started
 
@@ -21,7 +22,7 @@ IceWhale team believes that through community-driven collaborative innovation an
 
 ### Quick Setup CasaOS
 
-Fresh install a system from the list below and run the below command:
+Fresh install a system from the list below and run the this command:
 
 ```sh
 curl -fsSL https://get.icewhale.io/casaos.sh | bash
