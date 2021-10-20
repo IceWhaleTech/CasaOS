@@ -13,6 +13,29 @@ CasaOS is an open-source home server system based on the Docker ecosystem and de
 IceWhale team believes that through community-driven collaborative innovation and open communication with global developers, we can reshape the digital home experience like never before.
 
 
+## Getting Started
+
+> ⚠️ Note: 
+> 
+> CasaOS is still in the early development stage and may vary significantly with the final release. Feel free to test run and share your feedback in the [Discord server](https://discord.gg/Gx4BCEtHjx)!
+
+### Quick Setup CasaOS
+
+Fresh install a system from the list below and run the below command:
+
+```sh
+curl -fsSL https://get.icewhale.io/casaos.sh | bash
+```
+
+### System Compatibility
+
+ - Ubuntu Server 20.04 amd64 (✅ Recommend, Tested)
+ - Raspberry Pi Lite OS aarch64/arm64 (⚠️ Not Fully Tested Yet)
+ - Debian 11 amd64 (⚠️ Not Fully Tested Yet)
+ - OpenWrt 21.02 amd64 (⚠️ Not Fully Tested Yet)
+ - OpenWrt 21.02 aarch64/arm64 (🚧 Under Planning)
+
+
 ## Key Features
 
  - UI designed for home scenarios - simple, elegant, and easy-to-use
@@ -37,29 +60,6 @@ So, we set out to build this open source project to develop CasaOS with our own 
 > A warm welcome for you to share and discuss your great ideas in the [Discord server](https://discord.gg/Gx4BCEtHjx)!
 
 [![Discord Card](https://discordapp.com/api/guilds/884667213326463016/widget.png?style=banner2)](https://discord.gg/Gx4BCEtHjx)
-
-
-## Getting Started
-
-> ⚠️ Note: 
-> 
-> CasaOS is still in the early development stage and may vary significantly with the final release. Feel free to test run and share your feedback in the [Discord server](https://discord.gg/Gx4BCEtHjx)!
-
-### System Compatibility
-
- - Ubuntu Server 20.04 amd64 (✅ Recommend, Tested)
- - Debian 11 amd64 (⚠️ Not Fully Tested Yet)
- - OpenWrt 21.02 amd64 (⚠️ Not Fully Tested Yet)
- - Raspberry Pi OS aarch64/arm64 (🚧 Under Planning)
- - OpenWrt 21.02 aarch64/arm64 (🚧 Under Planning)
-
-### Quick Setup CasaOS
-
-Fresh install a system from the above list and run the below command:
-
-```sh
-curl -fsSL https://get.icewhale.io/casaos.sh | bash
-```
 
 
 ## To Do
