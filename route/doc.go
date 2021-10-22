@@ -4,6 +4,7 @@
 package route
 
 import (
+	_ "github.com/IceWhaleTech/CasaOS/docs"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	swaggerFiles "github.com/swaggo/gin-swagger/swaggerFiles"
 )
