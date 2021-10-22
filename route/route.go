@@ -3,7 +3,6 @@ package route
 import (
 	"net/http"
 
-	_ "github.com/IceWhaleTech/CasaOS/docs"
 	"github.com/IceWhaleTech/CasaOS/middleware"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
