@@ -1,10 +1,11 @@
 package service
 
 import (
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"io"
 	"mime/multipart"
 	"os"
+
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 )
 
 type UserService interface {
@@ -37,7 +38,7 @@ func (c *user) SetUser(username, pwd, token, email, desc string) error {
 		config.Cfg.Section("user").Key("Description").SetValue(desc)
 		config.UserInfo.Description = desc
 	}
-	config.Cfg.SaveTo("conf/conf.ini")
+	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	return nil
 }
 

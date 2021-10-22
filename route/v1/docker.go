@@ -3,6 +3,12 @@ package v1
 import (
 	"bytes"
 	json2 "encoding/json"
+	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	upnp2 "github.com/IceWhaleTech/CasaOS/pkg/upnp"
@@ -19,11 +25,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/jinzhu/copier"
 	uuid "github.com/satori/go.uuid"
-	"net/http"
-	"reflect"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var upgrader = websocket.Upgrader{
@@ -283,6 +284,16 @@ func InstallApp(c *gin.Context) {
 		//}
 
 		//step：创建容器
+		// networkName, err := service.MyService.Docker().GetNetWorkNameByNetWorkID(appInfo.NetworkModel)
+		// if err != nil {
+		// 	//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":80}", 100)
+		// 	installLog.State = 0
+		// 	installLog.Speed = 75
+		// 	installLog.Type = types.NOTIFY_TYPE_ERROR
+		// 	installLog.Message = err.Error()
+		// 	service.MyService.Notify().UpdateLog(installLog)
+		// 	return
+		// }
 		containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, id, m, appInfo.NetworkModel)
 		installLog.ContainerId = containerId
 		if err != nil {
@@ -873,12 +884,17 @@ func UpdateSetting(c *gin.Context) {
 	envsStr, _ := json2.Marshal(m.Envs)
 	volumesStr, _ := json2.Marshal(m.Volumes)
 	devicesStr, _ := json2.Marshal(m.Devices)
-	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(string(volumesStr), appInfo.Volumes) || m.PortMap != appInfo.PortMap {
+	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(string(volumesStr), appInfo.Volumes) || m.PortMap != appInfo.PortMap || m.NetworkModel != appInfo.NetModel {
 
 		var newUUid = uuid.NewV4().String()
 		var err error
 
-		containerId, err = service.MyService.Docker().DockerContainerCreate(appInfo.Image+":"+appInfo.Version, newUUid, cpd, appInfo.NetModel)
+		// networkName, err := service.MyService.Docker().GetNetWorkNameByNetWorkID(appInfo.NetModel)
+		// if err != nil {
+		// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		// 	return
+		// }
+		containerId, err = service.MyService.Docker().DockerContainerCreate(appInfo.Image+":"+appInfo.Version, newUUid, cpd, m.NetworkModel)
 
 		if err != nil {
 			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
@@ -980,6 +996,7 @@ func UpdateSetting(c *gin.Context) {
 	appInfo.Icon = m.Icon
 	appInfo.Volumes = string(volumesStr)
 	appInfo.Devices = string(devicesStr)
+	appInfo.NetModel = m.NetworkModel
 	appInfo.Position = m.Position
 	appInfo.EnableUPNP = m.EnableUPNP
 	appInfo.Restart = m.Restart

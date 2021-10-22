@@ -3,6 +3,7 @@ package route
 import (
 	"net/http"
 
+	_ "github.com/IceWhaleTech/CasaOS/docs"
 	"github.com/IceWhaleTech/CasaOS/middleware"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
@@ -13,7 +14,7 @@ import (
 
 var swagHandler gin.HandlerFunc
 
-func InitRouter(swagHandler gin.HandlerFunc) *gin.Engine {
+func InitRouter() *gin.Engine {
 
 	r := gin.Default()
 	r.Use(middleware.Cors())
@@ -30,8 +31,11 @@ func InitRouter(swagHandler gin.HandlerFunc) *gin.Engine {
 	//登录
 	r.POST("/v1/user/login", v1.Login)
 
-	r.GET("/debug", v1.GetSystemConfigDebug)
+	r.GET("/v1/guide/check", v1.GetGuideCheck)
 
+	r.GET("/debug", v1.GetSystemConfigDebug)
+	//设置用户
+	r.POST("/v1/user/setusernamepwd", v1.Set_Name_Pwd)
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT(swagHandler))
@@ -39,8 +43,7 @@ func InitRouter(swagHandler gin.HandlerFunc) *gin.Engine {
 		v1UserGroup := v1Group.Group("/user")
 		v1UserGroup.Use()
 		{
-			//设置用户
-			v1UserGroup.POST("/setusernamepwd", v1.Set_Name_Pwd)
+
 			//chang head
 			v1UserGroup.POST("/changhead", v1.Up_Load_Head)
 			//chang user name

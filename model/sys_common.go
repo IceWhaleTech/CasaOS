@@ -62,4 +62,5 @@ type RedisModel struct {
 type SystemConfig struct {
 	ConfigStr  string `json:"config_str"`
 	WidgetList string `json:"widget_list"`
+	ConfigPath string `json:"config_path"`
 }

@@ -59,6 +59,7 @@ type DockerService interface {
 	DockerContainerCommit(name string)
 	DockerNetworkModelList() []types.NetworkResource
 	DockerImageInfo(image string)
+	GetNetWorkNameByNetWorkID(id string) (string, error)
 }
 
 type dockerService struct {
@@ -90,6 +91,19 @@ func DockerNetwork() {
 		}
 	}
 	cli.NetworkCreate(context.Background(), docker.NETWORKNAME, types.NetworkCreate{})
+}
+
+//根据网络id获取网络名
+func (ds *dockerService) GetNetWorkNameByNetWorkID(id string) (string, error) {
+	cli, _ := client2.NewClientWithOpts(client2.FromEnv)
+	defer cli.Close()
+	filter := filters.NewArgs()
+	filter.Add("id", id)
+	d, err := cli.NetworkList(context.Background(), types.NetworkListOptions{filter})
+	if err == nil && len(d) > 0 {
+		return d[0].Name, nil
+	}
+	return "", err
 }
 
 //拉取镜像
@@ -409,6 +423,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 			res.Devices = append(res.Devices, container.DeviceMapping{PathOnHost: p.Path, PathInContainer: p.ContainerPath})
 		}
 	}
+	hostConfingBind := []string{}
 	// volumes bind
 	volumes := []mount.Mount{}
 	for _, v := range m.Volumes {
@@ -441,6 +456,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 			Target: v.ContainerPath,
 		})
 
+		hostConfingBind = append(hostConfingBind, v.Path+":"+v.ContainerPath)
 	}
 
 	rp := container.RestartPolicy{}

@@ -2,14 +2,15 @@ package config
 
 import (
 	"fmt"
-	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/go-ini/ini"
 	"log"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/go-ini/ini"
 )
 
 //系统配置
@@ -55,6 +56,7 @@ func InitSetup(config string) {
 	mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)
+	SystemConfigInfo.ConfigPath = configDir
 	//	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
 
 }
