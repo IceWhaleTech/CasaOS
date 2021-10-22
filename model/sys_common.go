@@ -15,6 +15,7 @@ type UserModel struct {
 	Head        string
 	Email       string
 	Description string
+	Initialized bool
 }
 
 //服务配置

@@ -133,7 +133,7 @@ func PostSetWidgetConfig(c *gin.Context) {
 // @Router /guide/check [get]
 func GetGuideCheck(c *gin.Context) {
 	initUser := false
-	if config.UserInfo.UserName == "admin" && config.UserInfo.PWD == "zimaboard" && version.VersionCompared("0.1.7", types.CURRENTVERSION) {
+	if !config.UserInfo.Initialized {
 		initUser = true
 	}
 	data := make(map[string]interface{}, 1)
