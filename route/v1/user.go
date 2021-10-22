@@ -8,7 +8,6 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
@@ -35,7 +34,7 @@ func Set_Name_Pwd(c *gin.Context) {
 	username := c.PostForm("username")
 	pwd := c.PostForm("pwd")
 	//老用户名是否存在即新用户名和密码的验证
-	if (!(config.UserInfo.UserName == "admin" && config.UserInfo.PWD == "zimaboard" && version.VersionCompared("0.1.7", types.CURRENTVERSION)) && len(config.UserInfo.UserName) > 0) || len(username) == 0 || len(pwd) == 0 {
+	if config.UserInfo.Initialized || len(username) == 0 || len(pwd) == 0 {
 		c.JSON(http.StatusOK,
 			model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return

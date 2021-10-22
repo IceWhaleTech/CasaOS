@@ -21,6 +21,8 @@ func (c *user) SetUser(username, pwd, token, email, desc string) error {
 	if len(username) > 0 {
 		config.Cfg.Section("user").Key("UserName").SetValue(username)
 		config.UserInfo.UserName = username
+		config.Cfg.Section("user").Key("Initialized").SetValue("true")
+		config.UserInfo.Initialized = true
 	}
 	if len(pwd) > 0 {
 		config.Cfg.Section("user").Key("PWD").SetValue(pwd)
