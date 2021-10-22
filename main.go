@@ -11,15 +11,15 @@ import (
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
-	"github.com/gin-gonic/gin"
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
 )
 
 var sqliteDB *gorm.DB
 
-var swagHandler gin.HandlerFunc
 var configFlag = flag.String("c", "", "config address")
+
+var showUserInfo = flag.Bool("show-user-info", false, "show user info")
 
 func init() {
 	flag.Parse()
@@ -31,21 +31,27 @@ func init() {
 	service.MyService = service.NewService(sqliteDB, loger2.NewOLoger())
 }
 
-// @title Oasis API
+// @title casaOS API
 // @version 1.0.0
 // @contact.name lauren.pan
 // @contact.url https://www.zimaboard.com
 // @contact.email lauren.pan@icewhale.org
-// @description Oasis v1版本api
-// @host 192.168.2.114:8089
+// @description casaOS v1版本api
+// @host 192.168.2.217:8089
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
 // @BasePath /v1
 func main() {
+	if *showUserInfo {
+		fmt.Println("CasaOS User Info")
+		fmt.Println("UserName:" + config.UserInfo.UserName)
+		fmt.Println("Password:" + config.UserInfo.PWD)
+		return
+	}
 	//model.Setup()
 	//gredis.Setup()
-	r := route.InitRouter(swagHandler)
+	r := route.InitRouter()
 	//service.SyncTask(sqliteDB)
 	cron2 := cron.New() //创建一个cron实例
 	//执行定时任务（每5秒执行一次）

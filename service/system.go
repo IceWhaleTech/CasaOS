@@ -16,7 +16,6 @@ type systemService struct {
 }
 
 func (s *systemService) UpdateSystemVersion(version string) {
-	s.log.Error(version)
 	//command2.OnlyExec(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
 	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
 	s.log.Error(command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/tools.sh ;update " + version))

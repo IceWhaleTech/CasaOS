@@ -53,10 +53,8 @@ func CheckVersion(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/update [post]
 func SystemUpdate(c *gin.Context) {
-	fmt.Println("开始更新")
 	need, version := version.IsNeedUpdate()
 	if need {
-		fmt.Println("进入更新")
 		service.MyService.System().UpdateSystemVersion(version.Version)
 	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
@@ -112,7 +110,7 @@ func GetWidgetConfig(c *gin.Context) {
 // @Tags sys
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /sys/widget/config[post]
+// @Router /sys/widget/config [post]
 func PostSetWidgetConfig(c *gin.Context) {
 	buf := make([]byte, 1024)
 	n, _ := c.Request.Body.Read(buf)
@@ -123,5 +121,27 @@ func PostSetWidgetConfig(c *gin.Context) {
 			Success: oasis_err.SUCCESS,
 			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
 			Data:    json.RawMessage(config.SystemConfigInfo.WidgetList),
+		})
+}
+
+// @Summary 检查是否进入引导状态
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /guide/check [get]
+func GetGuideCheck(c *gin.Context) {
+	initUser := false
+	if config.UserInfo.UserName == "admin" && config.UserInfo.PWD == "zimaboard" && version.VersionCompared("0.1.7", types.CURRENTVERSION) {
+		initUser = true
+	}
+	data := make(map[string]interface{}, 1)
+	data["need_init_user"] = initUser
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Data:    data,
 		})
 }
