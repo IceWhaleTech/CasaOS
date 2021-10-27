@@ -25,6 +25,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/jinzhu/copier"
 	uuid "github.com/satori/go.uuid"
+	"golang.org/x/crypto/ssh"
 )
 
 var upgrader = websocket.Upgrader{
@@ -65,19 +66,46 @@ func DockerTerminal(c *gin.Context) {
 //打开本机的ssh接口
 func WsSsh(c *gin.Context) {
 	wsConn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
-	defer wsConn.Close()
-	cols, _ := strconv.Atoi(c.DefaultQuery("cols", "200"))
-	rows, _ := strconv.Atoi(c.DefaultQuery("rows", "32"))
-	client, _ := docker.NewSshClient()
-	defer client.Close()
-	ssConn, _ := docker.NewSshConn(cols, rows, client)
-	defer ssConn.Close()
-	quitChan := make(chan bool, 3)
 
 	var logBuff = new(bytes.Buffer)
+	quitChan := make(chan bool, 3)
+	user := ""
+	password := ""
+	var login int = 1
+	cols, _ := strconv.Atoi(c.DefaultQuery("cols", "200"))
+	rows, _ := strconv.Atoi(c.DefaultQuery("rows", "32"))
+	var client *ssh.Client
+	for login != 0 {
+
+		var err error
+
+		wsConn.WriteMessage(websocket.TextMessage, []byte("login:"))
+		user = docker.ReceiveWsMsgUser(wsConn, logBuff)
+		wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
+		wsConn.WriteMessage(websocket.TextMessage, []byte("password:"))
+		password = docker.ReceiveWsMsgPassword(wsConn, logBuff)
+		wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
+		client, err = docker.NewSshClient(user, password)
+
+		if err != nil && client == nil {
+			wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
+			wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
+		} else {
+			login = 0
+		}
+
+	}
+	if client != nil {
+		defer client.Close()
+	}
+
+	ssConn, _ := docker.NewSshConn(cols, rows, client)
+	defer ssConn.Close()
+
 	go ssConn.ReceiveWsMsg(wsConn, logBuff, quitChan)
 	go ssConn.SendComboOutput(wsConn, quitChan)
 	go ssConn.SessionWait(quitChan)
+
 	<-quitChan
 
 }

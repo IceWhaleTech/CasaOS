@@ -27,14 +27,16 @@ func InitRouter() *gin.Engine {
 	if swagHandler != nil {
 		r.GET("/swagger/*any", swagHandler)
 	}
-	//登录
+
 	r.POST("/v1/user/login", v1.Login)
 
 	r.GET("/v1/guide/check", v1.GetGuideCheck)
 
 	r.GET("/debug", v1.GetSystemConfigDebug)
-	//设置用户
+	//set user
 	r.POST("/v1/user/setusernamepwd", v1.Set_Name_Pwd)
+	//get user info
+	r.GET("/v1/user/info", v1.UserInfo)
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT(swagHandler))
@@ -51,8 +53,7 @@ func InitRouter() *gin.Engine {
 			v1UserGroup.PUT("/changuserpwd", v1.Chang_User_Pwd)
 			//edit user info
 			v1UserGroup.POST("/changuserinfo", v1.Chang_User_Info)
-			//get user info
-			v1UserGroup.GET("/info", v1.UserInfo)
+
 		}
 
 		v1ZiMaGroup := v1Group.Group("/zima")
@@ -185,6 +186,7 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.GET("/sys", v1.Sys)
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
 			v1SysGroup.GET("/config", v1.GetSystemConfig)
+			v1SysGroup.GET("/error/logs", v1.GetCasaOSErrorLogs)
 			v1SysGroup.POST("/config", v1.PostSetSystemConfig)
 			v1SysGroup.GET("/widget/config", v1.GetWidgetConfig)
 			v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)

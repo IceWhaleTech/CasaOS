@@ -7,8 +7,10 @@ const (
 	ERROR_AUTH_TOKEN = 401
 
 	//user
-	PWD_INVALID = 10001
+	PWD_INVALID  = 10001
+	PWD_IS_EMPTY = 10002
 
+	PWD_INVALID_OLD = 10003
 	//system
 	DIR_ALREADY_EXISTS  = 20001
 	FILE_ALREADY_EXISTS = 20002
@@ -37,7 +39,9 @@ var MsgFlags = map[int]string{
 	ERROR_AUTH_TOKEN: "error auth token",
 
 	//user
-	PWD_INVALID: "Password invalid",
+	PWD_INVALID:     "Password invalid",
+	PWD_IS_EMPTY:    "Password is empty",
+	PWD_INVALID_OLD: "Old Password invalid",
 
 	//system
 	DIR_ALREADY_EXISTS:  "Directory already exists",
