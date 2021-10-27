@@ -2,13 +2,13 @@ package loger
 
 import (
 	"fmt"
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	file2 "github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
-	"time"
+
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	file2 "github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 )
 
 //定义一个int的别名
@@ -20,6 +20,7 @@ type OLog interface {
 	Warn(v ...interface{})
 	Error(v ...interface{})
 	Fatal(v ...interface{})
+	Path() string
 }
 
 type oLog struct {
@@ -47,9 +48,8 @@ const (
 func LogSetup() {
 	var err error
 	filePath := fmt.Sprintf("%s", config.AppInfo.LogSavePath)
-	fileName := fmt.Sprintf("%s%s.%s",
+	fileName := fmt.Sprintf("%s.%s",
 		config.AppInfo.LogSaveName,
-		time.Now().Format(config.AppInfo.DateStrFormat),
 		config.AppInfo.LogFileExt,
 	)
 	F, err = file2.MustOpen(fileName, filePath)
@@ -60,7 +60,14 @@ func LogSetup() {
 	logger = log.New(F, DefaultPrefix, log.LstdFlags)
 
 }
-
+func (o *oLog) Path() string {
+	filePath := fmt.Sprintf("%s", config.AppInfo.LogSavePath)
+	fileName := fmt.Sprintf("%s.%s",
+		config.AppInfo.LogSaveName,
+		config.AppInfo.LogFileExt,
+	)
+	return filePath + fileName
+}
 func (o *oLog) Debug(v ...interface{}) {
 	setPrefix(DEBUG)
 	logger.Println(v)

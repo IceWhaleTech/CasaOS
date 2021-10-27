@@ -65,14 +65,27 @@ func GetSystemConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.ConfigStr)})
 }
 
+// @Summary  get logs
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Param file query line false "get the number of log lines"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/error/logs [get]
+func GetCasaOSErrorLogs(c *gin.Context) {
+	line, _ := strconv.Atoi(c.DefaultQuery("line", "100"))
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: service.MyService.System().GetCasaOSLogs(line)})
+}
+
 // @Summary 修改配置文件
 // @Produce  application/json
 // @Accept multipart/form-data
-// @Tags user
+// @Tags sys
 // @Param file formData file true "用户头像"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /user/changhead [post]
+// @Router /sys/changhead [post]
 func PostSetSystemConfig(c *gin.Context) {
 	buf := make([]byte, 1024)
 	n, _ := c.Request.Body.Read(buf)

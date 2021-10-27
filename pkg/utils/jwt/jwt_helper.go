@@ -2,11 +2,12 @@ package jwt
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/IceWhaleTech/CasaOS/model"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func JWT(swagHandler gin.HandlerFunc) gin.HandlerFunc {

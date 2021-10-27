@@ -111,7 +111,6 @@ func Up_Load_Head(c *gin.Context) {
 			Message: oasis_err2.GetMsg(oasis_err2.SUCCESS),
 			Data:    config.UserInfo.Head,
 		})
-	return
 }
 
 // @Summary 修改用户名
@@ -132,7 +131,6 @@ func Chang_User_Name(c *gin.Context) {
 	}
 	user_service.SetUser(username, "", "", "", "")
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
-	return
 }
 
 // @Summary 修改密码
@@ -147,13 +145,16 @@ func Chang_User_Name(c *gin.Context) {
 func Chang_User_Pwd(c *gin.Context) {
 	oldpwd := c.PostForm("oldpwd")
 	pwd := c.PostForm("pwd")
-	if len(pwd) == 0 || config.UserInfo.PWD != oldpwd {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+	if config.UserInfo.PWD != oldpwd {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PWD_INVALID_OLD, Message: oasis_err2.GetMsg(oasis_err2.PWD_INVALID_OLD)})
+		return
+	}
+	if len(pwd) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PWD_IS_EMPTY, Message: oasis_err2.GetMsg(oasis_err2.PWD_IS_EMPTY)})
 		return
 	}
 	user_service.SetUser("", pwd, "", "", "")
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
-	return
 }
 
 // @Summary 修改用户信息
@@ -179,21 +180,23 @@ func Chang_User_Info(c *gin.Context) {
 		return
 	}
 	user_service.SetUser(username, pwd, "", email, description)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
-	return
+	data := make(map[string]string, 2)
+
+	data["token"] = jwt2.GetToken(username, pwd)
+	data["user_name"] = username
+	data["head"] = config.UserInfo.Head
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
 }
 
 // @Summary 获取用户详情
 // @Produce  application/json
 // @Accept mapplication/json
 // @Tags user
-// @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /user/info [get]
 func UserInfo(c *gin.Context) {
 	var u = make(map[string]string, 2)
 	u["user_name"] = config.UserInfo.UserName
-	u["token"] = config.UserInfo.Token
 	u["head"] = config.UserInfo.Head
 	u["email"] = config.UserInfo.Email
 	u["description"] = config.UserInfo.Description
@@ -203,5 +206,4 @@ func UserInfo(c *gin.Context) {
 			Message: oasis_err2.GetMsg(oasis_err2.SUCCESS),
 			Data:    u,
 		})
-	return
 }

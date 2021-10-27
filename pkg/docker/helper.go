@@ -4,30 +4,35 @@ import (
 	"bytes"
 	json2 "encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh"
 	"io"
 	"regexp"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
 )
 
-func NewSshClient() (*ssh.Client, error) {
+func NewSshClient(user, password string) (*ssh.Client, error) {
+
+	// connet to ssh
+	// addr = fmt.Sprintf("%s:%d", host, port)
+
 	config := &ssh.ClientConfig{
 		Timeout:         time.Second * 5,
-		User:            "root",
+		User:            user,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		//HostKeyCallback: ,
 		//HostKeyCallback: hostKeyCallBackFunc(h.Host),
 	}
 	//if h.Type == "password" {
-	config.Auth = []ssh.AuthMethod{ssh.Password("123456")}
+	config.Auth = []ssh.AuthMethod{ssh.Password(password)}
 	//} else {
 	//	config.Auth = []ssh.AuthMethod{publicKeyAuthFunc(h.Key)}
 	//}
-	addr := fmt.Sprintf("%s:%d", "192.168.2.142", 22)
+	addr := fmt.Sprintf("%s:%d", "127.0.0.1", 22)
 	c, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
 		return nil, err
@@ -97,6 +102,98 @@ const (
 	wsMsgCmd    = "cmd"
 	wsMsgResize = "resize"
 )
+
+//ReceiveWsMsg  receive websocket msg do some handling then write into ssh.session.stdin
+func ReceiveWsMsgUser(wsConn *websocket.Conn, logBuff *bytes.Buffer) string {
+	//tells other go routine quit
+	username := ""
+	for {
+
+		//read websocket msg
+		_, wsData, err := wsConn.ReadMessage()
+		if err != nil {
+
+			return ""
+		}
+
+		msgObj := wsMsg{}
+		if err := json2.Unmarshal(wsData, &msgObj); err != nil {
+			msgObj.Type = "cmd"
+			msgObj.Cmd = string(wsData)
+		}
+		//if err := json.Unmarshal(wsData, &msgObj); err != nil {
+		//	logrus.WithError(err).WithField("wsData", string(wsData)).Error("unmarshal websocket message failed")
+		//}
+		switch msgObj.Type {
+		case wsMsgCmd:
+			//handle xterm.js stdin
+			//decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
+			decodeBytes := []byte(msgObj.Cmd)
+			if msgObj.Cmd == "\u007f" {
+				if len(username) == 0 {
+					continue
+				}
+				wsConn.WriteMessage(websocket.TextMessage, []byte("\b\x1b[K"))
+				username = username[:len(username)-1]
+				continue
+			}
+			if msgObj.Cmd == "\r" {
+				return username
+			}
+			username += msgObj.Cmd
+
+			if err := wsConn.WriteMessage(websocket.TextMessage, decodeBytes); err != nil {
+				logrus.WithError(err).Error("ws cmd bytes write to ssh.stdin pipe failed")
+			}
+			//write input cmd to log buffer
+			if _, err := logBuff.Write(decodeBytes); err != nil {
+				logrus.WithError(err).Error("write received cmd into log buffer failed")
+			}
+		}
+
+	}
+}
+
+func ReceiveWsMsgPassword(wsConn *websocket.Conn, logBuff *bytes.Buffer) string {
+	//tells other go routine quit
+	password := ""
+	for {
+
+		//read websocket msg
+		_, wsData, err := wsConn.ReadMessage()
+		if err != nil {
+			logrus.WithError(err).Error("reading webSocket message failed")
+			return ""
+		}
+
+		msgObj := wsMsg{}
+		if err := json2.Unmarshal(wsData, &msgObj); err != nil {
+			msgObj.Type = "cmd"
+			msgObj.Cmd = string(wsData)
+		}
+		//if err := json.Unmarshal(wsData, &msgObj); err != nil {
+		//	logrus.WithError(err).WithField("wsData", string(wsData)).Error("unmarshal websocket message failed")
+		//}
+		switch msgObj.Type {
+		case wsMsgCmd:
+			//handle xterm.js stdin
+			//decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
+			if msgObj.Cmd == "\r" {
+				return password
+			}
+
+			if msgObj.Cmd == "\u007f" {
+				if len(password) == 0 {
+					continue
+				}
+				password = password[:len(password)-1]
+				continue
+			}
+			password += msgObj.Cmd
+		}
+
+	}
+}
 
 //ReceiveWsMsg  receive websocket msg do some handling then write into ssh.session.stdin
 func (ssConn *SshConn) ReceiveWsMsg(wsConn *websocket.Conn, logBuff *bytes.Buffer, exitCh chan bool) {
@@ -187,6 +284,64 @@ func flushComboOutput(w *wsBufferWriter, wsConn *websocket.Conn) error {
 	}
 	return nil
 }
+
+//ReceiveWsMsg  receive websocket msg do some handling then write into ssh.session.stdin
+func (ssConn *SshConn) Login(wsConn *websocket.Conn, logBuff *bytes.Buffer, exitCh chan bool) {
+	//tells other go routine quit
+	defer setQuit(exitCh)
+	for {
+		select {
+		case <-exitCh:
+			return
+		default:
+			//read websocket msg
+			_, wsData, err := wsConn.ReadMessage()
+			if err != nil {
+				logrus.WithError(err).Error("reading webSocket message failed")
+				return
+			}
+			//unmashal bytes into struct
+			//msgObj := wsMsg{
+			//	Type: "cmd",
+			//	Cmd:  "",
+			//	Rows: 50,
+			//	Cols: 180,
+			//}
+			msgObj := wsMsg{}
+			if err := json2.Unmarshal(wsData, &msgObj); err != nil {
+				msgObj.Type = "cmd"
+				msgObj.Cmd = string(wsData)
+			}
+			//if err := json.Unmarshal(wsData, &msgObj); err != nil {
+			//	logrus.WithError(err).WithField("wsData", string(wsData)).Error("unmarshal websocket message failed")
+			//}
+			switch msgObj.Type {
+
+			case wsMsgResize:
+				//handle xterm.js size change
+				if msgObj.Cols > 0 && msgObj.Rows > 0 {
+					if err := ssConn.Session.WindowChange(msgObj.Rows, msgObj.Cols); err != nil {
+						logrus.WithError(err).Error("ssh pty change windows size failed")
+					}
+				}
+			case wsMsgCmd:
+				//handle xterm.js stdin
+				//decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
+				decodeBytes := []byte(msgObj.Cmd)
+				if err != nil {
+					logrus.WithError(err).Error("websock cmd string base64 decoding failed")
+				}
+				if _, err := ssConn.StdinPipe.Write(decodeBytes); err != nil {
+					logrus.WithError(err).Error("ws cmd bytes write to ssh.stdin pipe failed")
+				}
+				//write input cmd to log buffer
+				if _, err := logBuff.Write(decodeBytes); err != nil {
+					logrus.WithError(err).Error("write received cmd into log buffer failed")
+				}
+			}
+		}
+	}
+}
 func (ssConn *SshConn) SessionWait(quitChan chan bool) {
 	if err := ssConn.Session.Wait(); err != nil {
 		logrus.WithError(err).Error("ssh session wait failed")
@@ -241,7 +396,7 @@ func WsReaderCopy(reader *websocket.Conn, writer io.Writer) {
 			if err = json2.Unmarshal(p, &msgObj); err != nil {
 				writer.Write(p)
 			} else if msgObj.Type == wsMsgResize {
-				writer.Write([]byte("stty rows " + strconv.Itoa(msgObj.Rows) + " && stty cols " + strconv.Itoa(msgObj.Cols) + " \r" ))
+				writer.Write([]byte("stty rows " + strconv.Itoa(msgObj.Rows) + " && stty cols " + strconv.Itoa(msgObj.Cols) + " \r"))
 			}
 		}
 	}
