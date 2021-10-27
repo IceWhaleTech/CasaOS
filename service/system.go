@@ -1,14 +1,11 @@
 package service
 
 import (
-	"bufio"
-	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 )
 
@@ -40,38 +37,21 @@ func (s *systemService) UpSystemConfig(str string, widget string) {
 		config.Cfg.Section("system").Key("WidgetList").SetValue(widget)
 		config.SystemConfigInfo.WidgetList = widget
 	}
-	config.Cfg.SaveTo("conf/conf.ini")
+	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
 
 func (s *systemService) GetCasaOSLogs(lineNumber int) string {
-
-	reader, err := file.NewReadLineFromEnd(s.log.Path())
+	file, err := os.Open(s.log.Path())
 	if err != nil {
-		return ""
-	}
-	defer reader.Close()
-	test, err := reader.ReadLine()
-
-	fmt.Println(err)
-	fmt.Println(test)
-	return string(test)
-	file, _ := os.Open(s.log.Path())
-	fileScanner := bufio.NewReader(file)
-	lineNumber = 5
-	lineCount := 1
-	var r string
-	for i := lineCount; i < lineNumber; i++ {
-		line, _, err := fileScanner.ReadLine()
-		r += string(line)
-		if err == io.EOF {
-			return r
-		}
-		// 如下是某些业务逻辑操作
-		// 如下代码打印每次读取的文件行内容
-
+		return err.Error()
 	}
 	defer file.Close()
-	return r
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err.Error()
+	}
+
+	return string(content)
 }
 
 func NewSystemService(log loger.OLog) SystemService {
