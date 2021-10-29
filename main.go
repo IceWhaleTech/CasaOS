@@ -6,11 +6,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
+
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
 )
@@ -29,6 +31,7 @@ func init() {
 	sqliteDB = sqlite.GetDb(config.AppInfo.ProjectPath)
 	//gredis.GetRedisConn(config.RedisInfo),
 	service.MyService = service.NewService(sqliteDB, loger2.NewOLoger())
+	service.Cache = cache.Init()
 }
 
 // @title casaOS API

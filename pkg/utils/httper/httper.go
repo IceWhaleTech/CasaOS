@@ -3,12 +3,13 @@ package httper
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	"github.com/tidwall/gjson"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/tidwall/gjson"
 )
 
 //发送GET请求

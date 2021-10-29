@@ -2,8 +2,11 @@ package service
 
 import (
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
 )
+
+var Cache *cache.Cache
 
 var MyService Repository
 
