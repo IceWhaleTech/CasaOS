@@ -1,4 +1,4 @@
 package types
 
-const CURRENTVERSION = "0.1.8"
-const BODY = "<li>Add terminal</li><li>Improve single user management function</li><li>Experience optimization</li>"
+const CURRENTVERSION = "0.1.9"
+const BODY = "<li>add casaOS logs</li><li>add application  terminal</li><li>add application  logs</li>"
