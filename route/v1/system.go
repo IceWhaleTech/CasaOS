@@ -28,13 +28,12 @@ func CheckVersion(c *gin.Context) {
 	need, version := version.IsNeedUpdate()
 	if need {
 		installLog := model2.AppNotify{}
-		installLog.CustomId = ""
 		installLog.State = 0
 		installLog.Message = "New version " + version.Version + " is ready, ready to upgrade"
-		installLog.Speed = 100
 		installLog.Type = types.NOTIFY_TYPE_NEED_CONFIRM
 		installLog.CreatedAt = strconv.FormatInt(time.Now().Unix(), 10)
 		installLog.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
+		installLog.Name = "CasaOS System"
 		service.MyService.Notify().AddLog(installLog)
 	}
 	data := make(map[string]interface{}, 1)
@@ -69,7 +68,6 @@ func GetSystemConfig(c *gin.Context) {
 // @Produce  application/json
 // @Accept application/json
 // @Tags sys
-// @Param file query line false "get the number of log lines"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/error/logs [get]

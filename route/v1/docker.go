@@ -238,10 +238,8 @@ func InstallApp(c *gin.Context) {
 	var relyMap = make(map[string]string)
 	go func() {
 		installLog := model2.AppNotify{}
-		installLog.CustomId = id
 		installLog.State = 0
 		installLog.Message = "installing rely"
-		installLog.Speed = 10
 		installLog.Type = types.NOTIFY_TYPE_UNIMPORTANT
 		installLog.CreatedAt = strconv.FormatInt(time.Now().Unix(), 10)
 		installLog.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
@@ -279,7 +277,6 @@ func InstallApp(c *gin.Context) {
 					} else {
 						docker_base.MysqlDelete(mysqlContainerId)
 						installLog.State = 0
-						installLog.Speed = 30
 						installLog.Message = err.Error()
 						service.MyService.Notify().UpdateLog(installLog)
 					}
@@ -288,7 +285,6 @@ func InstallApp(c *gin.Context) {
 
 		}
 
-		installLog.Speed = 50
 		installLog.Message = "pulling"
 		service.MyService.Notify().UpdateLog(installLog)
 
@@ -296,7 +292,6 @@ func InstallApp(c *gin.Context) {
 		err := service.MyService.Docker().DockerPullImage(dockerImage+":"+dockerImageVersion, installLog)
 		if err != nil {
 			installLog.State = 0
-			installLog.Speed = 70
 			installLog.Message = err.Error()
 			installLog.Type = types.NOTIFY_TYPE_ERROR
 			service.MyService.Notify().UpdateLog(installLog)
@@ -323,18 +318,17 @@ func InstallApp(c *gin.Context) {
 		// 	return
 		// }
 		containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, id, m, appInfo.NetworkModel)
-		installLog.ContainerId = containerId
+		installLog.Name = appInfo.Title
+		installLog.Icon = appInfo.Icon
 		if err != nil {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":80}", 100)
 			installLog.State = 0
-			installLog.Speed = 80
 			installLog.Type = types.NOTIFY_TYPE_ERROR
 			installLog.Message = err.Error()
 			service.MyService.Notify().UpdateLog(installLog)
 			return
 		} else {
 			//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"starting\",\"speed\":80}", 100)
-			installLog.Speed = 80
 			installLog.Message = "starting"
 			service.MyService.Notify().UpdateLog(installLog)
 		}
@@ -345,13 +339,11 @@ func InstallApp(c *gin.Context) {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":90}", 100)
 			installLog.State = 0
 			installLog.Type = types.NOTIFY_TYPE_ERROR
-			installLog.Speed = 90
 			installLog.Message = err.Error()
 			service.MyService.Notify().UpdateLog(installLog)
 			return
 		} else {
 			//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"setting upnp\",\"speed\":90}", 100)
-			installLog.Speed = 90
 			if m.Origin != CUSTOM {
 				installLog.Message = "setting upnp"
 			} else {
@@ -396,13 +388,11 @@ func InstallApp(c *gin.Context) {
 				if err != nil {
 					//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":95}", 100)
 					installLog.State = 0
-					installLog.Speed = 95
 					installLog.Type = types.NOTIFY_TYPE_ERROR
 					installLog.Message = err.Error()
 					service.MyService.Notify().UpdateLog(installLog)
 				} else {
 					//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"checking\",\"speed\":95}", 100)
-					installLog.Speed = 95
 					installLog.Message = "checking"
 					service.MyService.Notify().UpdateLog(installLog)
 				}
@@ -414,14 +404,12 @@ func InstallApp(c *gin.Context) {
 		if err != nil && container.ContainerJSONBase.State.Running {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":100}", 100)
 			installLog.State = 0
-			installLog.Speed = 100
 			installLog.Type = types.NOTIFY_TYPE_ERROR
 			installLog.Message = err.Error()
 			service.MyService.Notify().UpdateLog(installLog)
 			return
 		} else {
 			//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"installed\",\"speed\":100}", 100)
-			installLog.Speed = 100
 			installLog.Message = "installed"
 			service.MyService.Notify().UpdateLog(installLog)
 		}
@@ -802,7 +790,6 @@ func ContainerLog(c *gin.Context) {
 func GetInstallSpeed(c *gin.Context) {
 	id := c.Param("id")
 	b := service.MyService.Notify().GetLog(id)
-	b.Id = b.CustomId
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: b})
 }
 

@@ -327,7 +327,6 @@ func (ds *dockerService) DockerPullImage(imageName string, m model2.AppNotify) e
 		}
 		m.Type = types2.NOTIFY_TYPE_INSTALL_LOG
 		m.State = 0
-		m.Speed = 70
 		m.Message = string(buf[:n])
 		MyService.Notify().UpdateLog(m)
 	}

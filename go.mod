@@ -15,7 +15,6 @@ require (
 	github.com/forease/gotld v0.0.0-20190808124948-c50ff635576b
 	github.com/gin-contrib/gzip v0.0.2 // indirect
 	github.com/gin-gonic/gin v1.7.2
-	github.com/gliderlabs/ssh v0.3.3
 	github.com/go-ini/ini v1.62.0
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/go-openapi/spec v0.20.4 // indirect
@@ -37,6 +36,7 @@ require (
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/selinux v1.8.5 // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/prestonTao/upnp v0.0.0-20150206124352-f4370df5e109
 	github.com/prometheus/procfs v0.7.3 // indirect

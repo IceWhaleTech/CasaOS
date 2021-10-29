@@ -50,6 +50,7 @@ func MkDir(src string) error {
 	if err != nil {
 		return err
 	}
+	os.Chmod(src, 0777)
 
 	return nil
 }
