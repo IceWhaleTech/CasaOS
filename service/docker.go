@@ -20,6 +20,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 
@@ -60,6 +61,7 @@ type DockerService interface {
 	DockerNetworkModelList() []types.NetworkResource
 	DockerImageInfo(image string)
 	GetNetWorkNameByNetWorkID(id string) (string, error)
+	ContainerExecShell(container_id string) string
 }
 
 type dockerService struct {
@@ -67,15 +69,20 @@ type dockerService struct {
 	log     loger2.OLog
 }
 
-func DockerPs() {
+func (ds *dockerService) ContainerExecShell(container_id string) string {
 	cli, _ := client2.NewClientWithOpts(client2.FromEnv)
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+	exec, err := cli.ContainerExecCreate(context.Background(), container_id, types.ExecConfig{
+		User: "1000:1000",
+		Cmd:  []string{"echo -e \"hellow\nworld\" >> /a.txt"},
+	})
 	if err != nil {
 		os.Exit(5)
 	}
-	for _, container := range containers {
-		fmt.Printf("%s %s\n", container.ID[:10], container.Image)
+	err = cli.ContainerExecStart(context.Background(), exec.ID, types.ExecStartCheck{})
+	if err != nil {
+		fmt.Println("exec script error ", err)
 	}
+	return exec.ID
 }
 
 //创建默认网络
@@ -401,6 +408,10 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 
 	var envArr []string
 	for _, e := range m.Envs {
+		if strings.HasPrefix(e.Value, "$") {
+			envArr = append(envArr, e.Name+"="+env_helper.ReplaceDefaultENV(e.Value))
+			continue
+		}
 		if len(e.Value) > 0 {
 			if e.Value == "port_map" {
 				envArr = append(envArr, e.Name+"="+m.PortMap)
@@ -433,6 +444,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 				continue
 			}
 		}
+		path = strings.ReplaceAll(path, "$AppID", containerDbId)
 		reg1 := regexp.MustCompile(`([^<>/\\\|:""\*\?]+\.\w+$)`)
 		result1 := reg1.FindAllStringSubmatch(path, -1)
 		if len(result1) == 0 {
@@ -475,11 +487,12 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 		StartPeriod: 0,
 		Retries:     1000,
 	}
+	fmt.Print(health)
 	config := &container.Config{
-		Image:       imageName,
-		Labels:      map[string]string{"origin": m.Origin, m.Origin: m.Origin},
-		Env:         envArr,
-		Healthcheck: health,
+		Image:  imageName,
+		Labels: map[string]string{"origin": m.Origin, m.Origin: m.Origin},
+		Env:    envArr,
+		//	Healthcheck: health,
 	}
 	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(net)}
 	//if net != "host" {
@@ -816,7 +829,6 @@ func Containerd() {
 	)
 
 	if err != nil {
-		fmt.Println("333")
 		fmt.Println(err)
 	}
 	defer container.Delete(ctx, containerd.WithSnapshotCleanup)
@@ -824,7 +836,6 @@ func Containerd() {
 	// create a task from the container
 	task, err := container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
 	if err != nil {
-		fmt.Println("444")
 		fmt.Println(err)
 	}
 	defer task.Delete(ctx)
@@ -837,7 +848,6 @@ func Containerd() {
 
 	// call start on the task to execute the redis server
 	if err = task.Start(ctx); err != nil {
-		fmt.Println("555")
 		fmt.Println(err)
 	}
 
@@ -847,7 +857,6 @@ func Containerd() {
 
 	// kill the process and get the exit status
 	if err = task.Kill(ctx, syscall.SIGTERM); err != nil {
-		fmt.Println("666")
 		fmt.Println(err)
 	}
 
@@ -856,7 +865,6 @@ func Containerd() {
 	status := <-exitStatusC
 	code, _, err := status.Result()
 	if err != nil {
-		fmt.Println("777")
 		fmt.Println(err)
 	}
 	fmt.Printf("redis-server exited with status: %d\n", code)

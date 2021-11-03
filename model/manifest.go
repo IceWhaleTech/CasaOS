@@ -17,20 +17,22 @@ type UdpPorts struct {
 /*******************使用gorm支持json************************************/
 
 type PortMap struct {
-	ContainerPort string `json:"container,omitempty"`
-	CommendPort   string `json:"host,omitempty"`
+	ContainerPort string `json:"container"`
+	CommendPort   string `json:"host"`
 	Protocol      string `json:"protocol"`
+	Desc          string `json:"desc"`
+	Type          int    `json:"type"`
 }
 
-type PortArrey []PortMap
+type PortArray []PortMap
 
 // Value 实现方法
-func (p PortArrey) Value() (driver.Value, error) {
+func (p PortArray) Value() (driver.Value, error) {
 	return json.Marshal(p)
 }
 
 // Scan 实现方法
-func (p *PortArrey) Scan(input interface{}) error {
+func (p *PortArray) Scan(input interface{}) error {
 	return json.Unmarshal(input.([]byte), p)
 }
 
@@ -41,20 +43,22 @@ func (p *PortArrey) Scan(input interface{}) error {
 type Env struct {
 	Name  string `json:"container"`
 	Value string `json:"host"`
+	Desc  string `json:"desc"`
+	Type  int    `json:"type"`
 }
 
 type JSON json.RawMessage
 
-type EnvArrey []Env
+type EnvArray []Env
 
 // Value 实现方法
-func (p EnvArrey) Value() (driver.Value, error) {
+func (p EnvArray) Value() (driver.Value, error) {
 	return json.Marshal(p)
 	//return .MarshalJSON()
 }
 
 // Scan 实现方法
-func (p *EnvArrey) Scan(input interface{}) error {
+func (p *EnvArray) Scan(input interface{}) error {
 	return json.Unmarshal(input.([]byte), p)
 }
 
@@ -65,17 +69,19 @@ func (p *EnvArrey) Scan(input interface{}) error {
 type PathMap struct {
 	ContainerPath string `json:"container"`
 	Path          string `json:"host"`
+	Type          int    `json:"type"`
+	Desc          string `json:"desc"`
 }
 
-type PathArrey []PathMap
+type PathArray []PathMap
 
 // Value 实现方法
-func (p PathArrey) Value() (driver.Value, error) {
+func (p PathArray) Value() (driver.Value, error) {
 	return json.Marshal(p)
 }
 
 // Scan 实现方法
-func (p *PathArrey) Scan(input interface{}) error {
+func (p *PathArray) Scan(input interface{}) error {
 	return json.Unmarshal(input.([]byte), p)
 }
 
@@ -103,10 +109,10 @@ type CustomizationPostData struct {
 	Index        string    `json:"index"`
 	Icon         string    `json:"icon"`
 	Image        string    `json:"image"`
-	Envs         EnvArrey  `json:"envs"`
-	Ports        PortArrey `json:"ports"`
-	Volumes      PathArrey `json:"volumes"`
-	Devices      PathArrey `json:"devices"`
+	Envs         EnvArray  `json:"envs"`
+	Ports        PortArray `json:"ports"`
+	Volumes      PathArray `json:"volumes"`
+	Devices      PathArray `json:"devices"`
 	//Port         string    `json:"port,omitempty"`
 	PortMap     string `json:"port_map"`
 	CpuShares   int64  `json:"cpu_shares"`

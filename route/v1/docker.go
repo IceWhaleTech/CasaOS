@@ -25,6 +25,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/jinzhu/copier"
 	uuid "github.com/satori/go.uuid"
+	"github.com/tidwall/gjson"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -172,7 +173,7 @@ func InstallApp(c *gin.Context) {
 		dockerImageVersion = "latest"
 	}
 	if m.Origin != "custom" {
-		appInfo = service.MyService.App().GetServerAppInfo(appId)
+		appInfo = service.MyService.OAPI().GetServerAppInfo(appId)
 
 	} else {
 
@@ -239,6 +240,7 @@ func InstallApp(c *gin.Context) {
 	go func() {
 		installLog := model2.AppNotify{}
 		installLog.State = 0
+		installLog.CustomId = id
 		installLog.Message = "installing rely"
 		installLog.Type = types.NOTIFY_TYPE_UNIMPORTANT
 		installLog.CreatedAt = strconv.FormatInt(time.Now().Unix(), 10)
@@ -282,7 +284,6 @@ func InstallApp(c *gin.Context) {
 					}
 				}
 			}
-
 		}
 
 		installLog.Message = "pulling"
@@ -332,6 +333,8 @@ func InstallApp(c *gin.Context) {
 			installLog.Message = "starting"
 			service.MyService.Notify().UpdateLog(installLog)
 		}
+
+		//		echo -e "hellow\nworld" >>
 
 		//step：启动容器
 		err = service.MyService.Docker().DockerContainerStart(id)
@@ -685,7 +688,11 @@ func UnInstallApp(c *gin.Context) {
 	if info.Origin != "custom" {
 
 		//step: 删除文件夹
-		service.MyService.App().DelAppConfigDir(appId)
+		vol := gjson.Get(info.Volumes, "#.host")
+		for _, v := range vol.Array() {
+
+			service.MyService.App().DelAppConfigDir(appId, v.String())
+		}
 
 		//step: 删除install log
 		service.MyService.Notify().DelLog(appId)
@@ -1119,16 +1126,16 @@ func ContainerUpdateInfo(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: err.Error()})
 		return
 	}
-	var port model.PortArrey
+	var port model.PortArray
 	json2.Unmarshal([]byte(appInfo.Ports), &port)
 
-	var envs model.EnvArrey
+	var envs model.EnvArray
 	json2.Unmarshal([]byte(appInfo.Envs), &envs)
 
-	var vol model.PathArrey
+	var vol model.PathArray
 	json2.Unmarshal([]byte(appInfo.Volumes), &vol)
 
-	var dir model.PathArrey
+	var dir model.PathArray
 	json2.Unmarshal([]byte(appInfo.Devices), &dir)
 
 	//volumesStr, _ := json2.Marshal(m.Volumes)

@@ -47,6 +47,7 @@ func IsPortAvailable(port int, t string) bool {
 		uc, err := net.ListenUDP("udp", sadd)
 
 		if err != nil {
+			fmt.Println(err.Error())
 			return false
 		} else {
 			defer uc.Close()

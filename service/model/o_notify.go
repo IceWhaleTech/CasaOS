@@ -9,6 +9,7 @@ type AppNotify struct {
 	Type      int    `json:"type"` // 1:显示即为已读 2:info 3:warning 4:error 5:success
 	Icon      string `json:"icon"`
 	Name      string `json:"name"`
+	CustomId  string `gorm:"column:custom_id;primary_key" json:"custom_id"`
 }
 
 func (p *AppNotify) TableName() string {

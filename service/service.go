@@ -18,7 +18,7 @@ type Repository interface {
 	//Redis() RedisService
 	ZeroTier() ZeroTierService
 	ZiMa() ZiMaService
-	OAPI() OasisService
+	OAPI() CasaService
 	Disk() DiskService
 	Notify() NotifyServer
 	ShareDirectory() ShareDirService
@@ -58,7 +58,7 @@ type store struct {
 	docker         DockerService
 	zerotier       ZeroTierService
 	zima           ZiMaService
-	oapi           OasisService
+	oapi           CasaService
 	disk           DiskService
 	notify         NotifyServer
 	shareDirectory ShareDirService
@@ -105,7 +105,7 @@ func (c *store) ZeroTier() ZeroTierService {
 func (c *store) ZiMa() ZiMaService {
 	return c.zima
 }
-func (c *store) OAPI() OasisService {
+func (c *store) OAPI() CasaService {
 	return c.oapi
 }
 

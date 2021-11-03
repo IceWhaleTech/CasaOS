@@ -7,32 +7,35 @@ import (
 )
 
 type ServerAppList struct {
-	Id             uint       `gorm:"column:id;primary_key" json:"id"`
-	Title          string     `json:"title"`
-	Description    string     `json:"description"`
-	Tagline        string     `json:"tagline"`
-	Tags           Strings    `gorm:"type:json" json:"tags"`
-	Icon           string     `json:"icon"`
-	ScreenshotLink Strings    `gorm:"type:json" json:"screenshot_link"`
-	Category       string     `json:"category"`
-	TcpPort        uint       `json:"tcp_port"`
-	PortMap        uint       `json:"port_map"`
-	ImageVersion   string     `json:"image_version"`
-	Tip            string     `json:"tip"`
-	Configures     configures `gorm:"type:json" json:"configures"`
-	NetworkModel   string     `json:"network_mode"`
-	Image          string     `json:"image"`
-	Index          string     `json:"index"`
-	CreatedAt      time.Time  `json:"created_at"`
-	UpdatedAt      time.Time  `json:"updated_at"`
-	State          string     `json:"state"`
-	Author         string     `json:"author"`
-	MinMemory      int        `json:"min_memory"`
-	MinDisk        int        `json:"min_disk"`
-	MaxMemory      uint64     `json:"max_memory"`
-	Thumbnail      string     `json:"thumbnail"`
-	Healthy        string     `json:"healthy"`
-	Plugins        Strings    `json:"plugins"`
+	Id             uint      `gorm:"column:id;primary_key" json:"id"`
+	Title          string    `json:"title"`
+	Description    string    `json:"description"`
+	Tagline        string    `json:"tagline"`
+	Tags           Strings   `gorm:"type:json" json:"tags"`
+	Icon           string    `json:"icon"`
+	ScreenshotLink Strings   `gorm:"type:json" json:"screenshot_link"`
+	Category       string    `json:"category"`
+	PortMap        string    `json:"port_map"`
+	ImageVersion   string    `json:"image_version"`
+	Tip            string    `json:"tip"`
+	Envs           EnvArray  `json:"envs"`
+	Ports          PortArray `json:"ports"`
+	Volumes        PathArray `json:"volumes"`
+	Devices        PathArray `json:"devices"`
+	NetworkModel   string    `json:"network_model"`
+	Image          string    `json:"image"`
+	Index          string    `json:"index"`
+	CreatedAt      time.Time `json:"created_at"`
+	UpdatedAt      time.Time `json:"updated_at"`
+	State          string    `json:"state"`
+	Author         string    `json:"author"`
+	MinMemory      int       `json:"min_memory"`
+	MinDisk        int       `json:"min_disk"`
+	MaxMemory      uint64    `json:"max_memory"`
+	Thumbnail      string    `json:"thumbnail"`
+	Healthy        string    `json:"healthy"`
+	Plugins        Strings   `json:"plugins"`
+	Origin         string    `json:"origin"`
 }
 
 type Ports struct {

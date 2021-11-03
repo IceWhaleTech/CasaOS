@@ -11,16 +11,17 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-type OasisService interface {
+type CasaService interface {
 	GetServerList(index, size, tp, categoryId, key string) ([]model.ServerAppList, int64)
 	GetServerCategoryList() []model.ServerCategoryList
 	GetTaskList(size int) []model2.TaskDBModel
+	GetServerAppInfo(id string) model.ServerAppList
 }
 
-type oasisService struct {
+type casaService struct {
 }
 
-func (o *oasisService) GetTaskList(size int) []model2.TaskDBModel {
+func (o *casaService) GetTaskList(size int) []model2.TaskDBModel {
 	head := make(map[string]string)
 
 	head["Authorization"] = GetToken()
@@ -33,7 +34,7 @@ func (o *oasisService) GetTaskList(size int) []model2.TaskDBModel {
 	return list
 }
 
-func (o *oasisService) GetServerList(index, size, tp, categoryId, key string) ([]model.ServerAppList, int64) {
+func (o *casaService) GetServerList(index, size, tp, categoryId, key string) ([]model.ServerAppList, int64) {
 
 	head := make(map[string]string)
 
@@ -49,7 +50,7 @@ func (o *oasisService) GetServerList(index, size, tp, categoryId, key string) ([
 	return list, count
 }
 
-func (o *oasisService) GetServerCategoryList() []model.ServerCategoryList {
+func (o *casaService) GetServerCategoryList() []model.ServerCategoryList {
 
 	head := make(map[string]string)
 	head["Authorization"] = GetToken()
@@ -62,7 +63,19 @@ func (o *oasisService) GetServerCategoryList() []model.ServerCategoryList {
 
 	return list
 }
+func (o *casaService) GetServerAppInfo(id string) model.ServerAppList {
 
+	head := make(map[string]string)
+
+	head["Authorization"] = GetToken()
+
+	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v1/app/info/"+id, head)
+
+	info := model.ServerAppList{}
+	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
+
+	return info
+}
 func GetToken() string {
 	t := make(chan string)
 	keyName := "casa_token"
@@ -86,6 +99,6 @@ func GetToken() string {
 	return auth
 }
 
-func NewOasisService() OasisService {
-	return &oasisService{}
+func NewOasisService() CasaService {
+	return &casaService{}
 }

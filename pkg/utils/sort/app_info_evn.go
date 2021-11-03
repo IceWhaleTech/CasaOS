@@ -1,8 +1,9 @@
 package sort
 
 import (
-	"github.com/IceWhaleTech/CasaOS/model"
 	"sort"
+
+	"github.com/IceWhaleTech/CasaOS/model"
 )
 
 // 数据集类型, 与上一篇排序文章(多字段单独排序)比较, less字段的数据类型不再是 func(p1, p2 *Change) bool
