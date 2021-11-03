@@ -25,6 +25,12 @@ IceWhale team believes that through community-driven collaborative innovation an
 Fresh install a system from the list below and run the this command:
 
 ```sh
+wget -qO- https://get.icewhale.io/casaos.sh | bash
+```
+
+or
+
+```sh
 curl -fsSL https://get.icewhale.io/casaos.sh | bash
 ```
 
