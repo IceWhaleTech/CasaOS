@@ -3,7 +3,7 @@ package docker_base
 import "github.com/IceWhaleTech/CasaOS/model"
 
 //过滤mysql关键字
-func MysqlFilter(c MysqlConfig, envs model.EnvArrey) model.EnvArrey {
+func MysqlFilter(c MysqlConfig, envs model.EnvArray) model.EnvArray {
 	for i := 0; i < len(envs); i++ {
 		switch envs[i].Value {
 		case "$MYSQL_HOST":

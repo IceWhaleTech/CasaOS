@@ -2,35 +2,31 @@ package service
 
 import (
 	"context"
-	json2 "encoding/json"
-	"github.com/IceWhaleTech/CasaOS/model"
+	"strings"
+	"time"
+
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
-	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	client2 "github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"github.com/tidwall/gjson"
 	"gorm.io/gorm"
-	"strings"
-	"time"
 )
 
 type AppService interface {
 	GetMyList(index, size int, position bool) *[]model2.MyAppList
 	SaveContainer(m model2.AppListDBModel)
-	GetServerAppInfo(id string) model.ServerAppList
 	GetUninstallInfo(id string) model2.AppListDBModel
 	RemoveContainerById(id string)
 	GetContainerInfo(name string) (types.Container, error)
 	GetAppDBInfo(id string) model2.AppListDBModel
 	UpdateApp(m model2.AppListDBModel)
 	GetSimpleContainerInfo(name string) (types.Container, error)
-	DelAppConfigDir(id string)
+	DelAppConfigDir(id, path string)
 }
 
 type appStruct struct {
@@ -155,27 +151,6 @@ func (a *appStruct) GetUninstallInfo(id string) model2.AppListDBModel {
 	return m
 }
 
-func (a *appStruct) GetServerAppInfo(id string) model.ServerAppList {
-
-	head := make(map[string]string)
-
-	t := make(chan string)
-
-	go func() {
-		str := httper2.Get(config.ServerInfo.ServerApi+"/token", nil)
-
-		t <- gjson.Get(str, "data").String()
-	}()
-	head["Authorization"] = <-t
-
-	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v1/app/info/"+id, head)
-
-	info := model.ServerAppList{}
-	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
-
-	return info
-}
-
 //创建容器成功后保存容器
 func (a *appStruct) SaveContainer(m model2.AppListDBModel) {
 	a.db.Table(model2.CONTAINERTABLENAME).Create(&m)
@@ -185,8 +160,8 @@ func (a *appStruct) UpdateApp(m model2.AppListDBModel) {
 	a.db.Table(model2.CONTAINERTABLENAME).Save(&m)
 }
 
-func (a *appStruct) DelAppConfigDir(id string) {
-	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;DelAppConfigDir " + docker.GetDir(id, "/config"))
+func (a *appStruct) DelAppConfigDir(id, path string) {
+	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;DelAppConfigDir " + docker.GetDir(id, path))
 }
 
 func (a *appStruct) RemoveContainerById(id string) {

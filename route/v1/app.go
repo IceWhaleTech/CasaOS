@@ -1,15 +1,17 @@
 package v1
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/docker"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/sort"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
 )
 
 // @Summary 获取远程列表
@@ -110,51 +112,66 @@ func MyAppList(c *gin.Context) {
 func AppInfo(c *gin.Context) {
 
 	id := c.Param("id")
-	info := service.MyService.App().GetServerAppInfo(id)
+	info := service.MyService.OAPI().GetServerAppInfo(id)
 	if info.NetworkModel != "host" {
-		port, _ := port2.GetAvailablePort("tcp")
-		info.PortMap = uint(port)
-		for i := 0; i < len(info.Configures.TcpPorts); i++ {
-			info.Configures.TcpPorts[i].CommendPort, _ = port2.GetAvailablePort("tcp")
+		for i := 0; i < len(info.Ports); i++ {
+			if p, _ := strconv.Atoi(info.Ports[i].ContainerPort); port2.IsPortAvailable(p, info.Ports[i].Protocol) {
+				info.Ports[i].CommendPort = strconv.Itoa(p)
+			} else {
+				if info.Ports[i].Protocol == "tcp" {
+					if p, err := port2.GetAvailablePort("tcp"); err == nil {
+						info.Ports[i].CommendPort = strconv.Itoa(p)
+					}
+				} else if info.Ports[i].Protocol == "upd" {
+					if p, err := port2.GetAvailablePort("udp"); err == nil {
+						info.Ports[i].CommendPort = strconv.Itoa(p)
+					}
+				}
+			}
+
+			if info.Ports[i].Type == 0 {
+				info.PortMap = info.Ports[i].CommendPort
+			}
 		}
-		for i := 0; i < len(info.Configures.UdpPorts); i++ {
-			info.Configures.UdpPorts[i].CommendPort, _ = port2.GetAvailablePort("udp")
-		}
-	} else {
-		info.PortMap = info.TcpPort
 	}
 
-	for i := 0; i < len(info.Configures.Devices); i++ {
-		if !file.CheckNotExist(info.Configures.Devices[i].ContainerPath) {
-			info.Configures.Devices[i].Path = info.Configures.Devices[i].ContainerPath
+	for i := 0; i < len(info.Devices); i++ {
+		if !file.CheckNotExist(info.Devices[i].ContainerPath) {
+			info.Devices[i].Path = info.Devices[i].ContainerPath
 		}
 	}
-
-	portOrder := func(c1, c2 *model.Ports) bool {
-		return c1.Type < c2.Type
+	if len(info.Tip) > 0 {
+		info.Tip = env_helper.ReplaceStringDefaultENV(info.Tip)
 	}
 
-	envOrder := func(c1, c2 *model.Envs) bool {
-		return c1.Type < c2.Type
+	for i := 0; i < len(info.Volumes); i++ {
+		info.Volumes[i].Path = docker.GetDir("", info.Volumes[i].ContainerPath)
 	}
+	// portOrder := func(c1, c2 *model.Ports) bool {
+	// 	return c1.Type < c2.Type
+	// }
 
-	volOrder := func(c1, c2 *model.Volume) bool {
-		return c1.Type < c2.Type
-	}
+	// envOrder := func(c1, c2 *model.Envs) bool {
+	// 	return c1.Type < c2.Type
+	// }
 
-	devOrder := func(c1, c2 *model.Devices) bool {
-		return c1.Type < c2.Type
-	}
+	// volOrder := func(c1, c2 *model.Volume) bool {
+	// 	return c1.Type < c2.Type
+	// }
+
+	// devOrder := func(c1, c2 *model.Devices) bool {
+	// 	return c1.Type < c2.Type
+	// }
 
 	//sort
-	if info.NetworkModel != "host" {
-		sort.PortsSort(portOrder).Sort(info.Configures.TcpPorts)
-		sort.PortsSort(portOrder).Sort(info.Configures.UdpPorts)
-	}
+	// if info.NetworkModel != "host" {
+	// 	sort.PortsSort(portOrder).Sort(info.Configures.TcpPorts)
+	// 	sort.PortsSort(portOrder).Sort(info.Configures.UdpPorts)
+	// }
 
-	sort.EnvSort(envOrder).Sort(info.Configures.Envs)
-	sort.VolSort(volOrder).Sort(info.Configures.Volumes)
-	sort.DevSort(devOrder).Sort(info.Configures.Devices)
+	// sort.EnvSort(envOrder).Sort(info.Envs)
+	// sort.VolSort(volOrder).Sort(info.Volumes.([]model.PathMap))
+	// sort.DevSort(devOrder).Sort(info.Devices)
 
 	info.MaxMemory = service.MyService.ZiMa().GetMemInfo().Total >> 20
 
