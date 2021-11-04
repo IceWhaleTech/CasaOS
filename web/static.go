@@ -2,5 +2,5 @@ package web
 
 import "embed"
 
-//go:embed index.html favicon.ico img js browserconfig.xml site.webmanifest
+//go:embed index.html favicon.svg img js browserconfig.xml site.webmanifest
 var Static embed.FS
