@@ -1,4 +1,4 @@
 package types
 
-const CURRENTVERSION = "0.1.10"
-const BODY = "<li>Add App Store for installation</li><li>add casaOS logs</li><li>add application  terminal</li><li>add application  logs</li>"
+const CURRENTVERSION = "0.1.11"
+const BODY = "<li>Resolve application installation path errors</li><li>Mobile Adaptation</li><li>Optimize user experience</li>"
