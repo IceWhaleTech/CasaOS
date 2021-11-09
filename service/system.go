@@ -39,7 +39,6 @@ func (s *systemService) UpSystemConfig(str string, widget string) {
 	}
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
-
 func (s *systemService) GetCasaOSLogs(lineNumber int) string {
 	file, err := os.Open(s.log.Path())
 	if err != nil {

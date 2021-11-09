@@ -146,3 +146,16 @@ func IsNotExistCreateFile(src string) error {
 
 	return nil
 }
+
+func ReadFullFile(path string) []byte {
+	file, err := os.Open(path)
+	if err != nil {
+		return []byte("")
+	}
+	defer file.Close()
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		return []byte("")
+	}
+	return content
+}

@@ -64,4 +64,6 @@ type SystemConfig struct {
 	ConfigStr  string `json:"config_str"`
 	WidgetList string `json:"widget_list"`
 	ConfigPath string `json:"config_path"`
+	SyncPort   string `json:"sync_port"`
+	SyncKey    string `json:"sync_key"`
 }

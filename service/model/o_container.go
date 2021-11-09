@@ -61,4 +61,6 @@ type MyAppList struct {
 	UpTime   string           `json:"up_time"`
 	Slogan   string           `json:"slogan"`
 	Rely     model.MapStrings `json:"rely"` //[{"mysql":"id"},{"mysql":"id"}]
+	Image    string           `json:"image"`
+	Volumes  string           `json:"volumes"`
 }

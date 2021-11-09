@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	json2 "encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"syscall"
 
@@ -332,10 +333,13 @@ func (ds *dockerService) DockerPullImage(imageName string, m model2.AppNotify) e
 			}
 			break
 		}
-		m.Type = types2.NOTIFY_TYPE_INSTALL_LOG
-		m.State = 0
-		m.Message = string(buf[:n])
-		MyService.Notify().UpdateLog(m)
+		if !reflect.DeepEqual(m, model2.AppNotify{}) {
+			m.Type = types2.NOTIFY_TYPE_INSTALL_LOG
+			m.State = 0
+			m.Message = string(buf[:n])
+			MyService.Notify().UpdateLog(m)
+		}
+
 	}
 	return err
 }

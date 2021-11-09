@@ -27,6 +27,7 @@ type AppService interface {
 	UpdateApp(m model2.AppListDBModel)
 	GetSimpleContainerInfo(name string) (types.Container, error)
 	DelAppConfigDir(id, path string)
+	GetSystemAppList() *[]model2.MyAppList
 }
 
 type appStruct struct {
@@ -52,7 +53,7 @@ func (a *appStruct) GetMyList(index, size int, position bool) *[]model2.MyAppLis
 	//获取本地数据库应用
 
 	var lm []model2.AppListDBModel
-	a.db.Table(model2.CONTAINERTABLENAME).Select("title,icon,port_map,`index`,container_id,position,label,slogan").Find(&lm)
+	a.db.Table(model2.CONTAINERTABLENAME).Select("title,icon,port_map,`index`,container_id,position,label,slogan,image").Find(&lm)
 
 	list := []model2.MyAppList{}
 	lMap := make(map[string]interface{})
@@ -64,6 +65,67 @@ func (a *appStruct) GetMyList(index, size int, position bool) *[]model2.MyAppLis
 		} else {
 			lMap[dbModel.ContainerId] = dbModel
 		}
+	}
+	for _, container := range containers {
+
+		if lMap[container.ID] != nil && container.Labels["origin"] != "system" {
+			var m model2.AppListDBModel
+			m = lMap[container.ID].(model2.AppListDBModel)
+			if len(m.Label) == 0 {
+				m.Label = m.Title
+			}
+
+			info, err := cli.ContainerInspect(context.Background(), container.ID)
+			var tm string
+			if err != nil {
+				tm = time.Now().String()
+			} else {
+				tm = info.State.StartedAt
+			}
+			list = append(list, model2.MyAppList{
+				Name:     m.Label,
+				Icon:     m.Icon,
+				State:    container.State,
+				CustomId: strings.ReplaceAll(container.Names[0], "/", ""),
+				Port:     m.PortMap,
+				Index:    m.Index,
+				UpTime:   tm,
+				Image:    m.Image,
+				Slogan:   m.Slogan,
+				//Rely:     m.Rely,
+			})
+		}
+
+	}
+
+	return &list
+
+}
+
+//system application list
+func (a *appStruct) GetSystemAppList() *[]model2.MyAppList {
+	//获取docker应用
+	cli, err := client2.NewClientWithOpts(client2.FromEnv)
+	if err != nil {
+		a.log.Error("初始化client失败", "app.getmylist", "line:36", err)
+	}
+	defer cli.Close()
+	fts := filters.NewArgs()
+	fts.Add("label", "origin=system")
+	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
+	if err != nil {
+		a.log.Error("获取docker容器失败", "app.getmylist", "line:42", err)
+	}
+
+	//获取本地数据库应用
+
+	var lm []model2.AppListDBModel
+	a.db.Table(model2.CONTAINERTABLENAME).Select("title,icon,port_map,`index`,container_id,position,label,slogan,image,volumes").Find(&lm)
+
+	list := []model2.MyAppList{}
+	lMap := make(map[string]interface{})
+	for _, dbModel := range lm {
+		lMap[dbModel.ContainerId] = dbModel
 	}
 	for _, container := range containers {
 
@@ -89,7 +151,9 @@ func (a *appStruct) GetMyList(index, size int, position bool) *[]model2.MyAppLis
 				Port:     m.PortMap,
 				Index:    m.Index,
 				UpTime:   tm,
+				Image:    m.Image,
 				Slogan:   m.Slogan,
+				Volumes:  m.Volumes,
 				//Rely:     m.Rely,
 			})
 		}
@@ -168,6 +232,12 @@ func (a *appStruct) RemoveContainerById(id string) {
 	a.db.Table(model2.CONTAINERTABLENAME).Where("custom_id = ?", id).Delete(&model2.AppListDBModel{})
 }
 
+// init install
+func Init() {
+
+}
+
 func NewAppService(db *gorm.DB, logger loger2.OLog) AppService {
+	Init()
 	return &appStruct{db: db, log: logger}
 }
