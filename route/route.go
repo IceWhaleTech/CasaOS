@@ -1,10 +1,7 @@
 package route
 
 import (
-	"fmt"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 
 	"github.com/IceWhaleTech/CasaOS/middleware"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -40,19 +37,6 @@ func InitRouter() *gin.Engine {
 	r.POST("/v1/user/setusernamepwd", v1.Set_Name_Pwd)
 	//get user info
 	r.GET("/v1/user/info", v1.UserInfo)
-
-	r.GET("/syncthing/*url", func(c *gin.Context) {
-		ur := c.Param("url")
-		fmt.Println(ur)
-		target := "http://localhost:8384" //最终要访问的服务
-		remote, err := url.Parse(target)
-		if err != nil {
-			fmt.Println(err)
-		}
-		proxy := httputil.NewSingleHostReverseProxy(remote)
-		c.Request.URL.Path = "/" + ur //请求API
-		proxy.ServeHTTP(c.Writer, c.Request)
-	})
 
 	v1Group := r.Group("/v1")
 
@@ -282,6 +266,7 @@ func InitRouter() *gin.Engine {
 		{
 			v1SearchGroup.GET("/search", v1.GetSearchList)
 		}
+		v1Group.GET("/sync/*url", v1.SyncToSyncthing)
 	}
 	return r
 }

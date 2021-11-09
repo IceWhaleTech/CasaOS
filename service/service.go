@@ -30,6 +30,7 @@ type Repository interface {
 }
 
 func NewService(db *gorm.DB, log loger2.OLog) Repository {
+
 	return &store{
 		app:    NewAppService(db, log),
 		ddns:   NewDDNSService(db, log),

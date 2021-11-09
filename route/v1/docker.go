@@ -1135,6 +1135,10 @@ func ContainerUpdateInfo(c *gin.Context) {
 	var vol model.PathArray
 	json2.Unmarshal([]byte(appInfo.Volumes), &vol)
 
+	for i := 0; i < len(vol); i++ {
+		vol[i].Path = strings.ReplaceAll(vol[i].Path, "$AppID", appId)
+	}
+
 	var dir model.PathArray
 	json2.Unmarshal([]byte(appInfo.Devices), &dir)
 
