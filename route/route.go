@@ -266,7 +266,7 @@ func InitRouter() *gin.Engine {
 		{
 			v1SearchGroup.GET("/search", v1.GetSearchList)
 		}
-		v1Group.GET("/sync/*url", v1.SyncToSyncthing)
+		v1Group.Any("/sync/*url", v1.SyncToSyncthing)
 	}
 	return r
 }
