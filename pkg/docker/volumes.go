@@ -12,6 +12,8 @@ func GetDir(id, envName string) string {
 	switch {
 	case strings.Contains(strings.ToLower(envName), "config") || strings.Contains(strings.ToLower(envName), "photoprism/storage") || strings.Contains(strings.ToLower(envName), "config"):
 		path = "/DATA/AppData/" + id + "/"
+	case strings.Contains(strings.ToLower(envName), "media"):
+		path = "/DATA/Media/"
 	case strings.Contains(strings.ToLower(envName), "movie"):
 		path = "/DATA/Media/Movies/"
 	case strings.Contains(strings.ToLower(envName), "music"):
