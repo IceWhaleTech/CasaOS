@@ -13,6 +13,7 @@ CasaOS is an open-source home server system based on the Docker ecosystem and de
 IceWhale team believes that through community-driven collaborative innovation and open communication with global developers, we can reshape the digital home experience like never before.
 
 ![CasaOS Snapshot](snapshot.png)
+![CasaOS Snapshot Mobile](snapshot-mobile.png)
 
 ## Getting Started
 
@@ -40,14 +41,14 @@ curl -fsSL https://get.icewhale.io/casaos.sh | bash
  - Raspberry Pi Lite OS aarch64/arm64 (⚠️ Not Fully Tested Yet)
  - Debian 11 amd64 (⚠️ Not Fully Tested Yet)
  - OpenWrt 21.02 amd64 (⚠️ Not Fully Tested Yet)
- - OpenWrt 21.02 aarch64/arm64 (🚧 Under Planning)
+ - OpenWrt 21.02 aarch64/arm64 (⚠️ Not Fully Tested Yet)
 
 
 ## Key Features
 
  - UI designed for home scenarios - simple, elegant, and easy-to-use
  - Quick Docker app installation with only three steps, plus automatic management
- - App Store for private cloud 🚧
+ - App Store for Home Cloud 🚧
  - Home data/digital asset management 🚧
  - Smart home manager 🚧
 
@@ -68,20 +69,6 @@ So, we set out to build this open source project to develop CasaOS with our own 
 
 [![Discord Card](https://discordapp.com/api/guilds/884667213326463016/widget.png?style=banner2)](https://discord.gg/Gx4BCEtHjx)
 
-
-## To Do
-
-**v 0.1.x**
-
- - [x] An elegant UI for home scenarios
- - [x] Custom installation of Docker Apps
- - [x] Update, stop, uninstall, restart, etc. of Docker apps
- - [x] Docker CLI parser
- - [x] System Update
- - [ ] Getting Started tutorial
- - [ ] Docker Compose parser
- - [ ] App config file import and export
- - [ ] macvlan network mode
 
 
 ## Maintainers
