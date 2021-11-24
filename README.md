@@ -1,4 +1,4 @@
-# CasaOS - A simple, easy-to-use, elegant open-source home server system.
+# CasaOS - A simple, easy-to-use, elegant open-source Home Cloud system.
 
 ![CasaOS](https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_aldeyjarfoss.png)
 
@@ -8,7 +8,7 @@
 [![GitHub Stars](https://img.shields.io/github/stars/IceWhaleTech/CasaOS?color=162453&logo=github&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/stargazers)
 [![Discord](https://img.shields.io/discord/884667213326463016?color=162453&label=Chat&logo=discord&logoColor=fff&style=flat-square)](https://discord.gg/Gx4BCEtHjx)
 
-CasaOS is an open-source home server system based on the Docker ecosystem and designed for home scenarios. It is committed to building the world's most simple, easy-to-use, and elegant home server system.
+CasaOS is an open-source Home Cloud system based on the Docker ecosystem and designed for home scenarios. It is committed to building the world's most simple, easy-to-use, and elegant Home Cloud system.
 
 IceWhale team believes that through community-driven collaborative innovation and open communication with global developers, we can reshape the digital home experience like never before.
 
