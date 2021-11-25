@@ -1,4 +1,4 @@
 package types
 
-const CURRENTVERSION = "0.2.0"
-const BODY = "<li>add sync function</li><li>fixed some error</li>"
+const CURRENTVERSION = "0.2.1"
+const BODY = "<li>fixed path error</li>"

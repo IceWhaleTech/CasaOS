@@ -690,8 +690,9 @@ func UnInstallApp(c *gin.Context) {
 		//step: 删除文件夹
 		vol := gjson.Get(info.Volumes, "#.host")
 		for _, v := range vol.Array() {
-
-			service.MyService.App().DelAppConfigDir(appId, v.String())
+			if strings.Contains(v.String(), appId) {
+				service.MyService.App().DelAppConfigDir(v.String())
+			}
 		}
 
 		//step: 删除install log
