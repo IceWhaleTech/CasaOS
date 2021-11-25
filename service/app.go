@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -26,7 +25,7 @@ type AppService interface {
 	GetAppDBInfo(id string) model2.AppListDBModel
 	UpdateApp(m model2.AppListDBModel)
 	GetSimpleContainerInfo(name string) (types.Container, error)
-	DelAppConfigDir(id, path string)
+	DelAppConfigDir(path string)
 	GetSystemAppList() *[]model2.MyAppList
 }
 
@@ -224,8 +223,8 @@ func (a *appStruct) UpdateApp(m model2.AppListDBModel) {
 	a.db.Table(model2.CONTAINERTABLENAME).Save(&m)
 }
 
-func (a *appStruct) DelAppConfigDir(id, path string) {
-	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;DelAppConfigDir " + docker.GetDir(id, path))
+func (a *appStruct) DelAppConfigDir(path string) {
+	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;DelAppConfigDir " + path)
 }
 
 func (a *appStruct) RemoveContainerById(id string) {
