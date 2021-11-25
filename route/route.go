@@ -175,7 +175,7 @@ func InitRouter() *gin.Engine {
 			v1AppGroup.GET("/rely/:id/info", v1.ContainerRelyInfo)
 			v1AppGroup.GET("/install/config", v1.GetDockerInstallConfig)
 			//v1AppGroup.POST("/custom/install", v1.CustomInstallApp)
-
+			v1AppGroup.POST("/share", v1.ShareAppFile)
 		}
 
 		v1SysGroup := v1Group.Group("/sys")
@@ -266,7 +266,9 @@ func InitRouter() *gin.Engine {
 		{
 			v1SearchGroup.GET("/search", v1.GetSearchList)
 		}
-		v1Group.Any("/sync/*url", v1.SyncToSyncthing)
+		v1Group.GET("/sync/config", v1.GetSyncConfig)
+		v1Group.Any("/syncthing/*url", v1.SyncToSyncthing)
+
 	}
 	return r
 }

@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -196,4 +198,17 @@ func CategoryList(c *gin.Context) {
 	list = append(list[:0], model.ServerCategoryList{Count: count, Name: "All"})
 	list = append(list, rear...)
 	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+}
+
+// @Summary 分享该应用配置
+// @Produce  application/json
+// @Accept application/json
+// @Tags app
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /app/share [post]
+func ShareAppFile(c *gin.Context) {
+	str, _ := ioutil.ReadAll(c.Request.Body)
+	content := service.MyService.OAPI().ShareAppFile(str)
+	c.JSON(http.StatusOK, json.RawMessage(content))
 }
