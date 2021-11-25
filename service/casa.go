@@ -16,9 +16,19 @@ type CasaService interface {
 	GetServerCategoryList() []model.ServerCategoryList
 	GetTaskList(size int) []model2.TaskDBModel
 	GetServerAppInfo(id string) model.ServerAppList
+	ShareAppFile(body []byte) string
 }
 
 type casaService struct {
+}
+
+func (o *casaService) ShareAppFile(body []byte) string {
+	head := make(map[string]string)
+
+	head["Authorization"] = GetToken()
+
+	content := httper2.Post(config.ServerInfo.ServerApi+"/v1/community/add", body, "application/json", head)
+	return content
 }
 
 func (o *casaService) GetTaskList(size int) []model2.TaskDBModel {
