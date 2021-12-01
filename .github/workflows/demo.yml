@@ -54,10 +54,10 @@ jobs:
             if [ $NEW_INSTANCE_STATE == running ]
             then
               echo "New instance is running now"
+              sleep 10s
               break
             fi
           done
-          sleep 10s
           
       - name: Put instance public ports
         run: |
