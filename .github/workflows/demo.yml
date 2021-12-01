@@ -29,16 +29,16 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
+          aws-region: us-east-2a
           
       - name: Get old instance and snapshot name
         run: | 
-          OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "CasaOS-Demo-Snapshot-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
-          OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
+          export OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "CasaOS-Demo-Snapshot-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
+          export OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
           
       - name: create-instances-from-snapshot
         run: | 
-          NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)
+          export NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)
           aws lightsail create-instances-from-snapshot \
               --instance-snapshot-name $OLD_INSTANCE_SNAPSHOT_NAME \
               --instance-names $NEW_INSTANCE_NAME \
