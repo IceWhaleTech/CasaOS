@@ -45,17 +45,20 @@ jobs:
               --availability-zone us-west-2a \
               --bundle-id large_2_0
               
+#       - name: Wait for new instance running
+#         run: |
+#           TIMEOUT=$(($(date +%s)+600))
+#           while [ $TIMEOUT -gt $(date +%s) ]
+#           do
+#           NEW_INSTANCE_STATE=$(aws lightsail get-instance-state --instance-name ${{ env.OLD_INSTANCE_NAME }} | grep '"name":' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g')
+#           if [ $NEW_INSTANCE_STATE == running ]
+#           echo "New instance is running now"
+#           break
+#           fi
+#           done
+
       - name: Wait for new instance running
-        run: |
-          TIMEOUT=$(($(date +%s)+600))
-          while [ $TIMEOUT -gt $(date +%s) ]
-          do
-          NEW_INSTANCE_STATE=$(aws lightsail get-instance-state --instance-name ${{ env.OLD_INSTANCE_NAME }} | grep '"name":' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g')
-          if [ $NEW_INSTANCE_STATE == running ]
-          echo "New instance is running now"
-          break
-          fi
-          done
+        run: sleep 10s
           
       - name: Put instance public ports
         run: |
