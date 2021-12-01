@@ -39,6 +39,7 @@ jobs:
       - name: create-instances-from-snapshot
         run: | 
           echo "NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)" >> $GITHUB_ENV
+          echo ${{ env.OLD_INSTANCE_SNAPSHOT_NAME }}
           aws lightsail create-instances-from-snapshot \
               --instance-snapshot-name ${{ env.OLD_INSTANCE_SNAPSHOT_NAME }} \
               --instance-names ${{ env.NEW_INSTANCE_NAME }} \
