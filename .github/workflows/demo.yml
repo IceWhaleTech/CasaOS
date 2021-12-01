@@ -33,12 +33,12 @@ jobs:
           
       - name: Get old instance and snapshot name
         run: | 
-          export OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "CasaOS-Demo-Snapshot-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
-          export OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
+          echo "OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "CasaOS-Demo-Snapshot-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')" >> $GITHUB_ENV
+          echo "OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')" >> $GITHUB_ENV
           
       - name: create-instances-from-snapshot
         run: | 
-          export NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)
+          echo "NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)" >> $GITHUB_ENV
           aws lightsail create-instances-from-snapshot \
               --instance-snapshot-name $OLD_INSTANCE_SNAPSHOT_NAME \
               --instance-names $NEW_INSTANCE_NAME \
