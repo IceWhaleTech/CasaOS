@@ -1,9 +1,9 @@
-name: demo-reset
+name: Demo Reset
 
 # Controls when the workflow will run
 on:
-#   schedule:
-#   - cron: "0 * * * *"
+  schedule:
+  - cron: "0 * * * *"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -57,9 +57,7 @@ jobs:
               break
             fi
           done
-
-#       - name: Wait for new instance running
-#         run: sleep 10s
+          sleep 10s
           
       - name: Put instance public ports
         run: |
