@@ -50,7 +50,7 @@ jobs:
           TIMEOUT=$(($(date +%s)+600))
           while [ $TIMEOUT -gt $(date +%s) ]
           do
-            NEW_INSTANCE_STATE=$(aws lightsail get-instance-state --instance-name ${{ env.OLD_INSTANCE_NAME }} | grep '"name":' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g')
+            NEW_INSTANCE_STATE=$(aws lightsail get-instance-state --instance-name ${{ env.NEW_INSTANCE_NAME }} | grep '"name":' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g')
             if [ $NEW_INSTANCE_STATE == running ]
             then
               echo "New instance is running now"
