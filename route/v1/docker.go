@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bytes"
+	"encoding/json"
 	json2 "encoding/json"
 	"net/http"
 	"reflect"
@@ -420,6 +421,9 @@ func InstallApp(c *gin.Context) {
 		rely := model.MapStrings{}
 
 		copier.Copy(&rely, &relyMap)
+		for i := 0; i < len(m.Volumes); i++ {
+			m.Volumes[i].Path = docker.GetDir(id, m.Volumes[i].ContainerPath)
+		}
 		portsStr, _ := json2.Marshal(m.Ports)
 		envsStr, _ := json2.Marshal(m.Envs)
 		volumesStr, _ := json2.Marshal(m.Volumes)
@@ -904,10 +908,16 @@ func UpdateSetting(c *gin.Context) {
 	//如果容器端口均未修改,这不进行处理
 	portsStr, _ := json2.Marshal(m.Ports)
 
+	list := []model.PathMap{}
+	json.Unmarshal([]byte(appInfo.Volumes), &list)
+	for i := 0; i < len(list); i++ {
+		list[i].Path = docker.GetDir(id, list[i].ContainerPath)
+	}
 	envsStr, _ := json2.Marshal(m.Envs)
 	volumesStr, _ := json2.Marshal(m.Volumes)
 	devicesStr, _ := json2.Marshal(m.Devices)
-	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(string(volumesStr), appInfo.Volumes) || m.PortMap != appInfo.PortMap || m.NetworkModel != appInfo.NetModel {
+	listStr, _ := json2.Marshal(list)
+	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(volumesStr, listStr) || m.PortMap != appInfo.PortMap || m.NetworkModel != appInfo.NetModel {
 
 		var newUUid = uuid.NewV4().String()
 		var err error

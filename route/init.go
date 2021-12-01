@@ -96,7 +96,7 @@ func installSyncthing(appId string) {
 	m.Origin = "system"
 	m.PortMap = appInfo.PortMap
 	m.Ports = appInfo.Ports
-	m.Restart = ""
+	m.Restart = "always"
 	m.Volumes = appInfo.Volumes
 
 	containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, id, m, appInfo.NetworkModel)
@@ -156,6 +156,10 @@ func checkSystemApp() {
 	list := service.MyService.App().GetSystemAppList()
 	for _, v := range *list {
 		if v.Image == "linuxserver/syncthing" {
+			if v.State != "running" {
+				//step：start container
+				service.MyService.Docker().DockerContainerStart(v.CustomId)
+			}
 			syncIsExistence = true
 			if config.SystemConfigInfo.SyncPort != v.Port {
 				config.SystemConfigInfo.SyncPort = v.Port

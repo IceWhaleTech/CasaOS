@@ -123,6 +123,10 @@ func Up_Load_Head(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /user/changusername [put]
 func Chang_User_Name(c *gin.Context) {
+	if config.ServerInfo.LockAccount {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ACCOUNT_LOCK, Message: oasis_err2.GetMsg(oasis_err2.ACCOUNT_LOCK)})
+		return
+	}
 	oldname := c.PostForm("oldname")
 	username := c.PostForm("username")
 	if len(username) == 0 || config.UserInfo.UserName != oldname {
@@ -147,6 +151,10 @@ func Chang_User_Pwd(c *gin.Context) {
 	pwd := c.PostForm("pwd")
 	if config.UserInfo.PWD != oldpwd {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PWD_INVALID_OLD, Message: oasis_err2.GetMsg(oasis_err2.PWD_INVALID_OLD)})
+		return
+	}
+	if config.ServerInfo.LockAccount {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ACCOUNT_LOCK, Message: oasis_err2.GetMsg(oasis_err2.ACCOUNT_LOCK)})
 		return
 	}
 	if len(pwd) == 0 {
