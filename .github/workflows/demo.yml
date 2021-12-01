@@ -40,8 +40,8 @@ jobs:
         run: | 
           echo "NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)" >> $GITHUB_ENV
           aws lightsail create-instances-from-snapshot \
-              --instance-snapshot-name $OLD_INSTANCE_SNAPSHOT_NAME \
-              --instance-names $NEW_INSTANCE_NAME \
+              --instance-snapshot-name ${{ env.OLD_INSTANCE_SNAPSHOT_NAME }} \
+              --instance-names ${{ env.NEW_INSTANCE_NAME }} \
               --availability-zone us-west-2a \
               --bundle-id large_2_0
               
@@ -50,7 +50,7 @@ jobs:
           TIMEOUT=$(($(date +%s)+600))
           while [ $(date +%s) -gt $TIMEOUT ] \ 
           do \
-          NEW_INSTANCE_STATE=$(aws lightsail get-instance-state --instance-name $OLD_INSTANCE_NAME | grep '"name":' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g') \
+          NEW_INSTANCE_STATE=$(aws lightsail get-instance-state --instance-name ${{ env.OLD_INSTANCE_NAME }} | grep '"name":' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g') \
           if [ $NEW_INSTANCE_STATE == running ] \
           then \
               echo "New instance is running now" \
@@ -62,17 +62,17 @@ jobs:
         run: |
           aws lightsail put-instance-public-ports \
             --port-infos fromPort=0,toPort=65535,protocol=all \
-            --instance-name $NEW_INSTANCE_NAME
+            --instance-name ${{ env.NEW_INSTANCE_NAME }}
             
       - name: Attach static ip
         run: | 
           aws lightsail attach-static-ip \
             --static-ip-name CasaOS-Demo-IP \
-            --instance-name $NEW_INSTANCE_NAME
+            --instance-name ${{ env.NEW_INSTANCE_NAME }}
             
       - name: Delete old instance
         run: | 
           aws lightsail delete-instance \
-            --instance-name $OLD_INSTANCE_NAME
+            --instance-name ${{ env.OLD_INSTANCE_NAME }}
             
             
