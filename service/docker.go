@@ -479,15 +479,13 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	if len(m.Restart) > 0 {
 		rp.Name = m.Restart
 	}
-	//fmt.Print(port)
 	healthTest := []string{}
 	if len(port) > 0 {
 		healthTest = []string{"CMD-SHELL", "curl -f http://localhost:" + port + m.Index + " || exit 1"}
 	}
 
 	health := &container.HealthConfig{
-		Test: healthTest,
-		//Test:        []string{},
+		Test:        healthTest,
 		StartPeriod: 0,
 		Retries:     1000,
 	}

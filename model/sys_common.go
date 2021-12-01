@@ -20,9 +20,10 @@ type UserModel struct {
 
 //服务配置
 type ServerModel struct {
-	HttpPort  string
-	RunMode   string
-	ServerApi string
+	HttpPort    string
+	RunMode     string
+	ServerApi   string
+	LockAccount bool
 }
 
 //服务配置

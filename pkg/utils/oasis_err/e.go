@@ -11,6 +11,7 @@ const (
 	PWD_IS_EMPTY = 10002
 
 	PWD_INVALID_OLD = 10003
+	ACCOUNT_LOCK    = 10004
 	//system
 	DIR_ALREADY_EXISTS  = 20001
 	FILE_ALREADY_EXISTS = 20002
@@ -42,6 +43,7 @@ var MsgFlags = map[int]string{
 	PWD_INVALID:     "Password invalid",
 	PWD_IS_EMPTY:    "Password is empty",
 	PWD_INVALID_OLD: "Old Password invalid",
+	ACCOUNT_LOCK:    "Account Lock",
 
 	//system
 	DIR_ALREADY_EXISTS:  "Directory already exists",

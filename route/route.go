@@ -12,6 +12,7 @@ import (
 )
 
 var swagHandler gin.HandlerFunc
+var OnlineDemo bool = false
 
 func InitRouter() *gin.Engine {
 
