@@ -1,0 +1,78 @@
+name: demo-reset
+
+# Controls when the workflow will run
+on:
+#   schedule:
+#   - cron: "0 * * * *"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "CasaOS-Demo-Snapshot-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
+# OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
+# NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  reset:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      - name: Configure AWS credentials from Test account
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+          
+      - name: Get old instance and snapshot name
+        run: | 
+          OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "CasaOS-Demo-Snapshot-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
+          OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
+          
+      - name: create-instances-from-snapshot
+        run: | 
+          NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)
+          aws lightsail create-instances-from-snapshot \
+              --instance-snapshot-name $OLD_INSTANCE_SNAPSHOT_NAME \
+              --instance-names $NEW_INSTANCE_NAME \
+              --availability-zone us-west-2a \
+              --bundle-id large_2_0
+              
+      - name: wait for new instance running
+        run: |
+          TIMEOUT=$(($(date +%s)+600))
+          while [ $(date +%s) -gt $TIMEOUT ] \ 
+          do \
+          NEW_INSTANCE_STATE=$(aws lightsail get-instance-state --instance-name $OLD_INSTANCE_NAME | grep '"name":' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g') \
+          if [ $NEW_INSTANCE_STATE == running ] \
+          then \
+              echo "New instance is running now" \
+              break \
+          fi \
+          done
+          
+      - name: Put instance public ports
+        run: |
+          aws lightsail put-instance-public-ports \
+            --port-infos fromPort=0,toPort=65535,protocol=all \
+            --instance-name $NEW_INSTANCE_NAME
+            
+      - name: Attach static ip
+        run: | 
+          aws lightsail attach-static-ip \
+            --static-ip-name CasaOS-Demo-IP \
+            --instance-name $NEW_INSTANCE_NAME
+            
+      - name: Delete old instance
+        run: | 
+          aws lightsail delete-instance \
+            --instance-name $OLD_INSTANCE_NAME
+            
+            
