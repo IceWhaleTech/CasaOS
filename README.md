@@ -35,6 +35,12 @@ or
 curl -fsSL https://get.icewhale.io/casaos.sh | bash
 ```
 
+### Uninstall CasaOS
+
+```sh
+curl -fsSL https://get.icewhale.io/casaos-uninstall.sh | bash
+```
+
 ### System Compatibility
 
  - Ubuntu Server 20.04 amd64 (✅ Recommend, Tested)
