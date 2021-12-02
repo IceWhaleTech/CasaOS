@@ -26,6 +26,8 @@ func GetDir(id, envName string) string {
 		path = "/DATA/Downloads/"
 	case strings.ToLower(envName) == "/srv":
 		path = "/DATA/"
+	case strings.ToLower(envName) == "/tv":
+		path = "/DATA/Media/TV Shows"
 	default:
 		//path = "/media"
 	}
