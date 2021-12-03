@@ -6,7 +6,6 @@ import (
 	"golang.org/x/oauth2"
 )
 
-
 func GetGithubClient() *github.Client {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(

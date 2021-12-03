@@ -68,8 +68,7 @@ func (a *appStruct) GetMyList(index, size int, position bool) *[]model2.MyAppLis
 	for _, container := range containers {
 
 		if lMap[container.ID] != nil && container.Labels["origin"] != "system" {
-			var m model2.AppListDBModel
-			m = lMap[container.ID].(model2.AppListDBModel)
+			m := lMap[container.ID].(model2.AppListDBModel)
 			if len(m.Label) == 0 {
 				m.Label = m.Title
 			}
@@ -129,8 +128,7 @@ func (a *appStruct) GetSystemAppList() *[]model2.MyAppList {
 	for _, container := range containers {
 
 		if lMap[container.ID] != nil {
-			var m model2.AppListDBModel
-			m = lMap[container.ID].(model2.AppListDBModel)
+			m := lMap[container.ID].(model2.AppListDBModel)
 			if len(m.Label) == 0 {
 				m.Label = m.Title
 			}
@@ -194,6 +192,10 @@ func (a *appStruct) GetSimpleContainerInfo(name string) (types.Container, error)
 	filters := filters.NewArgs()
 	filters.Add("name", name)
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filters})
+	if err != nil {
+		return types.Container{}, err
+	}
+
 	if len(containers) > 0 {
 		return containers[0], nil
 	}

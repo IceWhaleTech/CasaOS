@@ -7,5 +7,3 @@ type MysqlConfig struct {
 	DataBasePassword string `json:"data_base_password"`
 	DataBaseDB       string `json:"data_base_db"`
 }
-
-

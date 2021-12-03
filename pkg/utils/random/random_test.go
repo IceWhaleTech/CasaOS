@@ -6,5 +6,5 @@ import (
 )
 
 func TestRandomString(t *testing.T) {
-	fmt.Println(RandomString(6,true))
+	fmt.Println(RandomString(6, true))
 }
