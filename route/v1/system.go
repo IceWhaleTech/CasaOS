@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -80,7 +82,7 @@ func GetCasaOSErrorLogs(c *gin.Context) {
 // @Produce  application/json
 // @Accept multipart/form-data
 // @Tags sys
-// @Param file formData file true "用户头像"
+// @Param config formData string true "config json string"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/changhead [post]
@@ -135,6 +137,42 @@ func PostSetWidgetConfig(c *gin.Context) {
 		})
 }
 
+// @Summary edit casaos server port
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Param port formData file true "用户头像"
+// @Success 200 {string} string "ok"
+// @Router /sys/widget/config [post]
+func PutCasaOSPort(c *gin.Context) {
+	port, err := strconv.Atoi(c.PostForm("port"))
+	if err != nil {
+		c.JSON(http.StatusOK,
+			model.Result{
+				Success: oasis_err.ERROR,
+				Message: err.Error(),
+			})
+		return
+	}
+
+	isAvailable := port2.IsPortAvailable(port, "tcp")
+	if !isAvailable {
+		c.JSON(http.StatusOK,
+			model.Result{
+				Success: oasis_err.PORT_IS_OCCUPIED,
+				Message: oasis_err.GetMsg(oasis_err.PORT_IS_OCCUPIED),
+			})
+		return
+	}
+	service.MyService.System().UpSystemPort(strconv.Itoa(port))
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+		})
+}
+
 // @Summary 检查是否进入引导状态
 // @Produce  application/json
 // @Accept application/json
@@ -155,4 +193,15 @@ func GetGuideCheck(c *gin.Context) {
 			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
 			Data:    data,
 		})
+}
+
+// @Summary active killing casaos
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/kill [post]
+func PostKillCasaOS(c *gin.Context) {
+	os.Exit(0)
 }

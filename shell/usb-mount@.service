@@ -4,5 +4,5 @@ Description=Mount USB Drive on %i
 [Service]
 Type=oneshot
 RemainAfterExit=true
-ExecStart=/oasis/util/shell/usb-mount.sh add %i
-ExecStop=/oasis/util/shell/usb-mount.sh remove %i
+ExecStart=/casaOS/util/shell/usb-mount.sh add %i
+ExecStop=/casaOS/util/shell/usb-mount.sh remove %i

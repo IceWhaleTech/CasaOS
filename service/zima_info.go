@@ -116,7 +116,6 @@ func (c *zima) GetNetState(name string) string {
 
 //网络信息
 func (c *zima) GetNetInfo() []net.IOCountersStat {
-	//loger.Error("输出个内容试试")
 	parts, _ := net.IOCounters(true)
 	//fmt.Println(net.ConntrackStatsWithContext(true))
 	return parts

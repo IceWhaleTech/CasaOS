@@ -2,7 +2,10 @@ package service
 
 import (
 	"context"
+	"io/ioutil"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -13,6 +16,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	client2 "github.com/docker/docker/client"
 	"github.com/pkg/errors"
+	"github.com/tidwall/sjson"
 	"gorm.io/gorm"
 )
 
@@ -27,6 +31,7 @@ type AppService interface {
 	GetSimpleContainerInfo(name string) (types.Container, error)
 	DelAppConfigDir(path string)
 	GetSystemAppList() *[]model2.MyAppList
+	GetHardwareUsage() []string
 }
 
 type appStruct struct {
@@ -48,7 +53,6 @@ func (a *appStruct) GetMyList(index, size int, position bool) *[]model2.MyAppLis
 	if err != nil {
 		a.log.Error("获取docker容器失败", "app.getmylist", "line:42", err)
 	}
-
 	//获取本地数据库应用
 
 	var lm []model2.AppListDBModel
@@ -229,6 +233,59 @@ func (a *appStruct) DelAppConfigDir(path string) {
 
 func (a *appStruct) RemoveContainerById(id string) {
 	a.db.Table(model2.CONTAINERTABLENAME).Where("custom_id = ?", id).Delete(&model2.AppListDBModel{})
+}
+
+func (a *appStruct) GetHardwareUsage() []string {
+
+	var dataStr []string
+	cli, err := client2.NewClientWithOpts(client2.FromEnv)
+	if err != nil {
+		return dataStr
+	}
+	defer cli.Close()
+
+	lock := &sync.Mutex{}
+	var lm []model2.AppListDBModel
+	var count = 0
+	a.db.Table(model2.CONTAINERTABLENAME).Select("title,icon,container_id").Find(&lm)
+	for _, v := range lm {
+		go func(lock *sync.Mutex, id, title, icon string) {
+			stats, err := cli.ContainerStats(context.Background(), id, false)
+			if err != nil {
+				lock.Lock()
+				count++
+				lock.Unlock()
+				return
+			}
+			defer stats.Body.Close()
+			statsByte, err := ioutil.ReadAll(stats.Body)
+			if err != nil {
+				lock.Lock()
+				count++
+				lock.Unlock()
+				return
+			}
+			lock.Lock()
+			statsByte, _ = sjson.SetBytes(statsByte, "icon", icon)
+			statsByte, _ = sjson.SetBytes(statsByte, "title", title)
+			dataStr = append(dataStr, string(statsByte))
+			count++
+			lock.Unlock()
+		}(lock, v.ContainerId, v.Title, v.Icon)
+	}
+
+	for {
+		lock.Lock()
+		c := count
+		lock.Unlock()
+
+		runtime.Gosched()
+		if c == len(lm) {
+			break
+		}
+	}
+	return dataStr
+
 }
 
 // init install

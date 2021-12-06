@@ -90,7 +90,7 @@ func (d *diskService) GetDiskInfoByPath(path string) *disk.UsageStat {
 	return diskInfo
 }
 
-//获取磁盘信息
+//get disk details
 func (d *diskService) LSBLK() []model.LSBLKModel {
 	str := command2.ExecLSBLK()
 	if str == nil {
@@ -111,7 +111,7 @@ func (d *diskService) LSBLK() []model.LSBLKModel {
 
 	var health = true
 	for _, i := range m {
-		if i.Children != nil {
+		if i.Type != "loop" {
 			fsused = 0
 			for _, child := range i.Children {
 				if child.RM {
@@ -134,7 +134,7 @@ func (d *diskService) LSBLK() []model.LSBLKModel {
 			i.Children = c
 			if fsused > 0 {
 				i.UsedPercent, err = strconv.ParseFloat(fmt.Sprintf("%.4f", float64(fsused)/float64(i.Size)), 64)
-				fmt.Println(err)
+				d.log.Fatal("diskservice_lsblk_fsused", err)
 			}
 			n = append(n, i)
 			health = true

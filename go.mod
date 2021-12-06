@@ -48,8 +48,8 @@ require (
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/swaggo/gin-swagger v1.3.0
 	github.com/swaggo/swag v1.7.3
-	github.com/tidwall/gjson v1.8.0
-	github.com/tidwall/pretty v1.2.0 // indirect
+	github.com/tidwall/gjson v1.10.2
+	github.com/tidwall/sjson v1.2.3
 	github.com/tklauser/go-sysconf v0.3.6 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
 	go.opencensus.io v0.23.0 // indirect

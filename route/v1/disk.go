@@ -1,13 +1,14 @@
 package v1
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/v3/disk"
-	"net/http"
-	"strconv"
 )
 
 // @Summary 获取磁盘列表
@@ -59,7 +60,7 @@ func GetPlugInDisk(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: lst})
 }
 
-// @Summary 获取磁盘列表
+// @Summary get disk list
 // @Produce  application/json
 // @Accept application/json
 // @Tags disk
@@ -76,12 +77,12 @@ func GetPlugInDisks(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: result})
 }
 
-// @Summary 磁盘详情
+// @Summary disk detail
 // @Produce  application/json
 // @Accept application/json
 // @Tags disk
 // @Security ApiKeyAuth
-// @Param  path query string true "要获取的磁盘详情 例如/dev/sda"
+// @Param  path query string true "for example /dev/sda"
 // @Success 200 {string} string "ok"
 // @Router /disk/info [get]
 func GetDiskInfo(c *gin.Context) {
@@ -93,7 +94,7 @@ func GetDiskInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: m})
 }
 
-// @Summary 磁盘详情
+// @Summary format disk
 // @Produce  application/json
 // @Accept multipart/form-data
 // @Tags disk

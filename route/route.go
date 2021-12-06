@@ -141,6 +141,8 @@ func InitRouter() *gin.Engine {
 		{
 			//获取我的已安装的列表
 			v1AppGroup.GET("/mylist", v1.MyAppList)
+			//
+			v1AppGroup.GET("/usage", v1.AppUsageList)
 			//app详情
 			v1AppGroup.GET("/appinfo/:id", v1.AppInfo)
 			//获取未安装的列表
@@ -192,6 +194,8 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.POST("/config", v1.PostSetSystemConfig)
 			v1SysGroup.GET("/widget/config", v1.GetWidgetConfig)
 			v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)
+			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
+			v1SysGroup.POST("/kill", v1.PostKillCasaOS)
 		}
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()

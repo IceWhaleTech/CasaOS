@@ -60,7 +60,7 @@ show() {
 }
 
 run_external_script() {
-  show 0 "run_external_script"
+  assist.sh
 }
 
 update() {

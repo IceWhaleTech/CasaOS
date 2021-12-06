@@ -103,6 +103,18 @@ func MyAppList(c *gin.Context) {
 	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
 }
 
+// @Summary my app hardware usage list
+// @Produce  application/json
+// @Accept application/json
+// @Tags app
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /app/usage [get]
+func AppUsageList(c *gin.Context) {
+	list := service.MyService.App().GetHardwareUsage()
+	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+}
+
 // @Summary 应用详情
 // @Produce  application/json
 // @Accept application/json
@@ -211,4 +223,15 @@ func ShareAppFile(c *gin.Context) {
 	str, _ := ioutil.ReadAll(c.Request.Body)
 	content := service.MyService.OAPI().ShareAppFile(str)
 	c.JSON(http.StatusOK, json.RawMessage(content))
+}
+
+// @Summary Resource Usage
+// @Produce  application/json
+// @Accept application/json
+// @Tags app
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /app/share [post]
+func AppListResourceUsage() {
+
 }
