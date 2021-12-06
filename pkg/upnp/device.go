@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func GetCtrlUrl(host,device string) string {
+func GetCtrlUrl(host, device string) string {
 	request := ctrlUrlRequest(host, device)
 	response, _ := http.DefaultClient.Do(request)
 	resultBody, _ := ioutil.ReadAll(response.Body)

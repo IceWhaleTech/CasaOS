@@ -1,12 +1,13 @@
 package service
 
 import (
+	"os/exec"
+
 	ip_helper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/service/ddns"
 	"github.com/IceWhaleTech/CasaOS/service/model"
 	"gorm.io/gorm"
-	"os/exec"
 )
 
 type ddnsStruct struct {
@@ -20,17 +21,15 @@ type DDNSService interface {
 	GetConfigList() *[]model.DDNSList
 	DeleteConfig(id uint) bool
 	GetType(name string) (uint, string)
-	SaveConfig(model model.DDNSUpdataDBModel) error
+	SaveConfig(model model.DDNSUpdateDBModel) error
 }
 
 //判断当前添加的是否存在
 func (d *ddnsStruct) IsExis(t int, domain string, host string) bool {
 	var count int64
 	d.db.Table(model.DDNSLISTTABLENAME).Where("type=? AND domain=? AND host=?", t, domain, host).Count(&count)
-	if count > 0 {
-		return true
-	}
-	return false
+
+	return count > 0
 }
 
 //前台获取已配置的ddns列表
@@ -41,7 +40,7 @@ func (d *ddnsStruct) GetConfigList() *[]model.DDNSList {
 }
 
 func (d *ddnsStruct) DeleteConfig(id uint) bool {
-	d.db.Delete(&model.DDNSUpdataDBModel{Id: id})
+	d.db.Delete(&model.DDNSUpdateDBModel{Id: id})
 	return true
 }
 
@@ -66,12 +65,12 @@ func (d *ddnsStruct) GetType(name string) (uint, string) {
 }
 
 //保存配置到数据库
-func (d *ddnsStruct) GetDockerRootDir(model model.DDNSUpdataDBModel) error {
+func (d *ddnsStruct) GetDockerRootDir(model model.DDNSUpdateDBModel) error {
 	return d.db.Create(&model).Error
 }
 
 //保存配置到数据库
-func (d *ddnsStruct) SaveConfig(model model.DDNSUpdataDBModel) error {
+func (d *ddnsStruct) SaveConfig(model model.DDNSUpdateDBModel) error {
 	return d.db.Create(&model).Error
 }
 
@@ -87,7 +86,7 @@ func chackPing(b chan bool, url string) {
 }
 
 //更新列表
-func UpdataDDNSList(db *gorm.DB) {
+func UpdateDDNSList(db *gorm.DB) {
 	var s []model.DDNSCoreList
 	db.Table(model.DDNSLISTTABLENAME).Select("o_ddns_type.name as name,o_ddns_type.api_host as api_host,o_ddns.id,`host`,domain,user_name,`password`,`key`,secret,type").Joins("left join o_ddns_type on o_ddns.type=o_ddns_type.id").Scan(&s)
 	for _, item := range s {

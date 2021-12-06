@@ -22,21 +22,21 @@ func send() (string, error) {
 		"ST: urn:schemas-upnp-org:service:WANIPConnection:1\r\n" +
 		"MAN: \"ssdp:discover\"\r\n" + "MX: 3\r\n\r\n"
 	var conn *net.UDPConn
-	remotAddr, err := net.ResolveUDPAddr("udp", "239.255.255.250:1900")
+	remoteAddr, err := net.ResolveUDPAddr("udp", "239.255.255.250:1900")
 	if err != nil {
 		return "", errors.New("组播地址格式不正确")
 	}
-	locaAddr, err := net.ResolveUDPAddr("udp", ip_helper2.GetLoclIp()+":")
+	localAddr, err := net.ResolveUDPAddr("udp", ip_helper2.GetLoclIp()+":")
 
 	if err != nil {
 		return "", errors.New("本地ip地址格式不正确")
 	}
-	conn, err = net.ListenUDP("udp", locaAddr)
+	conn, err = net.ListenUDP("udp", localAddr)
 	defer conn.Close()
 	if err != nil {
 		return "", errors.New("监听udp出错")
 	}
-	_, err = conn.WriteToUDP([]byte(str), remotAddr)
+	_, err = conn.WriteToUDP([]byte(str), remoteAddr)
 	if err != nil {
 		return "", errors.New("发送msg到组播地址出错")
 	}

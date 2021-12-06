@@ -107,7 +107,7 @@ func (ds *dockerService) GetNetWorkNameByNetWorkID(id string) (string, error) {
 	defer cli.Close()
 	filter := filters.NewArgs()
 	filter.Add("id", id)
-	d, err := cli.NetworkList(context.Background(), types.NetworkListOptions{filter})
+	d, err := cli.NetworkList(context.Background(), types.NetworkListOptions{Filters: filter})
 	if err == nil && len(d) > 0 {
 		return d[0].Name, nil
 	}
@@ -158,7 +158,7 @@ func DockerEx() {
 	importResponse.Close()
 	println(string(response))
 	if string(response) != "response" {
-		fmt.Println("expected response to contain 'response', got %s", string(response))
+		fmt.Printf("expected response to contain 'response', got %s", string(response))
 	}
 }
 
@@ -187,7 +187,6 @@ func (ds *dockerService) DockerImageInfo(image string) {
 	if err != nil {
 		fmt.Print(err)
 	}
-
 }
 
 func MsqlExec(container string) error {
@@ -266,6 +265,8 @@ func DockerLogs() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer i.Close()
+
 	hdr := make([]byte, 8)
 	for {
 		_, err := i.Read(hdr)
@@ -284,7 +285,6 @@ func DockerLogs() {
 		_, err = i.Read(dat)
 		fmt.Fprint(w, string(dat))
 	}
-	defer i.Close()
 }
 
 //正式内容
@@ -787,7 +787,7 @@ func (ds *dockerService) DockerNetworkModelList() []types.NetworkResource {
 	networks, _ := cli.NetworkList(context.Background(), types.NetworkListOptions{})
 	return networks
 }
-func NewDcokerService(log loger2.OLog) DockerService {
+func NewDockerService(log loger2.OLog) DockerService {
 	return &dockerService{rootDir: command2.ExecResultStr(`source ./shell/helper.sh ;GetDockerRootDir`), log: log}
 }
 

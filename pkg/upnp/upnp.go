@@ -7,10 +7,10 @@ import (
 
 type Upnp struct {
 	LocalHost     string `json:"local_host"`
-	GatewayName   string `json:"gateway_name"` //网关名称
-	GatewayHost   string `json:"gateway_host"` //网关ip和端口
+	GatewayName   string `json:"gateway_name"`    //网关名称
+	GatewayHost   string `json:"gateway_host"`    //网关ip和端口
 	DeviceDescUrl string `json:"device_desc_url"` //设备描述url
-	CtrlUrl       string `json:"ctrl_url"` //控制请求url
+	CtrlUrl       string `json:"ctrl_url"`        //控制请求url
 }
 
 func Testaaa() {
@@ -23,4 +23,3 @@ func Testaaa() {
 		fmt.Println("gateway ip address: ", upnpMan.Gateway.Host)
 	}
 }
-

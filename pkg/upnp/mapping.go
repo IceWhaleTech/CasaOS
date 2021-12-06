@@ -2,40 +2,37 @@ package upnp
 
 import (
 	"bytes"
-	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 	"strings"
+
+	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/pkg/errors"
 )
 
 //
 ////添加一个端口映射
-func (n *Upnp)AddPortMapping(localPort, remotePort int, protocol string) (err error) {
-	defer func(err error) {
+func (n *Upnp) AddPortMapping(localPort, remotePort int, protocol string) (err error) {
+	defer func() {
 		if errTemp := recover(); errTemp != nil {
-			//log.Println("upnp模块报错了", errTemp)
-			err = errTemp.(error)
+			loger2.NewOLoger().Error("upnp模块报错了", errTemp)
 		}
-	}(err)
-	if issuccess := addSend(localPort, remotePort, protocol,n.GatewayHost, n.CtrlUrl,n.LocalHost); issuccess {
+	}()
+
+	if isSuccess := addSend(localPort, remotePort, protocol, n.GatewayHost, n.CtrlUrl, n.LocalHost); isSuccess {
 		return nil
 	} else {
 		return errors.New("添加一个端口映射失败")
 	}
-	return
 }
 
-func addSend(localPort, remotePort int, protocol, host, ctrUrl,localHost string) bool {
-	request := addRequest(localPort, remotePort, protocol, host, ctrUrl,localHost)
+func addSend(localPort, remotePort int, protocol, host, ctrUrl, localHost string) bool {
+	request := addRequest(localPort, remotePort, protocol, host, ctrUrl, localHost)
 	response, _ := http.DefaultClient.Do(request)
 	defer response.Body.Close()
 	//resultBody, _ := ioutil.ReadAll(response.Body)
 	//fmt.Println(string(resultBody))
-	if response.StatusCode == 200 {
-		return true
-	}
-
-	return false
+	return response.StatusCode == 200
 }
 
 type Node struct {
@@ -45,7 +42,7 @@ type Node struct {
 	Child   []Node
 }
 
-func addRequest(localPort, remotePort int, protocol string, gatewayHost, ctlUrl,localHost string) *http.Request {
+func addRequest(localPort, remotePort int, protocol string, gatewayHost, ctlUrl, localHost string) *http.Request {
 	//请求头
 	header := http.Header{}
 	header.Set("Accept", "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2")
@@ -109,27 +106,25 @@ func (n *Node) BuildXML() string {
 	return buf.String()
 }
 
-func (n *Upnp)DelPortMapping(remotePort int, protocol string) bool {
-	issuccess := delSendSend(remotePort, protocol,n.GatewayHost,n.CtrlUrl)
-	if issuccess {
+func (n *Upnp) DelPortMapping(remotePort int, protocol string) bool {
+	isSuccess := delSendSend(remotePort, protocol, n.GatewayHost, n.CtrlUrl)
+	if isSuccess {
 		//this.MappingPort.delMapping(remotePort, protocol)
 		//fmt.Println("删除了一个端口映射： remote:", remotePort)
 	}
-	return issuccess
+	return isSuccess
 }
 
-func delSendSend(remotePort int, protocol,host,ctlUrl string) bool {
-	delrequest := delbuildRequest(remotePort, protocol,host,ctlUrl)
+func delSendSend(remotePort int, protocol, host, ctlUrl string) bool {
+	delrequest := delbuildRequest(remotePort, protocol, host, ctlUrl)
 	response, _ := http.DefaultClient.Do(delrequest)
 	//resultBody, _ := ioutil.ReadAll(response.Body)
 	defer response.Body.Close()
-	if response.StatusCode == 200 {
-		// log.Println(string(resultBody))
-		return true
-	}
-	return false
+
+	return response.StatusCode == 200
 }
-func delbuildRequest(remotePort int, protocol,host,ctlUrl string) *http.Request {
+
+func delbuildRequest(remotePort int, protocol, host, ctlUrl string) *http.Request {
 	//请求头
 	header := http.Header{}
 	header.Set("Accept", "text/html, image/gif, image/jpeg, *; q=.2, */*; q=.2")

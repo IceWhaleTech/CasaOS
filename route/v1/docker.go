@@ -268,11 +268,11 @@ func InstallApp(c *gin.Context) {
 						rely.ContainerId = mysqlContainerId
 						rely.CustomId = mid
 						rely.ContainerCustomId = id
-						var msqlConfig model2.MysqlConfigs
+						var mysqlConfig model2.MysqlConfigs
 
 						//结构体转换
-						copier.Copy(&msqlConfig, &mc)
-						rely.Config = msqlConfig
+						copier.Copy(&mysqlConfig, &mc)
+						rely.Config = mysqlConfig
 						service.MyService.Rely().Create(rely)
 
 						relyMap["mysql"] = mid
