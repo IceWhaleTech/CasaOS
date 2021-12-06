@@ -2,11 +2,11 @@ package model
 
 import "time"
 
-func (p *DDNSUpdataDBModel) TableName() string {
+func (p *DDNSUpdateDBModel) TableName() string {
 	return "o_ddns"
 }
 
-type DDNSUpdataDBModel struct {
+type DDNSUpdateDBModel struct {
 	Id        uint      `gorm:"column:id;primary_key" json:"id"`
 	Ipv4      string    `gorm:"-"`
 	Ipv6      string    `gorm:"-"`
@@ -17,8 +17,8 @@ type DDNSUpdataDBModel struct {
 	Secret    string    `json:"secret" form:"secret"`
 	UserName  string    `json:"user_name" form:"user_name"`
 	Password  string    `json:"password" form:"password"`
-	CreatedAt      time.Time       `gorm:"<-:create" json:"created_at"`
-	UpdatedAt      time.Time       `gorm:"<-:create;<-:update" json:"updated_at"`
+	CreatedAt time.Time `gorm:"<-:create" json:"created_at"`
+	UpdatedAt time.Time `gorm:"<-:create;<-:update" json:"updated_at"`
 }
 
 const DDNSLISTTABLENAME = "o_ddns"
@@ -39,9 +39,9 @@ type DDNSList struct {
 
 //定时任务使用
 type DDNSCoreList struct {
-	Id        uint      `gorm:"column:id;primary_key" json:"id"`
+	Id       uint   `gorm:"column:id;primary_key" json:"id"`
 	Domain   string `json:"domain" form:"domain"`
-	Name     string `json:"domain" form:"name"`
+	Name     string `json:"name" form:"name"`
 	Type     uint   `json:"type"`
 	Key      string `json:"key"`
 	Message  string `json:"message"`

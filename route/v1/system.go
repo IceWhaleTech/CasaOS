@@ -104,7 +104,7 @@ func GetSystemConfigDebug(c *gin.Context) {
 
 	array := service.MyService.System().GetSystemConfigDebug()
 	disk := service.MyService.ZiMa().GetDiskInfo()
-	array = append(array, fmt.Sprintf("disk,totle:%v,used:%v,UsedPercent:%v", disk.Total>>20, disk.Used>>20, disk.UsedPercent))
+	array = append(array, fmt.Sprintf("disk,total:%v,used:%v,UsedPercent:%v", disk.Total>>20, disk.Used>>20, disk.UsedPercent))
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: array})
 }

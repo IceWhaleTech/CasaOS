@@ -34,20 +34,20 @@ type ZeroTierService interface {
 	DeleteNetwork(token, id string) interface{}
 	GetJoinNetworks() string
 }
-type zerotierstruct struct {
+type zerotierStruct struct {
 }
 
 var client http.Client
 
-func (c *zerotierstruct) ZeroTierJoinNetwork(networkId string) {
+func (c *zerotierStruct) ZeroTierJoinNetwork(networkId string) {
 	command2.OnlyExec(`zerotier-cli join ` + networkId)
 }
-func (c *zerotierstruct) ZeroTierLeaveNetwork(networkId string) {
+func (c *zerotierStruct) ZeroTierLeaveNetwork(networkId string) {
 	command2.OnlyExec(`zerotier-cli leave ` + networkId)
 }
 
 //登录并获取token
-func (c *zerotierstruct) GetToken(username, pwd string) string {
+func (c *zerotierStruct) GetToken(username, pwd string) string {
 	if len(config.ZeroTierInfo.Token) > 0 {
 		return config.ZeroTierInfo.Token
 	} else {
@@ -55,7 +55,7 @@ func (c *zerotierstruct) GetToken(username, pwd string) string {
 	}
 }
 
-func (c *zerotierstruct) ZeroTierRegister(email, lastName, firstName, password string) string {
+func (c *zerotierStruct) ZeroTierRegister(email, lastName, firstName, password string) string {
 
 	url := "https://accounts.zerotier.com/auth/realms/zerotier/protocol/openid-connect/registrations?client_id=zt-central&redirect_uri=https%3A%2F%2Fmy.zerotier.com%2Fapi%2F_auth%2Foidc%2Fcallback&response_type=code&scope=openid+profile+email+offline_access&state=state"
 
@@ -210,7 +210,7 @@ func ZeroTierGet(url string, cookies []*http.Cookie, t uint8) (action string, c 
 }
 
 //模拟提交表单
-func ZeroTierPost(str bytes.Buffer, action string, cookes []*http.Cookie, isLogin bool) (url, errInfo string, err error) {
+func ZeroTierPost(str bytes.Buffer, action string, cookies []*http.Cookie, isLogin bool) (url, errInfo string, err error) {
 	req, err := http.NewRequest(http.MethodPost, action, strings.NewReader(str.String()))
 	if err != nil {
 		return "", "", errors.New("newrequest error")
@@ -219,7 +219,7 @@ func ZeroTierPost(str bytes.Buffer, action string, cookes []*http.Cookie, isLogi
 		req.Header.Set(k, v)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	for _, cookie := range cookes {
+	for _, cookie := range cookies {
 		req.AddCookie(cookie)
 	}
 	res, err := client.Do(req)
@@ -273,62 +273,62 @@ func ZeroTierPost(str bytes.Buffer, action string, cookes []*http.Cookie, isLogi
 }
 
 //获取zerotile网络列表和本地用户已加入的网络
-func (c *zerotierstruct) ZeroTierNetworkList(token string) (interface{}, []string) {
+func (c *zerotierStruct) ZeroTierNetworkList(token string) (interface{}, []string) {
 	url := "https://my.zerotier.com/api/network"
 	return zerotier.GetData(url, token), command2.ExecResultStrArray(`zerotier-cli listnetworks | awk 'NR>1 {print $3} {line=$0}'`)
 }
 
 // get network info
-func (c *zerotierstruct) ZeroTierGetInfo(token, id string) (interface{}, []string) {
+func (c *zerotierStruct) ZeroTierGetInfo(token, id string) (interface{}, []string) {
 	url := "https://my.zerotier.com/api/network/" + id
 	info := zerotier.GetData(url, token)
 	return info, command2.ExecResultStrArray(`zerotier-cli listnetworks | awk 'NR>1 {print $3} {line=$0}'`)
 }
 
 //get status
-func (c *zerotierstruct) ZeroTierGetStatus(token string) interface{} {
+func (c *zerotierStruct) ZeroTierGetStatus(token string) interface{} {
 	url := "https://my.zerotier.com/api/v1/status"
 	info := zerotier.GetData(url, token)
 	return info
 }
 
-func (c *zerotierstruct) EditNetwork(token string, data string, id string) interface{} {
+func (c *zerotierStruct) EditNetwork(token string, data string, id string) interface{} {
 	url := "https://my.zerotier.com/api/v1/network/" + id
 	info := zerotier.PostData(url, token, data)
 	return info
 }
 
-func (c *zerotierstruct) EditNetworkMember(token string, data string, id, mId string) interface{} {
+func (c *zerotierStruct) EditNetworkMember(token string, data string, id, mId string) interface{} {
 	url := "https://my.zerotier.com/api/v1/network/" + id + "/member/" + mId
 	info := zerotier.PostData(url, token, data)
 	return info
 }
 
-func (c *zerotierstruct) MemberList(token string, id string) interface{} {
+func (c *zerotierStruct) MemberList(token string, id string) interface{} {
 	url := "https://my.zerotier.com/api/v1/network/" + id + "/member"
 	info := zerotier.GetData(url, token)
 	return info
 }
 
-func (c *zerotierstruct) DeleteMember(token string, id, mId string) interface{} {
+func (c *zerotierStruct) DeleteMember(token string, id, mId string) interface{} {
 	url := "https://my.zerotier.com/api/v1/network/" + id + "/member/" + mId
 	info := zerotier.DeleteMember(url, token)
 	return info
 }
 
-func (c *zerotierstruct) DeleteNetwork(token, id string) interface{} {
+func (c *zerotierStruct) DeleteNetwork(token, id string) interface{} {
 	url := "https://my.zerotier.com/api/v1/network/" + id
 	info := zerotier.DeleteMember(url, token)
 	return info
 }
 
-func (c *zerotierstruct) CreateNetwork(token string) interface{} {
+func (c *zerotierStruct) CreateNetwork(token string) interface{} {
 	url := "https://my.zerotier.com/api/v1/network"
 	info := zerotier.PostData(url, token, "{}")
 	return info
 }
 
-func (c *zerotierstruct) GetJoinNetworks() string {
+func (c *zerotierStruct) GetJoinNetworks() string {
 	json := command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetLocalJoinNetworks")
 	return json
 }
@@ -339,5 +339,5 @@ func NewZeroTierService() ZeroTierService {
 		return http.ErrUseLastResponse //禁止重定向
 	},
 	}
-	return &zerotierstruct{}
+	return &zerotierStruct{}
 }

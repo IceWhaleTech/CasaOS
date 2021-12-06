@@ -35,7 +35,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		app:    NewAppService(db, log),
 		ddns:   NewDDNSService(db, log),
 		user:   NewUserService(),
-		docker: NewDcokerService(log),
+		docker: NewDockerService(log),
 		//redis:      NewRedisService(rp),
 		zerotier:       NewZeroTierService(),
 		zima:           NewZiMaService(),

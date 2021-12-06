@@ -31,4 +31,3 @@ func SetOauth(request *http.Request, value string) {
 func SetXFilter(request *http.Request, value string) {
 	request.Header.Set("X-Filter", value)
 }
-

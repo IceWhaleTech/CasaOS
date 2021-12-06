@@ -64,7 +64,7 @@ func DDNSAddConfig(c *gin.Context) {
 			})
 		return
 	}
-	var m model2.DDNSUpdataDBModel
+	var m model2.DDNSUpdateDBModel
 	c.Bind(&m)
 	if err := service.MyService.DDNS().SaveConfig(m); err != nil {
 		c.JSON(http.StatusOK,
