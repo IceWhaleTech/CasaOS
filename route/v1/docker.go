@@ -2,7 +2,6 @@ package v1
 
 import (
 	"bytes"
-	"encoding/json"
 	json2 "encoding/json"
 	"net/http"
 	"reflect"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	upnp2 "github.com/IceWhaleTech/CasaOS/pkg/upnp"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -421,9 +421,12 @@ func InstallApp(c *gin.Context) {
 		rely := model.MapStrings{}
 
 		copier.Copy(&rely, &relyMap)
-		for i := 0; i < len(m.Volumes); i++ {
-			m.Volumes[i].Path = docker.GetDir(id, m.Volumes[i].ContainerPath)
+		if m.Origin != "custom" {
+			for i := 0; i < len(m.Volumes); i++ {
+				m.Volumes[i].Path = docker.GetDir(id, m.Volumes[i].ContainerPath)
+			}
 		}
+
 		portsStr, _ := json2.Marshal(m.Ports)
 		envsStr, _ := json2.Marshal(m.Envs)
 		volumesStr, _ := json2.Marshal(m.Volumes)
@@ -463,6 +466,7 @@ func InstallApp(c *gin.Context) {
 		//	m.PortMap = m.Port
 		//}
 		service.MyService.App().SaveContainer(md)
+		config.CasaOSGlobalVariables.AddApp = true
 
 	}()
 
@@ -677,7 +681,7 @@ func UnInstallApp(c *gin.Context) {
 	}
 
 	//step：删除容器
-	err = service.MyService.Docker().DockerContainerRemove(appId)
+	err = service.MyService.Docker().DockerContainerRemove(appId, false)
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.UNINSTALL_APP_ERROR, Message: oasis_err2.GetMsg(oasis_err2.UNINSTALL_APP_ERROR), Data: err.Error()})
 		return
@@ -908,16 +912,10 @@ func UpdateSetting(c *gin.Context) {
 	//如果容器端口均未修改,这不进行处理
 	portsStr, _ := json2.Marshal(m.Ports)
 
-	list := []model.PathMap{}
-	json.Unmarshal([]byte(appInfo.Volumes), &list)
-	for i := 0; i < len(list); i++ {
-		list[i].Path = docker.GetDir(id, list[i].ContainerPath)
-	}
 	envsStr, _ := json2.Marshal(m.Envs)
 	volumesStr, _ := json2.Marshal(m.Volumes)
 	devicesStr, _ := json2.Marshal(m.Devices)
-	listStr, _ := json2.Marshal(list)
-	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(volumesStr, listStr) || m.PortMap != appInfo.PortMap || m.NetworkModel != appInfo.NetModel {
+	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(string(volumesStr), appInfo.Volumes) || m.PortMap != appInfo.PortMap || m.NetworkModel != appInfo.NetModel {
 
 		var newUUid = uuid.NewV4().String()
 		var err error
@@ -934,7 +932,7 @@ func UpdateSetting(c *gin.Context) {
 			return
 		}
 
-		err = service.MyService.Docker().DockerContainerRemove(id)
+		err = service.MyService.Docker().DockerContainerRemove(id, true)
 		if err != nil {
 			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
 			return

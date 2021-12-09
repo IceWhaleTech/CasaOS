@@ -53,7 +53,7 @@ type DockerService interface {
 	DockerListByImage(image, version string) (*types.Container, error)
 	DockerContainerInfo(name string) (*types.ContainerJSON, error)
 	DockerImageRemove(name string) error
-	DockerContainerRemove(name string) error
+	DockerContainerRemove(name string, update bool) error
 	DockerContainerStop(id string) error
 	DockerContainerUpdateName(name, id string) (err error)
 	DockerContainerUpdate(m model.CustomizationPostData, id string) (err error)
@@ -352,7 +352,7 @@ func (ds *dockerService) DockerPullImage(imageName string, m model2.AppNotify) e
 //param udp 容器其他udp端口
 func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId string, m model.CustomizationPostData, net string) (containerId string, err error) {
 	if len(net) == 0 {
-		net = "oasis"
+		net = "bridge"
 	}
 
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
@@ -515,7 +515,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 }
 
 //删除容器
-func (ds *dockerService) DockerContainerRemove(name string) error {
+func (ds *dockerService) DockerContainerRemove(name string, update bool) error {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
 		return err
@@ -524,9 +524,11 @@ func (ds *dockerService) DockerContainerRemove(name string) error {
 	err = cli.ContainerRemove(context.Background(), name, types.ContainerRemoveOptions{})
 
 	//路径处理
-	path := docker.GetDir(name, "/config")
-	if !file.CheckNotExist(path) {
-		file.RMDir(path)
+	if !update {
+		path := docker.GetDir(name, "/config")
+		if !file.CheckNotExist(path) {
+			file.RMDir(path)
+		}
 	}
 
 	if err != nil {

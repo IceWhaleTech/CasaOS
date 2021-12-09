@@ -10,6 +10,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model/system_app"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
@@ -20,6 +21,7 @@ import (
 
 func InitFunction() {
 	go checkSystemApp()
+	Update2_3()
 }
 
 var syncIsExistence = false
@@ -189,4 +191,11 @@ func checkSystemApp() {
 	if !syncIsExistence {
 		installSyncthing("44")
 	}
+}
+func CheckSerialDiskMount() {
+	// 检查挂载点重新挂载
+	// 检查新硬盘是否有多个分区,如有多个分区需提示
+}
+func Update2_3() {
+	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/assist.sh")
 }

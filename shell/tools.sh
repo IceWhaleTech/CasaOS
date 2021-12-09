@@ -60,7 +60,7 @@ show() {
 }
 
 run_external_script() {
-  show 0 "run_external_script"
+  assist.sh
 }
 
 update() {
@@ -99,13 +99,13 @@ update() {
     target_arch="386"
     ;;
   *armv5*)
-    target_arch="armv5"
+    target_arch="arm-5"
     ;;
   *armv6*)
-    target_arch="armv6"
+    target_arch="arm-6"
     ;;
   *armv7*)
-    target_arch="armv7"
+    target_arch="arm-7"
     ;;
   *)
     show 1 "Aborted, unsupported or unknown architecture: $unamem"

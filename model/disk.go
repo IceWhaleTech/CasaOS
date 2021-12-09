@@ -24,6 +24,7 @@ type LSBLKModel struct {
 	Tran        string       `json:"tran"`
 	MinIO       uint64       `json:"min-io"`
 	UsedPercent float64      `json:"used_percent"`
+	Serial      string       `json:"serial"`
 	Children    []LSBLKModel `json:"children"`
 	//详情特有
 	StartSector uint64 `json:"start_sector,omitempty"`

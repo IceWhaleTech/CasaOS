@@ -10,8 +10,10 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/tidwall/gjson"
+	"gorm.io/gorm"
 )
 
 type DiskService interface {
@@ -21,11 +23,14 @@ type DiskService interface {
 	UmountPointAndRemoveDir(path string) string
 	GetDiskInfo(path string) model.LSBLKModel
 	DelPartition(path, num string) string
-	AddPartition(path, num string, size uint64) string
+	AddPartition(path string) string
 	GetDiskInfoByPath(path string) *disk.UsageStat
+	MountDisk(path, volume string)
+	SerialAll(mountPoint string) *[]model2.SerialDisk
 }
 type diskService struct {
 	log loger2.OLog
+	db  *gorm.DB
 }
 
 //通过脚本获取外挂磁盘
@@ -55,26 +60,15 @@ func (d *diskService) DelPartition(path, num string) string {
 	return ""
 }
 
-//添加分区
-func (d *diskService) AddPartition(path, num string, size uint64) string {
-
-	var maxSector uint64 = 0
-
-	chiList := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetPartitionSectors " + path)
-	if len(chiList) == 0 {
-		d.log.Error("chiList length error")
-	}
-	for i := 0; i < len(chiList); i++ {
-		tempArr := strings.Split(chiList[i], ",")
-		tempSector, _ := strconv.ParseUint(tempArr[2], 10, 64)
-		if tempSector > maxSector {
-			maxSector = tempSector
-		}
-	}
-
-	r := command2.ExecResultStrArray("source ./shell/helper.sh ;AddPartition " + path + " " + num + " " + strconv.FormatUint(maxSector+1, 10) + " " + strconv.FormatUint(size+maxSector+1, 10))
+//part
+func (d *diskService) AddPartition(path string) string {
+	r := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;AddPartition " + path)
 	fmt.Println(r)
 	return ""
+}
+
+func (d *diskService) AddAllPartition(path string) {
+
 }
 
 //获取硬盘详情
@@ -90,7 +84,7 @@ func (d *diskService) GetDiskInfoByPath(path string) *disk.UsageStat {
 	return diskInfo
 }
 
-//获取磁盘信息
+//get disk details
 func (d *diskService) LSBLK() []model.LSBLKModel {
 	str := command2.ExecLSBLK()
 	if str == nil {
@@ -111,7 +105,7 @@ func (d *diskService) LSBLK() []model.LSBLKModel {
 
 	var health = true
 	for _, i := range m {
-		if i.Children != nil {
+		if i.Type != "loop" && !i.RO {
 			fsused = 0
 			for _, child := range i.Children {
 				if child.RM {
@@ -134,7 +128,7 @@ func (d *diskService) LSBLK() []model.LSBLKModel {
 			i.Children = c
 			if fsused > 0 {
 				i.UsedPercent, err = strconv.ParseFloat(fmt.Sprintf("%.4f", float64(fsused)/float64(i.Size)), 64)
-				fmt.Println(err)
+				d.log.Fatal("diskservice_lsblk_fsused", err)
 			}
 			n = append(n, i)
 			health = true
@@ -197,17 +191,21 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 	return m
 }
 
-//func GetDiskInfo(path string) *disk.UsageStat {
-//	diskInfo, _ := disk.Usage(path)
-//	diskInfo.UsedPercent, _ = strconv.ParseFloat(fmt.Sprintf("%.1f", diskInfo.UsedPercent), 64)
-//	diskInfo.InodesUsedPercent, _ = strconv.ParseFloat(fmt.Sprintf("%.1f", diskInfo.InodesUsedPercent), 64)
-//	return diskInfo
-//}
+func (d *diskService) MountDisk(path, volume string) {
+	r := command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;do_mount " + path + " " + volume)
+	fmt.Print(r)
+}
 
-//func (d *diskService) GetPlugInDisk() []string {
-//	return disk.Partitions(false)
-//}
+func (d *diskService) SaveMountPoint(m model2.SerialDisk) {
+	d.db.Save(&m)
+}
 
-func NewDiskService(log loger2.OLog) DiskService {
-	return &diskService{log: log}
+func (d *diskService) SerialAll(mountPoint string) *[]model2.SerialDisk {
+	var m []model2.SerialDisk
+	d.db.Find(&m)
+	return &m
+}
+
+func NewDiskService(log loger2.OLog, db *gorm.DB) DiskService {
+	return &diskService{log: log, db: db}
 }

@@ -16,6 +16,7 @@ const (
 	DIR_ALREADY_EXISTS  = 20001
 	FILE_ALREADY_EXISTS = 20002
 	FILE_OR_DIR_EXISTS  = 20003
+	PORT_IS_OCCUPIED    = 20004
 
 	//zerotier
 	GET_TOKEN_ERROR = 30001
@@ -49,6 +50,7 @@ var MsgFlags = map[int]string{
 	DIR_ALREADY_EXISTS:  "Directory already exists",
 	FILE_ALREADY_EXISTS: "File already exists",
 	FILE_OR_DIR_EXISTS:  "File or directory already exists",
+	PORT_IS_OCCUPIED:    "Port is occupied",
 
 	//zerotier
 	GET_TOKEN_ERROR: "Get token error,Please log in to zerotier's official website to confirm whether the account is available",

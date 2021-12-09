@@ -1,11 +1,9 @@
 #!/bin/sh
 
-# copy to /oasis/util/shell path
+# copy to /casaOS/util/shell path
 # chmod 755
 
 log="logger -t usb-mount.sh -s "
-
-${log} "变量:$1 $2"
 
 ACTION=$1
 
@@ -18,10 +16,10 @@ MOUNT_POINT=$(mount | grep ${DEVICE} | awk '{ print $3 }')
 
 do_mount() {
 
-  if [[ -n ${MOUNT_POINT} ]]; then
+  if [ -n "${MOUNT_POINT}" ]; then
     ${log} "Warning: ${DEVICE} is already mounted at ${MOUNT_POINT}"
     exit 1
-  fib
+  fi
 
   # Get info for this drive: $ID_FS_LABEL and $ID_FS_TYPE
   eval $(blkid -o udev ${DEVICE} | grep -i -e "ID_FS_LABEL" -e "ID_FS_TYPE")
@@ -33,7 +31,7 @@ do_mount() {
   # Figure out a mount point to use
   # LABEL=${ID_FS_LABEL}
   LABEL=${DEVBASE}
-  if grep -q " /media/${LABEL} " /etc/mtab; then
+  if grep -q " /mnt/casa_${LABEL} " /etc/mtab; then
     # Already in use, make a unique one
     LABEL+="-${DEVBASE}"
   fi
@@ -44,7 +42,7 @@ do_mount() {
     DEV_LABEL="${DEVBASE}"
   fi
 
-  MOUNT_POINT="/media/${DEV_LABEL}"
+  MOUNT_POINT="/mnt/casa_${DEV_LABEL}"
 
   ${log} "Mount point: ${MOUNT_POINT}"
 

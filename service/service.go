@@ -40,7 +40,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		zerotier:       NewZeroTierService(),
 		zima:           NewZiMaService(),
 		oapi:           NewOasisService(),
-		disk:           NewDiskService(log),
+		disk:           NewDiskService(log, db),
 		notify:         NewNotifyService(db),
 		shareDirectory: NewShareDirService(db, log),
 		task:           NewTaskService(db, log),
