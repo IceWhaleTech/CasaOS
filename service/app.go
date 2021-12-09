@@ -2,12 +2,15 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"io/ioutil"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
@@ -16,7 +19,6 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	client2 "github.com/docker/docker/client"
 	"github.com/pkg/errors"
-	"github.com/tidwall/sjson"
 	"gorm.io/gorm"
 )
 
@@ -31,7 +33,9 @@ type AppService interface {
 	GetSimpleContainerInfo(name string) (types.Container, error)
 	DelAppConfigDir(path string)
 	GetSystemAppList() *[]model2.MyAppList
-	GetHardwareUsage() []string
+	GetHardwareUsageSteam()
+	GetHardwareUsage() []model.DockerStatsModel
+	GetAppStats(id string) string
 }
 
 type appStruct struct {
@@ -158,7 +162,6 @@ func (a *appStruct) GetSystemAppList() *[]model2.MyAppList {
 				//Rely:     m.Rely,
 			})
 		}
-
 	}
 
 	return &list
@@ -237,57 +240,108 @@ func (a *appStruct) RemoveContainerById(id string) {
 	a.db.Table(model2.CONTAINERTABLENAME).Where("custom_id = ?", id).Delete(&model2.AppListDBModel{})
 }
 
-func (a *appStruct) GetHardwareUsage() []string {
+var dataStr map[string]model.DockerStatsModel
 
-	var dataStr []string
+var isFinish bool = false
+
+func (a *appStruct) GetAppStats(id string) string {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
-		return dataStr
+		return ""
+	}
+	defer cli.Close()
+	con, err := cli.ContainerStats(context.Background(), id, false)
+	if err != nil {
+		return err.Error()
+	}
+	defer con.Body.Close()
+	c, _ := ioutil.ReadAll(con.Body)
+	return string(c)
+}
+
+func (a *appStruct) GetHardwareUsage() []model.DockerStatsModel {
+
+	steam := true
+	for !isFinish {
+		if steam {
+			steam = false
+			go func() {
+				a.GetHardwareUsageSteam()
+			}()
+		}
+		// 切一下，再次分配任务
+		runtime.Gosched()
+	}
+	list := []model.DockerStatsModel{}
+	for _, v := range dataStr {
+		list = append(list, v)
+	}
+
+	return list
+
+}
+
+func (a *appStruct) GetHardwareUsageSteam() {
+	var lock = &sync.Mutex{}
+	if len(dataStr) == 0 {
+		lock.Lock()
+		dataStr = make(map[string]model.DockerStatsModel)
+		lock.Unlock()
+	}
+
+	cli, err := client2.NewClientWithOpts(client2.FromEnv)
+	if err != nil {
+		return
 	}
 	defer cli.Close()
 
-	lock := &sync.Mutex{}
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
 	var lm []model2.AppListDBModel
-	var count = 0
-	a.db.Table(model2.CONTAINERTABLENAME).Select("title,icon,container_id").Find(&lm)
-	for _, v := range lm {
-		go func(lock *sync.Mutex, id, title, icon string) {
-			stats, err := cli.ContainerStats(context.Background(), id, false)
-			if err != nil {
-				lock.Lock()
-				count++
-				lock.Unlock()
-				return
-			}
-			defer stats.Body.Close()
-			statsByte, err := ioutil.ReadAll(stats.Body)
-			if err != nil {
-				lock.Lock()
-				count++
-				lock.Unlock()
-				return
-			}
-			lock.Lock()
-			statsByte, _ = sjson.SetBytes(statsByte, "icon", icon)
-			statsByte, _ = sjson.SetBytes(statsByte, "title", title)
-			dataStr = append(dataStr, string(statsByte))
-			count++
-			lock.Unlock()
-		}(lock, v.ContainerId, v.Title, v.Icon)
-	}
-
-	for {
-		lock.Lock()
-		c := count
-		lock.Unlock()
-
-		runtime.Gosched()
-		if c == len(lm) {
-			break
+	a.db.Table(model2.CONTAINERTABLENAME).Select("label,icon,container_id").Where("origin != ?", "system").Find(&lm)
+	var list []types.ContainerStats
+	for i := 0; i < 100; i++ {
+		if config.CasaOSGlobalVariables.AddApp {
+			a.db.Table(model2.CONTAINERTABLENAME).Select("label,icon,container_id").Where("origin != ?", "system").Find(&lm)
 		}
-	}
-	return dataStr
+		var wg sync.WaitGroup
+		for _, v := range lm {
+			wg.Add(1)
+			go func(v model2.AppListDBModel, lock *sync.Mutex) {
+				defer wg.Done()
+				stats, err := cli.ContainerStats(ctx, v.ContainerId, true)
+				if err != nil {
+					return
+				}
+				decode := json.NewDecoder(stats.Body)
+				var data interface{}
+				if err := decode.Decode(&data); err == io.EOF {
+					return
+				}
+				lock.Lock()
+				dockerStats := model.DockerStatsModel{}
+				dockerStats.Pre = dataStr[v.ContainerId].Data
 
+				dockerStats.Data = data
+				dockerStats.Icon = v.Icon
+				dockerStats.Title = v.Label
+				dataStr[v.ContainerId] = dockerStats
+				lock.Unlock()
+			}(v, lock)
+		}
+		wg.Wait()
+		isFinish = true
+		if i == 99 {
+			for _, v := range list {
+				v.Body.Close()
+			}
+
+		}
+		time.Sleep(time.Second * 2)
+	}
+	isFinish = false
+	cancel()
 }
 
 // init install

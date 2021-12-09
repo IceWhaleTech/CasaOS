@@ -2,7 +2,6 @@ package v1
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
@@ -110,14 +109,8 @@ func FormatDisk(c *gin.Context) {
 	if len(path) == 0 || len(t) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
 	}
-
-	//删除挂载点
-	service.MyService.Disk().UmountPointAndRemoveDir(path)
-
 	//格式化磁盘
 	service.MyService.Disk().FormatDisk(path, t)
-
-	//重新挂载
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
 }
@@ -155,25 +148,43 @@ func RemovePartition(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
 }
 
-// @Summary 添加分区
+// @Summary serial number
 // @Produce  application/json
 // @Accept multipart/form-data
 // @Tags disk
 // @Security ApiKeyAuth
 // @Param  path formData string true "磁盘路径 例如/dev/sda"
-// @Param  size formData string true "需要分区容量大小(MB)"
-// @Param  num formData string true "磁盘符号"
+// @Param  serial formData string true "serial"
 // @Success 200 {string} string "ok"
 // @Router /disk/addpart [post]
 func AddPartition(c *gin.Context) {
 	path := c.PostForm("path")
-	size, _ := strconv.Atoi(c.DefaultPostForm("size", "0"))
-	num := c.DefaultPostForm("num", "9")
-	if len(path) == 0 {
+	serial := c.PostForm("serial")
+	if len(path) == 0 || len(serial) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		return
 	}
+	service.MyService.Disk().AddPartition(path)
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+}
 
-	//size*1024*1024/512
-	service.MyService.Disk().AddPartition(path, num, uint64(size*1024*2))
+func PostMountDisk(c *gin.Context) {
+	// for example: path=/dev/sda1
+	path := c.PostForm("path")
+	//执行挂载目录
+	service.MyService.Disk().MountDisk(path, "volume")
+	//添加到数据库
+
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+}
+
+func DeleteUmountDisk(c *gin.Context) {
+
+	// for example: path=/dev/sda1
+	path := c.PostForm("path")
+	service.MyService.Disk().UmountPointAndRemoveDir(path)
+
+	//删除数据库记录
+
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
 }

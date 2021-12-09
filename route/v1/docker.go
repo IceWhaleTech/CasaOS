@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	upnp2 "github.com/IceWhaleTech/CasaOS/pkg/upnp"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -420,9 +421,12 @@ func InstallApp(c *gin.Context) {
 		rely := model.MapStrings{}
 
 		copier.Copy(&rely, &relyMap)
-		for i := 0; i < len(m.Volumes); i++ {
-			m.Volumes[i].Path = docker.GetDir(id, m.Volumes[i].ContainerPath)
+		if m.Origin != "custom" {
+			for i := 0; i < len(m.Volumes); i++ {
+				m.Volumes[i].Path = docker.GetDir(id, m.Volumes[i].ContainerPath)
+			}
 		}
+
 		portsStr, _ := json2.Marshal(m.Ports)
 		envsStr, _ := json2.Marshal(m.Envs)
 		volumesStr, _ := json2.Marshal(m.Volumes)
@@ -462,6 +466,7 @@ func InstallApp(c *gin.Context) {
 		//	m.PortMap = m.Port
 		//}
 		service.MyService.App().SaveContainer(md)
+		config.CasaOSGlobalVariables.AddApp = true
 
 	}()
 

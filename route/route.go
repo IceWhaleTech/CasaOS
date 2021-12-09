@@ -194,6 +194,7 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.POST("/config", v1.PostSetSystemConfig)
 			v1SysGroup.GET("/widget/config", v1.GetWidgetConfig)
 			v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)
+			v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
 			v1SysGroup.POST("/kill", v1.PostKillCasaOS)
 		}
@@ -225,13 +226,19 @@ func InitRouter() *gin.Engine {
 			v1DiskGroup.POST("/format", v1.FormatDisk)
 
 			//添加分区
-			v1DiskGroup.POST("/addpart", v1.AddPartition)
+			v1DiskGroup.POST("/part", v1.AddPartition)
 
 			//获取可以格式化的内容
 			v1DiskGroup.GET("/type", v1.FormatDiskType)
 
 			//删除分区
 			v1DiskGroup.DELETE("/delpart", v1.RemovePartition)
+
+			//mount SATA disk
+			v1DiskGroup.POST("/mount", v1.PostMountDisk)
+
+			//umount SATA disk
+			v1DiskGroup.POST("/umount", v1.DeleteUmountDisk)
 
 		}
 		v1ShareGroup := v1Group.Group("/share")

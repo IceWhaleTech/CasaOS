@@ -33,6 +33,8 @@ var ServerInfo = &model.ServerModel{}
 
 var SystemConfigInfo = &model.SystemConfig{}
 
+var CasaOSGlobalVariables = &model.CasaOSGlobalVariables{}
+
 var Cfg *ini.File
 
 //初始化设置，获取系统的部分信息。

@@ -68,3 +68,7 @@ type SystemConfig struct {
 	SyncPort   string `json:"sync_port"`
 	SyncKey    string `json:"sync_key"`
 }
+
+type CasaOSGlobalVariables struct {
+	AddApp bool
+}

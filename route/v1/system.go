@@ -137,14 +137,30 @@ func PostSetWidgetConfig(c *gin.Context) {
 		})
 }
 
+// @Summary get casaos server port
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/port [get]
+func GetCasaOSPort(c *gin.Context) {
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Data:    config.ServerInfo.HttpPort,
+		})
+}
+
 // @Summary edit casaos server port
 // @Produce  application/json
 // @Accept application/json
 // @Tags sys
 // @Security ApiKeyAuth
-// @Param port formData file true "用户头像"
+// @Param port formData string true "port"
 // @Success 200 {string} string "ok"
-// @Router /sys/widget/config [post]
+// @Router /sys/port [put]
 func PutCasaOSPort(c *gin.Context) {
 	port, err := strconv.Atoi(c.PostForm("port"))
 	if err != nil {

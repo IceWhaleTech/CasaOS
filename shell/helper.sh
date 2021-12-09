@@ -103,20 +103,22 @@ DelPartition() {
 EOF
 }
 
-#添加分区
+#添加分区只有一个分区
 #param 路径   /dev/sdb
-#param 磁盘号   最大128
-#param 磁盘大小 字节   512*2048=1024kb=1M
+#param 要挂载的目录
 AddPartition() {
-  #  fdisk $1 <<EOF
-  #  n
-  #  $2
-  #  $3
-  #  $4
-  #  wq
-  #EOF
 
-  parted $1 mkpart primary ext4 s3 s4
+  DelPartition $1
+  parted -s $1 mklabel gpt
+
+  parted -s $1 mkpart primary ext4 0 100%
+
+  mkfs.ext4 $11
+
+  partprobe $1
+
+  #  mount $11 $2
+
 }
 
 #磁盘类型
@@ -151,7 +153,83 @@ GetPartitionSectors() {
   fdisk $1 -l | grep "/dev/sda[1-9]" | awk 'BEGIN{OFS=","}{print $1,$2,$3,$4}'
 }
 
+#检查没有使用的挂载点删除文件夹
+AutoRemoveUnuseDir() {
+  DIRECTORY="/mnt/"
+  dir=$(ls -l $DIRECTORY | awk '/^d/ {print $NF}')
+  for i in $dir; do
+
+    path="$DIRECTORY$i"
+    mountStr=$(mountpoint $path)
+    notMountpoint="is not a mountpoint"
+    if [[ $mountStr =~ $notMountpoint ]]; then
+      if [ "$(ls -A $path)" = "" ]; then
+        rm -fr $path
+      else
+        echo "$path is not empty"
+      fi
+    fi
+  done
+}
+
 #重载samba服务
 ReloadSamba() {
   /etc/init.d/smbd reload
+}
+
+# $1=sda1
+# $2=volume{1}
+do_mount() {
+  DEVBASE=$1
+  DEVICE="${DEVBASE}"
+  # See if this drive is already mounted, and if so where
+  MOUNT_POINT=$(mount | grep ${DEVICE} | awk '{ print $3 }')
+
+  if [ -n "${MOUNT_POINT}" ]; then
+    ${log} "Warning: ${DEVICE} is already mounted at ${MOUNT_POINT}"
+    exit 1
+  fi
+
+  # Get info for this drive: $ID_FS_LABEL and $ID_FS_TYPE
+  eval $(blkid -o udev ${DEVICE} | grep -i -e "ID_FS_LABEL" -e "ID_FS_TYPE")
+
+  LABEL=$2
+  if grep -q " /media/${LABEL} " /etc/mtab; then
+    # Already in use, make a unique one
+    LABEL+="-${DEVBASE}"
+  fi
+  DEV_LABEL="${LABEL}"
+
+  # Use the device name in case the drive doesn't have label
+  if [ -z ${DEV_LABEL} ]; then
+    DEV_LABEL="${DEVBASE}"
+  fi
+
+  MOUNT_POINT="/media/${DEV_LABEL}"
+
+  ${log} "Mount point: ${MOUNT_POINT}"
+
+  mkdir -p ${MOUNT_POINT}
+
+  case ${ID_FS_TYPE} in
+  vfat)
+    mount -t vfat -o rw,relatime,users,gid=100,umask=000,shortname=mixed,utf8=1,flush ${DEVICE} ${MOUNT_POINT}
+    ;;
+  ext[2-4])
+    mount -o noatime ${DEVICE} ${MOUNT_POINT} >/dev/null 2>&1
+    ;;
+  exfat)
+    mount -t exfat ${DEVICE} ${MOUNT_POINT} >/dev/null 2>&1
+    ;;
+  ntfs)
+    ntfs-3g ${DEVICE} ${MOUNT_POINT}
+    ;;
+  iso9660)
+    mount -t iso9660 ${DEVICE} ${MOUNT_POINT}
+    ;;
+  *)
+    /bin/rmdir "${MOUNT_POINT}"
+    exit 0
+    ;;
+  esac
 }
