@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -269,7 +270,6 @@ func (a *appStruct) GetHardwareUsage() []model.DockerStatsModel {
 				a.GetHardwareUsageSteam()
 			}()
 		}
-		// 切一下，再次分配任务
 		runtime.Gosched()
 	}
 	list := []model.DockerStatsModel{}
@@ -299,11 +299,22 @@ func (a *appStruct) GetHardwareUsageSteam() {
 	ctx, cancel := context.WithCancel(ctx)
 
 	var lm []model2.AppListDBModel
-	a.db.Table(model2.CONTAINERTABLENAME).Select("label,icon,container_id").Where("origin != ?", "system").Find(&lm)
+	a.db.Table(model2.CONTAINERTABLENAME).Select("label,title,icon,container_id").Where("origin != ?", "system").Find(&lm)
 	var list []types.ContainerStats
 	for i := 0; i < 100; i++ {
-		if config.CasaOSGlobalVariables.AddApp {
-			a.db.Table(model2.CONTAINERTABLENAME).Select("label,icon,container_id").Where("origin != ?", "system").Find(&lm)
+		if config.CasaOSGlobalVariables.AppChange {
+			lm = []model2.AppListDBModel{}
+			config.CasaOSGlobalVariables.AppChange = false
+			a.db.Table(model2.CONTAINERTABLENAME).Select("label,title,icon,container_id").Where("origin != ?", "system").Find(&lm)
+			dataApps := dataStr
+			lock.Lock()
+			dataStr = make(map[string]model.DockerStatsModel)
+			for _, v := range lm {
+				if !reflect.DeepEqual(dataApps[v.ContainerId], model.DockerStatsModel{}) {
+					dataStr[v.ContainerId] = dataApps[v.ContainerId]
+				}
+			}
+			lock.Unlock()
 		}
 		var wg sync.WaitGroup
 		for _, v := range lm {
@@ -322,10 +333,13 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				lock.Lock()
 				dockerStats := model.DockerStatsModel{}
 				dockerStats.Pre = dataStr[v.ContainerId].Data
-
 				dockerStats.Data = data
 				dockerStats.Icon = v.Icon
-				dockerStats.Title = v.Label
+				if len(v.Label) > 0 {
+					dockerStats.Title = v.Label
+				} else {
+					dockerStats.Title = v.Title
+				}
 				dataStr[v.ContainerId] = dockerStats
 				lock.Unlock()
 			}(v, lock)
