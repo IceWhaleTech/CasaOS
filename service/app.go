@@ -300,8 +300,11 @@ func (a *appStruct) GetHardwareUsageSteam() {
 			config.CasaOSGlobalVariables.AppChange = false
 			a.db.Table(model2.CONTAINERTABLENAME).Select("label,title,icon,container_id").Where("origin != ?", "system").Find(&lm)
 			dataApps := dataStats
+			dataStats.Range(func(key, value interface{}) bool {
+				dataStats.Delete(key)
+				return true
+			})
 			for _, v := range lm {
-				dataStats.Delete(v.ContainerId)
 				m, _ := dataApps.Load(v.ContainerId)
 				if m != nil {
 					dataStats.Store(v.ContainerId, m)
