@@ -300,7 +300,6 @@ func (a *appStruct) GetHardwareUsageSteam() {
 
 	var lm []model2.AppListDBModel
 	a.db.Table(model2.CONTAINERTABLENAME).Select("label,title,icon,container_id").Where("origin != ?", "system").Find(&lm)
-	var list []types.ContainerStats
 	for i := 0; i < 100; i++ {
 		if config.CasaOSGlobalVariables.AppChange {
 			lm = []model2.AppListDBModel{}
@@ -319,7 +318,7 @@ func (a *appStruct) GetHardwareUsageSteam() {
 		var wg sync.WaitGroup
 		for _, v := range lm {
 			wg.Add(1)
-			go func(v model2.AppListDBModel, lock *sync.Mutex) {
+			go func(v model2.AppListDBModel, lock *sync.Mutex, i int) {
 				defer wg.Done()
 				stats, err := cli.ContainerStats(ctx, v.ContainerId, true)
 				if err != nil {
@@ -342,28 +341,19 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				}
 				dataStr[v.ContainerId] = dockerStats
 				lock.Unlock()
-			}(v, lock)
+				if i == 99 {
+					stats.Body.Close()
+				}
+			}(v, lock, i)
 		}
 		wg.Wait()
 		isFinish = true
-		if i == 99 {
-			for _, v := range list {
-				v.Body.Close()
-			}
-
-		}
-		time.Sleep(time.Second * 2)
+		time.Sleep(time.Second * 3)
 	}
 	isFinish = false
 	cancel()
 }
 
-// init install
-func Init() {
-
-}
-
 func NewAppService(db *gorm.DB, logger loger2.OLog) AppService {
-	Init()
 	return &appStruct{db: db, log: logger}
 }
