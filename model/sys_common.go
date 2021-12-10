@@ -70,5 +70,5 @@ type SystemConfig struct {
 }
 
 type CasaOSGlobalVariables struct {
-	AddApp bool
+	AppChange bool
 }

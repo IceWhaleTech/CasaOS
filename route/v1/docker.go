@@ -466,7 +466,7 @@ func InstallApp(c *gin.Context) {
 		//	m.PortMap = m.Port
 		//}
 		service.MyService.App().SaveContainer(md)
-		config.CasaOSGlobalVariables.AddApp = true
+		config.CasaOSGlobalVariables.AppChange = true
 
 	}()
 
@@ -743,7 +743,7 @@ func UnInstallApp(c *gin.Context) {
 		//	}
 		//}
 	}
-
+	config.CasaOSGlobalVariables.AppChange = true
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 
 }
