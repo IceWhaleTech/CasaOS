@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -241,7 +240,7 @@ func (a *appStruct) RemoveContainerById(id string) {
 	a.db.Table(model2.CONTAINERTABLENAME).Where("custom_id = ?", id).Delete(&model2.AppListDBModel{})
 }
 
-var dataStr map[string]model.DockerStatsModel
+var dataStats sync.Map
 
 var isFinish bool = false
 
@@ -273,21 +272,16 @@ func (a *appStruct) GetHardwareUsage() []model.DockerStatsModel {
 		runtime.Gosched()
 	}
 	list := []model.DockerStatsModel{}
-	for _, v := range dataStr {
-		list = append(list, v)
-	}
 
+	dataStats.Range(func(key, value interface{}) bool {
+		list = append(list, value.(model.DockerStatsModel))
+		return true
+	})
 	return list
 
 }
 
 func (a *appStruct) GetHardwareUsageSteam() {
-	var lock = &sync.Mutex{}
-	if len(dataStr) == 0 {
-		lock.Lock()
-		dataStr = make(map[string]model.DockerStatsModel)
-		lock.Unlock()
-	}
 
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -305,20 +299,19 @@ func (a *appStruct) GetHardwareUsageSteam() {
 			lm = []model2.AppListDBModel{}
 			config.CasaOSGlobalVariables.AppChange = false
 			a.db.Table(model2.CONTAINERTABLENAME).Select("label,title,icon,container_id").Where("origin != ?", "system").Find(&lm)
-			dataApps := dataStr
-			lock.Lock()
-			dataStr = make(map[string]model.DockerStatsModel)
+			dataApps := dataStats
 			for _, v := range lm {
-				if !reflect.DeepEqual(dataApps[v.ContainerId], model.DockerStatsModel{}) {
-					dataStr[v.ContainerId] = dataApps[v.ContainerId]
+				dataStats.Delete(v.ContainerId)
+				m, _ := dataApps.Load(v.ContainerId)
+				if m != nil {
+					dataStats.Store(v.ContainerId, m)
 				}
 			}
-			lock.Unlock()
 		}
 		var wg sync.WaitGroup
 		for _, v := range lm {
 			wg.Add(1)
-			go func(v model2.AppListDBModel, lock *sync.Mutex, i int) {
+			go func(v model2.AppListDBModel, i int) {
 				defer wg.Done()
 				stats, err := cli.ContainerStats(ctx, v.ContainerId, true)
 				if err != nil {
@@ -329,9 +322,11 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				if err := decode.Decode(&data); err == io.EOF {
 					return
 				}
-				lock.Lock()
+				m, _ := dataStats.Load(v.ContainerId)
 				dockerStats := model.DockerStatsModel{}
-				dockerStats.Pre = dataStr[v.ContainerId].Data
+				if m != nil {
+					dockerStats.Pre = m.(model.DockerStatsModel).Data
+				}
 				dockerStats.Data = data
 				dockerStats.Icon = v.Icon
 				if len(v.Label) > 0 {
@@ -339,12 +334,11 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				} else {
 					dockerStats.Title = v.Title
 				}
-				dataStr[v.ContainerId] = dockerStats
-				lock.Unlock()
+				dataStats.Store(v.ContainerId, dockerStats)
 				if i == 99 {
 					stats.Body.Close()
 				}
-			}(v, lock, i)
+			}(v, i)
 		}
 		wg.Wait()
 		isFinish = true
