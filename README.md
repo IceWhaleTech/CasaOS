@@ -6,7 +6,7 @@
 [![Pull Requests](https://img.shields.io/github/issues-pr/IceWhaleTech/CasaOS?color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/pulls)
 [![Issues](https://img.shields.io/github/issues/IceWhaleTech/CasaOS?color=162453&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/issues)
 [![GitHub Stars](https://img.shields.io/github/stars/IceWhaleTech/CasaOS?color=162453&logo=github&style=flat-square)](https://github.com/IceWhaleTech/CasaOS/stargazers)
-[![Discord](https://img.shields.io/discord/884667213326463016?color=162453&label=Chat&logo=discord&logoColor=fff&style=flat-square)](https://discord.gg/TZjYGnAW3M)
+[![Discord](https://img.shields.io/discord/884667213326463016?color=162453&label=Chat&logo=discord&logoColor=fff&style=flat-square)](https://discord.gg/knqAbbBbeX)
 
 CasaOS is an open-source Home Cloud system based on the Docker ecosystem and designed for home scenarios. It is committed to building the world's most simple, easy-to-use, and elegant Home Cloud system.
 
@@ -19,7 +19,7 @@ IceWhale team believes that through community-driven collaborative innovation an
 
 > ⚠️ Note: 
 > 
-> CasaOS is still in the early development stage and may vary significantly with the final release. Feel free to test run and share your feedback in the [Discord server](https://discord.gg/TZjYGnAW3M)!
+> CasaOS is still in the early development stage and may vary significantly with the final release. Feel free to test run and share your feedback in the [Discord server](https://discord.gg/knqAbbBbeX)!
 
 ### Quick Setup CasaOS
 
@@ -71,9 +71,9 @@ After looking at many systems and software on the market, the team found no serv
 
 So, we set out to build this open source project to develop CasaOS with our own hands, everyone in the community, and you.
 
-> A warm welcome for you to share and discuss your great ideas in the [Discord server](https://discord.gg/TZjYGnAW3M)!
+> A warm welcome for you to share and discuss your great ideas in the [Discord server](https://discord.gg/knqAbbBbeX)!
 
-[![Discord Card](https://discordapp.com/api/guilds/884667213326463016/widget.png?style=banner2)](https://discord.gg/TZjYGnAW3M)
+[![Discord Card](https://discordapp.com/api/guilds/884667213326463016/widget.png?style=banner2)](https://discord.gg/knqAbbBbeX)
 
 
 
