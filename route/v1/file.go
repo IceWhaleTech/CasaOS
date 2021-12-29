@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
+	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -255,4 +257,65 @@ func PostFileUpload(c *gin.Context) {
 	defer out.Close()
 	io.Copy(out, file)
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+func PutFileMove(c *gin.Context) {
+	from := "/Users/liangjianli/go/CasaOS"
+	to := "/Users/liangjianli/go/CasaOS/test"
+	//t := 1 //是否覆盖
+
+	//方法体
+	stopCh := make(chan int)
+	f, err := os.Stat(from)
+	if err != nil {
+		//未拿到文件信息
+		fmt.Println("stat", err)
+	}
+	//未创建新的文件夹
+	if f.IsDir() {
+		//from 是文件夹,定义to也是文件夹
+		if list, err := ioutil.ReadDir(from); err == nil {
+			for _, v := range list {
+				time.Sleep(time.Second)
+				if err = Copy(stopCh, filepath.Join(from, v.Name()), filepath.Join(to, v.Name())); err != nil {
+					fmt.Printf("copy %s ,err %d", v.Name(), err)
+				}
+			}
+		}
+	} else {
+		p := filepath.Dir(to)
+		if _, err = os.Stat(p); err != nil {
+			if err = os.MkdirAll(p, 0777); err != nil {
+				fmt.Println("mkdir", err)
+			}
+		}
+	}
+
+	file, err := os.Open(from)
+
+	if err != nil {
+		fmt.Println("open file error ", err)
+	}
+	defer file.Close()
+	out, err := os.Create(to)
+	if err != nil {
+		fmt.Println("create to file err", err)
+	}
+	defer out.Close()
+	io.Copy(out, file)
+	time.Sleep(time.Second * 4)
+	close(stopCh)
+}
+func Copy(stop chan int, from, to string) error {
+
+	for {
+		select {
+		case <-stop:
+			return nil
+		default:
+			fmt.Println(from)
+
+		}
+	}
+	return nil
 }

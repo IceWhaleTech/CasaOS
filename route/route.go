@@ -70,8 +70,7 @@ func InitRouter() *gin.Engine {
 
 			//获取网络信息
 			v1ZiMaGroup.GET("/getnetinfo", v1.NetInfo)
-			//获取网络信息
-			v1ZiMaGroup.GET("/getinfo", v1.Info)
+
 			//获取系统信息
 			v1ZiMaGroup.GET("/sysinfo", v1.SysInfo)
 		}
@@ -197,6 +196,7 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
 			v1SysGroup.POST("/kill", v1.PostKillCasaOS)
+			v1SysGroup.GET("/info", v1.Info)
 		}
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()
@@ -211,11 +211,13 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.POST("/create", v1.PostCreateFile)
 
 			v1FileGroup.GET("/download", v1.GetDownloadFile)
+			v1FileGroup.PUT("/move", v1.PutFileMove)
 			//v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
 		}
 		v1DiskGroup := v1Group.Group("/disk")
 		v1DiskGroup.Use()
 		{
+			v1DiskGroup.GET("/check", v1.GetDiskCheck)
 			//获取磁盘列表
 			v1DiskGroup.GET("/list", v1.GetPlugInDisk)
 
@@ -238,8 +240,8 @@ func InitRouter() *gin.Engine {
 			v1DiskGroup.POST("/mount", v1.PostMountDisk)
 
 			//umount SATA disk
-			v1DiskGroup.POST("/umount", v1.DeleteUmountDisk)
-
+			v1DiskGroup.POST("/umount", v1.PostDiskUmount)
+			v1DiskGroup.DELETE("/remove/:id", v1.DeleteDisk)
 		}
 		v1ShareGroup := v1Group.Group("/share")
 		v1ShareGroup.Use()

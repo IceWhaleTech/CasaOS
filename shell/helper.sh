@@ -30,6 +30,11 @@ GetNetCard() {
   fi
 }
 
+
+GetTimeZone(){
+  timedatectl | grep "Time zone" | awk '{print $3}'
+}
+
 #查看网卡状态
 #param 网卡名称
 CatNetCardState() {
@@ -194,7 +199,7 @@ do_mount() {
   eval $(blkid -o udev ${DEVICE} | grep -i -e "ID_FS_LABEL" -e "ID_FS_TYPE")
 
   LABEL=$2
-  if grep -q " /media/${LABEL} " /etc/mtab; then
+  if grep -q " ${LABEL} " /etc/mtab; then
     # Already in use, make a unique one
     LABEL+="-${DEVBASE}"
   fi
@@ -205,7 +210,7 @@ do_mount() {
     DEV_LABEL="${DEVBASE}"
   fi
 
-  MOUNT_POINT="/media/${DEV_LABEL}"
+  MOUNT_POINT="${DEV_LABEL}"
 
   ${log} "Mount point: ${MOUNT_POINT}"
 
@@ -232,4 +237,95 @@ do_mount() {
     exit 0
     ;;
   esac
+}
+
+# $1=sda1
+do_umount() {
+  log="logger -t usb-mount.sh -s "
+  DEVBASE=$1
+  DEVICE="${DEVBASE}"
+  MOUNT_POINT=$(mount | grep ${DEVICE} | awk '{ print $3 }')
+
+  if [[ -z ${MOUNT_POINT} ]]; then
+    ${log} "Warning: ${DEVICE} is not mounted"
+  else
+    umount -l ${DEVICE}
+    ${log} "Unmounted ${DEVICE} from ${MOUNT_POINT}"
+    /bin/rmdir "${MOUNT_POINT}"
+    sed -i.bak "\@${MOUNT_POINT}@d" /var/log/usb-mount.track
+  fi
+
+}
+# $1=/mnt/volume1/data.img
+# $2=100G
+PackageDocker() {
+  image=$1
+  docker="/mnt/casa_docker"
+  #判断目录docker存在不存在则创建,存在检查是否为空
+
+  if [ ! -d "$docker" ]; then
+    mkdir ${docker}
+  fi
+
+  if [ "$(ls -A $docker)" = "" ]; then
+    echo "$docker count is 0"
+  else
+    mkdir ${docker}_bak
+    mv -r ${docker} ${docker}_bak
+  fi
+
+  daemon="/etc/docker/daemon.json"
+  #1创建img文件在挂载的目录
+  fallocate -l $2 $image
+  #2初始化img文件
+  mkfs -t ext4 $image
+  #3挂载img文件
+  sudo mount -o loop $image $docker
+  #4给移动/var/lib/docker数据到img挂载的目录
+  systemctl stop docker.socket
+  systemctl stop docker
+  cp -r /var/lib/docker/* ${docker}/
+  #5在/etc/docker写入daemon.json(需要检查)
+  if [ -d "$daemon" ]; then
+    mv -r $daemon ${daemon}.bak
+  fi
+  echo "{\"data-root\": \"$docker\"}" >$daemon
+  #删除老数据腾出空间
+  #rm -fr /var/lib/docker
+  systemctl start docker.socket
+  systemctl start docker
+}
+
+DockerImgMove() {
+  image=$1
+  systemctl stop docker.socket
+  systemctl stop docker
+  sudo umount -f $image
+}
+
+GetDockerDataRoot() {
+  docker info | grep "Docker Root Dir:"
+}
+
+SetLink() {
+  ln -s /mnt/casa_sda1/AppData /DATA/AppData
+  #删除所有软链
+  find /DATA -type l -delete
+}
+
+#压缩文件夹
+
+TarFolder() {
+  #压缩
+  tar -zcvf data.tar.gz -C/DATA/ AppDataBak/
+
+  #解压
+  tar zxvf data.tar.gz 
+
+  #查看某文件夹下的所有包括子文件夹文件
+  ls /DATA/Media -lR | grep "^-" | wc -l
+  # ls -lR|grep "^d"| wc -l 查看某个文件夹下文件夹的个数，包括子文件夹下的文件夹个数。
+
+  #查看固定文件夹大小
+  du -sh /DATA
 }

@@ -22,6 +22,8 @@ import (
 func InitFunction() {
 	go checkSystemApp()
 	Update2_3()
+	CheckSerialDiskMount()
+
 }
 
 var syncIsExistence = false
@@ -72,9 +74,6 @@ func installSyncthing(appId string) {
 		appInfo.Tip = env_helper.ReplaceStringDefaultENV(appInfo.Tip)
 	}
 
-	for i := 0; i < len(appInfo.Volumes); i++ {
-		appInfo.Volumes[i].Path = docker.GetDir("", appInfo.Volumes[i].ContainerPath)
-	}
 	appInfo.MaxMemory = service.MyService.ZiMa().GetMemInfo().Total >> 20
 
 	id := uuid.NewV4().String()
@@ -171,7 +170,7 @@ func checkSystemApp() {
 			path := ""
 			for _, i := range paths {
 				if i.ContainerPath == "/config" {
-					path = docker.GetDir(v.CustomId, i.ContainerPath) + "config.xml"
+					path = docker.GetDir(v.CustomId, i.Path) + "config.xml"
 					for i := 0; i < 10; i++ {
 						if file.CheckNotExist(path) {
 							time.Sleep(1 * time.Second)
@@ -189,12 +188,31 @@ func checkSystemApp() {
 		}
 	}
 	if !syncIsExistence {
-		installSyncthing("44")
+		installSyncthing("74")
 	}
 }
 func CheckSerialDiskMount() {
-	// 检查挂载点重新挂载
-	// 检查新硬盘是否有多个分区,如有多个分区需提示
+	// check mount point
+	dbList := service.MyService.Disk().GetSerialAll()
+
+	list := service.MyService.Disk().LSBLK()
+	mountPoint := make(map[string]string, len(dbList))
+
+	for _, v := range list {
+		if v.Children != nil {
+			for _, h := range v.Children {
+				mountPoint[h.MountPoint] = "1"
+			}
+		}
+	}
+
+	//remount
+	for _, item := range dbList {
+		if _, ok := mountPoint[item.MountPoint]; !ok {
+			service.MyService.Disk().MountDisk(item.Path, item.MountPoint)
+		}
+	}
+
 }
 func Update2_3() {
 	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/assist.sh")

@@ -218,14 +218,24 @@ func InstallApp(c *gin.Context) {
 		}
 
 	}
+	if m.Origin == "custom" {
+		for _, device := range m.Devices {
+			if file.CheckNotExist(device.Path) {
+				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.DEVICE_NOT_EXIST, Message: device.Path + "," + oasis_err2.GetMsg(oasis_err2.DEVICE_NOT_EXIST)})
+				return
+			}
 
-	for _, device := range m.Devices {
-		if file.CheckNotExist(device.Path) {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.DEVICE_NOT_EXIST, Message: device.Path + "," + oasis_err2.GetMsg(oasis_err2.DEVICE_NOT_EXIST)})
-			return
 		}
-
+	} else {
+		dev := []model.PathMap{}
+		for _, device := range dev {
+			if !file.CheckNotExist(device.Path) {
+				dev = append(dev, device)
+			}
+		}
+		m.Devices = dev
 	}
+
 	//restart := c.PostForm("restart") //always 总是重启,   unless-stopped 除非用户手动停止容器，否则总是重新启动,    on-failure:仅当容器退出代码非零时重新启动
 	//if len(restart) > 0 {
 	//
@@ -421,11 +431,11 @@ func InstallApp(c *gin.Context) {
 		rely := model.MapStrings{}
 
 		copier.Copy(&rely, &relyMap)
-		if m.Origin != "custom" {
-			for i := 0; i < len(m.Volumes); i++ {
-				m.Volumes[i].Path = docker.GetDir(id, m.Volumes[i].ContainerPath)
-			}
-		}
+		// if m.Origin != "custom" {
+		// 	for i := 0; i < len(m.Volumes); i++ {
+		// 		m.Volumes[i].Path = docker.GetDir(id, m.Volumes[i].Path)
+		// 	}
+		// }
 
 		portsStr, _ := json2.Marshal(m.Ports)
 		envsStr, _ := json2.Marshal(m.Envs)

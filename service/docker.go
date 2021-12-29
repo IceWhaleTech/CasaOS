@@ -8,7 +8,6 @@ import (
 	json2 "encoding/json"
 	"fmt"
 	"reflect"
-	"regexp"
 	"syscall"
 
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -366,11 +365,11 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	//	if net != "host" {
 	//		portMaps[nat.Port(fmt.Sprint(m.Port)+"/tcp")] = []nat.PortBinding{{HostIP: "", HostPort: m.PortMap}}
 	//	}
-	port := ""
+	//port := ""
 	for _, portMap := range m.Ports {
-		if portMap.CommendPort == m.PortMap && portMap.Protocol == "tcp" || portMap.Protocol == "both" {
-			port = portMap.ContainerPort
-		}
+		// if portMap.CommendPort == m.PortMap && portMap.Protocol == "tcp" || portMap.Protocol == "both" {
+		// 	port = portMap.ContainerPort
+		// }
 		if portMap.Protocol == "tcp" {
 
 			tContainer, _ := strconv.Atoi(portMap.ContainerPort)
@@ -413,7 +412,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	var envArr []string
 	for _, e := range m.Envs {
 		if strings.HasPrefix(e.Value, "$") {
-			envArr = append(envArr, e.Name+"="+env_helper.ReplaceDefaultENV(e.Value))
+			envArr = append(envArr, e.Name+"="+env_helper.ReplaceDefaultENV(e.Value, MyService.System().GetTimeZone()))
 			continue
 		}
 		if len(e.Value) > 0 {
@@ -443,27 +442,28 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	for _, v := range m.Volumes {
 		path := v.Path
 		if len(path) == 0 {
-			path = docker.GetDir(containerDbId, v.ContainerPath)
+			path = docker.GetDir(containerDbId, v.Path)
 			if len(path) == 0 {
 				continue
 			}
 		}
 		path = strings.ReplaceAll(path, "$AppID", containerDbId)
-		reg1 := regexp.MustCompile(`([^<>/\\\|:""\*\?]+\.\w+$)`)
-		result1 := reg1.FindAllStringSubmatch(path, -1)
-		if len(result1) == 0 {
-			err = file.IsNotExistMkDir(path)
-			if err != nil {
-				ds.log.Error("mkdir error", err)
-				continue
-			}
-		} else {
-			err = file.IsNotExistCreateFile(path)
-			if err != nil {
-				ds.log.Error("mkdir error", err)
-				continue
-			}
+		//reg1 := regexp.MustCompile(`([^<>/\\\|:""\*\?]+\.\w+$)`)
+		//result1 := reg1.FindAllStringSubmatch(path, -1)
+		//if len(result1) == 0 {
+		err = file.IsNotExistMkDir(path)
+		if err != nil {
+			ds.log.Error("mkdir error", err)
+			continue
 		}
+		//}
+		//  else {
+		// 	err = file.IsNotExistCreateFile(path)
+		// 	if err != nil {
+		// 		ds.log.Error("mkdir error", err)
+		// 		continue
+		// 	}
+		// }
 
 		volumes = append(volumes, mount.Mount{
 			Type:   mount.TypeBind,
@@ -479,17 +479,17 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	if len(m.Restart) > 0 {
 		rp.Name = m.Restart
 	}
-	healthTest := []string{}
-	if len(port) > 0 {
-		healthTest = []string{"CMD-SHELL", "curl -f http://localhost:" + port + m.Index + " || exit 1"}
-	}
+	// healthTest := []string{}
+	// if len(port) > 0 {
+	// 	healthTest = []string{"CMD-SHELL", "curl -f http://localhost:" + port + m.Index + " || exit 1"}
+	// }
 
-	health := &container.HealthConfig{
-		Test:        healthTest,
-		StartPeriod: 0,
-		Retries:     1000,
-	}
-	fmt.Print(health)
+	// health := &container.HealthConfig{
+	// 	Test:        healthTest,
+	// 	StartPeriod: 0,
+	// 	Retries:     1000,
+	// }
+	// fmt.Print(health)
 	config := &container.Config{
 		Image:  imageName,
 		Labels: map[string]string{"origin": m.Origin, m.Origin: m.Origin},

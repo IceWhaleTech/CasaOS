@@ -2,10 +2,12 @@ package v1
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/IceWhaleTech/CasaOS/service"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/gin-gonic/gin"
 	"github.com/shirou/gopsutil/v3/disk"
 )
@@ -19,44 +21,9 @@ import (
 // @Router /disk/list [get]
 func GetPlugInDisk(c *gin.Context) {
 
-	//ls := service.MyService.Disk().GetPlugInDisk()
-	//fmt.Println(ls)
-	//dd, _ := disk.Partitions(true)
-	//fmt.Println(dd)
-	//
-	//dir, err := ioutil.ReadDir("/sys/block")
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//files := make([]string, 0)
-	//
-	////fmt.Println(regexp.MatchString("sd[a-z]*[0-9]", "sda"))
-	//
-	//for _, f := range dir {
-	//	if match, _ := regexp.MatchString("sd[a-z]", f.Name()); match {
-	//		files = append(files, f.Name())
-	//	}
-	//}
-	//fmt.Println(files)
-	//filess := make([]string, 0)
-	//for _, file := range files {
-	//	dirs, _ := ioutil.ReadDir("/sys/block/" + file)
-	//
-	//	for _, f := range dirs {
-	//		if match, _ := regexp.MatchString("sd[a-z]*[0-9]", f.Name()); match {
-	//			filess = append(filess, f.Name())
-	//		}
-	//	}
-	//}
-	//fmt.Println(filess)
-	//
-	//for _, s := range filess {
-	//	fmt.Println(disk.Usage("/dev/" + s))
-	//}
+	list := service.MyService.Disk().LSBLK()
 
-	lst := service.MyService.Disk().LSBLK()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: lst})
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: list})
 }
 
 // @Summary get disk list
@@ -98,7 +65,7 @@ func GetDiskInfo(c *gin.Context) {
 // @Accept multipart/form-data
 // @Tags disk
 // @Security ApiKeyAuth
-// @Param  path formData string true "磁盘路径 例如/dev/sda1"
+// @Param  path formData string true "for example  /dev/sda1"
 // @Success 200 {string} string "ok"
 // @Router /disk/format [post]
 func FormatDisk(c *gin.Context) {
@@ -108,8 +75,8 @@ func FormatDisk(c *gin.Context) {
 
 	if len(path) == 0 || len(t) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		return
 	}
-	//格式化磁盘
 	service.MyService.Disk().FormatDisk(path, t)
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
@@ -168,23 +135,106 @@ func AddPartition(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
 }
 
+// @Summary add mount point
+// @Produce  application/json
+// @Accept multipart/form-data
+// @Tags disk
+// @Security ApiKeyAuth
+// @Param  path formData string true "for example: /dev/sda1"
+// @Param  serial formData string true "disk id"
+// @Success 200 {string} string "ok"
+// @Router /disk/mount [post]
 func PostMountDisk(c *gin.Context) {
 	// for example: path=/dev/sda1
 	path := c.PostForm("path")
-	//执行挂载目录
-	service.MyService.Disk().MountDisk(path, "volume")
-	//添加到数据库
+	serial := c.PostForm("serial")
 
+	mountPath := "/mnt/volume"
+	var list = service.MyService.Disk().GetSerialAll()
+	var pathMapList = make(map[string]string, len(list))
+	for _, v := range list {
+		pathMapList[v.MountPoint] = "1"
+	}
+
+	for i := 0; i < len(list)+1; i++ {
+		if _, ok := pathMapList[mountPath+strconv.Itoa(i)]; !ok {
+			mountPath = mountPath + strconv.Itoa(i)
+			break
+		}
+	}
+
+	//mount dir
+	service.MyService.Disk().MountDisk(path, mountPath)
+	//save to data
+	m := model2.SerialDisk{}
+	m.MountPoint = mountPath
+	m.Path = path
+	m.Serial = serial
+	m.State = 0
+	service.MyService.Disk().SaveMountPoint(m)
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
 }
 
-func DeleteUmountDisk(c *gin.Context) {
+// @Summary remove mount point
+// @Produce  application/json
+// @Accept multipart/form-data
+// @Tags disk
+// @Security ApiKeyAuth
+// @Param  path formData string true "for example: /dev/sda1"
+// @Param  mount_point formData string true "for example: /mnt/volume1"
+// @Success 200 {string} string "ok"
+// @Router /disk/umount [post]
+func PostDiskUmount(c *gin.Context) {
 
-	// for example: path=/dev/sda1
+	//
 	path := c.PostForm("path")
+	mountPoint := c.PostForm("mount_point")
 	service.MyService.Disk().UmountPointAndRemoveDir(path)
 
-	//删除数据库记录
+	//delete data
+	service.MyService.Disk().DeleteMountPoint(path, mountPoint)
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+}
+
+// @Summary confirm delete disk
+// @Produce  application/json
+// @Accept application/json
+// @Tags disk
+// @Security ApiKeyAuth
+// @Param  id path string true "id"
+// @Success 200 {string} string "ok"
+// @Router /disk/remove/{id} [delete]
+func DeleteDisk(c *gin.Context) {
+	id := c.Param("id")
+	service.MyService.Disk().DeleteMount(id)
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+}
+
+// @Summary check mount point
+// @Produce  application/json
+// @Accept application/json
+// @Tags disk
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /disk/init [get]
+func GetDiskCheck(c *gin.Context) {
+
+	dbList := service.MyService.Disk().GetSerialAll()
+	list := service.MyService.Disk().LSBLK()
+
+	mapList := make(map[string]string)
+
+	for _, v := range list {
+		mapList[v.Serial] = "1"
+	}
+
+	for _, v := range dbList {
+		if _, ok := mapList[v.Serial]; !ok {
+			//disk undefind
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err.ERROR, Message: oasis_err.GetMsg(oasis_err.ERROR), Data: "disk undefind"})
+			return
+		}
+	}
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
 }
