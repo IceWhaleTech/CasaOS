@@ -16,6 +16,7 @@ type SystemService interface {
 	GetCasaOSLogs(lineNumber int) string
 	UpdateAssist()
 	UpSystemPort(port string)
+	GetTimeZone() string
 }
 type systemService struct {
 	log loger.OLog
@@ -30,6 +31,11 @@ func (s *systemService) UpdateSystemVersion(version string) {
 func (s *systemService) UpdateAssist() {
 	s.log.Error(command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/assist.sh"))
 }
+
+func (s *systemService) GetTimeZone() string {
+	return command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetTimeZone")
+}
+
 func (s *systemService) GetSystemConfigDebug() []string {
 	return command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetSysInfo")
 }

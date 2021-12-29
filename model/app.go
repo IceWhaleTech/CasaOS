@@ -15,6 +15,7 @@ type ServerAppList struct {
 	Icon           string    `json:"icon"`
 	ScreenshotLink Strings   `gorm:"type:json" json:"screenshot_link"`
 	Category       string    `json:"category"`
+	CategoryFont   string    `json:"category_font"`
 	PortMap        string    `json:"port_map"`
 	ImageVersion   string    `json:"image_version"`
 	Tip            string    `json:"tip"`
@@ -36,6 +37,8 @@ type ServerAppList struct {
 	Healthy        string    `json:"healthy"`
 	Plugins        Strings   `json:"plugins"`
 	Origin         string    `json:"origin"`
+	Type           int       `json:"type"`
+	Developer      string    `json:"developer"`
 }
 
 type Ports struct {

@@ -46,7 +46,7 @@ type appStruct struct {
 //获取我的应用列表
 func (a *appStruct) GetMyList(index, size int, position bool) *[]model2.MyAppList {
 	//获取docker应用
-	cli, err := client2.NewClientWithOpts(client2.FromEnv)
+	cli, err := client2.NewClientWithOpts(client2.FromEnv, client2.WithTimeout(time.Second*5))
 	if err != nil {
 		a.log.Error("初始化client失败", "app.getmylist", "line:36", err)
 	}
@@ -81,13 +81,13 @@ func (a *appStruct) GetMyList(index, size int, position bool) *[]model2.MyAppLis
 				m.Label = m.Title
 			}
 
-			info, err := cli.ContainerInspect(context.Background(), container.ID)
-			var tm string
-			if err != nil {
-				tm = time.Now().String()
-			} else {
-				tm = info.State.StartedAt
-			}
+			// info, err := cli.ContainerInspect(context.Background(), container.ID)
+			// var tm string
+			// if err != nil {
+			// 	tm = time.Now().String()
+			// } else {
+			// 	tm = info.State.StartedAt
+			//}
 			list = append(list, model2.MyAppList{
 				Name:     m.Label,
 				Icon:     m.Icon,
@@ -95,9 +95,9 @@ func (a *appStruct) GetMyList(index, size int, position bool) *[]model2.MyAppLis
 				CustomId: strings.ReplaceAll(container.Names[0], "/", ""),
 				Port:     m.PortMap,
 				Index:    m.Index,
-				UpTime:   tm,
-				Image:    m.Image,
-				Slogan:   m.Slogan,
+				//UpTime:   tm,
+				Image:  m.Image,
+				Slogan: m.Slogan,
 				//Rely:     m.Rely,
 			})
 		}
@@ -120,7 +120,7 @@ func (a *appStruct) GetSystemAppList() *[]model2.MyAppList {
 	fts.Add("label", "origin=system")
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
 	if err != nil {
-		a.log.Error("获取docker容器失败", "app.getmylist", "line:42", err)
+		a.log.Error("获取docker容器失败", "app.sys", "line:123", err)
 	}
 
 	//获取本地数据库应用
@@ -179,7 +179,7 @@ func (a *appStruct) GetContainerInfo(name string) (types.Container, error) {
 	filters.Add("name", name)
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filters})
 	if err != nil {
-		a.log.Error("获取docker容器失败", "app.getmylist", "line:42", err)
+		a.log.Error("获取docker容器失败", "app.getcontainerinfo", "line:182", err)
 	}
 
 	if len(containers) > 0 {

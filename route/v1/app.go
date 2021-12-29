@@ -7,8 +7,6 @@ import (
 	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/pkg/docker"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
@@ -33,20 +31,33 @@ func AppList(c *gin.Context) {
 	//service.MyService.Docker().DockerContainerCommit("test2")
 
 	index := c.DefaultQuery("index", "1")
-	size := c.DefaultQuery("size", "10")
+	size := c.DefaultQuery("size", "10000")
 	t := c.DefaultQuery("type", "rank")
 	categoryId := c.DefaultQuery("category_id", "0")
 	key := c.DefaultQuery("key", "")
-	list, count := service.MyService.OAPI().GetServerList(index, size, t, categoryId, key)
+	recommend, list, community := service.MyService.OAPI().GetServerList(index, size, t, categoryId, key)
+	for i := 0; i < len(recommend); i++ {
+		ct, _ := service.MyService.Docker().DockerListByImage(recommend[i].Image, recommend[i].ImageVersion)
+		if ct != nil {
+			list[i].State = ct.State
+		}
+	}
 	for i := 0; i < len(list); i++ {
 		ct, _ := service.MyService.Docker().DockerListByImage(list[i].Image, list[i].ImageVersion)
 		if ct != nil {
 			list[i].State = ct.State
 		}
 	}
-	data := make(map[string]interface{}, 2)
-	data["count"] = count
-	data["items"] = list
+	for i := 0; i < len(community); i++ {
+		ct, _ := service.MyService.Docker().DockerListByImage(community[i].Image, community[i].ImageVersion)
+		if ct != nil {
+			list[i].State = ct.State
+		}
+	}
+	data := make(map[string]interface{}, 3)
+	data["recommend"] = recommend
+	data["list"] = list
+	data["community"] = community
 
 	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
 }
@@ -147,6 +158,13 @@ func AppInfo(c *gin.Context) {
 				info.PortMap = info.Ports[i].CommendPort
 			}
 		}
+	} else {
+		for i := 0; i < len(info.Ports); i++ {
+			if info.Ports[i].Type == 0 {
+				info.PortMap = info.Ports[i].ContainerPort
+				break
+			}
+		}
 	}
 
 	for i := 0; i < len(info.Devices); i++ {
@@ -154,13 +172,10 @@ func AppInfo(c *gin.Context) {
 			info.Devices[i].Path = info.Devices[i].ContainerPath
 		}
 	}
-	if len(info.Tip) > 0 {
-		info.Tip = env_helper.ReplaceStringDefaultENV(info.Tip)
-	}
+	// if len(info.Tip) > 0 {
+	// 	info.Tip = env_helper.ReplaceStringDefaultENV(info.Tip)
+	// }
 
-	for i := 0; i < len(info.Volumes); i++ {
-		info.Volumes[i].Path = docker.GetDir("", info.Volumes[i].ContainerPath)
-	}
 	// portOrder := func(c1, c2 *model.Ports) bool {
 	// 	return c1.Type < c2.Type
 	// }
@@ -207,7 +222,7 @@ func CategoryList(c *gin.Context) {
 	}
 
 	rear := append([]model.ServerCategoryList{}, list[0:]...)
-	list = append(list[:0], model.ServerCategoryList{Count: count, Name: "All"})
+	list = append(list[:0], model.ServerCategoryList{Count: count, Name: "All", Font: "apps"})
 	list = append(list, rear...)
 	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
 }

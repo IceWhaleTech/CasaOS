@@ -75,6 +75,7 @@ func ExecResultStr(cmdStr string) string {
 func ExecLSBLK() []byte {
 	output, err := exec.Command("lsblk", "-O", "-J", "-b").Output()
 	if err != nil {
+		fmt.Println("lsblk", err)
 		return nil
 	}
 	return output

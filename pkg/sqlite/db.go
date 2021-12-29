@@ -2,11 +2,12 @@ package sqlite
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"time"
 )
 
 var gdb *gorm.DB
@@ -30,7 +31,7 @@ func GetDb(projectPath string) *gorm.DB {
 		return nil
 	}
 	gdb = db
-	err = db.AutoMigrate(&model2.TaskDBModel{}, &model2.AppNotify{}, &model2.AppListDBModel{})
+	err = db.AutoMigrate(&model2.TaskDBModel{}, &model2.AppNotify{}, &model2.AppListDBModel{}, &model2.SerialDisk{})
 	if err != nil {
 		fmt.Println("检查和创建数据库出错", err)
 	}

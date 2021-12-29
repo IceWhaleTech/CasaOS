@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -26,7 +27,10 @@ type DiskService interface {
 	AddPartition(path string) string
 	GetDiskInfoByPath(path string) *disk.UsageStat
 	MountDisk(path, volume string)
-	SerialAll(mountPoint string) *[]model2.SerialDisk
+	GetSerialAll() []model2.SerialDisk
+	SaveMountPoint(m model2.SerialDisk)
+	DeleteMountPoint(path, mountPoint string)
+	DeleteMount(id string)
 }
 type diskService struct {
 	log loger2.OLog
@@ -86,9 +90,21 @@ func (d *diskService) GetDiskInfoByPath(path string) *disk.UsageStat {
 
 //get disk details
 func (d *diskService) LSBLK() []model.LSBLKModel {
+	key := "system_lsblk"
+
+	var n []model.LSBLKModel
+
+	if result, ok := Cache.Get(key); ok {
+
+		res, ok := result.([]model.LSBLKModel)
+		if ok {
+			return res
+		}
+	}
+
 	str := command2.ExecLSBLK()
 	if str == nil {
-		d.log.Error("lsblk exec error")
+		d.log.Error("lsblk exec error,lsblk")
 		return nil
 	}
 	var m []model.LSBLKModel
@@ -96,8 +112,6 @@ func (d *diskService) LSBLK() []model.LSBLKModel {
 	if err != nil {
 		d.log.Error("json ummarshal error", err)
 	}
-
-	var n []model.LSBLKModel
 
 	var c []model.LSBLKModel
 
@@ -136,13 +150,16 @@ func (d *diskService) LSBLK() []model.LSBLKModel {
 			fsused = 0
 		}
 	}
+	if len(n) > 0 {
+		Cache.Add(key, n, time.Second*10)
+	}
 	return n
 }
 
 func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 	str := command2.ExecLSBLKByPath(path)
 	if str == nil {
-		d.log.Error("lsblk exec error")
+		d.log.Error("lsblk exec error,str")
 		return model.LSBLKModel{}
 	}
 	var ml []model.LSBLKModel
@@ -197,13 +214,25 @@ func (d *diskService) MountDisk(path, volume string) {
 }
 
 func (d *diskService) SaveMountPoint(m model2.SerialDisk) {
-	d.db.Save(&m)
+	d.db.Create(&m)
 }
 
-func (d *diskService) SerialAll(mountPoint string) *[]model2.SerialDisk {
+func (d *diskService) DeleteMount(id string) {
+
+	d.db.Delete(&model2.SerialDisk{}).Where("id = ?", id)
+}
+
+func (d *diskService) DeleteMountPoint(path, mountPoint string) {
+
+	d.db.Delete(&model2.SerialDisk{}).Where("path= ?  && mount_point = ?", path, mountPoint)
+
+	command2.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;do_umount " + path)
+}
+
+func (d *diskService) GetSerialAll() []model2.SerialDisk {
 	var m []model2.SerialDisk
 	d.db.Find(&m)
-	return &m
+	return m
 }
 
 func NewDiskService(log loger2.OLog, db *gorm.DB) DiskService {
