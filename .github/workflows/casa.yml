@@ -31,7 +31,7 @@ jobs:
       matrix:
         go_version:
           - 1.17.1
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
 
       #      - name: Get release
