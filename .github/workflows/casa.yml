@@ -77,18 +77,6 @@ jobs:
         with:
           node-version: '14'
           
-      - name: Compile glibc
-        run: |
-          wget -q http://ftp.gnu.org/gnu/glibc/glibc-2.30.tar.bz2
-          mkdir /opt/glibc230
-          tar xvfj glibc-2.30.tar.bz2
-          cd glibc-2.30
-          mkdir build
-          cd build
-          ../configure --prefix=/opt/glibc230 --enable-cet
-          make -j$(($(nproc) + 1))
-          make install
-
       - name: Build frontend with nodejs and yarn
         run: |
           cd UI
@@ -110,7 +98,7 @@ jobs:
           v: true
           x: false
           race: false
-          ldflags: -s -w -L /opt/glibc230/lib -extldflags "-static"
+          ldflags: -s -w -extldflags "-static"
           buildmode: default
 #
 #      - name: List Files
