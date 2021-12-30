@@ -83,7 +83,7 @@ jobs:
           mkdir /opt/glibc230
           tar xvfj glibc-2.30.tar.bz2
           cd glibc-2.30
-          ./glibc-2.30/configure --prefix=/opt/glibc230
+          ./configure --prefix=/opt/glibc230
           make
           make install
 
