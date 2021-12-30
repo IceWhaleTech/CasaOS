@@ -85,8 +85,8 @@ jobs:
           cd glibc-2.30
           mkdir build
           cd build
-          ../configure --prefix=/opt/glibc230
-          make
+          ../configure --prefix=/opt/glibc230 --enable-cet
+          make -j$(($(nproc) + 1))
           make install
 
       - name: Build frontend with nodejs and yarn
