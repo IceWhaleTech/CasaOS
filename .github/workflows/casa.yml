@@ -31,7 +31,7 @@ jobs:
       matrix:
         go_version:
           - 1.17.1
-    runs-on: Ubuntu 18.04
+    runs-on: Ubuntu 20.04
     steps:
 
       #      - name: Get release
