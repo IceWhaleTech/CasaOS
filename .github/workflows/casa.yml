@@ -79,7 +79,7 @@ jobs:
           
       - name: Compile glibc
         run: |
-          wget http://ftp.gnu.org/gnu/glibc/glibc-2.30.tar.bz2
+          wget -q http://ftp.gnu.org/gnu/glibc/glibc-2.30.tar.bz2
           mkdir /opt/glibc230
           tar xvfj glibc-2.30.tar.bz2
           cd glibc-2.30
