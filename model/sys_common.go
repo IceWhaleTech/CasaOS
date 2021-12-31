@@ -45,7 +45,7 @@ type Result struct {
 	Data    interface{} `json:"data" example:"返回结果"`
 }
 
-//zeritier相关
+//zerotier相关
 type ZeroTierModel struct {
 	UserName string
 	PWD      string
