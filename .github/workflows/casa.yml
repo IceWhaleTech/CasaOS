@@ -31,7 +31,7 @@ jobs:
       matrix:
         go_version:
           - 1.17.1
-    runs-on: Ubuntu 20.04
+    runs-on: ubuntu-latest
     steps:
 
       #      - name: Get release
@@ -63,7 +63,7 @@ jobs:
       #          git clone $REPO_URL -b $REPO_BRANCH --recursive casa
       #          ln -sf /workdir/casa $GITHUB_WORKSPACE/casa
       #          ls
-
+      
 
       - name: Set enviroment for github-release
         run: |
@@ -76,7 +76,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '14'
-
+          
       - name: Build frontend with nodejs and yarn
         run: |
           cd UI
@@ -90,7 +90,7 @@ jobs:
       - name: Build with xgo
         uses: crazy-max/ghaction-xgo@v1
         with:
-          xgo_version: latest
+          xgo_version: v0.7.5
           go_version: ${{ matrix.go_version }}
           dest: build
           prefix: casa
