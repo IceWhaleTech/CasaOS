@@ -3,6 +3,7 @@ package route
 import (
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -34,10 +35,9 @@ func installSyncthing(appId string) {
 	m := model.CustomizationPostData{}
 	var dockerImage string
 	var dockerImageVersion string
-
-	appInfo = service.MyService.OAPI().GetServerAppInfo(appId)
-
+	appInfo = service.MyService.OAPI().GetServerAppInfo(appId, "system")
 	dockerImage = appInfo.Image
+	dockerImageVersion = appInfo.ImageVersion
 
 	if len(appInfo.ImageVersion) == 0 {
 		dockerImageVersion = "latest"
@@ -84,9 +84,9 @@ func installSyncthing(appId string) {
 	err := service.MyService.Docker().DockerPullImage(dockerImage+":"+dockerImageVersion, installLog)
 	if err != nil {
 		//pull image error
+		fmt.Println("pull image error", err, dockerImage, dockerImageVersion)
 		return
 	}
-
 	for !service.MyService.Docker().IsExistImage(dockerImage + ":" + dockerImageVersion) {
 		time.Sleep(time.Second)
 	}
@@ -101,8 +101,8 @@ func installSyncthing(appId string) {
 	m.Volumes = appInfo.Volumes
 
 	containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, id, m, appInfo.NetworkModel)
-
 	if err != nil {
+		fmt.Println("container create error", err)
 		// create container error
 		return
 	}
@@ -170,7 +170,7 @@ func checkSystemApp() {
 			path := ""
 			for _, i := range paths {
 				if i.ContainerPath == "/config" {
-					path = docker.GetDir(v.CustomId, i.Path) + "config.xml"
+					path = docker.GetDir(v.CustomId, i.Path) + "/config.xml"
 					for i := 0; i < 10; i++ {
 						if file.CheckNotExist(path) {
 							time.Sleep(1 * time.Second)
@@ -197,21 +197,37 @@ func CheckSerialDiskMount() {
 
 	list := service.MyService.Disk().LSBLK()
 	mountPoint := make(map[string]string, len(dbList))
-
+	//remount
+	for _, v := range dbList {
+		mountPoint[v.Path] = v.MountPoint
+	}
 	for _, v := range list {
+		command.ExecEnabledSMART(v.Path)
 		if v.Children != nil {
 			for _, h := range v.Children {
-				mountPoint[h.MountPoint] = "1"
+				if len(h.MountPoint) == 0 && len(v.Children) == 1 && h.FsType == "ext4" {
+					if m, ok := mountPoint[h.Path]; ok {
+						//mount point check
+						volume := m
+						if !file.CheckNotExist(m) {
+							for i := 0; file.CheckNotExist(volume); i++ {
+								volume = m + strconv.Itoa(i+1)
+							}
+						}
+						service.MyService.Disk().MountDisk(h.Path, volume)
+						if volume != m {
+							ms := model2.SerialDisk{}
+							ms.Serial = v.Serial
+							service.MyService.Disk().UpdateMountPoint(ms)
+						}
+
+					}
+				}
 			}
 		}
 	}
-
-	//remount
-	for _, item := range dbList {
-		if _, ok := mountPoint[item.MountPoint]; !ok {
-			service.MyService.Disk().MountDisk(item.Path, item.MountPoint)
-		}
-	}
+	service.MyService.Disk().RemoveLSBLKCache()
+	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;AutoRemoveUnuseDir")
 
 }
 func Update2_3() {

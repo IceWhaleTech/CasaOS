@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -107,9 +108,33 @@ func GetSystemConfigDebug(c *gin.Context) {
 
 	array := service.MyService.System().GetSystemConfigDebug()
 	disk := service.MyService.ZiMa().GetDiskInfo()
-	array = append(array, fmt.Sprintf("disk,total:%v,used:%v,UsedPercent:%v", disk.Total>>20, disk.Used>>20, disk.UsedPercent))
+	sys := service.MyService.ZiMa().GetSysInfo()
+	//todo 准备sync需要显示的数据(镜像,容器)
+	var systemAppStatus string
+	images := service.MyService.Docker().IsExistImage("linuxserver/syncthing")
+	systemAppStatus += "Sync img: " + strconv.FormatBool(images) + "\n\t"
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: array})
+	list := service.MyService.App().GetSystemAppList()
+	for _, v := range *list {
+		systemAppStatus += v.Image + ",\n\t"
+	}
+	systemAppStatus += "Sync Key: " + config.SystemConfigInfo.SyncKey + "\n\t"
+
+	var bugContent string = fmt.Sprintf(`
+	**Desktop (please complete the following information):**
+	 - OS: %s
+	 - CasaOS Version: %s
+	 - Disk Total: %v 
+	 - Disk Used: %v 
+	 - Sync State: %s
+	 - System Info: %s
+	 - Browser: $Browser$ 
+	 - Version: $Version$
+`, sys.OS, types.CURRENTVERSION, disk.Total>>20, disk.Used>>20, systemAppStatus, array)
+
+	//	array = append(array, fmt.Sprintf("disk,total:%v,used:%v,UsedPercent:%v", disk.Total>>20, disk.Used>>20, disk.UsedPercent))
+
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: bugContent})
 }
 func Sys(c *gin.Context) {
 	service.DockerPull()
@@ -237,7 +262,42 @@ func Info(c *gin.Context) {
 	var data = make(map[string]interface{}, 5)
 
 	list := service.MyService.Disk().LSBLK()
-	data["disk"] = list
+
+	newList := []model.LSBLKModel{}
+	for i := len(list) - 1; i >= 0; i-- {
+		if list[i].Rota {
+			list[i].DiskType = "HDD"
+		} else {
+			list[i].DiskType = "SSD"
+		}
+		if list[i].Tran == "sata" {
+
+			temp := service.MyService.Disk().SmartCTL(list[i].Path)
+			if reflect.DeepEqual(temp, model.SmartctlA{}) {
+				continue
+			}
+			if len(list[i].Children) == 1 && len(list[i].Children[0].MountPoint) > 0 {
+				pathArr := strings.Split(list[i].Children[0].MountPoint, "/")
+				if len(pathArr) == 3 {
+					list[i].Children[0].Name = pathArr[2]
+				}
+			}
+
+			list[i].Temperature = temp.Temperature.Current
+			list[i].Health = strconv.FormatBool(temp.SmartStatus.Passed)
+			newList = append(newList, list[i])
+		} else if len(list[i].Children) > 0 && list[i].Children[0].MountPoint == "/" {
+			//system
+			list[i].Children[0].Name = "System"
+			list[i].Model = "System"
+			list[i].DiskType = "EMMC"
+			list[i].Health = "true"
+			newList = append(newList, list[i])
+
+		}
+	}
+
+	data["disk"] = newList
 	cpu := service.MyService.ZiMa().GetCpuPercent()
 	num := service.MyService.ZiMa().GetCpuCoreNum()
 	cpuData := make(map[string]interface{})

@@ -3,6 +3,7 @@ package service
 import (
 	json2 "encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -20,8 +21,9 @@ import (
 type DiskService interface {
 	GetPlugInDisk() []string
 	LSBLK() []model.LSBLKModel
-	FormatDisk(path, format string) string
-	UmountPointAndRemoveDir(path string) string
+	SmartCTL(path string) model.SmartctlA
+	FormatDisk(path, format string) []string
+	UmountPointAndRemoveDir(path string) []string
 	GetDiskInfo(path string) model.LSBLKModel
 	DelPartition(path, num string) string
 	AddPartition(path string) string
@@ -31,10 +33,43 @@ type DiskService interface {
 	SaveMountPoint(m model2.SerialDisk)
 	DeleteMountPoint(path, mountPoint string)
 	DeleteMount(id string)
+	UpdateMountPoint(m model2.SerialDisk)
+	RemoveLSBLKCache()
 }
 type diskService struct {
 	log loger2.OLog
 	db  *gorm.DB
+}
+
+func (d *diskService) RemoveLSBLKCache() {
+	key := "system_lsblk"
+	Cache.Delete(key)
+}
+func (d *diskService) SmartCTL(path string) model.SmartctlA {
+
+	key := "system_smart_" + path
+	if result, ok := Cache.Get(key); ok {
+
+		res, ok := result.(model.SmartctlA)
+		if ok {
+			return res
+		}
+	}
+	var m model.SmartctlA
+	str := command2.ExecSmartCTLByPath(path)
+	if str == nil {
+		d.log.Error("smartctl exec error,smartctl")
+		return m
+	}
+
+	err := json2.Unmarshal([]byte(str), &m)
+	if err != nil {
+		d.log.Error("json ummarshal error", err)
+	}
+	if !reflect.DeepEqual(m, model.SmartctlA{}) {
+		Cache.Add(key, m, time.Second*10)
+	}
+	return m
 }
 
 //通过脚本获取外挂磁盘
@@ -43,18 +78,15 @@ func (d *diskService) GetPlugInDisk() []string {
 }
 
 //格式化硬盘
-func (d *diskService) FormatDisk(path, format string) string {
-
+func (d *diskService) FormatDisk(path, format string) []string {
 	r := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;FormatDisk " + path + " " + format)
-	fmt.Println(r)
-	return ""
+	return r
 }
 
 //移除挂载点,删除目录
-func (d *diskService) UmountPointAndRemoveDir(path string) string {
+func (d *diskService) UmountPointAndRemoveDir(path string) []string {
 	r := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;UMountPorintAndRemoveDir " + path)
-	fmt.Println(r)
-	return ""
+	return r
 }
 
 //删除分区
@@ -66,8 +98,7 @@ func (d *diskService) DelPartition(path, num string) string {
 
 //part
 func (d *diskService) AddPartition(path string) string {
-	r := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;AddPartition " + path)
-	fmt.Println(r)
+	command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;AddPartition " + path)
 	return ""
 }
 
@@ -78,11 +109,10 @@ func (d *diskService) AddAllPartition(path string) {
 //获取硬盘详情
 func (d *diskService) GetDiskInfoByPath(path string) *disk.UsageStat {
 	diskInfo, err := disk.Usage(path + "1")
+
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(path)
-	fmt.Println(diskInfo)
 	diskInfo.UsedPercent, _ = strconv.ParseFloat(fmt.Sprintf("%.1f", diskInfo.UsedPercent), 64)
 	diskInfo.InodesUsedPercent, _ = strconv.ParseFloat(fmt.Sprintf("%.1f", diskInfo.InodesUsedPercent), 64)
 	return diskInfo
@@ -91,7 +121,6 @@ func (d *diskService) GetDiskInfoByPath(path string) *disk.UsageStat {
 //get disk details
 func (d *diskService) LSBLK() []model.LSBLKModel {
 	key := "system_lsblk"
-
 	var n []model.LSBLKModel
 
 	if result, ok := Cache.Get(key); ok {
@@ -151,7 +180,7 @@ func (d *diskService) LSBLK() []model.LSBLKModel {
 		}
 	}
 	if len(n) > 0 {
-		Cache.Add(key, n, time.Second*10)
+		Cache.Add(key, n, time.Second*100)
 	}
 	return n
 }
@@ -162,6 +191,7 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 		d.log.Error("lsblk exec error,str")
 		return model.LSBLKModel{}
 	}
+
 	var ml []model.LSBLKModel
 	err := json2.Unmarshal([]byte(gjson.Get(string(str), "blockdevices").String()), &ml)
 	if err != nil {
@@ -169,9 +199,13 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 		d.log.Error("json ummarshal error", err)
 		return model.LSBLKModel{}
 	}
-	//todo 需要判断长度
-	m := ml[0]
-	//声明数组
+
+	m := model.LSBLKModel{}
+	if len(ml) > 0 {
+		m = ml[0]
+	}
+	return m
+	// 下面为计算是否可以继续分区的部分,暂时不需要
 	chiArr := make(map[string]string)
 	chiList := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetPartitionSectors " + m.Path)
 	if len(chiList) == 0 {
@@ -182,7 +216,6 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 		tempArr := strings.Split(chiList[i], ",")
 		chiArr[tempArr[0]] = chiList[i]
 	}
-
 	var maxSector uint64 = 0
 	for i := 0; i < len(m.Children); i++ {
 		tempArr := strings.Split(chiArr[m.Children[i].Path], ",")
@@ -191,13 +224,13 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 		if m.Children[i].EndSector > maxSector {
 			maxSector = m.Children[i].EndSector
 		}
+
 	}
 	diskEndSector := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetDiskSizeAndSectors " + m.Path)
 
 	if len(diskEndSector) < 2 {
 		d.log.Error("diskEndSector length error")
 	}
-
 	diskEndSectorInt, _ := strconv.ParseUint(diskEndSector[len(diskEndSector)-1], 10, 64)
 	if (diskEndSectorInt-maxSector)*m.MinIO/1024/1024 > 100 {
 		//添加可以分区情况
@@ -214,7 +247,12 @@ func (d *diskService) MountDisk(path, volume string) {
 }
 
 func (d *diskService) SaveMountPoint(m model2.SerialDisk) {
+	d.db.Where("serial = ?", m.Serial).Delete(&model2.SerialDisk{})
 	d.db.Create(&m)
+}
+
+func (d *diskService) UpdateMountPoint(m model2.SerialDisk) {
+	d.db.Model(&model2.SerialDisk{}).Where("serial = ?", m.Serial).Update("mount_point", m.MountPoint)
 }
 
 func (d *diskService) DeleteMount(id string) {
@@ -224,7 +262,7 @@ func (d *diskService) DeleteMount(id string) {
 
 func (d *diskService) DeleteMountPoint(path, mountPoint string) {
 
-	d.db.Delete(&model2.SerialDisk{}).Where("path= ?  && mount_point = ?", path, mountPoint)
+	d.db.Where("path = ? AND mount_point = ?", path, mountPoint).Delete(&model2.SerialDisk{})
 
 	command2.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;do_umount " + path)
 }
