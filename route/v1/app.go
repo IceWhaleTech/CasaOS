@@ -36,24 +36,24 @@ func AppList(c *gin.Context) {
 	categoryId := c.DefaultQuery("category_id", "0")
 	key := c.DefaultQuery("key", "")
 	recommend, list, community := service.MyService.OAPI().GetServerList(index, size, t, categoryId, key)
-	for i := 0; i < len(recommend); i++ {
-		ct, _ := service.MyService.Docker().DockerListByImage(recommend[i].Image, recommend[i].ImageVersion)
-		if ct != nil {
-			list[i].State = ct.State
-		}
-	}
-	for i := 0; i < len(list); i++ {
-		ct, _ := service.MyService.Docker().DockerListByImage(list[i].Image, list[i].ImageVersion)
-		if ct != nil {
-			list[i].State = ct.State
-		}
-	}
-	for i := 0; i < len(community); i++ {
-		ct, _ := service.MyService.Docker().DockerListByImage(community[i].Image, community[i].ImageVersion)
-		if ct != nil {
-			list[i].State = ct.State
-		}
-	}
+	// for i := 0; i < len(recommend); i++ {
+	// 	ct, _ := service.MyService.Docker().DockerListByImage(recommend[i].Image, recommend[i].ImageVersion)
+	// 	if ct != nil {
+	// 		recommend[i].State = ct.State
+	// 	}
+	// }
+	// for i := 0; i < len(list); i++ {
+	// 	ct, _ := service.MyService.Docker().DockerListByImage(list[i].Image, list[i].ImageVersion)
+	// 	if ct != nil {
+	// 		list[i].State = ct.State
+	// 	}
+	// }
+	// for i := 0; i < len(community); i++ {
+	// 	ct, _ := service.MyService.Docker().DockerListByImage(community[i].Image, community[i].ImageVersion)
+	// 	if ct != nil {
+	// 		community[i].State = ct.State
+	// 	}
+	// }
 	data := make(map[string]interface{}, 3)
 	data["recommend"] = recommend
 	data["list"] = list
@@ -137,7 +137,7 @@ func AppUsageList(c *gin.Context) {
 func AppInfo(c *gin.Context) {
 
 	id := c.Param("id")
-	info := service.MyService.OAPI().GetServerAppInfo(id)
+	info := service.MyService.OAPI().GetServerAppInfo(id, "")
 	if info.NetworkModel != "host" {
 		for i := 0; i < len(info.Ports); i++ {
 			if p, _ := strconv.Atoi(info.Ports[i].ContainerPort); port2.IsPortAvailable(p, info.Ports[i].Protocol) {

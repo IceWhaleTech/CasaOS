@@ -21,6 +21,7 @@ type LSBLKModel struct {
 	Health      string       `json:"health"`
 	HotPlug     bool         `json:"hotplug"`
 	FSUsed      string       `json:"fsused"`
+	Temperature int          `json:"temperature"`
 	Tran        string       `json:"tran"`
 	MinIO       uint64       `json:"min-io"`
 	UsedPercent float64      `json:"used_percent"`
@@ -28,5 +29,7 @@ type LSBLKModel struct {
 	Children    []LSBLKModel `json:"children"`
 	//详情特有
 	StartSector uint64 `json:"start_sector,omitempty"`
+	Rota        bool   `json:"rota"` //true(hhd) false(ssd)
+	DiskType    string `json:"disk_type"`
 	EndSector   uint64 `json:"end_sector,omitempty"`
 }

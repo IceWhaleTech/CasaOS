@@ -16,7 +16,7 @@ type CasaService interface {
 	GetServerList(index, size, tp, categoryId, key string) (recommend, list, community []model.ServerAppList)
 	GetServerCategoryList() []model.ServerCategoryList
 	GetTaskList(size int) []model2.TaskDBModel
-	GetServerAppInfo(id string) model.ServerAppList
+	GetServerAppInfo(id, t string) model.ServerAppList
 	ShareAppFile(body []byte) string
 }
 
@@ -88,13 +88,12 @@ func (o *casaService) GetServerCategoryList() []model.ServerCategoryList {
 
 	return list
 }
-func (o *casaService) GetServerAppInfo(id string) model.ServerAppList {
+func (o *casaService) GetServerAppInfo(id, t string) model.ServerAppList {
 
 	head := make(map[string]string)
 
 	head["Authorization"] = GetToken()
-
-	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/info/"+id, head)
+	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/info/"+id+"?t="+t, head)
 
 	info := model.ServerAppList{}
 	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)

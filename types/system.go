@@ -1,4 +1,6 @@
 package types
 
 const CURRENTVERSION = "0.2.5"
-const BODY = "<li>New App Store</li><li>Fix minor bugs</li>"
+
+const BODY = "<li>Storage Manager</li><li>File synchronization issues</li><li>Fix the app store classification problem</li>"
+

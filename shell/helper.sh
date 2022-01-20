@@ -73,10 +73,8 @@ UMountPorintAndRemoveDir() {
   if [[ -z ${MOUNT_POINT} ]]; then
     ${log} "Warning: ${DEVICE} is not mounted"
   else
-    umount -l ${DEVICE}
-    ${log} "Unmounted ${DEVICE} from ${MOUNT_POINT}"
+    umount -lf ${DEVICE}
     /bin/rmdir "${MOUNT_POINT}"
-    sed -i.bak "\@${MOUNT_POINT}@d" /var/log/usb-mount.track
   fi
 }
 
@@ -89,11 +87,11 @@ FormatDisk() {
   elif [ "$2" == "ntfs" ]; then
     mkfs.ntfs $1
   elif [ "$2" == "ext4" ]; then
-    mkfs.ext4 -F $1
+    mkfs.ext4 -m 1 -F $1
   elif [ "$2" == "exfat" ]; then
     mkfs.exfat $1
   else
-    mkfs.ext4 -F $1
+    mkfs.ext4 -m 1 -F $1
   fi
 }
 
@@ -118,11 +116,9 @@ AddPartition() {
 
   parted -s $1 mkpart primary ext4 0 100%
 
-  mkfs.ext4 $11
+  mkfs.ext4 -m 1 $11
 
   partprobe $1
-
-  #  mount $11 $2
 
 }
 
@@ -148,14 +144,14 @@ GetDiskHealthState() {
 #result bytes
 #result sectors
 GetDiskSizeAndSectors() {
-  fdisk $1 -l | grep "/dev/sda:" | awk -F, 'BEGIN {OFS="\n"}{print $2,$3}' | awk '{print $1}'
+  fdisk $1 -l | grep "$1:" | awk -F, 'BEGIN {OFS="\n"}{print $2,$3}' | awk '{print $1}'
 }
 
 #获取磁盘分区数据扇区
 #param 磁盘路径  /dev/sda
 #result start,end,sectors
 GetPartitionSectors() {
-  fdisk $1 -l | grep "/dev/sda[1-9]" | awk 'BEGIN{OFS=","}{print $1,$2,$3,$4}'
+  fdisk $1 -l | grep "$1[1-9]" | awk 'BEGIN{OFS=","}{print $1,$2,$3,$4}'
 }
 
 #检查没有使用的挂载点删除文件夹

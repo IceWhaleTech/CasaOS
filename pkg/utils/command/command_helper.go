@@ -2,9 +2,11 @@ package command
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os/exec"
+	"time"
 )
 
 func OnlyExec(cmdStr string) {
@@ -85,7 +87,26 @@ func ExecLSBLK() []byte {
 func ExecLSBLKByPath(path string) []byte {
 	output, err := exec.Command("lsblk", path, "-O", "-J", "-b").Output()
 	if err != nil {
+		fmt.Println("lsblk", err)
 		return nil
 	}
 	return output
+}
+
+//exec smart
+func ExecSmartCTLByPath(path string) []byte {
+	timeout := 3
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	defer cancel()
+	output, err := exec.CommandContext(ctx, "smartctl", "-a", path, "-j").Output()
+	if err != nil {
+		fmt.Println("smartctl", err)
+		return nil
+	}
+	return output
+}
+
+func ExecEnabledSMART(path string) {
+
+	exec.Command("smartctl", "-s on", path).Output()
 }
