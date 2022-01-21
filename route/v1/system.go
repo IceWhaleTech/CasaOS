@@ -263,41 +263,55 @@ func Info(c *gin.Context) {
 
 	list := service.MyService.Disk().LSBLK()
 
-	newList := []model.LSBLKModel{}
-	for i := len(list) - 1; i >= 0; i-- {
-		if list[i].Rota {
-			list[i].DiskType = "HDD"
-		} else {
-			list[i].DiskType = "SSD"
+	summary := model.Summary{}
+	healthy := true
+	findSystem := 0
+
+	for i := 0; i < len(list); i++ {
+		if len(list[i].Children) > 0 && findSystem == 0 {
+			for j := 0; j < len(list[i].Children); j++ {
+				if list[i].Children[j].MountPoint == "/" {
+					s, _ := strconv.ParseUint(list[i].Children[j].FSSize, 10, 64)
+					a, _ := strconv.ParseUint(list[i].Children[j].FSAvail, 10, 64)
+					u, _ := strconv.ParseUint(list[i].Children[j].FSUsed, 10, 64)
+					summary.Size += s
+					summary.Avail += a
+					summary.Used += u
+					findSystem = 1
+					break
+				}
+			}
+		}
+		if findSystem == 1 {
+			findSystem += 1
+			continue
 		}
 		if list[i].Tran == "sata" {
-
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				continue
 			}
-			if len(list[i].Children) == 1 && len(list[i].Children[0].MountPoint) > 0 {
-				pathArr := strings.Split(list[i].Children[0].MountPoint, "/")
-				if len(pathArr) == 3 {
-					list[i].Children[0].Name = pathArr[2]
+
+			//list[i].Temperature = temp.Temperature.Current
+			if !temp.SmartStatus.Passed {
+				healthy = false
+			}
+			if len(list[i].Children) > 0 {
+				for _, v := range list[i].Children {
+					s, _ := strconv.ParseUint(v.FSSize, 10, 64)
+					a, _ := strconv.ParseUint(v.FSAvail, 10, 64)
+					u, _ := strconv.ParseUint(v.FSUsed, 10, 64)
+					summary.Size += s
+					summary.Avail += a
+					summary.Used += u
 				}
 			}
-
-			list[i].Temperature = temp.Temperature.Current
-			list[i].Health = strconv.FormatBool(temp.SmartStatus.Passed)
-			newList = append(newList, list[i])
-		} else if len(list[i].Children) > 0 && list[i].Children[0].MountPoint == "/" {
-			//system
-			list[i].Children[0].Name = "System"
-			list[i].Model = "System"
-			list[i].DiskType = "EMMC"
-			list[i].Health = "true"
-			newList = append(newList, list[i])
 
 		}
 	}
 
-	data["disk"] = newList
+	summary.Health = healthy
+	data["disk"] = summary
 	cpu := service.MyService.ZiMa().GetCpuPercent()
 	num := service.MyService.ZiMa().GetCpuCoreNum()
 	cpuData := make(map[string]interface{})

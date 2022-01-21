@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -27,12 +28,58 @@ var diskMap = make(map[string]string)
 // @Router /disk/list [get]
 func GetDiskList(c *gin.Context) {
 	list := service.MyService.Disk().LSBLK()
-	newList := []model.LSBLKModel{}
-	for i := len(list) - 1; i >= 0; i-- {
+	dbList := service.MyService.Disk().GetSerialAll()
+	part := make(map[string]int64, len(dbList))
+	for _, v := range dbList {
+		part[v.MountPoint] = v.CreatedAt
+	}
+	findSystem := 0
+
+	disks := []model.Drive{}
+	storage := []model.Storage{}
+	avail := []model.Drive{}
+
+	for i := 0; i < len(list); i++ {
+		disk := model.Drive{}
 		if list[i].Rota {
-			list[i].DiskType = "HDD"
+			disk.DiskType = "HDD"
 		} else {
-			list[i].DiskType = "SSD"
+			disk.DiskType = "SSD"
+		}
+		disk.Serial = list[i].Serial
+		disk.Name = list[i].Name
+		disk.Size = list[i].Size
+		disk.Path = list[i].Path
+		disk.Model = list[i].Model
+		if len(list[i].Children) > 0 && findSystem == 0 {
+			for j := 0; j < len(list[i].Children); j++ {
+				if list[i].Children[j].MountPoint == "/" {
+					stor := model.Storage{}
+					stor.Name = "System"
+					stor.MountPoint = list[i].Children[j].MountPoint
+					stor.Size = list[i].Children[j].FSSize
+					stor.Avail = list[i].Children[j].FSAvail
+					stor.Path = list[i].Children[j].Path
+					stor.Type = list[i].Children[j].FsType
+					stor.DriveName = "System"
+					disk.Model = "System"
+					if strings.Contains(list[i].Children[i].SubSystems, "mmc") {
+						disk.DiskType = "MMC"
+					} else if strings.Contains(list[i].Children[i].SubSystems, "usb") {
+						disk.DiskType = "USB"
+					}
+					disk.Health = "true"
+
+					disks = append(disks, disk)
+					storage = append(storage, stor)
+					findSystem = 1
+					break
+				}
+			}
+		}
+		if findSystem == 1 {
+			findSystem += 1
+			continue
 		}
 		if list[i].Tran == "sata" {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
@@ -40,29 +87,45 @@ func GetDiskList(c *gin.Context) {
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				continue
 			}
+
 			if len(list[i].Children) == 1 && len(list[i].Children[0].MountPoint) > 0 {
+				stor := model.Storage{}
+				stor.MountPoint = list[i].Children[0].MountPoint
+				stor.Size = list[i].Children[0].FSSize
+				stor.Avail = list[i].Children[0].FSAvail
+				stor.Path = list[i].Children[0].Path
+				stor.Type = list[i].Children[0].FsType
+				stor.DriveName = list[i].Name
 				pathArr := strings.Split(list[i].Children[0].MountPoint, "/")
 				if len(pathArr) == 3 {
-					list[i].Children[0].Name = pathArr[2]
+					stor.Name = pathArr[2]
+				}
+				if t, ok := part[list[i].Children[0].MountPoint]; ok {
+					stor.CreatedAt = t
+				}
+				storage = append(storage, stor)
+			} else {
+				if list[i].Children[0].FsType == "ext4" {
+					disk.NeedFormat = false
+					avail = append(avail, disk)
+				} else {
+					disk.NeedFormat = true
+					avail = append(avail, disk)
 				}
 			}
 
-			list[i].Temperature = temp.Temperature.Current
-			list[i].Health = strconv.FormatBool(temp.SmartStatus.Passed)
+			disk.Temperature = temp.Temperature.Current
+			disk.Health = strconv.FormatBool(temp.SmartStatus.Passed)
 
-			newList = append(newList, list[i])
-		} else if len(list[i].Children) > 0 && list[i].Children[0].MountPoint == "/" {
-			//system
-			list[i].Children[0].Name = "System"
-			list[i].Model = "System"
-			list[i].DiskType = "EMMC"
-			list[i].Health = "true"
-			newList = append(newList, list[i])
-
+			disks = append(disks, disk)
 		}
 	}
+	data := make(map[string]interface{}, 3)
+	data["drive"] = disks
+	data["storage"] = storage
+	data["avail"] = avail
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: newList})
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
 }
 
 // @Summary get disk list
@@ -225,6 +288,7 @@ func AddPartition(c *gin.Context) {
 	m.Path = path + "1"
 	m.Serial = serial
 	m.State = 0
+	m.CreatedAt = time.Now().Unix()
 	service.MyService.Disk().SaveMountPoint(m)
 
 	//mount dir
