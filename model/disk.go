@@ -27,9 +27,40 @@ type LSBLKModel struct {
 	UsedPercent float64      `json:"used_percent"`
 	Serial      string       `json:"serial"`
 	Children    []LSBLKModel `json:"children"`
+	SubSystems  string       `json:"subsystems"`
 	//详情特有
 	StartSector uint64 `json:"start_sector,omitempty"`
 	Rota        bool   `json:"rota"` //true(hhd) false(ssd)
 	DiskType    string `json:"disk_type"`
 	EndSector   uint64 `json:"end_sector,omitempty"`
+}
+
+type Drive struct {
+	Name        string `json:"name"`
+	Size        uint64 `json:"size"`
+	Model       string `json:"model"`
+	Health      string `json:"health"`
+	Temperature int    `json:"temperature"`
+	DiskType    string `json:"disk_type"`
+	NeedFormat  bool   `json:"need_format"`
+	Serial      string `json:"serial"`
+	Path        string `json:"path"`
+}
+
+type Storage struct {
+	Name       string `json:"name"`
+	MountPoint string `json:"mountpoint"`
+	Size       string `json:"size"`
+	Avail      string `json:"avail"` //可用空间
+	Type       string `json:"type"`
+	CreatedAt  int64  `json:"create_at"`
+	Path       string `json:"path"`
+	DriveName  string `json:"drive_name"`
+}
+
+type Summary struct {
+	Size   uint64 `json:"size"`
+	Avail  uint64 `json:"avail"` //可用空间
+	Health bool   `json:"health"`
+	Used   uint64 `json:"used"`
 }

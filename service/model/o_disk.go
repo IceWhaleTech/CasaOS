@@ -7,6 +7,7 @@ type SerialDisk struct {
 	Path       string `json:"path"`
 	State      int    `json:"state"`
 	MountPoint string `json:"mount_point"`
+	CreatedAt  int64  `json:"created_at"`
 }
 
 func (p *SerialDisk) TableName() string {
