@@ -33,7 +33,7 @@ func InitRouter() *gin.Engine {
 
 	r.GET("/v1/guide/check", v1.GetGuideCheck)
 
-	r.GET("/debug", v1.GetSystemConfigDebug)
+	r.GET("/v1/debug", v1.GetSystemConfigDebug)
 	//set user
 	r.POST("/v1/user/setusernamepwd", v1.Set_Name_Pwd)
 	//get user info
