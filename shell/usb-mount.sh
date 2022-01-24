@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # copy to /casaOS/util/shell path
 # chmod 755
@@ -30,23 +30,32 @@ do_mount() {
 
   # Figure out a mount point to use
   # LABEL=${ID_FS_LABEL}
-  LABEL=${DEVBASE}
-  if grep -q " /mnt/casa_${LABEL} " /etc/mtab; then
-    # Already in use, make a unique one
-    LABEL+="-${DEVBASE}"
-  fi
-  DEV_LABEL="${LABEL}"
+  # LABEL=${DEVBASE}
+  # if grep -q " /DATA/USB_${LABEL} " /etc/mtab; then
+  #   # Already in use, make a unique one
+  #   LABEL+="-${DEVBASE}"
+  # fi
+  # DEV_LABEL="${LABEL}"
 
-  # Use the device name in case the drive doesn't have label
-  if [ -z ${DEV_LABEL} ]; then
-    DEV_LABEL="${DEVBASE}"
-  fi
+  # # Use the device name in case the drive doesn't have label
+  # if [ -z ${DEV_LABEL} ]; then
+  #   DEV_LABEL="${DEVBASE}"
+  # fi
 
-  MOUNT_POINT="/mnt/casa_${DEV_LABEL}"
+  MOUNT_POINT="/DATA/USB_Storage1"
+  arr=("/DATA/USB_Storage1" "/DATA/USB_Storage2" "/DATA/USB_Storage3" "/DATA/USB_Storage4" "/DATA/USB_Storage5" "/DATA/USB_Storage6" "/DATA/USB_Storage7" "/DATA/USB_Storage8" "/DATA/USB_Storage9" "/DATA/USB_Storage10" "/DATA/USB_Storage11" "/DATA/USB_Storage12")
+  for folder in ${arr[@]}; do
+    #如果文件夹不存在，创建文件夹
+    if [ ! -d "$folder" ]; then
+      mkdir -p ${MOUNT_POINT}
+      MOUNT_POINT=$folder
+      break
+    fi
+  done
 
   ${log} "Mount point: ${MOUNT_POINT}"
 
-  mkdir -p ${MOUNT_POINT}
+  
 
   #  # Global mount options
   #  OPTS="rw,relatime"
@@ -84,7 +93,7 @@ do_mount() {
     mount -t iso9660 ${DEVICE} ${MOUNT_POINT}
     ;;
   *)
-     /bin/rmdir "${MOUNT_POINT}"
+    /bin/rmdir "${MOUNT_POINT}"
     exit 0
     ;;
   esac

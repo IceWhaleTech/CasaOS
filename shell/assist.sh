@@ -13,6 +13,8 @@ version_0_2_3() {
 readonly CASA_DEPANDS="curl smartmontools"
 version_0_2_5{
   install_depends "$CASA_DEPANDS"
+
+
 }
 
 

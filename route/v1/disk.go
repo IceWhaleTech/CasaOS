@@ -262,7 +262,7 @@ func AddPartition(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err.DISK_BUSYING, Message: oasis_err.GetMsg(oasis_err.DISK_BUSYING)})
 		return
 	}
-	if !file.CheckNotExist("/mnt/" + name) {
+	if !file.CheckNotExist("/DATA/" + name) {
 		// /mnt/name exist
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err.NAME_NOT_AVAILABLE, Message: oasis_err.GetMsg(oasis_err.NAME_NOT_AVAILABLE)})
 		return
@@ -279,7 +279,7 @@ func AddPartition(c *gin.Context) {
 		service.MyService.Disk().AddPartition(path)
 	}
 
-	mountPath := "/mnt/" + name
+	mountPath := "/DATA/" + name
 
 	service.MyService.Disk().MountDisk(path, mountPath)
 
@@ -314,7 +314,7 @@ func PostMountDisk(c *gin.Context) {
 	path := c.PostForm("path")
 	serial := c.PostForm("serial")
 
-	mountPath := "/mnt/volume"
+	mountPath := "/DATA/volume"
 	var list = service.MyService.Disk().GetSerialAll()
 	var pathMapList = make(map[string]string, len(list))
 	for _, v := range list {
