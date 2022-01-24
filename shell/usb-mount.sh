@@ -47,7 +47,7 @@ do_mount() {
   for folder in ${arr[@]}; do
     #如果文件夹不存在，创建文件夹
     if [ ! -d "$folder" ]; then
-      mkdir -p ${MOUNT_POINT}
+      mkdir -p ${folder}
       MOUNT_POINT=$folder
       break
     fi
