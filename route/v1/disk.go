@@ -38,7 +38,6 @@ func GetDiskList(c *gin.Context) {
 	disks := []model.Drive{}
 	storage := []model.Storage{}
 	avail := []model.Drive{}
-
 	for i := 0; i < len(list); i++ {
 		disk := model.Drive{}
 		if list[i].Rota {
@@ -51,6 +50,7 @@ func GetDiskList(c *gin.Context) {
 		disk.Size = list[i].Size
 		disk.Path = list[i].Path
 		disk.Model = list[i].Model
+
 		if len(list[i].Children) > 0 && findSystem == 0 {
 			for j := 0; j < len(list[i].Children); j++ {
 				if list[i].Children[j].MountPoint == "/" {
@@ -63,9 +63,9 @@ func GetDiskList(c *gin.Context) {
 					stor.Type = list[i].Children[j].FsType
 					stor.DriveName = "System"
 					disk.Model = "System"
-					if strings.Contains(list[i].Children[i].SubSystems, "mmc") {
+					if strings.Contains(list[i].Children[j].SubSystems, "mmc") {
 						disk.DiskType = "MMC"
-					} else if strings.Contains(list[i].Children[i].SubSystems, "usb") {
+					} else if strings.Contains(list[i].Children[j].SubSystems, "usb") {
 						disk.DiskType = "USB"
 					}
 					disk.Health = "true"
@@ -81,13 +81,12 @@ func GetDiskList(c *gin.Context) {
 			findSystem += 1
 			continue
 		}
+
 		if list[i].Tran == "sata" {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
-
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				continue
 			}
-
 			if len(list[i].Children) == 1 && len(list[i].Children[0].MountPoint) > 0 {
 				stor := model.Storage{}
 				stor.MountPoint = list[i].Children[0].MountPoint
@@ -105,7 +104,8 @@ func GetDiskList(c *gin.Context) {
 				}
 				storage = append(storage, stor)
 			} else {
-				if list[i].Children[0].FsType == "ext4" {
+				//todo   长度有问题
+				if len(list[i].Children) == 1 && list[i].Children[0].FsType == "ext4" {
 					disk.NeedFormat = false
 					avail = append(avail, disk)
 				} else {
