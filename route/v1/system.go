@@ -118,10 +118,10 @@ func GetSystemConfigDebug(c *gin.Context) {
 	for _, v := range *list {
 		systemAppStatus += v.Image + ",\n\t"
 	}
-	systemAppStatus += "Sync Key: " + config.SystemConfigInfo.SyncKey + "\n\t"
+
+	systemAppStatus += "Sync Key length: " + strconv.Itoa(len(config.SystemConfigInfo.SyncKey))
 
 	var bugContent string = fmt.Sprintf(`
-	**Desktop (please complete the following information):**
 	 - OS: %s
 	 - CasaOS Version: %s
 	 - Disk Total: %v 
