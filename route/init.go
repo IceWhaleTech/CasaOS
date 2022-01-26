@@ -35,7 +35,7 @@ func installSyncthing(appId string) {
 	m := model.CustomizationPostData{}
 	var dockerImage string
 	var dockerImageVersion string
-	appInfo = service.MyService.OAPI().GetServerAppInfo(appId, "system")
+	appInfo = service.MyService.OAPI().GetServerAppInfo(appId, "system", "us_en")
 	dockerImage = appInfo.Image
 	dockerImageVersion = appInfo.ImageVersion
 

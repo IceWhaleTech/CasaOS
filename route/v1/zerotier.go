@@ -2,12 +2,13 @@ package v1
 
 import (
 	json2 "encoding/json"
+	"net/http"
+
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 // @Summary 登录zerotier获取token
@@ -432,11 +433,17 @@ func ZeroTierDeleteNetwork(c *gin.Context) {
 // @Router /zerotier/join/{id} [post]
 func ZeroTierJoinNetwork(c *gin.Context) {
 	networkId := c.Param("id")
-	service.MyService.ZeroTier().ZeroTierJoinNetwork(networkId)
-	if len(networkId) == 0 {
+	if len(networkId) != 16 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
+	for _, v := range networkId {
+		if !service.MyService.ZeroTier().NetworkIdFilter(v) {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+			return
+		}
+	}
+	service.MyService.ZeroTier().ZeroTierJoinNetwork(networkId)
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
@@ -450,10 +457,19 @@ func ZeroTierJoinNetwork(c *gin.Context) {
 // @Router /zerotier/leave/{id} [post]
 func ZeroTierLeaveNetwork(c *gin.Context) {
 	networkId := c.Param("id")
-	service.MyService.ZeroTier().ZeroTierLeaveNetwork(networkId)
-	if len(networkId) == 0 {
+
+	if len(networkId) != 16 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
+
+	for _, v := range networkId {
+		if !service.MyService.ZeroTier().NetworkIdFilter(v) {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+			return
+		}
+	}
+	service.MyService.ZeroTier().ZeroTierLeaveNetwork(networkId)
+
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
