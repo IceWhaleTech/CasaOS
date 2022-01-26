@@ -101,6 +101,7 @@ func ExecSmartCTLByPath(path string) []byte {
 	output, err := exec.CommandContext(ctx, "smartctl", "-a", path, "-j").Output()
 	if err != nil {
 		fmt.Println("smartctl", err)
+		fmt.Println("output", string(output))
 		return nil
 	}
 	return output

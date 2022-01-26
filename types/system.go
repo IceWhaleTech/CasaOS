@@ -1,6 +1,5 @@
 package types
 
-const CURRENTVERSION = "0.2.5"
+const CURRENTVERSION = "0.2.6"
 
-const BODY = "<li>Storage Manager</li><li>File synchronization issues</li><li>Fix the app store classification problem</li>"
-
+const BODY = "<li>Fix a disk that cannot be formatted under certain circumstances</li>"

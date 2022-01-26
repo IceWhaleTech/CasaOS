@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -86,10 +87,10 @@ func (c *zima) GetDirPath(path string) []model.Path {
 
 	if strings.Count(path, "/") > 0 {
 		for _, l := range ls {
-			dirs = append(dirs, model.Path{Name: l.Name(), Path: path + "/" + l.Name(), IsDir: l.IsDir()})
+			dirs = append(dirs, model.Path{Name: l.Name(), Path: path + "/" + l.Name(), IsDir: l.IsDir(), Date: l.ModTime()})
 		}
 	} else {
-		dirs = append(dirs, model.Path{Name: "DATA", Path: "/DATA/", IsDir: true})
+		dirs = append(dirs, model.Path{Name: "DATA", Path: "/DATA/", IsDir: true, Date: time.Now()})
 	}
 	return dirs
 }

@@ -205,7 +205,7 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.PUT("/rename", v1.RenamePath)
 			v1FileGroup.GET("/read", v1.GetFilerContent)
 			v1FileGroup.POST("/upload", v1.PostFileUpload)
-			v1FileGroup.GET("/dirpath", v1.DirPath)
+			v1FileGroup.GET("/catalog", v1.DirPath)
 			//创建目录
 			v1FileGroup.POST("/mkdir", v1.MkdirAll)
 			v1FileGroup.POST("/create", v1.PostCreateFile)
