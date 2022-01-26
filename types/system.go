@@ -1,5 +1,5 @@
 package types
 
-const CURRENTVERSION = "0.2.6"
+const CURRENTVERSION = "0.2.7"
 
-const BODY = "<li>Fix a disk that cannot be formatted under certain circumstances</li><li>Add a bug report panel.</li>"
+const BODY = "<li>Apply multilingual support</li><li>Fix a security vulnerability</li>"

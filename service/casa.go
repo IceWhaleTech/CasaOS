@@ -13,10 +13,10 @@ import (
 )
 
 type CasaService interface {
-	GetServerList(index, size, tp, categoryId, key string) (recommend, list, community []model.ServerAppList)
+	GetServerList(index, size, tp, categoryId, key, language string) (recommend, list, community []model.ServerAppList)
 	GetServerCategoryList() []model.ServerCategoryList
 	GetTaskList(size int) []model2.TaskDBModel
-	GetServerAppInfo(id, t string) model.ServerAppList
+	GetServerAppInfo(id, t string, language string) model.ServerAppList
 	ShareAppFile(body []byte) string
 }
 
@@ -45,9 +45,9 @@ func (o *casaService) GetTaskList(size int) []model2.TaskDBModel {
 	return list
 }
 
-func (o *casaService) GetServerList(index, size, tp, categoryId, key string) (recommend, list, community []model.ServerAppList) {
+func (o *casaService) GetServerList(index, size, tp, categoryId, key, language string) (recommend, list, community []model.ServerAppList) {
 
-	keyName := fmt.Sprintf("list_%s_%s_%s_%s", index, size, tp, categoryId)
+	keyName := fmt.Sprintf("list_%s_%s_%s_%s_%s", index, size, tp, categoryId, language)
 
 	if result, ok := Cache.Get(keyName); ok {
 		res, ok := result.(string)
@@ -63,7 +63,7 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key string) (re
 
 	head["Authorization"] = GetToken()
 
-	listS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/newlist?index="+index+"&size="+size+"&rank="+tp+"&category_id="+categoryId+"&key="+key, head)
+	listS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/newlist?index="+index+"&size="+size+"&rank="+tp+"&category_id="+categoryId+"&key="+key+"&language="+language, head)
 
 	json2.Unmarshal([]byte(gjson.Get(listS, "data.list").String()), &list)
 	json2.Unmarshal([]byte(gjson.Get(listS, "data.recommend").String()), &recommend)
@@ -88,12 +88,12 @@ func (o *casaService) GetServerCategoryList() []model.ServerCategoryList {
 
 	return list
 }
-func (o *casaService) GetServerAppInfo(id, t string) model.ServerAppList {
+func (o *casaService) GetServerAppInfo(id, t string, language string) model.ServerAppList {
 
 	head := make(map[string]string)
 
 	head["Authorization"] = GetToken()
-	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/info/"+id+"?t="+t, head)
+	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/info/"+id+"?t="+t+"&language="+language, head)
 
 	info := model.ServerAppList{}
 	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)

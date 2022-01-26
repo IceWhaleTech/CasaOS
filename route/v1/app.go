@@ -35,7 +35,8 @@ func AppList(c *gin.Context) {
 	t := c.DefaultQuery("type", "rank")
 	categoryId := c.DefaultQuery("category_id", "0")
 	key := c.DefaultQuery("key", "")
-	recommend, list, community := service.MyService.OAPI().GetServerList(index, size, t, categoryId, key)
+	language := c.GetHeader("Language")
+	recommend, list, community := service.MyService.OAPI().GetServerList(index, size, t, categoryId, key, language)
 	// for i := 0; i < len(recommend); i++ {
 	// 	ct, _ := service.MyService.Docker().DockerListByImage(recommend[i].Image, recommend[i].ImageVersion)
 	// 	if ct != nil {
@@ -137,7 +138,8 @@ func AppUsageList(c *gin.Context) {
 func AppInfo(c *gin.Context) {
 
 	id := c.Param("id")
-	info := service.MyService.OAPI().GetServerAppInfo(id, "")
+	language := c.GetHeader("Language")
+	info := service.MyService.OAPI().GetServerAppInfo(id, "", language)
 	if info.NetworkModel != "host" {
 		for i := 0; i < len(info.Ports); i++ {
 			if p, _ := strconv.Atoi(info.Ports[i].ContainerPort); port2.IsPortAvailable(p, info.Ports[i].Protocol) {

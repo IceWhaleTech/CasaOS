@@ -82,7 +82,7 @@ func GetDiskList(c *gin.Context) {
 			continue
 		}
 
-		if list[i].Tran == "sata" {
+		if list[i].Tran == "sata" || list[i].Tran == "nvme" {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				continue

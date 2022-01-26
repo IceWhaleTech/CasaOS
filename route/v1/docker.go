@@ -145,6 +145,7 @@ func SpeedPush(c *gin.Context) {
 // @Router /app/install/{id} [post]
 func InstallApp(c *gin.Context) {
 	appId := c.Param("id")
+	language := c.GetHeader("Language")
 	var appInfo model.ServerAppList
 	m := model.CustomizationPostData{}
 	c.BindJSON(&m)
@@ -174,7 +175,7 @@ func InstallApp(c *gin.Context) {
 		dockerImageVersion = "latest"
 	}
 	if m.Origin != "custom" {
-		appInfo = service.MyService.OAPI().GetServerAppInfo(appId, "")
+		appInfo = service.MyService.OAPI().GetServerAppInfo(appId, "", language)
 
 	} else {
 

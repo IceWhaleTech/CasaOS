@@ -4,18 +4,20 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
-	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
-	"github.com/IceWhaleTech/CasaOS/pkg/zerotier"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
+	"github.com/IceWhaleTech/CasaOS/pkg/zerotier"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/tidwall/gjson"
 )
 
 type ZeroTierService interface {
@@ -33,6 +35,7 @@ type ZeroTierService interface {
 	DeleteMember(token string, id, mId string) interface{}
 	DeleteNetwork(token, id string) interface{}
 	GetJoinNetworks() string
+	NetworkIdFilter(letter rune) bool
 }
 type zerotierStruct struct {
 }
@@ -333,6 +336,13 @@ func (c *zerotierStruct) GetJoinNetworks() string {
 	return json
 }
 
+func (c *zerotierStruct) NetworkIdFilter(letter rune) bool {
+	if unicode.IsNumber(letter) || unicode.IsLetter(letter) {
+		return true
+	} else {
+		return false
+	}
+}
 func NewZeroTierService() ZeroTierService {
 	//初始化client
 	client = http.Client{Timeout: 30 * time.Second, CheckRedirect: func(req *http.Request, via []*http.Request) error {
