@@ -27,7 +27,7 @@ var diskMap = make(map[string]string)
 // @Success 200 {string} string "ok"
 // @Router /disk/list [get]
 func GetDiskList(c *gin.Context) {
-	list := service.MyService.Disk().LSBLK()
+	list := service.MyService.Disk().LSBLK(false)
 	dbList := service.MyService.Disk().GetSerialAll()
 	part := make(map[string]int64, len(dbList))
 	for _, v := range dbList {
@@ -53,28 +53,56 @@ func GetDiskList(c *gin.Context) {
 
 		if len(list[i].Children) > 0 && findSystem == 0 {
 			for j := 0; j < len(list[i].Children); j++ {
-				if list[i].Children[j].MountPoint == "/" {
-					stor := model.Storage{}
-					stor.Name = "System"
-					stor.MountPoint = list[i].Children[j].MountPoint
-					stor.Size = list[i].Children[j].FSSize
-					stor.Avail = list[i].Children[j].FSAvail
-					stor.Path = list[i].Children[j].Path
-					stor.Type = list[i].Children[j].FsType
-					stor.DriveName = "System"
-					disk.Model = "System"
-					if strings.Contains(list[i].Children[j].SubSystems, "mmc") {
-						disk.DiskType = "MMC"
-					} else if strings.Contains(list[i].Children[j].SubSystems, "usb") {
-						disk.DiskType = "USB"
-					}
-					disk.Health = "true"
+				if len(list[i].Children[j].Children) > 0 {
+					for _, v := range list[i].Children[j].Children {
+						if v.MountPoint == "/" {
+							stor := model.Storage{}
+							stor.Name = "System"
+							stor.MountPoint = v.MountPoint
+							stor.Size = v.FSSize
+							stor.Avail = v.FSAvail
+							stor.Path = v.Path
+							stor.Type = v.FsType
+							stor.DriveName = "System"
+							disk.Model = "System"
+							if strings.Contains(v.SubSystems, "mmc") {
+								disk.DiskType = "MMC"
+							} else if strings.Contains(v.SubSystems, "usb") {
+								disk.DiskType = "USB"
+							}
+							disk.Health = "true"
 
-					disks = append(disks, disk)
-					storage = append(storage, stor)
-					findSystem = 1
-					break
+							disks = append(disks, disk)
+							storage = append(storage, stor)
+							findSystem = 1
+							break
+						}
+					}
+				} else {
+					if list[i].Children[j].MountPoint == "/" {
+						stor := model.Storage{}
+						stor.Name = "System"
+						stor.MountPoint = list[i].Children[j].MountPoint
+						stor.Size = list[i].Children[j].FSSize
+						stor.Avail = list[i].Children[j].FSAvail
+						stor.Path = list[i].Children[j].Path
+						stor.Type = list[i].Children[j].FsType
+						stor.DriveName = "System"
+						disk.Model = "System"
+						if strings.Contains(list[i].Children[j].SubSystems, "mmc") {
+							disk.DiskType = "MMC"
+						} else if strings.Contains(list[i].Children[j].SubSystems, "usb") {
+							disk.DiskType = "USB"
+						}
+						disk.Health = "true"
+
+						disks = append(disks, disk)
+						storage = append(storage, stor)
+						findSystem = 1
+						break
+					}
 				}
+
 			}
 		}
 		if findSystem == 1 {
@@ -82,10 +110,10 @@ func GetDiskList(c *gin.Context) {
 			continue
 		}
 
-		if list[i].Tran == "sata" || list[i].Tran == "nvme" {
+		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
-				continue
+				temp.SmartStatus.Passed = true
 			}
 			if len(list[i].Children) == 1 && len(list[i].Children[0].MountPoint) > 0 {
 				stor := model.Storage{}
@@ -137,7 +165,7 @@ func GetDiskList(c *gin.Context) {
 // @Router /disk/lists [get]
 func GetPlugInDisks(c *gin.Context) {
 
-	list := service.MyService.Disk().LSBLK()
+	list := service.MyService.Disk().LSBLK(true)
 	var result []*disk.UsageStat
 	for _, item := range list {
 		result = append(result, service.MyService.Disk().GetDiskInfoByPath(item.Path))
@@ -252,13 +280,12 @@ func RemovePartition(c *gin.Context) {
 func AddPartition(c *gin.Context) {
 	name := c.PostForm("name")
 	path := c.PostForm("path")
-	serial := c.PostForm("serial")
 	format, _ := strconv.ParseBool(c.PostForm("format"))
-	if len(name) == 0 || len(path) == 0 || len(serial) == 0 {
+	if len(name) == 0 || len(path) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
 		return
 	}
-	if _, ok := diskMap[serial]; ok {
+	if _, ok := diskMap[path]; ok {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err.DISK_BUSYING, Message: oasis_err.GetMsg(oasis_err.DISK_BUSYING)})
 		return
 	}
@@ -267,36 +294,49 @@ func AddPartition(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err.NAME_NOT_AVAILABLE, Message: oasis_err.GetMsg(oasis_err.NAME_NOT_AVAILABLE)})
 		return
 	}
-	diskMap[serial] = "busying"
+	diskMap[path] = "busying"
 	currentDisk := service.MyService.Disk().GetDiskInfo(path)
 	if !format {
 		if len(currentDisk.Children) != 1 || !(len(currentDisk.Children) > 0 && currentDisk.Children[0].FsType == "ext4") {
 			c.JSON(http.StatusOK, model.Result{Success: oasis_err.DISK_NEEDS_FORMAT, Message: oasis_err.GetMsg(oasis_err.DISK_NEEDS_FORMAT)})
-			delete(diskMap, serial)
+			delete(diskMap, path)
 			return
 		}
 	} else {
 		service.MyService.Disk().AddPartition(path)
 	}
 
+	formatBool := true
+	for formatBool {
+		currentDisk = service.MyService.Disk().GetDiskInfo(path)
+		if len(currentDisk.Children) != 1 {
+			formatBool = false
+			break
+		}
+		time.Sleep(time.Second)
+
+	}
+	currentDisk = service.MyService.Disk().GetDiskInfo(path)
+	if len(currentDisk.Children) != 1 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err.DISK_NEEDS_FORMAT, Message: oasis_err.GetMsg(oasis_err.DISK_NEEDS_FORMAT)})
+		return
+	}
+
 	mountPath := "/DATA/" + name
-
-	service.MyService.Disk().MountDisk(path, mountPath)
-
 	m := model2.SerialDisk{}
 	m.MountPoint = mountPath
-	m.Path = path + "1"
-	m.Serial = serial
+	m.Path = currentDisk.Children[0].Path
+	m.UUID = currentDisk.Children[0].UUID
 	m.State = 0
 	m.CreatedAt = time.Now().Unix()
 	service.MyService.Disk().SaveMountPoint(m)
 
 	//mount dir
-	service.MyService.Disk().MountDisk(path+"1", mountPath)
+	service.MyService.Disk().MountDisk(currentDisk.Children[0].Path, mountPath)
 
 	service.MyService.Disk().RemoveLSBLKCache()
 
-	delete(diskMap, serial)
+	delete(diskMap, path)
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
 }
 
@@ -334,7 +374,7 @@ func PostMountDisk(c *gin.Context) {
 	m := model2.SerialDisk{}
 	m.MountPoint = mountPath
 	m.Path = path
-	m.Serial = serial
+	m.UUID = serial
 	m.State = 0
 	//service.MyService.Disk().SaveMountPoint(m)
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
@@ -401,7 +441,7 @@ func DeleteDisk(c *gin.Context) {
 func GetDiskCheck(c *gin.Context) {
 
 	dbList := service.MyService.Disk().GetSerialAll()
-	list := service.MyService.Disk().LSBLK()
+	list := service.MyService.Disk().LSBLK(true)
 
 	mapList := make(map[string]string)
 
@@ -410,7 +450,7 @@ func GetDiskCheck(c *gin.Context) {
 	}
 
 	for _, v := range dbList {
-		if _, ok := mapList[v.Serial]; !ok {
+		if _, ok := mapList[v.UUID]; !ok {
 			//disk undefind
 			c.JSON(http.StatusOK, model.Result{Success: oasis_err.ERROR, Message: oasis_err.GetMsg(oasis_err.ERROR), Data: "disk undefind"})
 			return
@@ -418,4 +458,39 @@ func GetDiskCheck(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+}
+
+// @Summary check mount point
+// @Produce  application/json
+// @Accept application/json
+// @Tags disk
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /disk/usb [get]
+func GetUSBList(c *gin.Context) {
+	list := service.MyService.Disk().LSBLK(false)
+	data := []model.DriveUSB{}
+	for _, v := range list {
+		if v.Tran == "usb" {
+			temp := model.DriveUSB{}
+			temp.Model = v.Model
+			temp.Name = v.Name
+			temp.Size = v.Size
+			mountTemp := true
+			if len(v.Children) == 0 {
+				mountTemp = false
+			}
+			for _, child := range v.Children {
+				if len(child.MountPoint) > 0 {
+					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
+					temp.Avail += avail
+				} else {
+					mountTemp = false
+				}
+			}
+			temp.Mount = mountTemp
+			data = append(data, temp)
+		}
+	}
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
 }

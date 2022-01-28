@@ -259,9 +259,9 @@ func PostKillCasaOS(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/info [get]
 func Info(c *gin.Context) {
-	var data = make(map[string]interface{}, 5)
+	var data = make(map[string]interface{}, 6)
 
-	list := service.MyService.Disk().LSBLK()
+	list := service.MyService.Disk().LSBLK(true)
 
 	summary := model.Summary{}
 	healthy := true
@@ -269,24 +269,42 @@ func Info(c *gin.Context) {
 
 	for i := 0; i < len(list); i++ {
 		if len(list[i].Children) > 0 && findSystem == 0 {
+
 			for j := 0; j < len(list[i].Children); j++ {
-				if list[i].Children[j].MountPoint == "/" {
-					s, _ := strconv.ParseUint(list[i].Children[j].FSSize, 10, 64)
-					a, _ := strconv.ParseUint(list[i].Children[j].FSAvail, 10, 64)
-					u, _ := strconv.ParseUint(list[i].Children[j].FSUsed, 10, 64)
-					summary.Size += s
-					summary.Avail += a
-					summary.Used += u
-					findSystem = 1
-					break
+
+				if len(list[i].Children[j].Children) > 0 {
+					for _, v := range list[i].Children[j].Children {
+						if v.MountPoint == "/" {
+							s, _ := strconv.ParseUint(v.FSSize, 10, 64)
+							a, _ := strconv.ParseUint(v.FSAvail, 10, 64)
+							u, _ := strconv.ParseUint(v.FSUsed, 10, 64)
+							summary.Size += s
+							summary.Avail += a
+							summary.Used += u
+							findSystem = 1
+							break
+						}
+					}
+				} else {
+					if list[i].Children[j].MountPoint == "/" {
+						s, _ := strconv.ParseUint(list[i].Children[j].FSSize, 10, 64)
+						a, _ := strconv.ParseUint(list[i].Children[j].FSAvail, 10, 64)
+						u, _ := strconv.ParseUint(list[i].Children[j].FSUsed, 10, 64)
+						summary.Size += s
+						summary.Avail += a
+						summary.Used += u
+						findSystem = 1
+						break
+					}
 				}
 			}
+
 		}
 		if findSystem == 1 {
 			findSystem += 1
 			continue
 		}
-		if list[i].Tran == "sata" || list[i].Tran == "nvme" {
+		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				continue
@@ -312,6 +330,33 @@ func Info(c *gin.Context) {
 
 	summary.Health = healthy
 	data["disk"] = summary
+	usbList := service.MyService.Disk().LSBLK(false)
+	usb := []model.DriveUSB{}
+	for _, v := range usbList {
+		if v.Tran == "usb" {
+			temp := model.DriveUSB{}
+			temp.Model = v.Model
+			temp.Name = v.Name
+			temp.Size = v.Size
+			mountTemp := true
+			if len(v.Children) == 0 {
+				mountTemp = false
+			}
+			for _, child := range v.Children {
+				if len(child.MountPoint) > 0 {
+					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
+					temp.Avail += avail
+					used, _ := strconv.ParseUint(child.FSUsed, 10, 64)
+					temp.Used += used
+				} else {
+					mountTemp = false
+				}
+			}
+			temp.Mount = mountTemp
+			usb = append(usb, temp)
+		}
+	}
+	data["usb"] = usb
 	cpu := service.MyService.ZiMa().GetCpuPercent()
 	num := service.MyService.ZiMa().GetCpuCoreNum()
 	cpuData := make(map[string]interface{})

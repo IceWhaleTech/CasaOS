@@ -20,7 +20,7 @@ import (
 
 type DiskService interface {
 	GetPlugInDisk() []string
-	LSBLK() []model.LSBLKModel
+	LSBLK(isUseCache bool) []model.LSBLKModel
 	SmartCTL(path string) model.SmartctlA
 	FormatDisk(path, format string) []string
 	UmountPointAndRemoveDir(path string) []string
@@ -119,11 +119,11 @@ func (d *diskService) GetDiskInfoByPath(path string) *disk.UsageStat {
 }
 
 //get disk details
-func (d *diskService) LSBLK() []model.LSBLKModel {
+func (d *diskService) LSBLK(isUseCache bool) []model.LSBLKModel {
 	key := "system_lsblk"
 	var n []model.LSBLKModel
 
-	if result, ok := Cache.Get(key); ok {
+	if result, ok := Cache.Get(key); ok && isUseCache {
 
 		res, ok := result.([]model.LSBLKModel)
 		if ok {
@@ -247,12 +247,12 @@ func (d *diskService) MountDisk(path, volume string) {
 }
 
 func (d *diskService) SaveMountPoint(m model2.SerialDisk) {
-	d.db.Where("serial = ?", m.Serial).Delete(&model2.SerialDisk{})
+	d.db.Where("uuid = ?", m.UUID).Delete(&model2.SerialDisk{})
 	d.db.Create(&m)
 }
 
 func (d *diskService) UpdateMountPoint(m model2.SerialDisk) {
-	d.db.Model(&model2.SerialDisk{}).Where("serial = ?", m.Serial).Update("mount_point", m.MountPoint)
+	d.db.Model(&model2.SerialDisk{}).Where("uui = ?", m.UUID).Update("mount_point", m.MountPoint)
 }
 
 func (d *diskService) DeleteMount(id string) {

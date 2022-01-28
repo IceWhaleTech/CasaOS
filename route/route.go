@@ -241,6 +241,7 @@ func InitRouter() *gin.Engine {
 
 			//删除分区
 			v1DiskGroup.DELETE("/delpart", v1.RemovePartition)
+			v1DiskGroup.GET("/usb", v1.GetUSBList)
 
 		}
 		v1ShareGroup := v1Group.Group("/share")

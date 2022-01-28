@@ -20,6 +20,7 @@ type LSBLKModel struct {
 	Format      string       `json:"format"`
 	Health      string       `json:"health"`
 	HotPlug     bool         `json:"hotplug"`
+	UUID        string       `json:"uuid"`
 	FSUsed      string       `json:"fsused"`
 	Temperature int          `json:"temperature"`
 	Tran        string       `json:"tran"`
@@ -45,6 +46,15 @@ type Drive struct {
 	NeedFormat  bool   `json:"need_format"`
 	Serial      string `json:"serial"`
 	Path        string `json:"path"`
+}
+
+type DriveUSB struct {
+	Name  string `json:"name"`
+	Size  uint64 `json:"size"`
+	Used  uint64 `json:"use"`
+	Model string `json:"model"`
+	Mount bool   `json:"mount"` //是否完全挂载
+	Avail uint64 `json:"avail"` //可用空间
 }
 
 type Storage struct {

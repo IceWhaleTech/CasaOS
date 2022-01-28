@@ -3,7 +3,7 @@ package model
 //SerialAdvanced Technology Attachment (STAT)
 type SerialDisk struct {
 	Id         uint   `gorm:"column:id;primary_key" json:"id"`
-	Serial     string `json:"serial"`
+	UUID       string `json:"uuid"`
 	Path       string `json:"path"`
 	State      int    `json:"state"`
 	MountPoint string `json:"mount_point"`

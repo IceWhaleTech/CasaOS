@@ -195,18 +195,18 @@ func CheckSerialDiskMount() {
 	// check mount point
 	dbList := service.MyService.Disk().GetSerialAll()
 
-	list := service.MyService.Disk().LSBLK()
+	list := service.MyService.Disk().LSBLK(true)
 	mountPoint := make(map[string]string, len(dbList))
 	//remount
 	for _, v := range dbList {
-		mountPoint[v.Path] = v.MountPoint
+		mountPoint[v.UUID] = v.MountPoint
 	}
 	for _, v := range list {
 		command.ExecEnabledSMART(v.Path)
 		if v.Children != nil {
 			for _, h := range v.Children {
 				if len(h.MountPoint) == 0 && len(v.Children) == 1 && h.FsType == "ext4" {
-					if m, ok := mountPoint[h.Path]; ok {
+					if m, ok := mountPoint[h.UUID]; ok {
 						//mount point check
 						volume := m
 						if !file.CheckNotExist(m) {
@@ -217,7 +217,8 @@ func CheckSerialDiskMount() {
 						service.MyService.Disk().MountDisk(h.Path, volume)
 						if volume != m {
 							ms := model2.SerialDisk{}
-							ms.Serial = v.Serial
+							ms.UUID = v.UUID
+							ms.MountPoint = volume
 							service.MyService.Disk().UpdateMountPoint(ms)
 						}
 
