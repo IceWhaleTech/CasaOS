@@ -115,8 +115,8 @@ AddPartition() {
   parted -s $1 mklabel gpt
 
   parted -s $1 mkpart primary ext4 0 100%
-
-  mkfs.ext4 -m 1 $11
+  PATH=`lsblk -r $1 | sort | grep part | head -n 1 | awk '{print $1}'`
+  mkfs.ext4 -m 1 /dev/${PATH}
 
   partprobe $1
 
@@ -156,8 +156,8 @@ GetPartitionSectors() {
 
 #检查没有使用的挂载点删除文件夹
 AutoRemoveUnuseDir() {
-  DIRECTORY="/mnt/"
-  dir=$(ls -l $DIRECTORY | awk '/^d/ {print $NF}')
+  DIRECTORY="/DATA/"
+  dir=$(ls -l $DIRECTORY | grep "Storage[0-9]" | awk '/^d/ {print $NF}')
   for i in $dir; do
 
     path="$DIRECTORY$i"
