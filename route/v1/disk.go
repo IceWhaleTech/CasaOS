@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -309,12 +310,12 @@ func AddPartition(c *gin.Context) {
 	formatBool := true
 	for formatBool {
 		currentDisk = service.MyService.Disk().GetDiskInfo(path)
-		if len(currentDisk.Children) != 1 {
+		fmt.Println(currentDisk.Children)
+		if len(currentDisk.Children) > 0 {
 			formatBool = false
 			break
 		}
 		time.Sleep(time.Second)
-
 	}
 	currentDisk = service.MyService.Disk().GetDiskInfo(path)
 	if len(currentDisk.Children) != 1 {
