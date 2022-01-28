@@ -8,6 +8,7 @@ import (
 	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
 	"github.com/IceWhaleTech/CasaOS/web"
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,6 +19,7 @@ func InitRouter() *gin.Engine {
 
 	r := gin.Default()
 	r.Use(middleware.Cors())
+	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	gin.SetMode(config.ServerInfo.RunMode)
 
 	r.StaticFS("/ui", http.FS(web.Static))
