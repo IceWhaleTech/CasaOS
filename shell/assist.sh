@@ -11,7 +11,7 @@ version_0_2_3() {
 
 # add in v0.2.5
 
-readonly CASA_DEPANDS="curl smartmontools parted fdisk partprobe"
+readonly CASA_DEPANDS="curl smartmontools parted fdisk"
 
 version_0_2_5() {
   install_depends "$CASA_DEPANDS"
@@ -22,7 +22,6 @@ version_0_2_5() {
 install_depends() {
     ((EUID)) && sudo_cmd="sudo"
     if [[ ! -x "$(command -v '$1')" ]]; then
-        show 2 "Install the necessary dependencies: $1"
         packagesNeeded=$1
         if [ -x "$(command -v apk)" ]; then
             $sudo_cmd apk add --no-cache $packagesNeeded
@@ -32,8 +31,6 @@ install_depends() {
             $sudo_cmd dnf install $packagesNeeded
         elif [ -x "$(command -v zypper)" ]; then
             $sudo_cmd zypper install $packagesNeeded
-        else
-            show 1 "Package manager not found. You must manually install: $packagesNeeded"
         fi
     fi
 }
