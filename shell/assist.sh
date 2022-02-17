@@ -11,7 +11,7 @@ version_0_2_3() {
 
 # add in v0.2.5
 
-readonly CASA_DEPANDS="curl smartmontools parted fdisk partprobe"
+readonly CASA_DEPANDS="curl smartmontools parted fdisk partprobe ntfs-3g"
 
 version_0_2_5() {
   install_depends "$CASA_DEPANDS"

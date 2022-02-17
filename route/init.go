@@ -25,6 +25,8 @@ func InitFunction() {
 	Update2_3()
 	CheckSerialDiskMount()
 
+	CheckToken2_9()
+
 }
 
 var syncIsExistence = false
@@ -233,4 +235,12 @@ func CheckSerialDiskMount() {
 }
 func Update2_3() {
 	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/assist.sh")
+}
+func CheckToken2_9() {
+	if len(config.ServerInfo.Token) == 0 {
+		token := uuid.NewV4().String
+		config.ServerInfo.Token = token()
+		config.Cfg.Section("server").Key("Token").SetValue(token())
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	}
 }

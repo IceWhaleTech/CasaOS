@@ -58,8 +58,9 @@ func main() {
 	r := route.InitRouter()
 	//service.SyncTask(sqliteDB)
 	cron2 := cron.New() //创建一个cron实例
-	//执行定时任务（每5秒执行一次）
-	err := cron2.AddFunc("0 0 0 1/1 * *", func() {
+	//every day execution
+	err := cron2.AddFunc("0 0/1 * * * *", func() {
+		//service.PushIpInfo(*&config.ServerInfo.Token)
 		//service.UpdataDDNSList(mysqldb)
 		//service.SyncTask(sqliteDB)
 	})
@@ -77,6 +78,7 @@ func main() {
 		WriteTimeout:   60 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
+
 	s.ListenAndServe()
 
 }

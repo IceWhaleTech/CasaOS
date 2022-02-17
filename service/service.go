@@ -2,6 +2,7 @@ package service
 
 import (
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/gorilla/websocket"
 	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
 )
@@ -9,6 +10,10 @@ import (
 var Cache *cache.Cache
 
 var MyService Repository
+
+var WebSocketConns []*websocket.Conn
+
+var SocketRun bool
 
 type Repository interface {
 	App() AppService
@@ -27,6 +32,7 @@ type Repository interface {
 	System() SystemService
 	Shortcuts() ShortcutsService
 	Search() SearchService
+	Person() PersonService
 }
 
 func NewService(db *gorm.DB, log loger2.OLog) Repository {
@@ -48,6 +54,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		system:         NewSystemService(log),
 		shortcuts:      NewShortcutsService(db),
 		search:         NewSearchService(),
+		person:         NewPersonService(),
 	}
 }
 
@@ -68,6 +75,7 @@ type store struct {
 	system         SystemService
 	shortcuts      ShortcutsService
 	search         SearchService
+	person         PersonService
 }
 
 func (c *store) Rely() RelyService {
@@ -75,6 +83,9 @@ func (c *store) Rely() RelyService {
 }
 func (c *store) Shortcuts() ShortcutsService {
 	return c.shortcuts
+}
+func (c *store) Person() PersonService {
+	return c.person
 }
 func (c *store) System() SystemService {
 	return c.system

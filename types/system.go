@@ -1,5 +1,5 @@
 package types
 
-const CURRENTVERSION = "0.2.8"
+const CURRENTVERSION = "0.2.9"
 
-const BODY = "<li>Compatible with more types of disks</li><li>Add usb display</li><li>Change translation</li>"
+const BODY = "<li>Custom installation of new parameters</li><li>Fixed issues</li>"

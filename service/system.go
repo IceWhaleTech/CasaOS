@@ -2,6 +2,7 @@ package service
 
 import (
 	"io/ioutil"
+	"net"
 	"os"
 
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -71,6 +72,21 @@ func (s *systemService) GetCasaOSLogs(lineNumber int) string {
 	return string(content)
 }
 
+func GetDeviceAllIP() []string {
+	var address []string
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return address
+	}
+	for _, a := range addrs {
+		if ipNet, ok := a.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To16() != nil {
+				address = append(address, ipNet.IP.String())
+			}
+		}
+	}
+	return address
+}
 func NewSystemService(log loger.OLog) SystemService {
 	return &systemService{log: log}
 }

@@ -24,6 +24,8 @@ type ServerModel struct {
 	RunMode     string
 	ServerApi   string
 	LockAccount bool
+	Handshake   string
+	Token       string
 }
 
 //服务配置

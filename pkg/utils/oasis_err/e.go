@@ -36,6 +36,7 @@ const (
 	//file
 	FILE_DOES_NOT_EXIST = 60001
 	FILE_READ_ERROR     = 60002
+	FILE_DELETE_ERROR   = 60003
 
 	//shortcuts
 	SHORTCUTS_URL_ERROR = 70001
@@ -78,6 +79,7 @@ var MsgFlags = map[int]string{
 	FILE_DOES_NOT_EXIST: "File does not exist",
 
 	FILE_READ_ERROR:     "File read error",
+	FILE_DELETE_ERROR:   "Delete error",
 	SHORTCUTS_URL_ERROR: "URL error",
 }
 
