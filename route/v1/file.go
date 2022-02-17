@@ -9,8 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
-	"time"
+	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -127,12 +126,12 @@ func GetLocalFile(c *gin.Context) {
 	return
 }
 
-// @Summary 下载文件
+// @Summary download
 // @Produce  application/json
 // @Accept application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param path query string true "路径"
+// @Param path query string true "path of file"
 // @Success 200 {string} string "ok"
 // @Router /file/download [get]
 func GetDownloadFile(c *gin.Context) {
@@ -165,7 +164,6 @@ func GetDownloadFile(c *gin.Context) {
 	c.Header("Content-Transfer-Encoding", "binary")
 
 	c.File(filePath)
-	return
 }
 
 // @Summary 获取目录列表
@@ -177,18 +175,18 @@ func GetDownloadFile(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/dirpath [get]
 func DirPath(c *gin.Context) {
-	path := c.DefaultQuery("path", "/")
+	path := c.DefaultQuery("path", "")
 	info := service.MyService.ZiMa().GetDirPath(path)
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: info})
 }
 
-// @Summary 重命名目录或文件
+// @Summary rename file or dir
 // @Produce  application/json
 // @Accept application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param oldpath formData string true "旧的路径"
-// @Param newpath formData string true "新路径"
+// @Param oldpath formData string true "path of old"
+// @Param newpath formData string true "path of new"
 // @Success 200 {string} string "ok"
 // @Router /file/rename [put]
 func RenamePath(c *gin.Context) {
@@ -202,12 +200,12 @@ func RenamePath(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
-// @Summary 创建文件夹
+// @Summary create folder
 // @Produce  application/json
 // @Accept  multipart/form-data
 // @Tags file
 // @Security ApiKeyAuth
-// @Param path formData string false "路径"
+// @Param path formData string true "path of folder"
 // @Success 200 {string} string "ok"
 // @Router /file/mkdir [post]
 func MkdirAll(c *gin.Context) {
@@ -240,82 +238,85 @@ func PostCreateFile(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: code, Message: oasis_err2.GetMsg(code)})
 }
 
-// @Summary 上传文件
+// @Summary upload file
 // @Produce  application/json
 // @Accept  multipart/form-data
 // @Tags file
 // @Security ApiKeyAuth
-// @Param path formData string false "路径"
+// @Param path formData string false "file path"
+// @Param file formData file true "file"
 // @Success 200 {string} string "ok"
-// @Router /file/mkdir [post]
+// @Router /file/upload [post]
 func PostFileUpload(c *gin.Context) {
-	file, _, _ := c.Request.FormFile("file")
-	//file.Read()
+	f, _, _ := c.Request.FormFile("file")
 	path := c.Query("path")
-	//上传文件
+	if len(path) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+	if !file.CheckNotExist(path) {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+		return
+	}
 	out, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
 	defer out.Close()
-	io.Copy(out, file)
+	_, err := io.Copy(out, f)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
-func PutFileMove(c *gin.Context) {
-	from := "/Users/liangjianli/go/CasaOS"
-	to := "/Users/liangjianli/go/CasaOS/test"
-	//t := 1 //是否覆盖
-
-	//方法体
-	stopCh := make(chan int)
-	f, err := os.Stat(from)
-	if err != nil {
-		//未拿到文件信息
-		fmt.Println("stat", err)
+// @Summary copy or move file
+// @Produce  application/json
+// @Accept  multipart/form-data
+// @Tags file
+// @Security ApiKeyAuth
+// @Param from formData string true "from path"
+// @Param to formData string true "to path"
+// @Param t formData string true "action" Enums(move,copy)
+// @Success 200 {string} string "ok"
+// @Router /file/operate [post]
+func PostOperateFileOrDir(c *gin.Context) {
+	from := c.PostForm("from")
+	to := c.PostForm("to")
+	t := c.PostForm("type")
+	if len(from) == 0 || len(t) == 0 || len(to) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
 	}
-	//未创建新的文件夹
-	if f.IsDir() {
-		//from 是文件夹,定义to也是文件夹
-		if list, err := ioutil.ReadDir(from); err == nil {
-			for _, v := range list {
-				time.Sleep(time.Second)
-				if err = Copy(stopCh, filepath.Join(from, v.Name()), filepath.Join(to, v.Name())); err != nil {
-					fmt.Printf("copy %s ,err %d", v.Name(), err)
-				}
-			}
+	if t == "move" {
+		lastPath := from[strings.LastIndex(from, "/")+1:]
+		if !file.CheckNotExist(to + "/" + lastPath) {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_OR_DIR_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+			return
+		}
+		err := os.Rename(from, to+"/"+lastPath)
+		if err != nil {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			return
+		}
+	} else if t == "copy" {
+		err := file.CopyDir(from, to)
+		if err != nil {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			return
 		}
 	} else {
-		p := filepath.Dir(to)
-		if _, err = os.Stat(p); err != nil {
-			if err = os.MkdirAll(p, 0777); err != nil {
-				fmt.Println("mkdir", err)
-			}
-		}
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
 	}
-
-	file, err := os.Open(from)
-
-	if err != nil {
-		fmt.Println("open file error ", err)
-	}
-	defer file.Close()
-	out, err := os.Create(to)
-	if err != nil {
-		fmt.Println("create to file err", err)
-	}
-	defer out.Close()
-	io.Copy(out, file)
-	time.Sleep(time.Second * 4)
-	close(stopCh)
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
-func Copy(stop chan int, from, to string) error {
-
-	for {
-		select {
-		case <-stop:
-			return nil
-		default:
-			fmt.Println(from)
-
-		}
+func DeleteFile(c *gin.Context) {
+	path := c.Query("path")
+	//err := os.Remove(path)
+	err := os.RemoveAll(path)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DELETE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.FILE_DELETE_ERROR), Data: err})
+		return
 	}
-	return nil
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }

@@ -11,3 +11,7 @@ const (
 	NOTIFY_TYPE_ERROR
 	NOTIFY_TYPE_INSTALL_LOG
 )
+
+const (
+	NOTIFY_APP = iota
+)

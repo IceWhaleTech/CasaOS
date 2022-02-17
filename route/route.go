@@ -208,12 +208,13 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.GET("/read", v1.GetFilerContent)
 			v1FileGroup.POST("/upload", v1.PostFileUpload)
 			v1FileGroup.GET("/dirpath", v1.DirPath)
-			//创建目录
+			//create folder
 			v1FileGroup.POST("/mkdir", v1.MkdirAll)
 			v1FileGroup.POST("/create", v1.PostCreateFile)
 
 			v1FileGroup.GET("/download", v1.GetDownloadFile)
-			v1FileGroup.PUT("/move", v1.PutFileMove)
+			v1FileGroup.POST("/operate", v1.PostOperateFileOrDir)
+			v1FileGroup.DELETE("delete", v1.DeleteFile)
 			//v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
 		}
 		v1DiskGroup := v1Group.Group("/disk")
@@ -282,6 +283,11 @@ func InitRouter() *gin.Engine {
 		v1SearchGroup.Use()
 		{
 			v1SearchGroup.GET("/search", v1.GetSearchList)
+		}
+		v1PersonGroup := v1Group.Group("/persion")
+		v1PersonGroup.Use()
+		{
+			v1PersonGroup.GET("/test", v1.PersonTest)
 		}
 		v1Group.GET("/sync/config", v1.GetSyncConfig)
 		v1Group.Any("/syncthing/*url", v1.SyncToSyncthing)

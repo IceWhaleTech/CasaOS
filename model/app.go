@@ -39,6 +39,10 @@ type ServerAppList struct {
 	Origin         string    `json:"origin"`
 	Type           int       `json:"type"`
 	Developer      string    `json:"developer"`
+	HostName       string    `json:"host_name"`
+	Privileged     bool      `json:"privileged"`
+	CapAdd         Strings   `json:"cap_add"`
+	Cmd            Strings   `json:"cmd"`
 }
 
 type Ports struct {

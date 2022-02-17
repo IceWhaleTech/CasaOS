@@ -6,9 +6,10 @@ type AppNotify struct {
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 	Id        string `json:"id"`
-	Type      int    `json:"type"` // 1:显示即为已读 2:info 3:warning 4:error 5:success
+	Type      int    `json:"type"`
 	Icon      string `json:"icon"`
 	Name      string `json:"name"`
+	Class     int    `json:"class"`
 	CustomId  string `gorm:"column:custom_id;primary_key" json:"custom_id"`
 }
 

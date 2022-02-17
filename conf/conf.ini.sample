@@ -15,6 +15,9 @@ ProjectPath = /casaOS/server
 HttpPort = 8089
 RunMode = release
 ServerApi = https://api.casaos.zimaboard.com
+Handshake = 
+Token = 
+
 
 [user]
 UserName = admin
@@ -22,7 +25,6 @@ PWD = zimaboard
 Email = user@gmail.com
 Description = description
 Initialized = false
-Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImVyZXJlIiwicGFzc3dvcmQiOiJhZHNmZGYiLCJleHAiOjE2MjQwMDU0ODEsImlzcyI6Imdpbi1ibG9nIn0.JNsCccZuFCwlSMLJg62iOIB2xymk_k7xGa11xhZ07bc
 
 [zerotier]
 UserName = user

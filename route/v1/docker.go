@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bytes"
+	"encoding/json"
 	json2 "encoding/json"
 	"net/http"
 	"reflect"
@@ -254,9 +255,11 @@ func InstallApp(c *gin.Context) {
 		installLog.State = 0
 		installLog.CustomId = id
 		installLog.Message = "installing rely"
+		installLog.Class = types.NOTIFY_APP
 		installLog.Type = types.NOTIFY_TYPE_UNIMPORTANT
 		installLog.CreatedAt = strconv.FormatInt(time.Now().Unix(), 10)
 		installLog.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
+		installLog.Id = uuid.NewV4().String()
 		service.MyService.Notify().AddLog(installLog)
 		if m.Origin != "custom" {
 			for _, plugin := range appInfo.Plugins {
@@ -442,6 +445,8 @@ func InstallApp(c *gin.Context) {
 		envsStr, _ := json2.Marshal(m.Envs)
 		volumesStr, _ := json2.Marshal(m.Volumes)
 		devicesStr, _ := json2.Marshal(m.Devices)
+		cmd, _ := json2.Marshal(m.Cmd)
+		capAdd, _ := json.Marshal(m.CapAdd)
 		//step: 保存数据到数据库
 		md := model2.AppListDBModel{
 			CustomId: id,
@@ -469,9 +474,13 @@ func InstallApp(c *gin.Context) {
 			Memory:     m.Memory,
 			Devices:    string(devicesStr),
 			//Rely:       rely,
-			Origin:    m.Origin,
-			CreatedAt: strconv.FormatInt(time.Now().Unix(), 10),
-			UpdatedAt: strconv.FormatInt(time.Now().Unix(), 10),
+			Origin:     m.Origin,
+			CreatedAt:  strconv.FormatInt(time.Now().Unix(), 10),
+			UpdatedAt:  strconv.FormatInt(time.Now().Unix(), 10),
+			Cmd:        string(cmd),
+			CapAdd:     string(capAdd),
+			HostName:   m.HostName,
+			Privileged: m.Privileged,
 		}
 		//if appInfo.NetworkModel == "host" {
 		//	m.PortMap = m.Port
@@ -715,7 +724,7 @@ func UnInstallApp(c *gin.Context) {
 		}
 
 		//step: 删除install log
-		service.MyService.Notify().DelLog(appId)
+		//service.MyService.Notify().DelLog(appId)
 
 		//	for k, v := range info.Rely {
 		//
@@ -755,6 +764,13 @@ func UnInstallApp(c *gin.Context) {
 		//}
 	}
 	config.CasaOSGlobalVariables.AppChange = true
+	unInstallLog := model2.AppNotify{}
+	unInstallLog.State = 0
+	unInstallLog.CustomId = appId
+	unInstallLog.Message = "uninstalled"
+	unInstallLog.Id = uuid.NewV4().String()
+	service.MyService.Notify().UpdateLog(unInstallLog)
+
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 
 }
@@ -926,7 +942,9 @@ func UpdateSetting(c *gin.Context) {
 	envsStr, _ := json2.Marshal(m.Envs)
 	volumesStr, _ := json2.Marshal(m.Volumes)
 	devicesStr, _ := json2.Marshal(m.Devices)
-	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(string(volumesStr), appInfo.Volumes) || m.PortMap != appInfo.PortMap || m.NetworkModel != appInfo.NetModel {
+	capAddStr, _ := json2.Marshal(m.CapAdd)
+	cmdStr, _ := json.Marshal(m.Cmd)
+	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(string(volumesStr), appInfo.Volumes) || m.PortMap != appInfo.PortMap || m.NetworkModel != appInfo.NetModel || m.HostName != appInfo.HostName || !reflect.DeepEqual(string(cmdStr), appInfo.Cmd) || !reflect.DeepEqual(string(capAddStr), appInfo.CapAdd) || m.Privileged != appInfo.Privileged {
 
 		var newUUid = uuid.NewV4().String()
 		var err error
@@ -1044,6 +1062,10 @@ func UpdateSetting(c *gin.Context) {
 	appInfo.Restart = m.Restart
 	appInfo.Memory = m.Memory
 	appInfo.CpuShares = m.CpuShares
+	appInfo.Cmd = string(cmdStr)
+	appInfo.Privileged = m.Privileged
+	appInfo.CapAdd = string(capAddStr)
+	appInfo.HostName = m.HostName
 	appInfo.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
 	service.MyService.App().UpdateApp(appInfo)
 
@@ -1139,7 +1161,6 @@ func ContainerRelyInfo(c *gin.Context) {
 func ContainerUpdateInfo(c *gin.Context) {
 	appId := c.Param("id")
 	appInfo := service.MyService.App().GetAppDBInfo(appId)
-
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
 	if err != nil {
 		//todo 需要自定义错误
@@ -1162,6 +1183,10 @@ func ContainerUpdateInfo(c *gin.Context) {
 	var dir model.PathArray
 	json2.Unmarshal([]byte(appInfo.Devices), &dir)
 
+	var cmd []string
+	json2.Unmarshal([]byte(appInfo.Cmd), &cmd)
+	var capAdd []string
+	json2.Unmarshal([]byte(appInfo.CapAdd), &capAdd)
 	//volumesStr, _ := json2.Marshal(m.Volumes)
 	//devicesStr, _ := json2.Marshal(m.Devices)
 	m := model.CustomizationPostData{}
@@ -1182,6 +1207,11 @@ func ContainerUpdateInfo(c *gin.Context) {
 	m.Restart = info.HostConfig.RestartPolicy.Name
 	m.EnableUPNP = appInfo.EnableUPNP
 	m.Position = appInfo.Position
+
+	m.CapAdd = capAdd
+	m.Cmd = cmd
+	m.HostName = appInfo.HostName
+	m.Privileged = appInfo.Privileged
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: m})
 }

@@ -12,7 +12,7 @@ DEVBASE=$2
 DEVICE="/dev/${DEVBASE}"
 
 # See if this drive is already mounted, and if so where
-MOUNT_POINT=$(mount | grep ${DEVICE} | awk '{ print $3 }')
+MOUNT_POINT=$(lsblk -o name,mountpoint | grep ${DEVICE} | awk '{print $2}')
 
 do_mount() {
 

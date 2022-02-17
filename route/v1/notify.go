@@ -1,15 +1,13 @@
 package v1
 
 import (
-	json2 "encoding/json"
-	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"fmt"
+	"net/http"
+
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"net/http"
-	"time"
 )
 
 var upGrader = websocket.Upgrader{
@@ -33,24 +31,17 @@ func NotifyWS(c *gin.Context) {
 		return
 	}
 	defer ws.Close()
+	service.WebSocketConns = append(service.WebSocketConns, ws)
+
+	if !service.SocketRun {
+		service.SocketRun = true
+		service.SendMeg()
+	}
 	for {
 		mt, message, err := ws.ReadMessage()
-		if err != nil {
-			break
-		}
-		if string(message) != "notify" {
-			return
-		}
-		for {
-			list := service.MyService.Notify().GetList()
-			json, _ := json2.Marshal(list)
-			err = ws.WriteMessage(mt, json)
-			if err != nil {
-				break
-			}
-			time.Sleep(time.Second * 2)
-		}
+		fmt.Println(mt, message, err)
 	}
+
 }
 
 // @Summary 标记notify已读
@@ -62,9 +53,10 @@ func NotifyWS(c *gin.Context) {
 // @Router /notify/read/{id} [put]
 func PutNotifyRead(c *gin.Context) {
 	id := c.Param("id")
-	if len(id) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
-		return
-	}
+	// if len(id) == 0 {
+	// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+	// 	return
+	// }
+	fmt.Println(id)
 	service.MyService.Notify().MarkRead(id, types.NOTIFY_READ)
 }

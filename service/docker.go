@@ -433,7 +433,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	}
 	for _, p := range m.Devices {
 		if len(p.Path) > 0 {
-			res.Devices = append(res.Devices, container.DeviceMapping{PathOnHost: p.Path, PathInContainer: p.ContainerPath})
+			res.Devices = append(res.Devices, container.DeviceMapping{PathOnHost: p.Path, PathInContainer: p.ContainerPath, CgroupPermissions: "rwm"})
 		}
 	}
 	hostConfingBind := []string{}
@@ -490,13 +490,18 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	// 	Retries:     1000,
 	// }
 	// fmt.Print(health)
+	if len(m.HostName) == 0 {
+		m.HostName = m.Label
+	}
 	config := &container.Config{
 		Image:  imageName,
 		Labels: map[string]string{"origin": m.Origin, m.Origin: m.Origin},
 		Env:    envArr,
 		//	Healthcheck: health,
+		Hostname: m.HostName,
+		Cmd:      m.Cmd,
 	}
-	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(net)}
+	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(net), Privileged: m.Privileged, CapAdd: m.CapAdd}
 	//if net != "host" {
 	config.ExposedPorts = ports
 	hostConfig.PortBindings = portMaps
@@ -754,7 +759,7 @@ func (ds *dockerService) DockerContainerUpdate(m model.CustomizationPostData, id
 		res.CPUShares = m.CpuShares
 	}
 	for _, p := range m.Devices {
-		res.Devices = append(res.Devices, container.DeviceMapping{PathOnHost: p.Path, PathInContainer: p.ContainerPath})
+		res.Devices = append(res.Devices, container.DeviceMapping{PathOnHost: p.Path, PathInContainer: p.ContainerPath, CgroupPermissions: "rwm"})
 	}
 	_, err = cli.ContainerUpdate(context.Background(), id, container.UpdateConfig{RestartPolicy: rp, Resources: res})
 	if err != nil {

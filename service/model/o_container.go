@@ -40,7 +40,11 @@ type AppListDBModel struct {
 	Memory    int64  `json:"memory"`
 	Restart   string `json:"restart"`
 	//Rely      model.MapStrings `gorm:"type:json" json:"rely"` //[{"mysql":"id"},{"mysql":"id"}]
-	Origin string `json:"origin"`
+	Origin     string `json:"origin"`
+	HostName   string `json:"host_name"`
+	Privileged bool   `json:"privileged"`
+	CapAdd     string `json:"cap_add"`
+	Cmd        string `gorm:"type:json" json:"cmd"`
 }
 
 func (p *AppListDBModel) TableName() string {

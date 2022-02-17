@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	json2 "encoding/json"
 	"fmt"
 	"strconv"
@@ -18,6 +19,7 @@ type CasaService interface {
 	GetTaskList(size int) []model2.TaskDBModel
 	GetServerAppInfo(id, t string, language string) model.ServerAppList
 	ShareAppFile(body []byte) string
+	PushHeart(id, t string, language string)
 }
 
 type casaService struct {
@@ -121,6 +123,24 @@ func GetToken() string {
 
 	Cache.SetDefault(keyName, auth)
 	return auth
+}
+
+func (o *casaService) PushHeart(id, t string, language string) {
+
+	m := model.CasaOSHeart{}
+	m.UuId = id
+	m.Type = t
+	b, _ := json.Marshal(m)
+
+	head := make(map[string]string)
+
+	head["Authorization"] = GetToken()
+
+	infoS := httper2.Post(config.ServerInfo.ServerApi+"/v1/analyse/heart", b, "application/json", head)
+
+	info := model.ServerAppList{}
+	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
+
 }
 
 func NewOasisService() CasaService {
