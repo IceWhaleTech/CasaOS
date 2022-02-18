@@ -7,6 +7,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -21,5 +22,9 @@ func PersonTest(c *gin.Context) {
 	m.Type = ""
 	m.UUId = uuid.NewV4().String()
 
-	service.MyService.Person().Handshake(m)
+	//service.MyService.Person().Handshake(m)
+	err := service.WebSocketConn.WriteMessage(websocket.TextMessage, []byte("test1111"))
+	if err == nil {
+		return
+	}
 }

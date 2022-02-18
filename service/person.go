@@ -74,6 +74,8 @@ func (p *personService) Handshake(m model.ConnectState) {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	//websocket 连接
 	// bidirectionHole(srcAddr, &anotherPeer)
 
 	//2udp打洞成功向服务器汇报打洞结果

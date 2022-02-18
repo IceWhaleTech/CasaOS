@@ -5,8 +5,8 @@ import "time"
 type PersionModel struct {
 	Token     string    `json:"token"`
 	Ips       []string  `json:"ips"`
-	CreatedAt time.Time `gorm:"<-:create;autoCreateTime" json:"created_at"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 //记录链接状态
@@ -16,4 +16,9 @@ type ConnectState struct {
 	Type      string    `json:"type"` //current state 1:ready 2:ok
 	CreatedAt time.Time `json:"created_at"`
 	UUId      string    `json:"uuid"` //对接标识
+}
+type MessageModel struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+	UUId string      `json:"uuid"`
 }
