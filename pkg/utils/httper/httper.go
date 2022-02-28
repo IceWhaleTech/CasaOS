@@ -16,9 +16,9 @@ import (
 //url:请求地址
 //response:请求返回的内容
 func Get(url string, head map[string]string) (response string) {
-	client := http.Client{Timeout: 30 * time.Second}
+	client := &http.Client{Timeout: 30 * time.Second}
 	req, err := http.NewRequest("GET", url, nil)
-	req.BasicAuth()
+
 	for k, v := range head {
 		req.Header.Add(k, v)
 	}

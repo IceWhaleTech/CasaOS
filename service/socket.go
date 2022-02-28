@@ -15,6 +15,9 @@ import (
 var WebSocketConn *websocket.Conn
 
 func SocketConnect() {
+
+	GetUdpConnet()
+	return
 	Connect()
 	ticker := time.NewTicker(time.Second * 5)
 	defer ticker.Stop()
@@ -34,6 +37,8 @@ func SocketConnect() {
 				err := json.Unmarshal(bss, &content)
 				fmt.Println(content)
 				fmt.Println(err)
+				//开始尝试udp链接
+				go UDPConnect(content.Ips)
 			}
 		}
 	}()
@@ -41,6 +46,7 @@ func SocketConnect() {
 	msg := model.MessageModel{}
 	msg.Data = config.ServerInfo.Token
 	msg.Type = "refresh"
+	msg.From = config.ServerInfo.Token
 	b, _ := json.Marshal(msg)
 	for {
 
@@ -60,20 +66,7 @@ func SocketConnect() {
 func Connect() {
 	host := strings.Split(config.ServerInfo.Handshake, "://")
 	u := url.URL{Scheme: "ws", Host: host[1], Path: "/v1/ws"}
-
-	var err error
 	for {
-		msg := model.MessageModel{}
-		msg.Data = config.ServerInfo.Token
-		msg.Type = "join"
-		b, _ := json.Marshal(msg)
-		if WebSocketConn != nil {
-			err = WebSocketConn.WriteMessage(websocket.TextMessage, b)
-			if err == nil {
-				return
-			}
-		}
-
 		d, _, e := websocket.DefaultDialer.Dial(u.String(), nil)
 		if e == nil {
 			WebSocketConn = d

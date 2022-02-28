@@ -196,8 +196,8 @@ func RenamePath(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
-	service.MyService.ZiMa().RenameFile(op, np)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	success, err := service.MyService.ZiMa().RenameFile(op, np)
+	c.JSON(http.StatusOK, model.Result{Success: success, Message: oasis_err2.GetMsg(success), Data: err})
 }
 
 // @Summary create folder
@@ -309,6 +309,15 @@ func PostOperateFileOrDir(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
+
+// @Summary delete file
+// @Produce  application/json
+// @Accept  multipart/form-data
+// @Tags file
+// @Security ApiKeyAuth
+// @Param path query string true "path"
+// @Success 200 {string} string "ok"
+// @Router /file/delete [delete]
 func DeleteFile(c *gin.Context) {
 	path := c.Query("path")
 	//err := os.Remove(path)

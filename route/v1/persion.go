@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -23,7 +24,13 @@ func PersonTest(c *gin.Context) {
 	m.UUId = uuid.NewV4().String()
 
 	//service.MyService.Person().Handshake(m)
-	err := service.WebSocketConn.WriteMessage(websocket.TextMessage, []byte("test1111"))
+	msg := model.MessageModel{}
+	msg.Type = "connection"
+	msg.Data = "fb2333a1-72b2-4cb4-9e31-61ccaffa55b9"
+	msg.From = config.ServerInfo.Token
+	msg.UUId = "1234567890"
+	b, _ := json.Marshal(msg)
+	err := service.WebSocketConn.WriteMessage(websocket.TextMessage, b)
 	if err == nil {
 		return
 	}
