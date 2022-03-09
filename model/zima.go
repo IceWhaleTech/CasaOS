@@ -7,4 +7,7 @@ type Path struct {
 	Path  string    `json:"path"`
 	IsDir bool      `json:"is_dir"`
 	Date  time.Time `json:"date"`
+	Size  int64     `json:"size"`
+	Type  string    `json:"type,omitempty"`
+	Label string    `json:"label,omitempty"`
 }

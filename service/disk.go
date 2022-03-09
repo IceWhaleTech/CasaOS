@@ -171,7 +171,9 @@ func (d *diskService) LSBLK(isUseCache bool) []model.LSBLKModel {
 			i.Children = c
 			if fsused > 0 {
 				i.UsedPercent, err = strconv.ParseFloat(fmt.Sprintf("%.4f", float64(fsused)/float64(i.Size)), 64)
-				d.log.Fatal("diskservice_lsblk_fsused", err)
+				if err != nil {
+					d.log.Fatal("diskservice_lsblk_fsused", err)
+				}
 			}
 			n = append(n, i)
 			health = true

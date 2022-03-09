@@ -32,7 +32,10 @@ func init() {
 	//gredis.GetRedisConn(config.RedisInfo),
 	service.MyService = service.NewService(sqliteDB, loger2.NewOLoger())
 	service.Cache = cache.Init()
+	//go service.UDPConnect([]string{})
+	//go service.SocketConnect()
 	route.InitFunction()
+
 }
 
 // @title casaOS API

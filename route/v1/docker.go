@@ -176,7 +176,7 @@ func InstallApp(c *gin.Context) {
 		dockerImageVersion = "latest"
 	}
 	if m.Origin != "custom" {
-		appInfo = service.MyService.OAPI().GetServerAppInfo(appId, "", language)
+		appInfo = service.MyService.Casa().GetServerAppInfo(appId, "", language)
 
 	} else {
 

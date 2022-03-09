@@ -1,12 +1,15 @@
 package file
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"os"
 	"path"
+	"strconv"
+	"strings"
 )
 
 // GetSize get the file size
@@ -137,6 +140,21 @@ func CreateFile(path string) error {
 	return nil
 }
 
+func CreateFileAndWriteContent(path string, content string) error {
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+	write := bufio.NewWriter(file)
+
+	write.WriteString(content)
+
+	write.Flush()
+	return nil
+}
+
 // IsNotExistMkDir create a directory if it does not exist
 func IsNotExistCreateFile(src string) error {
 	if notExist := CheckNotExist(src); notExist == true {
@@ -167,6 +185,27 @@ func CopyFile(src, dst string) error {
 	var srcfd *os.File
 	var dstfd *os.File
 	var srcinfo os.FileInfo
+
+	lastPath := src[strings.LastIndex(src, "/")+1:]
+
+	if !strings.HasSuffix(dst, "/") {
+		dst += "/"
+	}
+	dstPath := dst
+	dst += lastPath
+	for i := 0; Exists(dst); i++ {
+		name := strings.Split(lastPath, ".")
+		nameIndex := 0
+		if len(name) > 2 {
+			nameIndex = len(name) - 2
+		}
+		name[nameIndex] = name[nameIndex] + strconv.Itoa(i+1)
+		dst = dstPath
+		for _, v := range name {
+			dst += v + "."
+		}
+		dst = strings.TrimSuffix(dst, ".")
+	}
 
 	if srcfd, err = os.Open(src); err != nil {
 		return err
@@ -202,16 +241,21 @@ func CopyDir(src string, dst string) error {
 		}
 		return nil
 	}
+	dstPath := dst
+	lastPath := src[strings.LastIndex(src, "/")+1:]
+	dst += "/" + lastPath
+	for i := 0; Exists(dst); i++ {
+		dst = dstPath + "/" + lastPath + strconv.Itoa(i+1)
+	}
 	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
 		return err
 	}
-
 	if fds, err = ioutil.ReadDir(src); err != nil {
 		return err
 	}
 	for _, fd := range fds {
 		srcfp := path.Join(src, fd.Name())
-		dstfp := path.Join(dst, fd.Name())
+		dstfp := dst //path.Join(dst, fd.Name())
 
 		if fd.IsDir() {
 			if err = CopyDir(srcfp, dstfp); err != nil {
@@ -223,5 +267,56 @@ func CopyDir(src string, dst string) error {
 			}
 		}
 	}
+	return nil
+}
+
+//文件写入临时目录
+func WriteToPath(data []byte, path, name string) error {
+	fullPath := path
+	if strings.HasSuffix(path, "/") {
+		fullPath += name
+	} else {
+		fullPath += "/" + name
+	}
+	IsNotExistCreateFile(fullPath)
+	file, err := os.OpenFile(fullPath,
+		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
+		0666,
+	)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = file.Write(data)
+
+	return err
+}
+
+//最终拼接
+func SpliceFiles(dir, path string, length int) error {
+
+	fullPath := path
+
+	IsNotExistCreateFile(fullPath)
+
+	file, _ := os.OpenFile(fullPath,
+		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
+		0666,
+	)
+	defer file.Close()
+	bufferedWriter := bufio.NewWriter(file)
+	for i := 0; i < length; i++ {
+		data, err := ioutil.ReadFile(path + strconv.Itoa(i))
+		if err != nil {
+			return err
+		}
+		_, err = bufferedWriter.Write(data)
+		if err != nil {
+			return err
+		}
+	}
+
+	bufferedWriter.Flush()
+
 	return nil
 }

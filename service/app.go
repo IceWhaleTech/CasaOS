@@ -36,6 +36,7 @@ type AppService interface {
 	GetHardwareUsageSteam()
 	GetHardwareUsage() []model.DockerStatsModel
 	GetAppStats(id string) string
+	GetAllDBApps() []model2.AppListDBModel
 }
 
 type appStruct struct {
@@ -166,6 +167,11 @@ func (a *appStruct) GetSystemAppList() *[]model2.MyAppList {
 
 	return &list
 
+}
+func (a *appStruct) GetAllDBApps() []model2.AppListDBModel {
+	var lm []model2.AppListDBModel
+	a.db.Table(model2.CONTAINERTABLENAME).Select("custom_id,title,icon,container_id,label,slogan,image").Find(&lm)
+	return lm
 }
 
 //获取我的应用列表

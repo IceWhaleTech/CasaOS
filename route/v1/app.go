@@ -36,7 +36,7 @@ func AppList(c *gin.Context) {
 	categoryId := c.DefaultQuery("category_id", "0")
 	key := c.DefaultQuery("key", "")
 	language := c.GetHeader("Language")
-	recommend, list, community := service.MyService.OAPI().GetServerList(index, size, t, categoryId, key, language)
+	recommend, list, community := service.MyService.Casa().GetServerList(index, size, t, categoryId, key, language)
 	// for i := 0; i < len(recommend); i++ {
 	// 	ct, _ := service.MyService.Docker().DockerListByImage(recommend[i].Image, recommend[i].ImageVersion)
 	// 	if ct != nil {
@@ -139,7 +139,7 @@ func AppInfo(c *gin.Context) {
 
 	id := c.Param("id")
 	language := c.GetHeader("Language")
-	info := service.MyService.OAPI().GetServerAppInfo(id, "", language)
+	info := service.MyService.Casa().GetServerAppInfo(id, "", language)
 	if info.NetworkModel != "host" {
 		for i := 0; i < len(info.Ports); i++ {
 			if p, _ := strconv.Atoi(info.Ports[i].ContainerPort); port2.IsPortAvailable(p, info.Ports[i].Protocol) {
@@ -217,7 +217,7 @@ func AppInfo(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /app/category [get]
 func CategoryList(c *gin.Context) {
-	list := service.MyService.OAPI().GetServerCategoryList()
+	list := service.MyService.Casa().GetServerCategoryList()
 	var count uint = 0
 	for _, category := range list {
 		count += category.Count
@@ -238,7 +238,7 @@ func CategoryList(c *gin.Context) {
 // @Router /app/share [post]
 func ShareAppFile(c *gin.Context) {
 	str, _ := ioutil.ReadAll(c.Request.Body)
-	content := service.MyService.OAPI().ShareAppFile(str)
+	content := service.MyService.Casa().ShareAppFile(str)
 	c.JSON(http.StatusOK, json.RawMessage(content))
 }
 
