@@ -41,4 +41,5 @@ IdleTimeout = 200
 [system]
 ConfigStr = 
 WidgetList =
+Analyse =
 

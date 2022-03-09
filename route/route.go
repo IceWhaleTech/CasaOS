@@ -207,6 +207,7 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.PUT("/rename", v1.RenamePath)
 			v1FileGroup.GET("/read", v1.GetFilerContent)
 			v1FileGroup.POST("/upload", v1.PostFileUpload)
+			v1FileGroup.GET("/upload", v1.GetFileUpload)
 			v1FileGroup.GET("/dirpath", v1.DirPath)
 			//create folder
 			v1FileGroup.POST("/mkdir", v1.MkdirAll)
@@ -214,7 +215,9 @@ func InitRouter() *gin.Engine {
 
 			v1FileGroup.GET("/download", v1.GetDownloadFile)
 			v1FileGroup.POST("/operate", v1.PostOperateFileOrDir)
-			v1FileGroup.DELETE("delete", v1.DeleteFile)
+			v1FileGroup.DELETE("/delete", v1.DeleteFile)
+			v1FileGroup.PUT("/update", v1.PutFileContent)
+
 			//v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
 		}
 		v1DiskGroup := v1Group.Group("/disk")
@@ -287,7 +290,20 @@ func InitRouter() *gin.Engine {
 		v1PersonGroup := v1Group.Group("/persion")
 		v1PersonGroup.Use()
 		{
-			v1PersonGroup.GET("/test", v1.PersonTest)
+			// v1PersonGroup.GET("/test", v1.PersonTest)
+			// v1PersonGroup.GET("/users", v1.Users)                        //用户列表
+			// v1PersonGroup.POST("/user", v1.Users)                        //添加用户
+			// v1PersonGroup.GET("/directory", v1.Users)                    //文件列表
+			v1PersonGroup.GET("/download", v1.GetPersionFile) //下载文件
+			// v1PersonGroup.PUT("/edit/:id", v1.EditUser)                  //修改好友
+			v1PersonGroup.GET("/list", v1.GetPersionDownloadList) //下载列表(需要考虑试试下载速度)
+			// v1PersonGroup.PUT("/state/:id", v1.PutPersionCancelDownload) //修改下载状态(开始暂停删除)
+
+		}
+		v1AnalyseGroup := v1Group.Group("/analyse")
+		v1AnalyseGroup.Use()
+		{
+			v1AnalyseGroup.POST("/app", v1.PostAppAnalyse)
 		}
 		v1Group.GET("/sync/config", v1.GetSyncConfig)
 		v1Group.Any("/syncthing/*url", v1.SyncToSyncthing)

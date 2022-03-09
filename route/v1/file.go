@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -177,6 +178,46 @@ func GetDownloadFile(c *gin.Context) {
 func DirPath(c *gin.Context) {
 	path := c.DefaultQuery("path", "")
 	info := service.MyService.ZiMa().GetDirPath(path)
+	if path == "/DATA/AppData" {
+		list := service.MyService.App().GetAllDBApps()
+		apps := make(map[string]string, len(list))
+		for _, v := range list {
+			apps[v.CustomId] = v.Label
+		}
+		for i := 0; i < len(info); i++ {
+			if v, ok := apps[info[i].Name]; ok {
+				info[i].Label = v
+				info[i].Type = "application"
+			}
+		}
+	} else if path == "/DATA" {
+		disk := make(map[string]string)
+		lsblk := service.MyService.Disk().LSBLK(true)
+		for _, v := range lsblk {
+			if len(v.Children) > 0 {
+				t := v.Tran
+				for _, c := range v.Children {
+					if len(c.Children) > 0 {
+						for _, gc := range c.Children {
+							if len(gc.MountPoint) > 0 {
+								disk[gc.MountPoint] = t
+							}
+						}
+					}
+					if len(c.MountPoint) > 0 {
+						disk[c.MountPoint] = t
+					}
+				}
+
+			}
+		}
+		for i := 0; i < len(info); i++ {
+			if v, ok := disk[info[i].Path]; ok {
+				info[i].Type = v
+			}
+		}
+	}
+
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: info})
 }
 
@@ -219,7 +260,7 @@ func MkdirAll(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: code, Message: oasis_err2.GetMsg(code)})
 }
 
-// @Summary 创建文件
+// @Summary create file
 // @Produce  application/json
 // @Accept  multipart/form-data
 // @Tags file
@@ -246,23 +287,74 @@ func PostCreateFile(c *gin.Context) {
 // @Param path formData string false "file path"
 // @Param file formData file true "file"
 // @Success 200 {string} string "ok"
+// @Router /file/upload [get]
+func GetFileUpload(c *gin.Context) {
+
+	relative := c.Query("relativePath")
+	fileName := c.Query("filename")
+	size, _ := strconv.ParseInt(c.Query("totalSize"), 10, 64)
+	path := c.Query("path")
+	if fileName != relative {
+		dirPath := strings.TrimSuffix(relative, fileName)
+		file.MkDir(path + "/" + dirPath)
+	}
+	path += "/" + relative
+
+	if !file.CheckNotExist(path) {
+		f, _ := os.Stat(path)
+
+		if f.Size() == size {
+
+			c.JSON(200, model.Result{Success: 200, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+			return
+		}
+
+		os.Remove(path)
+		c.JSON(204, model.Result{Success: 204, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+		return
+
+	}
+
+	c.JSON(204, model.Result{Success: 204, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary upload file
+// @Produce  application/json
+// @Accept  multipart/form-data
+// @Tags file
+// @Security ApiKeyAuth
+// @Param path formData string false "file path"
+// @Param file formData file true "file"
+// @Success 200 {string} string "ok"
 // @Router /file/upload [post]
 func PostFileUpload(c *gin.Context) {
 	f, _, _ := c.Request.FormFile("file")
-	path := c.Query("path")
+	relative := c.PostForm("relativePath")
+	fileName := c.PostForm("filename")
+	path := c.PostForm("path")
+
 	if len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(oasis_err2.INVALID_PARAMS, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
+
+	if fileName != relative {
+		dirPath := strings.TrimSuffix(relative, fileName)
+		file.MkDir(path + "/" + dirPath)
+	}
+	path += "/" + relative
+
 	if !file.CheckNotExist(path) {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+
+		c.JSON(oasis_err2.FILE_ALREADY_EXISTS, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
 		return
 	}
+
 	out, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
 	defer out.Close()
 	_, err := io.Copy(out, f)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
@@ -275,7 +367,7 @@ func PostFileUpload(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Param from formData string true "from path"
 // @Param to formData string true "to path"
-// @Param t formData string true "action" Enums(move,copy)
+// @Param type formData string true "action" Enums(move,copy)
 // @Success 200 {string} string "ok"
 // @Router /file/operate [post]
 func PostOperateFileOrDir(c *gin.Context) {
@@ -325,6 +417,38 @@ func DeleteFile(c *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DELETE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.FILE_DELETE_ERROR), Data: err})
+		return
+	}
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary update file
+// @Produce  application/json
+// @Accept  multipart/form-data
+// @Tags file
+// @Security ApiKeyAuth
+// @Param path formData string true "path"
+// @Param content formData string true "content"
+// @Success 200 {string} string "ok"
+// @Router /file/update [put]
+func PutFileContent(c *gin.Context) {
+	path := c.PostForm("path")
+	content := c.PostForm("content")
+	if !file.Exists(path) {
+		c.JSON(oasis_err2.FILE_ALREADY_EXISTS, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+		return
+	}
+	//err := os.Remove(path)
+	err := os.RemoveAll(path)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DELETE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.FILE_DELETE_ERROR), Data: err})
+		return
+	}
+	err = file.CreateFileAndWriteContent(path, content)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err})
 		return
 	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})

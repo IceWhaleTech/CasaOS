@@ -22,17 +22,26 @@ type MessageModel struct {
 	Data interface{} `json:"data"`
 	UUId string      `json:"uuid"`
 	From string      `json:"from"`
+	To   string      `json:"to"`
 }
 
 type TranFileModel struct {
-	Hash  string `json:"hash"` //Verify current fragment integrity
-	Data  []byte `json:"data"`
-	Index int    `json:"index"`
+	Hash   string `json:"hash"` //Verify current fragment integrity
+	Length int    `json:"length"`
+	Index  int    `json:"index"`
 }
 
+//需要获取文件详情
+type FileDetailModel struct {
+	Path string `json:"path"`
+}
+
+//返回文件详情
 type FileSummaryModel struct {
 	Hash      string `json:"hash"` //Verify file
 	Name      string `json:"name"`
 	Path      string `json:"path"`
 	BlockSize int    `json:"block_size"`
+	Length    int    `json:"length"`
+	Size      int64  `json:"size"`
 }

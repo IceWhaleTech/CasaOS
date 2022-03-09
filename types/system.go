@@ -1,5 +1,5 @@
 package types
 
-const CURRENTVERSION = "0.2.9"
+const CURRENTVERSION = "0.2.10"
 
-const BODY = "<li>Custom installation of new parameters</li><li>Fixed issues</li><li>Update front-end translation</li>"
+const BODY = "<li>sAdded CasaOS own file manager</li><li>Fixed issues</li><li>Update front-end translation</li>"

@@ -20,6 +20,7 @@ type CasaService interface {
 	GetServerAppInfo(id, t string, language string) model.ServerAppList
 	ShareAppFile(body []byte) string
 	PushHeart(id, t string, language string)
+	PushAppAnalyse(uuid, t string, name, language string)
 }
 
 type casaService struct {
@@ -143,6 +144,26 @@ func (o *casaService) PushHeart(id, t string, language string) {
 
 }
 
-func NewOasisService() CasaService {
+func (o *casaService) PushAppAnalyse(uuid, t string, name, language string) {
+
+	m := model.AppAnalyse{}
+	m.UUId = uuid
+	m.Type = t
+	m.Name = name
+	m.Language = language
+	b, _ := json.Marshal(m)
+
+	head := make(map[string]string)
+
+	head["Authorization"] = GetToken()
+
+	infoS := httper2.Post(config.ServerInfo.ServerApi+"/v1/analyse/app", b, "application/json", head)
+
+	info := model.ServerAppList{}
+	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
+
+}
+
+func NewCasaService() CasaService {
 	return &casaService{}
 }

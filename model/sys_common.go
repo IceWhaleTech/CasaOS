@@ -69,6 +69,7 @@ type SystemConfig struct {
 	ConfigPath string `json:"config_path"`
 	SyncPort   string `json:"sync_port"`
 	SyncKey    string `json:"sync_key"`
+	Analyse    string `json:"analyse"`
 }
 
 type CasaOSGlobalVariables struct {

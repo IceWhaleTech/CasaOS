@@ -3,11 +3,14 @@ package file
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"io"
 	"math"
+	"os"
+	"strconv"
 )
 
 // Get info of block
-func GetBlockInfo(fileSize int) (blockSize int, length int) {
+func GetBlockInfo(fileSize int64) (blockSize int, length int) {
 	switch {
 	case fileSize <= 1<<28: //256M
 		blockSize = 1 << 17 //128kb
@@ -32,13 +35,47 @@ func GetBlockInfo(fileSize int) (blockSize int, length int) {
 }
 
 //get the hash of the data
-func GetHash(data []byte) string {
+func GetHashByContent(data []byte) string {
 	sum := md5.Sum(data)
 	return hex.EncodeToString(sum[:])
+}
+
+//get the hash of the data
+func GetHashByPath(path string) string {
+	pFile, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+	defer pFile.Close()
+	md5h := md5.New()
+	io.Copy(md5h, pFile)
+	return hex.EncodeToString(md5h.Sum(nil))
 }
 
 //Comparison data hash
 func ComparisonHash(data []byte, hash string) bool {
 	sum := md5.Sum(data)
 	return hex.EncodeToString(sum[:]) == hash
+}
+
+//get prefix byte length
+func PrefixLength(byteLength int) []byte {
+	lengthByte := []byte{'0', '0', '0', '0'}
+	bSize := strconv.Itoa(byteLength)
+	cha := 4 - len(bSize)
+	for i := len(bSize); i > 0; i-- {
+		lengthByte[cha+i-1] = bSize[i-1]
+	}
+	return lengthByte
+}
+
+//get data byte length
+func DataLength(length int) []byte {
+	lengthByte := []byte{'0', '0', '0', '0', '0', '0', '0', '0'}
+	bSize := strconv.Itoa(length)
+	cha := 8 - len(bSize)
+	for i := len(bSize); i > 0; i-- {
+		lengthByte[cha+i-1] = bSize[i-1]
+	}
+	return lengthByte
 }

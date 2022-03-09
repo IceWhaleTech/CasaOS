@@ -15,9 +15,6 @@ import (
 var WebSocketConn *websocket.Conn
 
 func SocketConnect() {
-
-	GetUdpConnet()
-	return
 	Connect()
 	ticker := time.NewTicker(time.Second * 5)
 	defer ticker.Stop()

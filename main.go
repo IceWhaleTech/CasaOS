@@ -32,10 +32,8 @@ func init() {
 	//gredis.GetRedisConn(config.RedisInfo),
 	service.MyService = service.NewService(sqliteDB, loger2.NewOLoger())
 	service.Cache = cache.Init()
+	//go service.UDPConnect([]string{})
 	//go service.SocketConnect()
-	//go service.TestTCP()
-	//go service.TestTCPOne()
-	go service.TestTCPTwo()
 	route.InitFunction()
 
 }

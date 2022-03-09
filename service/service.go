@@ -23,7 +23,7 @@ type Repository interface {
 	//Redis() RedisService
 	ZeroTier() ZeroTierService
 	ZiMa() ZiMaService
-	OAPI() CasaService
+	Casa() CasaService
 	Disk() DiskService
 	Notify() NotifyServer
 	ShareDirectory() ShareDirService
@@ -45,7 +45,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		//redis:      NewRedisService(rp),
 		zerotier:       NewZeroTierService(),
 		zima:           NewZiMaService(),
-		oapi:           NewOasisService(),
+		casa:           NewCasaService(),
 		disk:           NewDiskService(log, db),
 		notify:         NewNotifyService(db),
 		shareDirectory: NewShareDirService(db, log),
@@ -54,7 +54,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		system:         NewSystemService(log),
 		shortcuts:      NewShortcutsService(db),
 		search:         NewSearchService(),
-		person:         NewPersonService(),
+		person:         NewPersonService(db),
 	}
 }
 
@@ -66,7 +66,7 @@ type store struct {
 	docker         DockerService
 	zerotier       ZeroTierService
 	zima           ZiMaService
-	oapi           CasaService
+	casa           CasaService
 	disk           DiskService
 	notify         NotifyServer
 	shareDirectory ShareDirService
@@ -117,8 +117,8 @@ func (c *store) ZeroTier() ZeroTierService {
 func (c *store) ZiMa() ZiMaService {
 	return c.zima
 }
-func (c *store) OAPI() CasaService {
-	return c.oapi
+func (c *store) Casa() CasaService {
+	return c.casa
 }
 
 func (c *store) Disk() DiskService {

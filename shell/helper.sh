@@ -115,8 +115,8 @@ AddPartition() {
   parted -s $1 mklabel gpt
 
   parted -s $1 mkpart primary ext4 0 100%
-  PATH=`lsblk -r $1 | sort | grep part | head -n 1 | awk '{print $1}'`
-  mkfs.ext4 -m 1 /dev/${PATH}
+  P=`lsblk -r $1 | sort | grep part | head -n 1 | awk '{print $1}'`
+  mkfs.ext4 -m 1 -F /dev/${P}
 
   partprobe $1
 
