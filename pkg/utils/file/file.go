@@ -39,7 +39,7 @@ func CheckPermission(src string) bool {
 
 // IsNotExistMkDir create a directory if it does not exist
 func IsNotExistMkDir(src string) error {
-	if notExist := CheckNotExist(src); notExist == true {
+	if notExist := CheckNotExist(src); notExist {
 		if err := MkDir(src); err != nil {
 			return err
 		}
@@ -293,7 +293,7 @@ func WriteToPath(data []byte, path, name string) error {
 }
 
 //最终拼接
-func SpliceFiles(dir, path string, length int) error {
+func SpliceFiles(dir, path string, length int, startPoint int) error {
 
 	fullPath := path
 
@@ -305,8 +305,8 @@ func SpliceFiles(dir, path string, length int) error {
 	)
 	defer file.Close()
 	bufferedWriter := bufio.NewWriter(file)
-	for i := 0; i < length; i++ {
-		data, err := ioutil.ReadFile(path + strconv.Itoa(i))
+	for i := 0; i < length+startPoint; i++ {
+		data, err := ioutil.ReadFile(dir + "/" + strconv.Itoa(i+startPoint))
 		if err != nil {
 			return err
 		}

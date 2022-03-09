@@ -157,7 +157,7 @@ func ReadContent(stream quic.Stream) (model.MessageModel, error) {
 
 			err = ioutil.WriteFile(filepath, dataByte, 0644)
 			if dataModel.Index >= (dataModel.Length - 1) {
-				file.SpliceFiles("", path, dataModel.Length)
+				//file.SpliceFiles("", path, dataModel.Length)
 				break
 			}
 		} else {

@@ -292,27 +292,23 @@ func GetFileUpload(c *gin.Context) {
 
 	relative := c.Query("relativePath")
 	fileName := c.Query("filename")
-	size, _ := strconv.ParseInt(c.Query("totalSize"), 10, 64)
+	chunkNumber := c.Query("chunkNumber")
 	path := c.Query("path")
+	dirPath := ""
 	if fileName != relative {
-		dirPath := strings.TrimSuffix(relative, fileName)
+		dirPath = strings.TrimSuffix(relative, fileName)
 		file.MkDir(path + "/" + dirPath)
 	}
-	path += "/" + relative
-
-	if !file.CheckNotExist(path) {
-		f, _ := os.Stat(path)
-
-		if f.Size() == size {
-
-			c.JSON(200, model.Result{Success: 200, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
-			return
-		}
-
-		os.Remove(path)
-		c.JSON(204, model.Result{Success: 204, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	hash := file.GetHashByContent([]byte(fileName))
+	tempDir := path + "/"
+	if len(dirPath) > 0 {
+		tempDir += dirPath + "/" + hash + "/" + chunkNumber
+	} else {
+		tempDir += hash + "/" + chunkNumber
+	}
+	if !file.CheckNotExist(tempDir) {
+		c.JSON(200, model.Result{Success: 200, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
 		return
-
 	}
 
 	c.JSON(204, model.Result{Success: 204, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
@@ -331,7 +327,12 @@ func PostFileUpload(c *gin.Context) {
 	f, _, _ := c.Request.FormFile("file")
 	relative := c.PostForm("relativePath")
 	fileName := c.PostForm("filename")
+	totalChunks, _ := strconv.Atoi(c.DefaultPostForm("totalChunks", "0"))
+	chunkNumber := c.PostForm("chunkNumber")
+	dirPath := ""
 	path := c.PostForm("path")
+
+	hash := file.GetHashByContent([]byte(fileName))
 
 	if len(path) == 0 {
 		c.JSON(oasis_err2.INVALID_PARAMS, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
@@ -339,24 +340,53 @@ func PostFileUpload(c *gin.Context) {
 	}
 
 	if fileName != relative {
-		dirPath := strings.TrimSuffix(relative, fileName)
+		dirPath = strings.TrimSuffix(relative, fileName)
 		file.MkDir(path + "/" + dirPath)
+	}
+	tempDir := path + "/"
+	if len(dirPath) > 0 {
+		tempDir += dirPath + "/" + hash
+	} else {
+		tempDir += hash
 	}
 	path += "/" + relative
 
-	if !file.CheckNotExist(path) {
-
+	if !file.CheckNotExist(tempDir + "/" + chunkNumber) {
 		c.JSON(oasis_err2.FILE_ALREADY_EXISTS, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
 		return
 	}
 
-	out, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
-	defer out.Close()
-	_, err := io.Copy(out, f)
+	if totalChunks > 1 {
+		file.IsNotExistMkDir(tempDir)
+
+		out, _ := os.OpenFile(tempDir+"/"+chunkNumber, os.O_WRONLY|os.O_CREATE, 0644)
+		defer out.Close()
+		_, err := io.Copy(out, f)
+		if err != nil {
+			c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			return
+		}
+	} else {
+		out, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
+		defer out.Close()
+		_, err := io.Copy(out, f)
+		if err != nil {
+			c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+		return
+	}
+	fileNum, err := ioutil.ReadDir(tempDir)
 	if err != nil {
 		c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
 		return
 	}
+	if totalChunks == len(fileNum) {
+		file.SpliceFiles(tempDir, path, totalChunks, 1)
+		file.RMDir(tempDir)
+	}
+
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
