@@ -293,6 +293,7 @@ func GetFileUpload(c *gin.Context) {
 	relative := c.Query("relativePath")
 	fileName := c.Query("filename")
 	chunkNumber := c.Query("chunkNumber")
+	totalChunks, _ := strconv.Atoi(c.DefaultQuery("totalChunks", "0"))
 	path := c.Query("path")
 	dirPath := ""
 	if fileName != relative {
@@ -300,12 +301,7 @@ func GetFileUpload(c *gin.Context) {
 		file.MkDir(path + "/" + dirPath)
 	}
 	hash := file.GetHashByContent([]byte(fileName))
-	tempDir := path + "/"
-	if len(dirPath) > 0 {
-		tempDir += dirPath + "/" + hash + "/" + chunkNumber
-	} else {
-		tempDir += hash + "/" + chunkNumber
-	}
+	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks) + "/" + chunkNumber
 	if !file.CheckNotExist(tempDir) {
 		c.JSON(200, model.Result{Success: 200, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
 		return
@@ -343,12 +339,8 @@ func PostFileUpload(c *gin.Context) {
 		dirPath = strings.TrimSuffix(relative, fileName)
 		file.MkDir(path + "/" + dirPath)
 	}
-	tempDir := path + "/"
-	if len(dirPath) > 0 {
-		tempDir += dirPath + "/" + hash
-	} else {
-		tempDir += hash
-	}
+	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks)
+
 	path += "/" + relative
 
 	if !file.CheckNotExist(tempDir + "/" + chunkNumber) {
