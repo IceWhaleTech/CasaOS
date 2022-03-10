@@ -2,6 +2,7 @@ package service
 
 import (
 	"bufio"
+	"context"
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/hex"
@@ -22,8 +23,10 @@ import (
 
 var UDPconn *net.UDPConn
 var PeopleMap map[string]quic.Stream
+var Message chan model.MessageModel
 
 func Dial(addr string, token string) error {
+	Message = make(chan model.MessageModel)
 	quicConfig := &quic.Config{
 		ConnectionIDLength: 4,
 		KeepAlive:          true,
@@ -38,11 +41,15 @@ func Dial(addr string, token string) error {
 	if err != nil {
 		return err
 	}
-	// stream, err := session.OpenStreamSync(context.Background())
-	// if err != nil {
-	// 	return err
-	// }
-
+	stream, err := session.OpenStreamSync(context.Background())
+	if err != nil {
+		return err
+	}
+	SayHello(stream, token)
+	//写
+	go ReadContent(stream)
+	//读
+	//结果
 	return nil
 }
 
@@ -112,7 +119,7 @@ func SendData(stream quic.Stream, m model.MessageModel) {
 }
 
 //读取数据
-func ReadContent(stream quic.Stream) (model.MessageModel, error) {
+func ReadContent(stream quic.Stream) {
 	path := ""
 	for {
 		prefixByte := make([]byte, 4)
@@ -161,8 +168,8 @@ func ReadContent(stream quic.Stream) (model.MessageModel, error) {
 				break
 			}
 		} else {
-			return m, nil
+			Message <- m
 		}
 	}
-	return model.MessageModel{}, nil
+	Message <- model.MessageModel{}
 }
