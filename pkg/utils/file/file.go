@@ -199,7 +199,7 @@ func CopyFile(src, dst string) error {
 		if len(name) > 2 {
 			nameIndex = len(name) - 2
 		}
-		name[nameIndex] = name[nameIndex] + strconv.Itoa(i+1)
+		name[nameIndex] = name[nameIndex] + "(Copy)"
 		dst = dstPath
 		for _, v := range name {
 			dst += v + "."

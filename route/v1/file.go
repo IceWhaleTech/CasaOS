@@ -296,12 +296,14 @@ func GetFileUpload(c *gin.Context) {
 	totalChunks, _ := strconv.Atoi(c.DefaultQuery("totalChunks", "0"))
 	path := c.Query("path")
 	dirPath := ""
+	hash := file.GetHashByContent([]byte(fileName))
+	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks) + "/"
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
+		tempDir += dirPath
 		file.MkDir(path + "/" + dirPath)
 	}
-	hash := file.GetHashByContent([]byte(fileName))
-	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks) + "/" + chunkNumber
+	tempDir += chunkNumber
 	if !file.CheckNotExist(tempDir) {
 		c.JSON(200, model.Result{Success: 200, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
 		return
@@ -334,24 +336,24 @@ func PostFileUpload(c *gin.Context) {
 		c.JSON(oasis_err2.INVALID_PARAMS, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
+	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks) + "/"
 
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
+		tempDir += dirPath
 		file.MkDir(path + "/" + dirPath)
 	}
-	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks)
 
 	path += "/" + relative
 
-	if !file.CheckNotExist(tempDir + "/" + chunkNumber) {
-		c.JSON(oasis_err2.FILE_ALREADY_EXISTS, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
-		return
+	if !file.CheckNotExist(tempDir + chunkNumber) {
+		file.RMDir(tempDir + chunkNumber)
 	}
 
 	if totalChunks > 1 {
 		file.IsNotExistMkDir(tempDir)
 
-		out, _ := os.OpenFile(tempDir+"/"+chunkNumber, os.O_WRONLY|os.O_CREATE, 0644)
+		out, _ := os.OpenFile(tempDir+chunkNumber, os.O_WRONLY|os.O_CREATE, 0644)
 		defer out.Close()
 		_, err := io.Copy(out, f)
 		if err != nil {
