@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bufio"
 	"context"
 	"crypto/cipher"
 	"crypto/rand"
@@ -17,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -268,16 +270,10 @@ func generateTLSConfig() *tls.Config {
 	if err != nil {
 		panic(err)
 	}
-	// return &tls.Config{
-	// 	ClientSessionCache:     globalSessionCache,
-	// 	RootCAs:                root,
-	// 	InsecureSkipVerify:     false,
-	// 	NextProtos:             nil,
-	// 	SessionTicketsDisabled: true,
-	// }
 	return &tls.Config{
-		Certificates: []tls.Certificate{tlsCert},
-		NextProtos:   []string{"quic-echo-example"},
+		Certificates:           []tls.Certificate{tlsCert},
+		NextProtos:             []string{"bench"},
+		SessionTicketsDisabled: true,
 	}
 }
 
@@ -509,4 +505,198 @@ func AsyncUDPConnect(dst *net.UDPAddr) {
 }
 func NewPersonService(db *gorm.DB) PersonService {
 	return &personService{db: db}
+}
+
+//=======================================================================================================================================================================
+
+var StreamList map[string]quic.Stream
+var ServiceMessage chan model.MessageModel
+
+func UDPService() {
+	quicConfig := &quic.Config{
+		ConnectionIDLength: 4,
+		KeepAlive:          true,
+	}
+	srcAddr := &net.UDPAddr{
+		IP: net.IPv4zero, Port: 9902} //注意端口必须固定
+	fmt.Println(srcAddr.String())
+	listener, err := quic.ListenAddr(srcAddr.String(), generateTLSConfig(), quicConfig)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer listener.Close()
+	ctx := context.Background()
+	acceptFailures := 0
+	const maxAcceptFailures = 10
+	if err != nil {
+		panic(err)
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			fmt.Println(ctx.Err())
+			return
+		default:
+		}
+
+		session, err := listener.Accept(ctx)
+		if err != nil {
+			fmt.Println("Listen (BEP/quic): Accepting connection:", err)
+
+			acceptFailures++
+			if acceptFailures > maxAcceptFailures {
+				// Return to restart the listener, because something
+				// seems permanently damaged.
+				fmt.Println(err)
+				return
+			}
+
+			// Slightly increased delay for each failure.
+			time.Sleep(time.Duration(acceptFailures) * time.Second)
+
+			continue
+		}
+
+		acceptFailures = 0
+
+		streamCtx, cancel := context.WithTimeout(ctx, time.Second*10)
+		stream, err := session.AcceptStream(streamCtx)
+		cancel()
+		if err != nil {
+			fmt.Println("failed to accept stream from %s: %v", session.RemoteAddr(), err)
+			_ = session.CloseWithError(1, err.Error())
+			continue
+		}
+
+		// prefixByte := make([]byte, 4)
+		// c1, err := io.ReadFull(stream, prefixByte)
+		// fmt.Println(c1, err)
+		// prefixLength, err := strconv.Atoi(string(prefixByte))
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+		// messageByte := make([]byte, prefixLength)
+		// t, err := io.ReadFull(stream, messageByte)
+		// fmt.Println(t, err)
+		// m := model.MessageModel{}
+		// err = json.Unmarshal(messageByte, &m)
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+
+		go ProcessingContent(stream)
+	}
+}
+
+//处理内容
+func ProcessingContent(stream quic.Stream) {
+	//需要处理关闭问题
+
+	for {
+		prefixByte := make([]byte, 4)
+		c1, err := io.ReadFull(stream, prefixByte)
+		fmt.Println(c1)
+		if err != nil {
+			return
+		}
+		prefixLength, err := strconv.Atoi(string(prefixByte))
+		if err != nil {
+			fmt.Println(err)
+		}
+		messageByte := make([]byte, prefixLength)
+		t, err := io.ReadFull(stream, messageByte)
+		if err != nil {
+			return
+		}
+		fmt.Println(t, err)
+		m := model.MessageModel{}
+		err = json.Unmarshal(messageByte, &m)
+		fmt.Println(m)
+		if err != nil {
+			fmt.Println(err)
+		}
+		if m.Type == "hello" {
+			//什么也不做
+			continue
+		} else if m.Type == "directory" {
+			list := MyService.ZiMa().GetDirPath(m.Data.(string))
+			m.To = m.From
+			m.Data = list
+			m.From = config.ServerInfo.Token
+			SendData(stream, m)
+			break
+		} else if m.Type == "file_data" {
+			SendFileData(stream, m.Data.(string), m.From, m.UUId)
+			break
+		} else if m.Type == types.PERSONADDFRIEND {
+			friend := model2.FriendModel{}
+			dataModelByte, _ := json.Marshal(m.Data)
+			err := json.Unmarshal(dataModelByte, &friend)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			go MyService.Friend().UpdateAddFriendType(friend)
+			mi := model2.FriendModel{}
+			mi.Avatar = config.UserInfo.Avatar
+			mi.Profile = config.UserInfo.Description
+			mi.Name = config.UserInfo.UserName
+			m.To = m.From
+			m.Data = mi
+			m.Type = types.PERSONADDFRIEND
+			m.From = config.ServerInfo.Token
+
+			SendData(stream, m)
+			break
+		} else {
+			//不应有不做返回的数据
+			//ServiceMessage <- m
+			break
+		}
+	}
+	stream.Close()
+
+}
+
+//文件分片发送
+func SendFileData(stream quic.Stream, filePath, to, uuid string) error {
+
+	fStat, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+
+	blockSize, length := file.GetBlockInfo(fStat.Size())
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		fmt.Println("读取失败", err)
+		return err
+	}
+	bufferedReader := bufio.NewReader(f)
+	buf := make([]byte, blockSize)
+	for i := 0; i < length; i++ {
+
+		tran := model.TranFileModel{}
+
+		_, err = bufferedReader.Read(buf)
+
+		if err == io.EOF {
+			fmt.Println("读取完毕", err)
+		}
+
+		tran.Hash = file.GetHashByContent(buf)
+		tran.Index = i
+
+		msg := model.MessageModel{}
+		msg.Type = "file_data"
+		msg.Data = tran
+		msg.From = config.ServerInfo.Token
+		msg.To = to
+		msg.UUId = uuid
+		b, _ := json.Marshal(msg)
+		stream.Write(b)
+	}
+	defer stream.Close()
+	return nil
 }

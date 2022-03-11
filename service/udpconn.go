@@ -1,7 +1,6 @@
 package service
 
 import (
-	"bufio"
 	"context"
 	"crypto/md5"
 	"crypto/tls"
@@ -11,8 +10,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
-	"os"
 	"strconv"
+	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -25,7 +24,9 @@ var UDPconn *net.UDPConn
 var PeopleMap map[string]quic.Stream
 var Message chan model.MessageModel
 
-func Dial(addr string, token string) error {
+func Dial(addr string, msg model.MessageModel) (m model.MessageModel, err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	Message = make(chan model.MessageModel)
 	quicConfig := &quic.Config{
 		ConnectionIDLength: 4,
@@ -36,21 +37,26 @@ func Dial(addr string, token string) error {
 		NextProtos:             []string{"bench"},
 		SessionTicketsDisabled: true,
 	}
-	session, err := quic.DialAddr(addr, tlsConf, quicConfig)
-	defer session.CloseWithError(0, "")
+
+	session, err := quic.DialAddrContext(ctx, addr, tlsConf, quicConfig)
 	if err != nil {
-		return err
+		return m, err
 	}
-	stream, err := session.OpenStreamSync(context.Background())
+
+	stream, err := session.OpenStreamSync(ctx)
 	if err != nil {
-		return err
+		session.CloseWithError(1, err.Error())
+		return m, err
 	}
-	SayHello(stream, token)
-	//写
+
+	SayHello(stream, msg.To)
+
+	SendData(stream, msg)
+
 	go ReadContent(stream)
-	//读
-	//结果
-	return nil
+	result := <-Message
+	stream.Close()
+	return result, nil
 }
 
 func SayHello(stream quic.Stream, to string) {
@@ -60,62 +66,17 @@ func SayHello(stream quic.Stream, to string) {
 	msg.To = to
 	msg.From = config.ServerInfo.Token
 	msg.UUId = uuid.NewV4().String()
-	b, _ := json.Marshal(msg)
-	prefixLength := file.PrefixLength(len(b))
-
-	data := append(prefixLength, b...)
-	stream.Write(data)
+	SendData(stream, msg)
 }
 
 var pathsss string
 
-//文件分片发送
-func SendFileData(stream quic.Stream, filePath, to, uuid string) error {
-
-	fStat, err := os.Stat(filePath)
-	if err != nil {
-		return err
-	}
-
-	blockSize, length := file.GetBlockInfo(fStat.Size())
-
-	f, err := os.Open(filePath)
-	if err != nil {
-		fmt.Println("读取失败", err)
-		return err
-	}
-	bufferedReader := bufio.NewReader(f)
-	buf := make([]byte, blockSize)
-	for i := 0; i < length; i++ {
-
-		tran := model.TranFileModel{}
-
-		_, err = bufferedReader.Read(buf)
-
-		if err == io.EOF {
-			fmt.Println("读取完毕", err)
-		}
-
-		tran.Hash = file.GetHashByContent(buf)
-		tran.Index = i
-
-		msg := model.MessageModel{}
-		msg.Type = "file_data"
-		msg.Data = tran
-		msg.From = config.ServerInfo.Token
-		msg.To = to
-		msg.UUId = uuid
-		b, _ := json.Marshal(msg)
-		stream.Write(b)
-	}
-	defer stream.Close()
-	return nil
-}
-
 //发送数据
 func SendData(stream quic.Stream, m model.MessageModel) {
 	b, _ := json.Marshal(m)
-	stream.Write(b)
+	prefixLength := file.PrefixLength(len(b))
+	data := append(prefixLength, b...)
+	stream.Write(data)
 }
 
 //读取数据
@@ -124,12 +85,12 @@ func ReadContent(stream quic.Stream) {
 	for {
 		prefixByte := make([]byte, 4)
 		c1, err := io.ReadFull(stream, prefixByte)
-		fmt.Println(c1, err)
+		fmt.Println(c1, err, string(prefixByte))
 		prefixLength, err := strconv.Atoi(string(prefixByte))
 
 		messageByte := make([]byte, prefixLength)
 		t, err := io.ReadFull(stream, messageByte)
-		fmt.Println(t, err)
+		fmt.Println(t, err, string(messageByte))
 		m := model.MessageModel{}
 		err = json.Unmarshal(messageByte, &m)
 		if err != nil {

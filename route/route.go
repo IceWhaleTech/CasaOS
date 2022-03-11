@@ -291,11 +291,11 @@ func InitRouter() *gin.Engine {
 		v1PersonGroup.Use()
 		{
 			// v1PersonGroup.GET("/test", v1.PersonTest)
-			// v1PersonGroup.GET("/users", v1.Users)                        //用户列表
-			// v1PersonGroup.POST("/user", v1.Users)                        //添加用户
-			// v1PersonGroup.GET("/directory", v1.Users)                    //文件列表
-			v1PersonGroup.GET("/download", v1.GetPersionFile) //下载文件
-			// v1PersonGroup.PUT("/edit/:id", v1.EditUser)                  //修改好友
+			v1PersonGroup.GET("/users", v1.GetPersionFriend)        //用户列表
+			v1PersonGroup.POST("/user", v1.PostAddPersionFriend)    //添加用户
+			v1PersonGroup.GET("/directory", v1.GetPersionDirectory) //文件列表
+			//v1PersonGroup.GET("/download", v1.GetPersionFile)       //下载文件
+			v1PersonGroup.PUT("/edit/:token", v1.PutPersionNick)  //修改好友
 			v1PersonGroup.GET("/list", v1.GetPersionDownloadList) //下载列表(需要考虑试试下载速度)
 			// v1PersonGroup.PUT("/state/:id", v1.PutPersionCancelDownload) //修改下载状态(开始暂停删除)
 

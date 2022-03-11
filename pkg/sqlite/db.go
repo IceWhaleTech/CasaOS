@@ -31,7 +31,7 @@ func GetDb(projectPath string) *gorm.DB {
 		return nil
 	}
 	gdb = db
-	err = db.AutoMigrate(&model2.TaskDBModel{}, &model2.AppNotify{}, &model2.AppListDBModel{}, &model2.SerialDisk{}, model2.PersionDownloadDBModel{})
+	err = db.AutoMigrate(&model2.TaskDBModel{}, &model2.AppNotify{}, &model2.AppListDBModel{}, &model2.SerialDisk{}, model2.PersionDownloadDBModel{}, model2.FriendModel{})
 	if err != nil {
 		fmt.Println("检查和创建数据库出错", err)
 	}

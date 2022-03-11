@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gorilla/websocket"
+	uuid "github.com/satori/go.uuid"
 )
 
 var WebSocketConn *websocket.Conn
@@ -36,6 +40,32 @@ func SocketConnect() {
 				fmt.Println(err)
 				//开始尝试udp链接
 				go UDPConnect(content.Ips)
+			} else if msa.Type == types.PERSONADDFRIEND {
+				// new add friend
+				uuid := uuid.NewV4().String()
+				mi := model2.FriendModel{}
+				mi.Avatar = config.UserInfo.Avatar
+				mi.Profile = config.UserInfo.Description
+				mi.Name = config.UserInfo.UserName
+				m := model.MessageModel{}
+				m.Data = mi
+				m.From = config.ServerInfo.Token
+				m.To = msa.From
+				m.Type = types.PERSONADDFRIEND
+				m.UUId = uuid
+				result, err := Dial("192.168.2.225:9902", m)
+				friend := model2.FriendModel{}
+				if err != nil && !reflect.DeepEqual(result, friend) {
+					dataModelByte, _ := json.Marshal(result.Data)
+					err := json.Unmarshal(dataModelByte, &friend)
+					if err != nil {
+						fmt.Println(err)
+					}
+				}
+				if len(friend.Token) == 0 {
+					friend.Token = m.From
+				}
+				MyService.Friend().AddFriend(friend)
 			}
 		}
 	}()

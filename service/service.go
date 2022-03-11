@@ -33,6 +33,7 @@ type Repository interface {
 	Shortcuts() ShortcutsService
 	Search() SearchService
 	Person() PersonService
+	Friend() FriendService
 }
 
 func NewService(db *gorm.DB, log loger2.OLog) Repository {
@@ -55,6 +56,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		shortcuts:      NewShortcutsService(db),
 		search:         NewSearchService(),
 		person:         NewPersonService(db),
+		friend:         NewFriendService(db),
 	}
 }
 
@@ -76,8 +78,12 @@ type store struct {
 	shortcuts      ShortcutsService
 	search         SearchService
 	person         PersonService
+	friend         FriendService
 }
 
+func (c *store) Friend() FriendService {
+	return c.friend
+}
 func (c *store) Rely() RelyService {
 	return c.rely
 }

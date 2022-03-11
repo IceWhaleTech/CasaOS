@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -82,4 +83,98 @@ func GetPersionDownloadList(c *gin.Context) {
 	service.MyService.Person().GetFileDetail(uuid, path, persion)
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary add friend
+// @Produce  application/json
+// @Accept application/json
+// @Tags persion
+// @Param  token formData int true "Opponent token"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /persion/edit [put]
+func PutPersionNick(c *gin.Context) {
+	token := c.Param("token")
+	nick := c.PostForm("nick")
+	if len(token) == 0 || len(nick) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+	friend := model2.FriendModel{}
+	friend.Token = token
+	friend.NickName = nick
+	service.MyService.Friend().EditFriendNick(friend)
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary add friend
+// @Produce  application/json
+// @Accept application/json
+// @Tags persion
+// @Param  token formData int true "Opponent token"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /persion/users [get]
+func GetPersionFriend(c *gin.Context) {
+	list := service.MyService.Friend().GetFriendList()
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+}
+
+// @Summary add friend
+// @Produce  application/json
+// @Accept application/json
+// @Tags persion
+// @Param  token formData int true "Opponent token"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /persion/user [post]
+func PostAddPersionFriend(c *gin.Context) {
+	token := c.PostForm("token")
+	if len(token) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+	//step:远程验证token是否存在
+	msg := model.MessageModel{}
+	msg.Type = types.PERSONADDFRIEND
+	msg.To = token
+	msg.Data = token
+	msg.From = config.ServerInfo.Token
+	msg.UUId = uuid.NewV4().String()
+	b, _ := json.Marshal(msg)
+	err := service.WebSocketConn.WriteMessage(websocket.TextMessage, b)
+	fmt.Println(err)
+
+	friend := model2.FriendModel{}
+	friend.Token = token
+	service.MyService.Friend().AddFriend(friend)
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+func GetPersionDirectory(c *gin.Context) {
+	path := c.Query("path")
+	persion := c.Query("persion")
+	if len(path) == 0 && len(persion) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+	//任务标识
+	uuid := uuid.NewV4().String()
+	m := model.MessageModel{}
+	m.Data = path
+	m.From = config.ServerInfo.Token
+	m.To = persion
+	m.Type = "directory"
+	m.UUId = uuid
+	result, err := service.Dial("192.168.2.225:9902", m)
+	if err != nil {
+		fmt.Println(err)
+	}
+	dataModel := []model.Path{}
+	if m.UUId == m.UUId {
+		dataModelByte, _ := json.Marshal(result.Data)
+		err := json.Unmarshal(dataModelByte, &dataModel)
+		fmt.Println(err)
+	}
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: dataModel})
 }

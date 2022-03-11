@@ -25,6 +25,7 @@ PWD = zimaboard
 Email = user@gmail.com
 Description = description
 Initialized = false
+Avatar = 
 
 [zerotier]
 UserName = user

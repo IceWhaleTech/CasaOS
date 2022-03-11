@@ -33,7 +33,8 @@ func init() {
 	service.MyService = service.NewService(sqliteDB, loger2.NewOLoger())
 	service.Cache = cache.Init()
 	//go service.UDPConnect([]string{})
-	//go service.SocketConnect()
+	go service.SocketConnect()
+	//go service.UDPService()
 	route.InitFunction()
 
 }
