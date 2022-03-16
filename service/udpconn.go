@@ -10,19 +10,23 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/lucas-clemente/quic-go"
 	uuid "github.com/satori/go.uuid"
 )
 
-var UDPconn *net.UDPConn
+var UDPConn *net.UDPConn
 var PeopleMap map[string]quic.Stream
 var Message chan model.MessageModel
+var UDPAddressMap map[string]string
 
 func Dial(addr string, msg model.MessageModel) (m model.MessageModel, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -37,8 +41,18 @@ func Dial(addr string, msg model.MessageModel) (m model.MessageModel, err error)
 		NextProtos:             []string{"bench"},
 		SessionTicketsDisabled: true,
 	}
+	srcAddr := &net.UDPAddr{
+		IP: net.IPv4zero, Port: 9904} //注意端口必须固定
+	//addr
+	if len(addr) == 0 {
+		addr = config.ServerInfo.Handshake + ":9527"
+	}
+	dstAddr, err := net.ResolveUDPAddr("udp", addr)
 
-	session, err := quic.DialAddrContext(ctx, addr, tlsConf, quicConfig)
+	//DialTCP在网络协议net上连接本地地址laddr和远端地址raddr。net必须是"udp"、"udp4"、"udp6"；如果laddr不是nil，将使用它作为本地地址，否则自动选择一个本地地址。
+	//(conn)UDPConn代表一个UDP网络连接，实现了Conn和PacketConn接口
+
+	session, err := quic.DialContext(ctx, UDPConn, dstAddr, srcAddr.String(), tlsConf, quicConfig)
 	if err != nil {
 		return m, err
 	}
@@ -79,11 +93,12 @@ func SendData(stream quic.Stream, m model.MessageModel) {
 	stream.Write(data)
 }
 
+var Summary map[string]model.FileSummaryModel
+
 //读取数据
 func ReadContent(stream quic.Stream) {
-	path := ""
 	for {
-		prefixByte := make([]byte, 4)
+		prefixByte := make([]byte, 6)
 		c1, err := io.ReadFull(stream, prefixByte)
 		fmt.Println(c1, err, string(prefixByte))
 		prefixLength, err := strconv.Atoi(string(prefixByte))
@@ -96,7 +111,7 @@ func ReadContent(stream quic.Stream) {
 		if err != nil {
 			fmt.Println(err)
 		}
-
+		fmt.Println(m)
 		//传输数据需要继续读取
 		if m.Type == "file_data" {
 			dataModelByte, _ := json.Marshal(m.Data)
@@ -121,13 +136,80 @@ func ReadContent(stream quic.Stream) {
 				fmt.Println("hash不匹配", hash, dataModel.Hash)
 			}
 
-			filepath := path + strconv.Itoa(dataModel.Index)
+			tempPath := config.AppInfo.RootPath + "/temp" + "/" + m.UUId
+			file.IsNotExistMkDir(tempPath)
+			filepath := tempPath + "/" + strconv.Itoa(dataModel.Index)
+			tempFile, err := os.Stat(filepath)
 
-			err = ioutil.WriteFile(filepath, dataByte, 0644)
-			if dataModel.Index >= (dataModel.Length - 1) {
-				//file.SpliceFiles("", path, dataModel.Length)
+			if os.IsNotExist(err) || tempFile.Size() == 0 {
+				err = ioutil.WriteFile(filepath, dataByte, 0644)
+			} else {
+				if file.GetHashByPath(filepath) != dataModel.Hash {
+					os.Remove(filepath)
+					err = ioutil.WriteFile(filepath, dataByte, 0644)
+				}
+			}
+
+			files, err := ioutil.ReadDir(tempPath)
+
+			if len(files) >= dataModel.Length {
+				summary := Summary[m.UUId]
+				file.SpliceFiles(tempPath, config.FileSettingInfo.DownloadDir+"/"+summary.Name, dataModel.Length, 0)
+				if file.GetHashByPath(config.FileSettingInfo.DownloadDir+"/"+summary.Name) == summary.Hash {
+					file.RMDir(tempPath)
+					task := model2.PersionDownloadDBModel{}
+					task.UUID = m.UUId
+					task.State = types.DOWNLOADFINISH
+					MyService.Download().EditDownloadState(task)
+				} else {
+					os.Remove(config.FileSettingInfo.DownloadDir + "/" + summary.Name)
+					task := model2.PersionDownloadDBModel{}
+					task.UUID = m.UUId
+					task.State = types.DOWNLOADERROR
+					MyService.Download().EditDownloadState(task)
+				}
+
 				break
 			}
+		} else if m.Type == "summary" {
+
+			dataModel := model.FileSummaryModel{}
+			if m.UUId == m.UUId {
+				dataModelByte, _ := json.Marshal(m.Data)
+				err := json.Unmarshal(dataModelByte, &dataModel)
+				fmt.Println(err)
+			}
+
+			task := model2.PersionDownloadDBModel{}
+			task.UUID = m.UUId
+			task.Name = dataModel.Name
+			task.Length = dataModel.Length
+			task.Size = dataModel.Size
+			task.State = types.DOWNLOADING
+			task.BlockSize = dataModel.BlockSize
+			task.Hash = dataModel.Hash
+			task.Type = 0
+			MyService.Download().SaveDownload(task)
+
+			Summary[m.UUId] = dataModel
+
+		} else if m.Type == "connection" {
+			UDPAddressMap[m.From] = m.Data.(string)
+			fmt.Println("udpconn", m)
+			mi := model2.FriendModel{}
+			mi.Avatar = config.UserInfo.Avatar
+			mi.Profile = config.UserInfo.Description
+			mi.Name = config.UserInfo.UserName
+			mi.Token = config.ServerInfo.Token
+			msg := model.MessageModel{}
+			msg.Type = types.PERSONADDFRIEND
+			msg.Data = mi
+			msg.To = m.From
+			msg.From = config.ServerInfo.Token
+			msg.UUId = m.UUId
+			Dial(m.Data.(string), msg)
+			Message <- m
+			break
 		} else {
 			Message <- m
 		}

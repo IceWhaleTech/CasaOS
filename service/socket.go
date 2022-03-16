@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -53,7 +52,7 @@ func SocketConnect() {
 				m.To = msa.From
 				m.Type = types.PERSONADDFRIEND
 				m.UUId = uuid
-				result, err := Dial("192.168.2.225:9902", m)
+				result, err := Dial("192.168.2.224:9902", m)
 				friend := model2.FriendModel{}
 				if err != nil && !reflect.DeepEqual(result, friend) {
 					dataModelByte, _ := json.Marshal(result.Data)
@@ -91,14 +90,14 @@ func SocketConnect() {
 }
 
 func Connect() {
-	host := strings.Split(config.ServerInfo.Handshake, "://")
-	u := url.URL{Scheme: "ws", Host: host[1], Path: "/v1/ws"}
+	u := url.URL{Scheme: "ws", Host: config.ServerInfo.Handshake + ":8088", Path: "/v1/ws"}
 	for {
 		d, _, e := websocket.DefaultDialer.Dial(u.String(), nil)
 		if e == nil {
 			WebSocketConn = d
 			return
 		}
+		fmt.Println(e)
 		time.Sleep(time.Second * 5)
 	}
 }

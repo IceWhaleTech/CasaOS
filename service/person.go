@@ -40,14 +40,6 @@ type PersonService interface {
 	ReplyGetFileDetail(m model.MessageModel)
 	ReceiveFileData(m model.MessageModel)
 	ReceiveGetFileDetail(m model.MessageModel)
-
-	//------------ database
-	AddDownloadTask(m model2.PersionDownloadDBModel)   //添加下载任务
-	EditDownloadState(m model2.PersionDownloadDBModel) //只修改状态
-	EditDownloading(m model2.PersionDownloadDBModel, section model2.PersionFileSectionModel)
-	SaveDownloadState(m model2.PersionDownloadDBModel)
-	DelDownload(uuid string)
-	GetDownloadById(uuid string) model2.PersionDownloadDBModel
 }
 
 type personService struct {
@@ -81,7 +73,7 @@ func (p *personService) Handshake(m model.ConnectState) {
 	//1先进行udp打通成功
 
 	srcAddr := &net.UDPAddr{
-		IP: net.IPv4zero, Port: 9901} //注意端口必须固定
+		IP: net.IPv4zero, Port: 9904} //注意端口必须固定
 	dstAddr := &net.UDPAddr{
 		IP: net.ParseIP(config.ServerInfo.Handshake), Port: 9527}
 	//DialTCP在网络协议net上连接本地地址laddr和远端地址raddr。net必须是"udp"、"udp4"、"udp6"；如果laddr不是nil，将使用它作为本地地址，否则自动选择一个本地地址。
@@ -101,7 +93,6 @@ func (p *personService) Handshake(m model.ConnectState) {
 	if err != nil {
 		fmt.Printf("error during read: %s", err)
 	}
-	conn.Close()
 	toPersion := model.PersionModel{}
 	err = json.Unmarshal(data[:n], &toPersion)
 	if err != nil {
@@ -116,33 +107,6 @@ func (p *personService) Handshake(m model.ConnectState) {
 
 }
 
-func (p *personService) AddDownloadTask(m model2.PersionDownloadDBModel) {
-	p.db.Create(&m)
-}
-func (p *personService) EditDownloadState(m model2.PersionDownloadDBModel) {
-	p.db.Model(&m).Where("uuid = ?", m.UUID).Update("state", m.State)
-}
-
-func (p *personService) EditDownloading(m model2.PersionDownloadDBModel, section model2.PersionFileSectionModel) {
-	b, _ := json.Marshal(section)
-	m.Section = string(b)
-	p.db.Model(&m).Where("uuid = ?", m.UUID).Update("section", m.Section)
-}
-
-func (p *personService) DelDownload(uuid string) {
-	var m model2.PersionDownloadDBModel
-	p.db.Where("uuid = ?", uuid).Delete(&m)
-}
-func (p *personService) GetDownloadById(uuid string) model2.PersionDownloadDBModel {
-	var m model2.PersionDownloadDBModel
-	p.db.Model(m).Where("uuid = ?", uuid).First(&m)
-	return m
-}
-
-func (p *personService) SaveDownloadState(m model2.PersionDownloadDBModel) {
-	p.db.Save(&m)
-}
-
 var ipAddress chan string
 
 type sysConn struct {
@@ -152,104 +116,11 @@ type sysConn struct {
 }
 
 func UDPConnect(ips []string) {
-	quicConfig := &quic.Config{
-		ConnectionIDLength:    12,
-		HandshakeIdleTimeout:  time.Second * 8,
-		MaxIdleTimeout:        time.Second * 45,
-		MaxIncomingStreams:    32,
-		MaxIncomingUniStreams: -1,
-		KeepAlive:             true,
-	}
-	fmt.Println(quicConfig)
-	//PersonUDPMap = make(map[string]*net.UDPAddr)
-	ipAddress = make(chan string)
 
-	srcAddr := &net.UDPAddr{
-		IP: net.IPv4zero, Port: 9901}
-	fmt.Println(srcAddr)
-	//UDPconn, err := net.ListenUDP("udp", srcAddr)
-	// sysconn := &sysConn{
-	// 	conn:   UDPconn,
-	// 	header: "",
-	// 	auth:   nil,
-	// }
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// liste, err := quic.Listen(UDPconn, generateTLSConfig(), nil)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// ssss, err := liste.Accept(context.Background())
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// st, err := ssss.AcceptStream(context.Background())
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
-	// st.Write([]byte("ssss"))
-	qlister, err := quic.ListenAddr("0.0.0.0:9901", generateTLSConfig(), nil)
-	//qlister, err := quic.Listen(UDPconn, nil, nil)
-	if err != nil {
-		fmt.Println("quic错误", qlister)
-	}
-	//session, e := qlister.Accept()
-	sess, err := qlister.Accept(context.Background())
-	sess.SendMessage([]byte("aaaa"))
-	stream, err := sess.AcceptStream(context.Background())
-	stream.Write([]byte("bbb"))
-	//quic.Dial()
-	if err != nil {
-		fmt.Println("quic错误", qlister)
-	}
+	//m := model.ConnectState{}
 
-	if err != nil {
-		fmt.Println("监听错误", err.Error())
-	}
-	for _, v := range ips {
-		dstAddr := &net.UDPAddr{
-			IP: net.ParseIP(v), Port: 9901}
+	//MyService.Person().Handshake(m)
 
-		fmt.Println(v, "开始监听")
-
-		//quic.Dial()
-
-		go AsyncUDPConnect(dstAddr)
-	}
-
-	for {
-		data := make([]byte, 1024)
-		n, add, err := UDPconn.ReadFromUDP(data)
-		fmt.Println(add)
-		if err != nil {
-			log.Printf("error during read:%s\n", err)
-		} else {
-
-			fmt.Println("收到数据：", string(data[:n]))
-			msg := model.MessageModel{}
-			err := json.Unmarshal(data[:n], &msg)
-			if err != nil {
-				log.Printf("转义错误:%s\n", err)
-			}
-			//todo:检查数据库是否为合法请求
-			if msg.Type == "hi" {
-				//add ip
-				//PersonUDPMap[msg.From] = add
-			} else if msg.Type == "browse" {
-				//获取目录结构
-			} else if msg.Type == "file_detail" {
-				MyService.Person().ReplyGetFileDetail(msg)
-			} else if msg.Type == "file_detail_reply" {
-				MyService.Person().ReceiveGetFileDetail(msg)
-			} else if msg.Type == "file_data_reply" {
-				MyService.Person().ReceiveFileData(msg)
-			} else {
-				fmt.Println("未知事件")
-			}
-
-		}
-	}
 }
 
 // Setup a bare-bones TLS config for the server
@@ -327,7 +198,6 @@ func (p *personService) Download(m model.MessageModel) {
 	}
 	summary := model.FileSummaryModel{}
 	summary.Hash = file.GetHashByPath(fDetail.Name())
-	summary.Path = m.Data.(string)
 	summary.BlockSize, summary.Length = file.GetBlockInfo(fDetail.Size())
 
 	msg := model.MessageModel{}
@@ -349,7 +219,8 @@ func (p *personService) Download(m model.MessageModel) {
 
 //receive file data
 func (p *personService) ReceiveFileData(m model.MessageModel) {
-	task := p.GetDownloadById(m.UUId)
+	//task := p.GetDownloadById(m.UUId)
+	task := model2.PersionDownloadDBModel{}
 
 	//需要重置参数
 	tempPath := "/oasis/download/" + task.UUID
@@ -391,7 +262,7 @@ func (p *personService) ReceiveFileData(m model.MessageModel) {
 			if h := file.GetHashByPath(filePath); h == task.Hash {
 				//最终文件比对成功
 				task.State = types.DOWNLOADFINISH
-				p.EditDownloadState(task)
+				//p.EditDownloadState(task)
 				//remove temp path
 				file.RMDir(tempPath)
 			}
@@ -417,7 +288,6 @@ func (p *personService) ReplyGetFileDetail(m model.MessageModel) {
 	summary.Name = f.Name()
 	summary.Size = f.Size()
 	summary.Hash = file.GetHashByPath(path)
-	summary.Path = path
 	summary.BlockSize, summary.Length = file.GetBlockInfo(f.Size())
 
 	msg := model.MessageModel{}
@@ -477,24 +347,24 @@ func (p *personService) SendFileData(m model.MessageModel, blockSize int, length
 // 文件摘要返回
 func (p *personService) ReceiveGetFileDetail(m model.MessageModel) {
 
-	task := p.GetDownloadById("")
-	bss, _ := json.Marshal(m.Data)
-	summary := model.FileSummaryModel{}
-	err := json.Unmarshal(bss, &summary)
-	if err != nil {
-		fmt.Println(err)
-	}
-	task.Hash = summary.Hash
-	task.Length = summary.Length
-	task.Size = summary.Size
+	//	task := p.GetDownloadById("")
+	// bss, _ := json.Marshal(m.Data)
+	// summary := model.FileSummaryModel{}
+	// err := json.Unmarshal(bss, &summary)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
+	// task.Hash = summary.Hash
+	// task.Length = summary.Length
+	// task.Size = summary.Size
 
-	p.SaveDownloadState(task)
+	//	p.SaveDownloadState(task)
 }
 
 func AsyncUDPConnect(dst *net.UDPAddr) {
 	for {
 		time.Sleep(2 * time.Second)
-		if _, err := UDPconn.WriteToUDP([]byte(dst.IP.String()+" is ok"), dst); err != nil {
+		if _, err := UDPConn.WriteToUDP([]byte(dst.IP.String()+" is ok"), dst); err != nil {
 			log.Println("send msg fail", err)
 			return
 		} else {
@@ -518,9 +388,13 @@ func UDPService() {
 		KeepAlive:          true,
 	}
 	srcAddr := &net.UDPAddr{
-		IP: net.IPv4zero, Port: 9902} //注意端口必须固定
-	fmt.Println(srcAddr.String())
-	listener, err := quic.ListenAddr(srcAddr.String(), generateTLSConfig(), quicConfig)
+		IP: net.IPv4zero, Port: 9904} //注意端口必须固定
+	var err error
+	UDPConn, err = net.ListenUDP("udp", srcAddr)
+	if err != nil {
+		fmt.Println(err)
+	}
+	listener, err := quic.Listen(UDPConn, generateTLSConfig(), quicConfig)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -531,6 +405,7 @@ func UDPService() {
 	if err != nil {
 		panic(err)
 	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -590,10 +465,8 @@ func UDPService() {
 
 //处理内容
 func ProcessingContent(stream quic.Stream) {
-	//需要处理关闭问题
-
 	for {
-		prefixByte := make([]byte, 4)
+		prefixByte := make([]byte, 6)
 		c1, err := io.ReadFull(stream, prefixByte)
 		fmt.Println(c1)
 		if err != nil {
@@ -619,13 +492,22 @@ func ProcessingContent(stream quic.Stream) {
 			//什么也不做
 			continue
 		} else if m.Type == "directory" {
-			list := MyService.ZiMa().GetDirPath(m.Data.(string))
+			var list []model.Path
+			if m.Data.(string) == "" || m.Data.(string) == "/" {
+				for _, v := range config.FileSettingInfo.ShareDir {
+					tempList := MyService.ZiMa().GetDirPath(v)
+					list = append(list, tempList...)
+				}
+			} else {
+				list = MyService.ZiMa().GetDirPath(m.Data.(string))
+			}
 			m.To = m.From
 			m.Data = list
 			m.From = config.ServerInfo.Token
 			SendData(stream, m)
 			break
 		} else if m.Type == "file_data" {
+
 			SendFileData(stream, m.Data.(string), m.From, m.UUId)
 			break
 		} else if m.Type == types.PERSONADDFRIEND {
@@ -636,7 +518,7 @@ func ProcessingContent(stream quic.Stream) {
 				fmt.Println(err)
 				continue
 			}
-			go MyService.Friend().UpdateAddFriendType(friend)
+			go MyService.Friend().UpdateOrCreate(friend)
 			mi := model2.FriendModel{}
 			mi.Avatar = config.UserInfo.Avatar
 			mi.Profile = config.UserInfo.Description
@@ -647,6 +529,23 @@ func ProcessingContent(stream quic.Stream) {
 			m.From = config.ServerInfo.Token
 
 			SendData(stream, m)
+			break
+		} else if m.Type == "connection" {
+			UDPAddressMap[m.From] = m.Data.(string)
+			fmt.Println("persion", m)
+			mi := model2.FriendModel{}
+			mi.Avatar = config.UserInfo.Avatar
+			mi.Profile = config.UserInfo.Description
+			mi.Name = config.UserInfo.UserName
+			mi.Token = config.ServerInfo.Token
+			msg := model.MessageModel{}
+			msg.Type = types.PERSONADDFRIEND
+			msg.Data = mi
+			msg.To = m.From
+			msg.From = config.ServerInfo.Token
+			msg.UUId = m.UUId
+			Dial(m.Data.(string), msg)
+
 			break
 		} else {
 			//不应有不做返回的数据
@@ -673,20 +572,43 @@ func SendFileData(stream quic.Stream, filePath, to, uuid string) error {
 		fmt.Println("读取失败", err)
 		return err
 	}
+
+	//先发送文件摘要
+
+	summary := model.FileSummaryModel{}
+	summary.BlockSize = blockSize
+	summary.Hash = file.GetHashByPath(filePath)
+	summary.Length = length
+	summary.Name = fStat.Name()
+	summary.Size = fStat.Size()
+
+	msg := model.MessageModel{}
+	msg.Type = "summary"
+	msg.Data = summary
+	msg.From = config.ServerInfo.Token
+	msg.To = to
+	msg.UUId = uuid
+
+	summaryByte, _ := json.Marshal(msg)
+	summaryPrefixLength := file.PrefixLength(len(summaryByte))
+	summaryData := append(summaryPrefixLength, summaryByte...)
+	stream.Write(summaryData)
+
 	bufferedReader := bufio.NewReader(f)
 	buf := make([]byte, blockSize)
 	for i := 0; i < length; i++ {
 
 		tran := model.TranFileModel{}
 
-		_, err = bufferedReader.Read(buf)
+		n, err := bufferedReader.Read(buf)
 
 		if err == io.EOF {
 			fmt.Println("读取完毕", err)
 		}
 
-		tran.Hash = file.GetHashByContent(buf)
+		tran.Hash = file.GetHashByContent(buf[:n])
 		tran.Index = i
+		tran.Length = length
 
 		msg := model.MessageModel{}
 		msg.Type = "file_data"
@@ -695,7 +617,10 @@ func SendFileData(stream quic.Stream, filePath, to, uuid string) error {
 		msg.To = to
 		msg.UUId = uuid
 		b, _ := json.Marshal(msg)
-		stream.Write(b)
+		prefixLength := file.PrefixLength(len(b))
+		dataLength := file.DataLength(len(buf[:n]))
+		data := append(append(append(prefixLength, b...), dataLength...), buf[:n]...)
+		stream.Write(data)
 	}
 	defer stream.Close()
 	return nil

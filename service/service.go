@@ -34,6 +34,7 @@ type Repository interface {
 	Search() SearchService
 	Person() PersonService
 	Friend() FriendService
+	Download() DownloadService
 }
 
 func NewService(db *gorm.DB, log loger2.OLog) Repository {
@@ -57,6 +58,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		search:         NewSearchService(),
 		person:         NewPersonService(db),
 		friend:         NewFriendService(db),
+		download:       NewDownloadService(db),
 	}
 }
 
@@ -79,8 +81,12 @@ type store struct {
 	search         SearchService
 	person         PersonService
 	friend         FriendService
+	download       DownloadService
 }
 
+func (c *store) Download() DownloadService {
+	return c.download
+}
 func (c *store) Friend() FriendService {
 	return c.friend
 }

@@ -39,6 +39,7 @@ type APPModel struct {
 	TimeFormat     string
 	DateFormat     string
 	ProjectPath    string
+	RootPath       string
 }
 
 //公共返回模型
@@ -75,4 +76,9 @@ type SystemConfig struct {
 
 type CasaOSGlobalVariables struct {
 	AppChange bool
+}
+
+type FileSetting struct {
+	ShareDir    []string `json:"share_dir" delim:"|"`
+	DownloadDir string   `json:"download_dir"`
 }

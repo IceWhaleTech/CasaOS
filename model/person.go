@@ -40,7 +40,6 @@ type FileDetailModel struct {
 type FileSummaryModel struct {
 	Hash      string `json:"hash"` //Verify file
 	Name      string `json:"name"`
-	Path      string `json:"path"`
 	BlockSize int    `json:"block_size"`
 	Length    int    `json:"length"`
 	Size      int64  `json:"size"`

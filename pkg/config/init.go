@@ -35,6 +35,8 @@ var SystemConfigInfo = &model.SystemConfig{}
 
 var CasaOSGlobalVariables = &model.CasaOSGlobalVariables{}
 
+var FileSettingInfo = &model.FileSetting{}
+
 var Cfg *ini.File
 
 //初始化设置，获取系统的部分信息。
@@ -58,6 +60,7 @@ func InitSetup(config string) {
 	mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)
+	mapTo("file", FileSettingInfo)
 	SystemConfigInfo.ConfigPath = configDir
 	//	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
 

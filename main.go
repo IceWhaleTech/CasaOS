@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
@@ -32,9 +33,14 @@ func init() {
 	//gredis.GetRedisConn(config.RedisInfo),
 	service.MyService = service.NewService(sqliteDB, loger2.NewOLoger())
 	service.Cache = cache.Init()
-	//go service.UDPConnect([]string{})
-	go service.SocketConnect()
-	//go service.UDPService()
+
+	go service.UDPService()
+
+	go service.UDPConnect([]string{})
+	service.Summary = make(map[string]model.FileSummaryModel)
+	service.UDPAddressMap = make(map[string]string)
+	//go service.SocketConnect()
+
 	route.InitFunction()
 
 }
