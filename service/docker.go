@@ -376,7 +376,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 			if tContainer > 0 {
 				ports[nat.Port(portMap.ContainerPort+"/tcp")] = struct{}{}
 				if net != "host" {
-					portMaps[nat.Port(portMap.ContainerPort+"/tcp")] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: portMap.CommendPort}}
+					portMaps[nat.Port(portMap.ContainerPort+"/tcp")] = []nat.PortBinding{{HostPort: portMap.CommendPort}}
 				}
 			}
 		} else if portMap.Protocol == "both" {
@@ -385,7 +385,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 			if tContainer > 0 {
 				ports[nat.Port(portMap.ContainerPort+"/tcp")] = struct{}{}
 				if net != "host" {
-					portMaps[nat.Port(portMap.ContainerPort+"/tcp")] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: portMap.CommendPort}}
+					portMaps[nat.Port(portMap.ContainerPort+"/tcp")] = []nat.PortBinding{{HostPort: portMap.CommendPort}}
 				}
 			}
 
@@ -393,7 +393,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 			if uContainer > 0 {
 				ports[nat.Port(portMap.ContainerPort+"/udp")] = struct{}{}
 				if net != "host" {
-					portMaps[nat.Port(portMap.ContainerPort+"/udp")] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: portMap.CommendPort}}
+					portMaps[nat.Port(portMap.ContainerPort+"/udp")] = []nat.PortBinding{{HostPort: portMap.CommendPort}}
 				}
 			}
 
@@ -402,7 +402,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 			if uContainer > 0 {
 				ports[nat.Port(portMap.ContainerPort+"/udp")] = struct{}{}
 				if net != "host" {
-					portMaps[nat.Port(portMap.ContainerPort+"/udp")] = []nat.PortBinding{{HostIP: "0.0.0.0", HostPort: portMap.CommendPort}}
+					portMaps[nat.Port(portMap.ContainerPort+"/udp")] = []nat.PortBinding{{HostPort: portMap.CommendPort}}
 				}
 			}
 		}
