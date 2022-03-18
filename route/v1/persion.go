@@ -3,7 +3,10 @@ package v1
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"reflect"
+	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -21,13 +24,13 @@ func PersonTest(c *gin.Context) {
 	//service.MyService.Person().GetPersionInfo("fb2333a1-72b2-4cb4-9e31-61ccaffa55b9")
 
 	msg := model.MessageModel{}
-	msg.Type = "hello"
+	msg.Type = types.PERSONHELLO
 	msg.Data = ""
 	msg.From = config.ServerInfo.Token
 	msg.To = token
 	msg.UUId = uuid.NewV4().String()
 
-	dd, err := service.Dial("", msg)
+	dd, err := service.Dial(msg, true)
 	if err == nil {
 		fmt.Println(err)
 	}
@@ -35,14 +38,56 @@ func PersonTest(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
-// @Summary add friend
+// @Summary retry download file
 // @Produce  application/json
 // @Accept application/json
 // @Tags persion
-// @Param  token formData int true "Opponent token"
+// @Param  uui path string true "download uuid"
+// @Param  path query string true "file path"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /persion/file/{id} [delete]
+// @Router /persion/refile/{uuid} [get]
+func GetPersionReFile(c *gin.Context) {
+
+	path := c.Query("path")
+	uuid := c.Param("uuid")
+
+	if len(path) == 0 && len(uuid) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+
+	task := service.MyService.Download().GetDownloadById(uuid)
+	if reflect.DeepEqual(task, model2.PersionDownloadDBModel{}) {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSION_REMOTE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PERSION_REMOTE_ERROR)})
+		return
+	}
+	token := task.From
+	if _, ok := service.UDPAddressMap[token]; !ok {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSION_REMOTE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PERSION_REMOTE_ERROR)})
+		return
+	}
+
+	m := model.MessageModel{}
+	m.Data = path
+	m.From = config.ServerInfo.Token
+	m.To = token
+	m.Type = types.PERSONDOWNLOAD
+	m.UUId = uuid
+	go service.Dial(m, false)
+
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary download file
+// @Produce  application/json
+// @Accept application/json
+// @Tags persion
+// @Param  token query string true "opponent token"
+// @Param  path query string true "file path"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /persion/file [get]
 func GetPersionFile(c *gin.Context) {
 
 	path := c.Query("path")
@@ -51,15 +96,18 @@ func GetPersionFile(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
-	//任务标识
+	if _, ok := service.UDPAddressMap[token]; !ok {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSION_REMOTE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PERSION_REMOTE_ERROR)})
+		return
+	}
+	// task id
 	uuid := uuid.NewV4().String()
-
-	//2.添加数据库
 
 	task := model2.PersionDownloadDBModel{}
 	task.UUID = uuid
 	task.Name = ""
 	task.Length = 0
+	task.From = token
 	task.Size = 0
 	task.State = types.DOWNLOADAWAIT
 	task.Type = 0
@@ -69,12 +117,9 @@ func GetPersionFile(c *gin.Context) {
 	m.Data = path
 	m.From = config.ServerInfo.Token
 	m.To = token
-	m.Type = "file_data"
+	m.Type = types.PERSONDOWNLOAD
 	m.UUId = uuid
-	_, err := service.Dial("192.168.2.224:9902", m)
-	if err != nil {
-		fmt.Println(err)
-	}
+	go service.Dial(m, false)
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
@@ -83,13 +128,13 @@ func GetPersionFile(c *gin.Context) {
 // @Produce  application/json
 // @Accept application/json
 // @Tags persion
-// @Param  token formData int true "Opponent token"
+// @Param  uuid path string true "download uuid"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /persion/file/{id} [delete]
+// @Router /persion/file/{uuid} [delete]
 func DeletePersionDownloadFile(c *gin.Context) {
 
-	id := c.Param("id")
+	id := c.Param("uuid")
 	if len(id) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
@@ -104,25 +149,35 @@ func DeletePersionDownloadFile(c *gin.Context) {
 // @Produce  application/json
 // @Accept application/json
 // @Tags persion
-// @Param  state query int true "wait:1,loading:1,pause:2,finish:3,error:4" Enums(0,1,2,4)
+// @Param  state query int true "wait:1,downloading:1,pause:2,finish:3,error:4" Enums(0,1,2,4)
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /persion/list [get]
 func GetPersionDownloadList(c *gin.Context) {
 	state := c.DefaultQuery("state", "")
 	list := service.MyService.Download().GetDownloadListByState(state)
-
+	//if it is  downloading, it need to add 'already'
+	if state == strconv.Itoa(types.DOWNLOADING) {
+		for i := 0; i < len(list); i++ {
+			tempDir := config.AppInfo.RootPath + "/temp" + "/" + list[i].UUID
+			files, err := ioutil.ReadDir(tempDir)
+			if err == nil {
+				list[i].Already = len(files)
+			}
+		}
+	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
 }
 
-// @Summary add friend
+// @Summary edit friend's nick
 // @Produce  application/json
 // @Accept application/json
 // @Tags persion
-// @Param  token formData int true "Opponent token"
+// @Param token path string true "token"
+// @Param nick formData string true "nick name"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /persion/edit/{token} [put]
+// @Router /persion/nick/{token} [put]
 func PutPersionNick(c *gin.Context) {
 	token := c.Param("token")
 	nick := c.PostForm("nick")
@@ -137,16 +192,20 @@ func PutPersionNick(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
-// @Summary get friends list
+// @Summary get friend list
 // @Produce  application/json
 // @Accept application/json
 // @Tags persion
-// @Param  token formData int true "Opponent token"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /persion/users [get]
 func GetPersionFriend(c *gin.Context) {
 	list := service.MyService.Friend().GetFriendList()
+	for i := 0; i < len(list); i++ {
+		if v, ok := service.UDPAddressMap[list[i].Token]; ok && len(v) > 0 {
+			list[i].OnLine = true
+		}
+	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
 }
 
@@ -166,15 +225,13 @@ func PostAddPersionFriend(c *gin.Context) {
 	}
 
 	msg := model.MessageModel{}
-	msg.Type = "connection"
+	msg.Type = types.PERSONCONNECTION
 	msg.Data = token
 	msg.From = config.ServerInfo.Token
 	msg.To = token
 	msg.UUId = uuid.NewV4().String()
 
-	_, err := service.Dial("", msg)
-
-	fmt.Println(err)
+	go service.Dial(msg, true)
 
 	friend := model2.FriendModel{}
 	friend.Token = token
@@ -186,7 +243,8 @@ func PostAddPersionFriend(c *gin.Context) {
 // @Produce  application/json
 // @Accept application/json
 // @Tags persion
-// @Param  token query int true "Opponent token"
+// @Param  token query string true "Opponent token"
+// @Param  path query string true "dir path"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /persion/directory [get]
@@ -197,23 +255,30 @@ func GetPersionDirectory(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
-	//任务标识
+	if _, ok := service.UDPAddressMap[token]; !ok {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSION_REMOTE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PERSION_REMOTE_ERROR)})
+		return
+	}
 	uuid := uuid.NewV4().String()
 	m := model.MessageModel{}
 	m.Data = path
 	m.From = config.ServerInfo.Token
 	m.To = token
-	m.Type = "directory"
+	m.Type = types.PERSONDIRECTORY
 	m.UUId = uuid
-	result, err := service.Dial(service.UDPAddressMap[token], m)
+	result, err := service.Dial(m, false)
 	if err != nil {
-		fmt.Println(err)
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
 	}
 	dataModel := []model.Path{}
-	if m.UUId == m.UUId {
+	if uuid == m.UUId {
 		dataModelByte, _ := json.Marshal(result.Data)
 		err := json.Unmarshal(dataModelByte, &dataModel)
-		fmt.Println(err)
+		if err != nil {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			return
+		}
 	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: dataModel})
 }

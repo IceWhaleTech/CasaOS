@@ -21,6 +21,7 @@ type CasaService interface {
 	ShareAppFile(body []byte) string
 	PushHeart(id, t string, language string)
 	PushAppAnalyse(uuid, t string, name, language string)
+	PushConnectionStatus(uuid, err string, from, to, event string)
 }
 
 type casaService struct {
@@ -151,6 +152,26 @@ func (o *casaService) PushAppAnalyse(uuid, t string, name, language string) {
 	m.Type = t
 	m.Name = name
 	m.Language = language
+	b, _ := json.Marshal(m)
+
+	head := make(map[string]string)
+
+	head["Authorization"] = GetToken()
+
+	infoS := httper2.Post(config.ServerInfo.ServerApi+"/v1/analyse/app", b, "application/json", head)
+
+	info := model.ServerAppList{}
+	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
+
+}
+func (o *casaService) PushConnectionStatus(uuid, err string, from, to, event string) {
+
+	m := model.ConnectionStatus{}
+	m.UUId = uuid
+	m.Error = err
+	m.From = from
+	m.To = to
+	m.Event = event
 	b, _ := json.Marshal(m)
 
 	head := make(map[string]string)

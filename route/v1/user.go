@@ -40,7 +40,7 @@ func Set_Name_Pwd(c *gin.Context) {
 		return
 	}
 	//开始设置
-	err := user_service.SetUser(username, pwd, "", "", "")
+	err := user_service.SetUser(username, pwd, "", "", "", "")
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: fmt.Sprintf("%v", err)})
 		return
@@ -102,7 +102,7 @@ func Login(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /user/changhead [post]
-func Up_Load_Head(c *gin.Context) {
+func PostUserHead(c *gin.Context) {
 	file, _, _ := c.Request.FormFile("file")
 	user_service.UpLoadFile(file, config.UserInfo.Head)
 	c.JSON(http.StatusOK,
@@ -122,7 +122,7 @@ func Up_Load_Head(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /user/changusername [put]
-func Chang_User_Name(c *gin.Context) {
+func PutUserName(c *gin.Context) {
 	if config.ServerInfo.LockAccount {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ACCOUNT_LOCK, Message: oasis_err2.GetMsg(oasis_err2.ACCOUNT_LOCK)})
 		return
@@ -133,7 +133,7 @@ func Chang_User_Name(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
 		return
 	}
-	user_service.SetUser(username, "", "", "", "")
+	user_service.SetUser(username, "", "", "", "", "")
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
@@ -146,7 +146,7 @@ func Chang_User_Name(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /user/changuserpwd [put]
-func Chang_User_Pwd(c *gin.Context) {
+func PutUserPwd(c *gin.Context) {
 	oldpwd := c.PostForm("oldpwd")
 	pwd := c.PostForm("pwd")
 	if config.UserInfo.PWD != oldpwd {
@@ -161,53 +161,57 @@ func Chang_User_Pwd(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PWD_IS_EMPTY, Message: oasis_err2.GetMsg(oasis_err2.PWD_IS_EMPTY)})
 		return
 	}
-	user_service.SetUser("", pwd, "", "", "")
+	user_service.SetUser("", pwd, "", "", "", "")
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
-// @Summary 修改用户信息
+// @Summary edit user info
 // @Produce  application/json
 // @Accept multipart/form-data
 // @Tags user
-// @Param username formData string false "User Name"
+// @Param user_name formData string false "User Name"
 // @Param email formData string false "Email"
 // @Param description formData string false "Description"
 // @Param pwd formData string false "Password"
-// @Param oldpwd  formData string false "Old password"
+// @Param old_pwd  formData string false "Old password"
+// @Param nick_name formData string false "nick name"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /user/changuserinfo [post]
-func Chang_User_Info(c *gin.Context) {
-	username := c.PostForm("username")
+// @Router /user/info [post]
+func PostUserChangeInfo(c *gin.Context) {
+	username := c.PostForm("user_name")
 	email := c.PostForm("email")
 	description := c.PostForm("description")
-	oldpwd := c.PostForm("oldpwd")
+	nickName := c.PostForm("nick_name")
+	oldpwd := c.PostForm("old_pwd")
 	pwd := c.PostForm("pwd")
 	if len(pwd) > 0 && config.UserInfo.PWD != oldpwd {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PWD_INVALID, Message: oasis_err2.GetMsg(oasis_err2.PWD_INVALID)})
 		return
 	}
-	user_service.SetUser(username, pwd, "", email, description)
+	user_service.SetUser(username, pwd, "", email, description, nickName)
 	data := make(map[string]string, 2)
 
 	data["token"] = jwt2.GetToken(username, pwd)
 	data["user_name"] = username
 	data["head"] = config.UserInfo.Head
+	data["nick_name"] = config.UserInfo.NickName
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
 }
 
-// @Summary 获取用户详情
+// @Summary get user info
 // @Produce  application/json
 // @Accept mapplication/json
 // @Tags user
 // @Success 200 {string} string "ok"
 // @Router /user/info [get]
-func UserInfo(c *gin.Context) {
+func GetUserInfo(c *gin.Context) {
 	var u = make(map[string]string, 2)
 	u["user_name"] = config.UserInfo.UserName
 	u["head"] = config.UserInfo.Head
 	u["email"] = config.UserInfo.Email
 	u["description"] = config.UserInfo.Description
+	u["nick_name"] = config.UserInfo.NickName
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: oasis_err2.SUCCESS,

@@ -12,6 +12,7 @@ type DownloadService interface {
 	DelDownload(uuid string)
 	GetDownloadById(uuid string) model2.PersionDownloadDBModel
 	GetDownloadListByState(state string) []model2.PersionDownloadDBModel
+	SetDownloadError(m model2.PersionDownloadDBModel)
 }
 type downloadService struct {
 	db *gorm.DB
@@ -22,6 +23,11 @@ func (d *downloadService) AddDownloadTask(m model2.PersionDownloadDBModel) {
 }
 func (d *downloadService) EditDownloadState(m model2.PersionDownloadDBModel) {
 	d.db.Model(&m).Where("uuid = ?", m.UUID).Update("state", m.State)
+}
+
+//failed during download
+func (d *downloadService) SetDownloadError(m model2.PersionDownloadDBModel) {
+	d.db.Model(&m).Updates(m)
 }
 
 func (d *downloadService) DelDownload(uuid string) {

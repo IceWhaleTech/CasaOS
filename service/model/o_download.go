@@ -9,6 +9,9 @@ type PersionDownloadDBModel struct {
 	BlockSize int    `json:"block_size"`
 	Length    int    `json:"length"` //slice length
 	Hash      string `json:"hash"`
+	Error     string `json:"error"`
+	From      string `json:"from"`
+	Already   int    `json:"already" gorm:"-"`
 	CreatedAt int64  `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt int64  `gorm:"autoCreateTime;autoUpdateTime" json:"updated_at"`
 }

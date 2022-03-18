@@ -39,7 +39,7 @@ func InitRouter() *gin.Engine {
 	//set user
 	r.POST("/v1/user/setusernamepwd", v1.Set_Name_Pwd)
 	//get user info
-	r.GET("/v1/user/info", v1.UserInfo)
+	r.GET("/v1/user/info", v1.GetUserInfo)
 
 	v1Group := r.Group("/v1")
 
@@ -50,13 +50,13 @@ func InitRouter() *gin.Engine {
 		{
 
 			//chang head
-			v1UserGroup.POST("/changhead", v1.Up_Load_Head)
+			v1UserGroup.POST("/head", v1.PostUserHead)
 			//chang user name
-			v1UserGroup.PUT("/changusername", v1.Chang_User_Name)
+			v1UserGroup.PUT("/changusername", v1.PutUserName)
 			//chang pwd
-			v1UserGroup.PUT("/changuserpwd", v1.Chang_User_Pwd)
+			v1UserGroup.PUT("/changuserpwd", v1.PutUserPwd)
 			//edit user info
-			v1UserGroup.POST("/changuserinfo", v1.Chang_User_Info)
+			v1UserGroup.POST("/info", v1.PostUserChangeInfo)
 
 		}
 
@@ -291,13 +291,14 @@ func InitRouter() *gin.Engine {
 		v1PersonGroup.Use()
 		{
 			v1PersonGroup.GET("/test", v1.PersonTest)
-			v1PersonGroup.GET("/users", v1.GetPersionFriend)        //用户列表
-			v1PersonGroup.POST("/user", v1.PostAddPersionFriend)    //添加用户
-			v1PersonGroup.GET("/directory", v1.GetPersionDirectory) //文件列表
-			v1PersonGroup.GET("/file", v1.GetPersionFile)           //下载文件
-			v1PersonGroup.PUT("/edit/:token", v1.PutPersionNick)    //修改好友
-			v1PersonGroup.GET("/list", v1.GetPersionDownloadList)   //下载列表(需要考虑试试下载速度)
-			v1PersonGroup.DELETE("/file/id", v1.DeletePersionDownloadFile)
+			v1PersonGroup.GET("/users", v1.GetPersionFriend)
+			v1PersonGroup.POST("/user", v1.PostAddPersionFriend)
+			v1PersonGroup.GET("/directory", v1.GetPersionDirectory)
+			v1PersonGroup.GET("/file", v1.GetPersionFile)
+			v1PersonGroup.GET("/refile/:uuid", v1.GetPersionReFile)
+			v1PersonGroup.PUT("/nick/:token", v1.PutPersionNick)
+			v1PersonGroup.GET("/list", v1.GetPersionDownloadList)
+			v1PersonGroup.DELETE("/file/:uuid", v1.DeletePersionDownloadFile)
 			// v1PersonGroup.PUT("/state/:id", v1.PutPersionCancelDownload) //修改下载状态(开始暂停删除)
 
 		}

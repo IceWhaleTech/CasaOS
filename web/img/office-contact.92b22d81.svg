@@ -1,0 +1,15 @@
+<svg width="64" height="64" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <linearGradient id="a" x1="49.571" x2="51.714" y1="52.714" y2="54.857" gradientTransform="matrix(2.3333,0,0,2.3333,-68.667,-72.001)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="scale(3.7796)" fill-rule="evenodd">
+  <g transform="scale(.26458)">
+   <rect x="8" y="4" width="48" height="56" ry="5" fill="#5294e2" style="paint-order:stroke fill markers"/>
+   <path d="m56 46-14 14h9c2.77 0 5-2.23 5-5z" fill="url(#a)" fill-rule="evenodd" opacity=".15" stroke-width="8.8191" style="paint-order:stroke fill markers"/>
+  </g>
+ </g>
+ <path d="m31.92 18.517c-1.3-0.272-2.517 1.194-3.505 0.57-0.214 0.98-1.274 0.219-1.227 1.037-1.28 0.996-2.114 2.633-2.018 4.291-0.21 1.303 0.446 2.937-0.373 4.01-0.255 1.258-0.05 2.637 0.378 3.845 0.887 1.348 2.26 2.459 2.568 4.147 0.145 1.568-1.547 2.444-2.588 3.298-1.628 1.124-3.358 1.986-5.155 2.802v3h24v-3a20.344 20.344 0 0 1-6.508-4.538c-1.306-1.254-0.04-3.048 0.787-4.176 1.096-0.922 1.665-2.271 1.677-3.704 0.364-1.411-0.73-2.474-0.475-3.907-0.035-1.817 0.231-4.002-1.291-5.325-1.714-1.492-4.027-2.266-6.27-2.35z" color="#000000" fill="#fff" overflow="visible"/>
+</svg>

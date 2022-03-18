@@ -40,6 +40,10 @@ const (
 
 	//shortcuts
 	SHORTCUTS_URL_ERROR = 70001
+
+	//persion
+	PERSION_REMOTE_ERROR   = 80001
+	PERSION_DOWN_NOT_EXIST = 80002
 )
 
 var MsgFlags = map[int]string{
@@ -81,6 +85,9 @@ var MsgFlags = map[int]string{
 	FILE_READ_ERROR:     "File read error",
 	FILE_DELETE_ERROR:   "Delete error",
 	SHORTCUTS_URL_ERROR: "URL error",
+
+	PERSION_REMOTE_ERROR:   "Remote connection error",
+	PERSION_DOWN_NOT_EXIST: "Download record does not exist",
 }
 
 //获取错误信息

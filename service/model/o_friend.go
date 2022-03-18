@@ -9,6 +9,7 @@ type FriendModel struct {
 	Name      string `json:"name"`
 	Token     string `gorm:"column:token;primary_key" json:"token"`
 	Profile   string `json:"profile"`
+	OnLine    bool   `json:"on_line" gorm:"-"`
 }
 
 func (p *FriendModel) TableName() string {

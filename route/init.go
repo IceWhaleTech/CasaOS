@@ -248,6 +248,25 @@ func CheckToken2_11() {
 		config.AppInfo.RootPath = "/casaOS"
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
+	// if len(config.ServerInfo.Handshake) == 0 {
+	// 	config.Cfg.Section("app").Key("RootPath").SetValue("/casaOS")
+	// 	config.AppInfo.RootPath = "/casaOS"
+	// 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	// }
+	if len(config.FileSettingInfo.ShareDir) == 0 {
+		config.Cfg.Section("file").Key("ShareDir").SetValue("/DATA")
+		config.FileSettingInfo.ShareDir[0] = "/DATA"
+
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	}
+
+	if len(config.FileSettingInfo.DownloadDir) == 0 {
+		config.Cfg.Section("file").Key("DownloadDir").SetValue("/DATA/share")
+		config.FileSettingInfo.DownloadDir = "/DATA/share"
+		file.IsNotExistMkDir(config.FileSettingInfo.DownloadDir)
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	}
+
 	// str := []string{}
 	// str = append(str, "ddd")
 	// str = append(str, "aaa")

@@ -18,6 +18,7 @@ RunMode = release
 ServerApi = https://api.casaos.zimaboard.com
 Handshake = 
 Token = 
+NickName = 
 
 
 [user]

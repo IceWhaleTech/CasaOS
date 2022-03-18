@@ -1,0 +1,16 @@
+<svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <linearGradient id="a" x1="49.571" x2="51.714" y1="52.714" y2="54.857" gradientTransform="matrix(2.3333,0,0,2.3333,-68.667,-72.001)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="scale(1)">
+  <rect x="8" y="4" width="48" height="56" ry="5" fill="#415aa2" style="paint-order:stroke fill markers"/>
+  <path d="m56 46-14 14h9c2.77 0 5-2.23 5-5z" fill="url(#a)" fill-rule="evenodd" opacity=".15" stroke-width="8.8191" style="paint-order:stroke fill markers"/>
+ </g>
+ <g transform="matrix(3.7796 0 0 3.7796 -101.04 4.424)" fill="#fff">
+  <path d="m34.671 7.0315v1.7198c0 0.07329 0.059 0.13229 0.13229 0.13229h0.79374c0.07329 0 0.13229-0.059 0.13229-0.13229v-1.7198zm0.26458 1.0583h0.52916v0.52916h-0.52916z" color="#000000"/>
+  <path d="m35.2-0.11215v0.52916h0.52916v-0.52916zm0 0.52916h-0.52916v0.52916h0.52916zm0 0.52916v0.52916h0.52916v-0.52916zm0 0.52916h-0.52916v0.52916h0.52916zm0 0.52916v0.52916h0.52916v-0.52916zm0 0.52916h-0.52916v0.52916h0.52916zm0 0.52916v0.52916h0.52916v-0.52916zm0 0.52916h-0.52916v0.52916h0.52916zm0 0.52916v0.52916h0.52916v-0.52916zm0 0.52916h-0.52916v0.52916h0.52916zm0 0.52916v0.52916h0.52916v-0.52916zm0 0.52916h-0.52916v0.52916h0.52916zm0 0.52916v0.52916h0.52916v-0.52916z" color="#000000"/>
+ </g>
+</svg>

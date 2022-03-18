@@ -43,4 +43,5 @@ type FileSummaryModel struct {
 	BlockSize int    `json:"block_size"`
 	Length    int    `json:"length"`
 	Size      int64  `json:"size"`
+	Message   string `json:"message"`
 }

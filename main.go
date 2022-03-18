@@ -36,12 +36,14 @@ func init() {
 
 	go service.UDPService()
 
-	go service.UDPConnect([]string{})
 	service.Summary = make(map[string]model.FileSummaryModel)
 	service.UDPAddressMap = make(map[string]string)
 	//go service.SocketConnect()
 
 	route.InitFunction()
+
+	go service.SendIPToServer()
+	go service.LoopFriend()
 
 }
 
@@ -69,10 +71,12 @@ func main() {
 	//service.SyncTask(sqliteDB)
 	cron2 := cron.New() //创建一个cron实例
 	//every day execution
-	err := cron2.AddFunc("0 0/1 * * * *", func() {
+	err := cron2.AddFunc("0 0/5 * * * *", func() {
 		//service.PushIpInfo(*&config.ServerInfo.Token)
 		//service.UpdataDDNSList(mysqldb)
 		//service.SyncTask(sqliteDB)
+		service.SendIPToServer()
+		service.LoopFriend()
 	})
 	if err != nil {
 		fmt.Println(err)
