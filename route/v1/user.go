@@ -190,12 +190,55 @@ func PostUserChangeInfo(c *gin.Context) {
 		return
 	}
 	user_service.SetUser(username, pwd, "", email, description, nickName)
-	data := make(map[string]string, 2)
+	data := make(map[string]string, 4)
 
 	data["token"] = jwt2.GetToken(username, pwd)
 	data["user_name"] = username
 	data["head"] = config.UserInfo.Head
 	data["nick_name"] = config.UserInfo.NickName
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+}
+
+// @Summary edit user info
+// @Produce  application/json
+// @Accept multipart/form-data
+// @Tags user
+// @Param nick_name formData string false "nick name"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /user/nick [put]
+func PutUserChangeNick(c *gin.Context) {
+
+	nickName := c.PostForm("nick_name")
+
+	if len(nickName) > 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PWD_INVALID, Message: oasis_err2.GetMsg(oasis_err2.PWD_INVALID)})
+		return
+	}
+	user_service.SetUser("", "", "", "", "", nickName)
+	data := make(map[string]string, 1)
+	data["nick_name"] = config.UserInfo.NickName
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+}
+
+// @Summary edit user info
+// @Produce  application/json
+// @Accept multipart/form-data
+// @Tags user
+// @Param description formData string false "Description"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /user/desc [put]
+func PutUserChangeDesc(c *gin.Context) {
+	desc := c.PostForm("description")
+
+	if len(desc) > 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PWD_INVALID, Message: oasis_err2.GetMsg(oasis_err2.PWD_INVALID)})
+		return
+	}
+	user_service.SetUser("", "", "", "", desc, "")
+	data := make(map[string]string, 1)
+	data["description"] = config.UserInfo.Description
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
 }
 
@@ -206,7 +249,7 @@ func PostUserChangeInfo(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /user/info [get]
 func GetUserInfo(c *gin.Context) {
-	var u = make(map[string]string, 2)
+	var u = make(map[string]string, 5)
 	u["user_name"] = config.UserInfo.UserName
 	u["head"] = config.UserInfo.Head
 	u["email"] = config.UserInfo.Email

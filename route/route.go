@@ -57,6 +57,8 @@ func InitRouter() *gin.Engine {
 			v1UserGroup.PUT("/changuserpwd", v1.PutUserPwd)
 			//edit user info
 			v1UserGroup.POST("/info", v1.PostUserChangeInfo)
+			v1UserGroup.PUT("/nick", v1.PutUserChangeNick)
+			v1UserGroup.PUT("/desc", v1.PutUserChangeDesc)
 
 		}
 
