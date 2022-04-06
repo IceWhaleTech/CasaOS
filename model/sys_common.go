@@ -16,16 +16,20 @@ type UserModel struct {
 	Email       string
 	Description string
 	Initialized bool
+	Avatar      string
+	NickName    string
 }
 
 //服务配置
 type ServerModel struct {
-	HttpPort    string
-	RunMode     string
-	ServerApi   string
-	LockAccount bool
-	Handshake   string
-	Token       string
+	HttpPort     string
+	RunMode      string
+	ServerApi    string
+	LockAccount  bool
+	Handshake    string
+	Token        string
+	UDPPort      string
+	USBAutoMount string
 }
 
 //服务配置
@@ -38,6 +42,7 @@ type APPModel struct {
 	TimeFormat     string
 	DateFormat     string
 	ProjectPath    string
+	RootPath       string
 }
 
 //公共返回模型
@@ -45,13 +50,6 @@ type Result struct {
 	Success int         `json:"success" example:"200"`
 	Message string      `json:"message" example:"ok"`
 	Data    interface{} `json:"data" example:"返回结果"`
-}
-
-//zeritier相关
-type ZeroTierModel struct {
-	UserName string
-	PWD      string
-	Token    string
 }
 
 //redis配置文件
@@ -74,4 +72,9 @@ type SystemConfig struct {
 
 type CasaOSGlobalVariables struct {
 	AppChange bool
+}
+
+type FileSetting struct {
+	ShareDir    []string `json:"share_dir" delim:"|"`
+	DownloadDir string   `json:"download_dir"`
 }

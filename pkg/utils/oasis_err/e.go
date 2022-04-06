@@ -37,9 +37,18 @@ const (
 	FILE_DOES_NOT_EXIST = 60001
 	FILE_READ_ERROR     = 60002
 	FILE_DELETE_ERROR   = 60003
+	DIR_NOT_EXISTS      = 60004
 
 	//shortcuts
 	SHORTCUTS_URL_ERROR = 70001
+
+	//person
+	PERSON_REMOTE_ERROR   = 80001
+	PERSON_DOWN_NOT_EXIST = 80002
+	PERSON_EXIST_DOWNLOAD = 80003
+	PERSON_NOT_EXIST_USER = 80004
+	PERSON_EXIST_FRIEND   = 80005
+	PERSON_MYSELF         = 80006
 )
 
 var MsgFlags = map[int]string{
@@ -78,9 +87,18 @@ var MsgFlags = map[int]string{
 	//
 	FILE_DOES_NOT_EXIST: "File does not exist",
 
+	DIR_NOT_EXISTS: "Directory does not exist",
+
 	FILE_READ_ERROR:     "File read error",
 	FILE_DELETE_ERROR:   "Delete error",
 	SHORTCUTS_URL_ERROR: "URL error",
+
+	PERSON_REMOTE_ERROR:   "Remote connection error",
+	PERSON_DOWN_NOT_EXIST: "Download record does not exist",
+	PERSON_EXIST_DOWNLOAD: "The same download task exists",
+	PERSON_EXIST_FRIEND:   "Friend already exist",
+	PERSON_NOT_EXIST_USER: "User does not exist",
+	PERSON_MYSELF:         "You can not add yourself",
 }
 
 //获取错误信息

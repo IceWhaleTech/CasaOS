@@ -1,0 +1,26 @@
+<svg width="64" height="64" version="1.1" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <linearGradient id="a" x1="49.571" x2="51.714" y1="52.714" y2="54.857" gradientTransform="matrix(2.3333,0,0,2.3333,-68.667,-72.001)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="scale(1)">
+  <rect x="8" y="4" width="48" height="56" ry="5" fill="#4d4d4d" style="paint-order:stroke fill markers"/>
+  <path d="m56 46-14 14h9c2.77 0 5-2.23 5-5z" fill="url(#a)" fill-rule="evenodd" opacity=".15" stroke-width="8.8191" style="paint-order:stroke fill markers"/>
+ </g>
+ <g fill="none">
+  <path d="m21 31.513c7.043 0 8.3464 8.9615 11.453 8.9893 3.1068 0.02484 4.5065-9.0108 11.547-9.0108" stroke="#1d99f3"/>
+  <path d="m21 30.545c7.043 0 8.4753-6.1008 11.485-6.0943 2.9904 0.0064 4.4749 7.0415 11.515 7.0415" stroke="#da4453"/>
+  <path d="m21 30.545c7.043 0 7.4697-10.014 11.47-10.014s4.4901 10.961 11.53 10.961" stroke="#d6d6d6"/>
+ </g>
+ <g fill="#d6d6d6" style="">
+  <rect x="20" y="20" width="1" height="23" color="#000000" color-rendering="auto" image-rendering="auto" shape-rendering="auto" stroke-width="1.109"/>
+  <g style="">
+   <rect x="20" y="31" width="24" height="1"/>
+   <rect x="26" y="30" width="1" height="3"/>
+   <rect x="32" y="30" width="1" height="3"/>
+   <rect x="38" y="30" width="1" height="3"/>
+  </g>
+ </g>
+</svg>

@@ -73,7 +73,7 @@ func NetInfo(c *gin.Context) {
 			if n.Name == netCardName {
 				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
 				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))
-				item.DateTime = time.Now()
+				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
 				break
 			}

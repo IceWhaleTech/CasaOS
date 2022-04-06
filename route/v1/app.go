@@ -248,7 +248,7 @@ func ShareAppFile(c *gin.Context) {
 // @Tags app
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /app/share [post]
+// @Router /app/shares [post]
 func AppListResourceUsage() {
 
 }

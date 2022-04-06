@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	url2 "net/url"
 	"os"
 	"path"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/afero"
 )
 
 func downloadReadFile(c *gin.Context) {
@@ -157,14 +159,57 @@ func GetDownloadFile(c *gin.Context) {
 	//获取文件的名称
 	fileName := path.Base(filePath)
 	c.Header("Content-Type", "application/octet-stream")
-	c.Header("Content-Disposition", "attachment; filename="+fileName)
+	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
 	c.Header("Content-Transfer-Encoding", "binary")
 	c.Header("Cache-Control", "no-cache")
-	c.Header("Content-Type", "application/octet-stream")
-	c.Header("Content-Disposition", "attachment; filename="+fileName)
-	c.Header("Content-Transfer-Encoding", "binary")
 
 	c.File(filePath)
+}
+
+// @Summary download
+// @Produce  application/json
+// @Accept application/json
+// @Tags file
+// @Security ApiKeyAuth
+// @Param path query string true "path of file"
+// @Success 200 {string} string "ok"
+// @Router /file/new/download [get]
+func GetFileDownloadNew(c *gin.Context) {
+	filePath := c.Query("path")
+	if len(filePath) == 0 {
+		c.JSON(http.StatusOK, model.Result{
+			Success: oasis_err2.INVALID_PARAMS,
+			Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS),
+		})
+		return
+	}
+	if !file.Exists(filePath) {
+		c.JSON(http.StatusOK, model.Result{
+			Success: oasis_err2.FILE_DOES_NOT_EXIST,
+			Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST),
+		})
+		return
+	}
+	//打开文件
+	fileStat, _ := os.Stat(filePath)
+	var AppFs = afero.NewOsFs()
+	fileT, _ := AppFs.Open(filePath)
+	//fileTmp, _ := os.Open(filePath)
+	//defer fileTmp.Close()
+	//获取文件的名称
+	//fileName := path.Base(filePath)
+
+	//c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
+	//在线
+	//c.Header("Content-Disposition", "inline")
+	// extraHeaders := map[string]string{
+	// 	"Content-Disposition": `attachment; filename="` + url2.PathEscape(fileName) + `"`,
+	// }
+
+	//c.Header("Cache-Control", "private")
+	//c.Header("Content-Type", "application/octet-stream")
+
+	http.ServeContent(c.Writer, c.Request, fileStat.Name(), fileStat.ModTime(), fileT)
 }
 
 // @Summary 获取目录列表

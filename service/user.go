@@ -9,7 +9,7 @@ import (
 )
 
 type UserService interface {
-	SetUser(username, pwd, token, email, desc string) error
+	SetUser(username, pwd, token, email, desc, nickName string) error
 	UpLoadFile(file multipart.File, name string) error
 }
 
@@ -17,7 +17,7 @@ type user struct {
 }
 
 //设置用户名密码
-func (c *user) SetUser(username, pwd, token, email, desc string) error {
+func (c *user) SetUser(username, pwd, token, email, desc, nickName string) error {
 	if len(username) > 0 {
 		config.Cfg.Section("user").Key("UserName").SetValue(username)
 		config.UserInfo.UserName = username
@@ -35,6 +35,10 @@ func (c *user) SetUser(username, pwd, token, email, desc string) error {
 	if len(desc) > 0 {
 		config.Cfg.Section("user").Key("Description").SetValue(desc)
 		config.UserInfo.Description = desc
+	}
+	if len(nickName) > 0 {
+		config.Cfg.Section("user").Key("NickName").SetValue(nickName)
+		config.UserInfo.NickName = nickName
 	}
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	return nil

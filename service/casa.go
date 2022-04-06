@@ -21,6 +21,10 @@ type CasaService interface {
 	ShareAppFile(body []byte) string
 	PushHeart(id, t string, language string)
 	PushAppAnalyse(uuid, t string, name, language string)
+	PushConnectionStatus(uuid, err string, from, to, event string)
+	PushUserInfo()
+	GetUserInfoByShareId(shareId string) model.UserInfo
+	GetPersonPublic() (list []model.FriendsModel)
 }
 
 type casaService struct {
@@ -117,7 +121,6 @@ func GetToken() string {
 	}
 	go func() {
 		str := httper2.Get(config.ServerInfo.ServerApi+"/token", nil)
-
 		t <- gjson.Get(str, "data").String()
 	}()
 	auth = <-t
@@ -163,7 +166,68 @@ func (o *casaService) PushAppAnalyse(uuid, t string, name, language string) {
 	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
 
 }
+func (o *casaService) PushConnectionStatus(uuid, err string, from, to, event string) {
 
+	m := model.ConnectionStatus{}
+	m.UUId = uuid
+	m.Error = err
+	m.From = from
+	m.To = to
+	m.Event = event
+	b, _ := json.Marshal(m)
+
+	head := make(map[string]string)
+
+	head["Authorization"] = GetToken()
+
+	infoS := httper2.Post(config.ServerInfo.ServerApi+"/v1/analyse/connect", b, "application/json", head)
+
+	info := model.ServerAppList{}
+	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
+
+}
+func (o *casaService) PushUserInfo() {
+	m := model.UserInfo{}
+	m.Desc = config.UserInfo.Description
+	m.Avatar = config.UserInfo.Avatar
+	m.NickName = config.UserInfo.NickName
+	m.ShareId = config.ServerInfo.Token
+	b, _ := json.Marshal(m)
+
+	head := make(map[string]string)
+
+	head["Authorization"] = GetToken()
+
+	infoS := httper2.Post(config.ServerInfo.ServerApi+"/v1/user/info", b, "application/json", head)
+
+	info := model.ServerAppList{}
+	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
+
+}
+
+func (o *casaService) GetUserInfoByShareId(shareId string) model.UserInfo {
+
+	head := make(map[string]string)
+
+	head["Authorization"] = GetToken()
+
+	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v1/user/info/"+shareId, head)
+
+	info := model.UserInfo{}
+	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
+	return info
+}
+func (o *casaService) GetPersonPublic() (list []model.FriendsModel) {
+	head := make(map[string]string)
+
+	head["Authorization"] = GetToken()
+
+	listS := httper2.Get(config.ServerInfo.ServerApi+"/v1/person/public", head)
+
+	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &list)
+
+	return list
+}
 func NewCasaService() CasaService {
 	return &casaService{}
 }

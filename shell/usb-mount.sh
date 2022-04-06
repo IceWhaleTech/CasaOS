@@ -12,7 +12,7 @@ DEVBASE=$2
 DEVICE="/dev/${DEVBASE}"
 
 # See if this drive is already mounted, and if so where
-MOUNT_POINT=$(lsblk -o name,mountpoint | grep ${DEVICE} | awk '{print $2}')
+MOUNT_POINT=$(lsblk -l -p -o name,mountpoint | grep ${DEVICE} | awk '{print $2}')
 
 do_mount() {
 
@@ -112,9 +112,12 @@ do_umount() {
   if [[ -z ${MOUNT_POINT} ]]; then
     ${log} "Warning: ${DEVICE} is not mounted"
   else
+    #/bin/kill -9 $(lsof ${MOUNT_POINT})
     umount -l ${DEVICE}
     ${log} "Unmounted ${DEVICE} from ${MOUNT_POINT}"
-    /bin/rmdir "${MOUNT_POINT}"
+    if [ "`ls -A ${MOUNT_POINT}`" = "" ]; then
+      /bin/rm -fr "${MOUNT_POINT}"
+    fi
     sed -i.bak "\@${MOUNT_POINT}@d" /var/log/usb-mount.track
   fi
 

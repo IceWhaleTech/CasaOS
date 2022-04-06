@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" version="1.1" viewBox="0 0 16.933 16.933" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <linearGradient id="a" x1="49.571" x2="51.714" y1="52.714" y2="54.857" gradientTransform="matrix(2.3333,0,0,2.3333,-68.667,-72.001)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="scale(.26458)">
+  <rect x="8" y="4" width="48" height="56" ry="5" fill="#7839b7" style="paint-order:stroke fill markers"/>
+  <path d="m56 46-14 14h9c2.77 0 5-2.23 5-5z" fill="url(#a)" fill-rule="evenodd" opacity=".15" stroke-width="8.8191" style="paint-order:stroke fill markers"/>
+ </g>
+ <g transform="matrix(.27214 0 0 .27214 .030217 -.2419)" color="#000000" color-rendering="auto" fill="#7839b7" image-rendering="auto" shape-rendering="auto" solid-color="#000000" style="isolation:auto;mix-blend-mode:normal">
+  <path d="m28.138 45.125-0.56396-23.909q-2.4609 0.92285-3.8452 2.8882-1.3672 1.9653-1.3672 4.8877 0 0.6665 0.06836 1.0938 0.08545 0.41016 0.1709 0.6665 0.08545 0.23926 0.15381 0.37598 0.08545 0.13672 0.08545 0.23926-0.90576 0-1.6064-0.1709-0.70068-0.18799-1.1792-0.58105-0.46143-0.39307-0.71777-1.0425-0.23926-0.64941-0.23926-1.6064 0-1.1621 0.49561-2.29 0.5127-1.1279 1.3843-2.1362 0.88867-1.0083 2.0679-1.8628 1.1963-0.85449 2.5464-1.4697 1.3672-0.63232 2.8369-0.97412 1.4868-0.35889 2.9565-0.35889 0.39307 0 0.71777 0.01709 0.3418 0.01709 0.68359 0.05127l0.30762 21.533 7.3657-21.431h2.4438l-9.7241 26.079z" color="#000000" color-rendering="auto" fill="#fff" image-rendering="auto" shape-rendering="auto" solid-color="#000000" stroke-width=".24306" style="isolation:auto;mix-blend-mode:normal"/>
+ </g>
+</svg>

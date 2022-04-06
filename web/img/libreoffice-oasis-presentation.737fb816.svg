@@ -1,0 +1,26 @@
+<svg width="64" height="64" version="1.1" viewBox="0 0 16.933 16.933" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <path d="m3.4395 1.0583c-0.73289 0-1.3229 0.59001-1.3229 1.3229v12.171c0 0.73289 0.59001 1.3229 1.3229 1.3229h10.054c0.73289 0 1.3229-0.59001 1.3229-1.3229v-10.319l-3.175-3.175z" fill="#f9f9f9" fill-rule="evenodd" stroke-width=".26458" style="paint-order:stroke fill markers"/>
+ <path d="m3.4395 1.0583c-0.73289 0-1.3229 0.59-1.3229 1.3229v12.171c0 0.73289 0.59 1.3229 1.3229 1.3229h10.054c0.73289 0 1.3229-0.59 1.3229-1.3229v-10.319l-3.1749-3.1749zm0 0.52916h7.9828l2.8649 2.8649v10.099c0 0.44889-0.34485 0.79373-0.79373 0.79373h-10.054c-0.44889 0-0.79373-0.34485-0.79373-0.79373v-12.171c0-0.44889 0.34485-0.79373 0.79373-0.79373z" color="#000000" color-rendering="auto" dominant-baseline="auto" fill="#ad450d" image-rendering="auto" shape-rendering="auto" solid-color="#000000" style="font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;isolation:auto;mix-blend-mode:normal;paint-order:fill markers stroke;shape-padding:0;text-decoration-color:#000000;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;white-space:normal"/>
+ <path d="m12.171 1.0583 2.6458 2.6458-3.75e-4 -1.3229c-2.08e-4 -0.73288-0.59001-1.3229-1.3229-1.3229z" fill="#ad450d" fill-rule="evenodd" style="paint-order:stroke fill markers"/>
+ <path id="p" d="m8.249 10.639-1.403 0.92602h0.56538l0.19667-0.06447 1.09-0.86154z" fill="#808080" stroke-width=".057876"/>
+ <use transform="matrix(-1 0 0 1 16.875 2.3464e-6)" width="5033" height="1085" xlink:href="#p"/>
+ <g stroke-width=".057876">
+  <path d="m8.6981 10.639 1.389 0.92602h-0.5794l-0.17862-0.050815-1.094-0.8752z" fill="#808080"/>
+  <rect x="8.1193" y="10.408" width=".69451" height=".34726" color="#000000" fill="#808080"/>
+  <rect x="4.7625" y="5.1989" width="7.4081" height="5.3246" rx=".11575" ry=".11575" color="#000000" fill="#ffe6d5"/>
+  <rect x="6.1516" y="7.6876" width="1.7363" height=".2315" color="#000000" fill="#a40"/>
+ </g>
+ <path d="m5.8043 7.8024a0.11575 0.11575 0 1 1-0.23151 0 0.11575 0.11575 0 1 1 0.23151 0z" color="#000000" fill="#ff7f2a" stroke-width=".021541"/>
+ <g stroke-width=".057876">
+  <rect x="5.457" y="5.8934" width="6.0191" height=".28938" color="#000000" fill="#a40"/>
+  <rect x="8.4666" y="7.6297" width="3.0096" height="2.0835" color="#000000" fill="#808080"/>
+  <rect x="8.6402" y="7.8033" width="2.6623" height="1.7363" color="#000000" fill="#f2f2f2"/>
+  <rect x="6.6146" y="6.4722" width="3.7041" height=".28938" color="#000000" fill="#a40"/>
+  <rect x="6.1516" y="8.2664" width="1.7363" height=".2315" color="#000000" fill="#a40"/>
+ </g>
+ <path d="m5.8043 8.3812a0.11575 0.11575 0 1 1-0.23151 0 0.11575 0.11575 0 1 1 0.23151 0z" color="#000000" fill="#ff7f2a" stroke-width=".021541"/>
+ <rect x="6.1516" y="8.8451" width="1.7363" height=".2315" color="#000000" fill="#a40" stroke-width=".057876"/>
+ <path d="m5.8043 8.9599a0.11575 0.11575 0 1 1-0.23151 0 0.11575 0.11575 0 1 1 0.23151 0z" color="#000000" fill="#ff7f2a" stroke-width=".021541"/>
+ <rect x="6.1516" y="9.4239" width="1.7363" height=".2315" color="#000000" fill="#a40" stroke-width=".057876"/>
+ <path d="m5.8043 9.5387a0.11575 0.11575 0 1 1-0.23151 0 0.11575 0.11575 0 1 1 0.23151 0z" color="#000000" fill="#ff7f2a" stroke-width=".021541"/>
+</svg>

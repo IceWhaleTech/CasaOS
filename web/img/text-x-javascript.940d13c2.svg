@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" version="1.1" viewBox="0 0 16.933 16.933" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <linearGradient id="a" x1="49.571" x2="51.714" y1="52.714" y2="54.857" gradientTransform="matrix(2.3333,0,0,2.3333,-68.667,-72.001)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="scale(.26458)">
+  <rect x="8" y="4" width="48" height="56" ry="5" fill="#eab305" style="paint-order:stroke fill markers"/>
+  <path d="m56 46-14 14h9c2.77 0 5-2.23 5-5z" fill="url(#a)" fill-rule="evenodd" opacity=".15" stroke-width="8.8191" style="paint-order:stroke fill markers"/>
+ </g>
+ <path d="m9.3537 9.5175c0.22643 0.3697 0.52101 0.64145 1.042 0.64145 0.43768 0 0.71728-0.21875 0.71728-0.52101 0-0.36221-0.28727-0.4905-0.76903-0.70122l-0.26408-0.1133c-0.76225-0.32474-1.2686-0.73156-1.2686-1.5916 0-0.79222 0.60363-1.3953 1.547-1.3953 0.67161 0 1.1544 0.23374 1.5024 0.84575l-0.82256 0.52815c-0.1811-0.32474-0.37648-0.45267-0.67981-0.45267-0.3094 0-0.50549 0.19627-0.50549 0.45267 0 0.31689 0.19627 0.44518 0.64948 0.64145l0.26408 0.11312c0.8975 0.38487 1.4042 0.77724 1.4042 1.6594 0 0.95103-0.74708 1.472-1.7504 1.472-0.981 0-1.6148-0.46748-1.9249-1.0802zm-3.7315 0.09153c0.16594 0.29441 0.31689 0.54332 0.67981 0.54332 0.34704 0 0.56598-0.13578 0.56598-0.66375v-3.5918h1.0563v3.606c0 1.0938-0.64127 1.5916-1.5773 1.5916-0.84575 0-1.3355-0.43769-1.5846-0.96485z" enable-background="new" fill="#fff" stroke-width=".066145"/>
+</svg>

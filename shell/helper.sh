@@ -245,9 +245,13 @@ do_umount() {
   if [[ -z ${MOUNT_POINT} ]]; then
     ${log} "Warning: ${DEVICE} is not mounted"
   else
+    /bin/kill -9 $(lsof ${MOUNT_POINT})
     umount -l ${DEVICE}
     ${log} "Unmounted ${DEVICE} from ${MOUNT_POINT}"
-    /bin/rmdir "${MOUNT_POINT}"
+    if [ "`ls -A ${MOUNT_POINT}`" = "" ]; then
+      /bin/rm -fr "${MOUNT_POINT}"
+    fi
+    
     sed -i.bak "\@${MOUNT_POINT}@d" /var/log/usb-mount.track
   fi
 
@@ -324,4 +328,17 @@ TarFolder() {
 
   #查看固定文件夹大小
   du -sh /DATA
+}
+
+USB_Move_File() {
+  ((EUID)) && sudo_cmd="sudo"
+  $sudo_cmd cp -rf /casaOS/server/shell/11-usb-mount.rules /etc/udev/rules.d/
+  $sudo_cmd chmod +x /casaOS/server/shell/usb-mount.sh
+  $sudo_cmd cp -rf /casaOS/server/shell/usb-mount@.service /etc/systemd/system/
+}
+
+USB_Remove_File() {
+  ((EUID)) && sudo_cmd="sudo"
+  $sudo_cmd rm -fr /etc/udev/rules.d/11-usb-mount.rules
+  $sudo_cmd rm -fr /etc/systemd/system/usb-mount@.service
 }
