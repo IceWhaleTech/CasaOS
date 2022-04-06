@@ -21,7 +21,6 @@ type Repository interface {
 	User() UserService
 	Docker() DockerService
 	//Redis() RedisService
-	ZeroTier() ZeroTierService
 	ZiMa() ZiMaService
 	Casa() CasaService
 	Disk() DiskService
@@ -33,6 +32,8 @@ type Repository interface {
 	Shortcuts() ShortcutsService
 	Search() SearchService
 	Person() PersonService
+	Friend() FriendService
+	Download() DownloadService
 }
 
 func NewService(db *gorm.DB, log loger2.OLog) Repository {
@@ -43,7 +44,6 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		user:   NewUserService(),
 		docker: NewDockerService(log),
 		//redis:      NewRedisService(rp),
-		zerotier:       NewZeroTierService(),
 		zima:           NewZiMaService(),
 		casa:           NewCasaService(),
 		disk:           NewDiskService(log, db),
@@ -55,6 +55,8 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		shortcuts:      NewShortcutsService(db),
 		search:         NewSearchService(),
 		person:         NewPersonService(db),
+		friend:         NewFriendService(db),
+		download:       NewDownloadService(db),
 	}
 }
 
@@ -64,7 +66,6 @@ type store struct {
 	ddns           DDNSService
 	user           UserService
 	docker         DockerService
-	zerotier       ZeroTierService
 	zima           ZiMaService
 	casa           CasaService
 	disk           DiskService
@@ -76,8 +77,16 @@ type store struct {
 	shortcuts      ShortcutsService
 	search         SearchService
 	person         PersonService
+	friend         FriendService
+	download       DownloadService
 }
 
+func (c *store) Download() DownloadService {
+	return c.download
+}
+func (c *store) Friend() FriendService {
+	return c.friend
+}
 func (c *store) Rely() RelyService {
 	return c.rely
 }
@@ -111,9 +120,6 @@ func (c *store) Docker() DockerService {
 	return c.docker
 }
 
-func (c *store) ZeroTier() ZeroTierService {
-	return c.zerotier
-}
 func (c *store) ZiMa() ZiMaService {
 	return c.zima
 }

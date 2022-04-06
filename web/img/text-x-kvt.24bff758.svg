@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <linearGradient id="a" x1="49.571" x2="51.714" y1="52.714" y2="54.857" gradientTransform="matrix(2.3333,0,0,2.3333,-68.667,-72.001)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </linearGradient>
+ </defs>
+ <rect x="8" y="4" width="48" height="56" ry="5" fill="#f4f4f4" style="paint-order:stroke fill markers"/>
+ <path d="m56 46-14 14h9c2.77 0 5-2.23 5-5z" fill="url(#a)" fill-rule="evenodd" opacity=".1" stroke-width="8.8191" style="paint-order:stroke fill markers"/>
+ <g transform="matrix(2.0346 0 0 2.035 14.777 14.777)" opacity=".75" stroke-width=".96313">
+  <path d="m13.323 3.603c-0.048 0.049 2.02 4.86 2.02 4.86l-2.02 4.858s-4.86-2.568-4.86-4.859c0-2.29 4.86-4.859 4.86-4.859z" fill="#46a926" style="isolation:isolate"/>
+  <path d="m3.604 13.321c0.049-0.049-2.02-4.859-2.02-4.859l2.02-4.859s4.86 2.569 4.86 4.86c0 2.29-4.86 4.858-4.86 4.858z" fill="#f22c42" style="isolation:isolate"/>
+  <path d="m13.323 3.603c-0.048 0.049-4.86-2.019-4.86-2.019l-4.86 2.019 4.86 4.86z" fill="#ffda64" style="isolation:isolate"/>
+  <path d="m3.604 13.321 4.86 2.013s4.81-2.062 4.86-2.013l-4.86-4.859z" fill="#2f5fdd" style="isolation:isolate"/>
+  <path d="m8.464 1.587c-1e-3 1.758 0.672 3.516 2.019 4.862l2.845-2.844a6.88 6.88 0 0 0-4.861-2.018z" fill="#a6d74f" style="isolation:isolate"/>
+  <path d="m13.328 3.605-2.845 2.844a6.84 6.84 0 0 0 4.863 2.012 6.88 6.88 0 0 0-2.018-4.856z" fill="#76c22b" style="isolation:isolate"/>
+  <path d="m10.476 10.481a6.85 6.85 0 0 0-2.019 4.862h0.069a6.88 6.88 0 0 0 4.8-2.013z" fill="#1463a5" style="isolation:isolate"/>
+  <path d="m15.346 8.469a6.84 6.84 0 0 0-4.87 2.012l2.85 2.85a6.88 6.88 0 0 0 2.02-4.862z" fill="#2b898f" style="isolation:isolate"/>
+  <path d="m1.587 8.463a6.88 6.88 0 0 0 0 3e-3 6.88 6.88 0 0 0 2.014 4.857l2.85-2.848a6.839 6.839 0 0 0-4.864-2.011z" fill="#9b33ae" style="isolation:isolate"/>
+  <path d="m6.45 10.475-2.85 2.848a6.88 6.88 0 0 0 4.826 2.02h0.043a6.85 6.85 0 0 0-2.019-4.868z" fill="#7839b7" style="isolation:isolate"/>
+  <path d="m8.467 1.587a6.88 6.88 0 0 0-4.858 2.015l2.848 2.847a6.85 6.85 0 0 0 2.019-4.861 6.88 6.88 0 0 0-0.01 0z" fill="#fdc92b" style="isolation:isolate"/>
+  <path d="m3.609 3.602a6.88 6.88 0 0 0-2.021 4.859 6.84 6.84 0 0 0 4.869-2.012z" fill="#f34f17" style="isolation:isolate"/>
+ </g>
+ <circle cx="32" cy="32" r="10" fill="#fff" opacity=".35" stroke-width="1.8898" style="paint-order:fill markers stroke"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg width="64" height="64" version="1.1" viewBox="0 0 16.933 16.933" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <path d="m3.4395 1.0583c-0.73289 0-1.3229 0.59001-1.3229 1.3229v12.171c0 0.73289 0.59001 1.3229 1.3229 1.3229h10.054c0.73289 0 1.3229-0.59001 1.3229-1.3229v-10.319l-3.175-3.175z" fill="#f9f9f9" fill-rule="evenodd" stroke-width=".26458" style="paint-order:stroke fill markers"/>
+ <path d="m3.4395 1.0583c-0.73289 0-1.3229 0.59-1.3229 1.3229v12.171c0 0.73289 0.59 1.3229 1.3229 1.3229h10.054c0.73289 0 1.3229-0.59 1.3229-1.3229v-10.319l-3.1749-3.1749zm0 0.52916h7.9828l2.8649 2.8649v10.099c0 0.44889-0.34485 0.79373-0.79373 0.79373h-10.054c-0.44889 0-0.79373-0.34485-0.79373-0.79373v-12.171c0-0.44889 0.34485-0.79373 0.79373-0.79373z" color="#000000" color-rendering="auto" dominant-baseline="auto" fill="#d17520" image-rendering="auto" shape-rendering="auto" solid-color="#000000" style="font-feature-settings:normal;font-variant-alternates:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-variant-numeric:normal;font-variant-position:normal;isolation:auto;mix-blend-mode:normal;paint-order:fill markers stroke;shape-padding:0;text-decoration-color:#000000;text-decoration-line:none;text-decoration-style:solid;text-indent:0;text-orientation:mixed;text-transform:none;white-space:normal"/>
+ <path d="m12.171 1.0583 2.6458 2.6458-3.75e-4 -1.3229c-2.08e-4 -0.73288-0.59001-1.3229-1.3229-1.3229z" fill="#d17520" fill-rule="evenodd" style="paint-order:stroke fill markers"/>
+ <g>
+  <path d="m9.282 7.4671a2.2342 2.2342 0 1 1-4.4684 0 2.2342 2.2342 0 1 1 4.4684 0z" color="#000000" enable-background="new" fill="#f7bfaf"/>
+  <rect x="8.474" y="6.7619" width="3.5277" height="3.5277" color="#000000" enable-background="new" fill="#d39d1d"/>
+  <path d="m9.87 11.23h-4.4684l2.2342-3.5864 1.1171 1.7932z" color="#000000" enable-background="new" fill="#f9d254"/>
+ </g>
+ <rect id="c" x="4.961" y="10.966" width=".64674" height=".64674" color="#000000" enable-background="new" fill="#9ef290" opacity=".75" stroke-width="0"/>
+ <path d="m9.415 10.407h2.7046v-3.7629h-3.7629v2.0696z" color="#000000" enable-background="new" fill="none"/>
+ <use transform="translate(2.3518,-3.7629)" width="5033" height="1085" enable-background="new" xlink:href="#c"/>
+ <use transform="translate(4.7036,2.01e-6)" width="5033" height="1085" enable-background="new" xlink:href="#c"/>
+</svg>

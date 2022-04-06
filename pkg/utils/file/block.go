@@ -60,9 +60,9 @@ func ComparisonHash(data []byte, hash string) bool {
 
 //get prefix byte length
 func PrefixLength(byteLength int) []byte {
-	lengthByte := []byte{'0', '0', '0', '0'}
+	lengthByte := []byte{'0', '0', '0', '0', '0', '0'}
 	bSize := strconv.Itoa(byteLength)
-	cha := 4 - len(bSize)
+	cha := 6 - len(bSize)
 	for i := len(bSize); i > 0; i-- {
 		lengthByte[cha+i-1] = bSize[i-1]
 	}

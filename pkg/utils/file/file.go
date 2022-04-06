@@ -8,6 +8,8 @@ import (
 	"mime/multipart"
 	"os"
 	"path"
+	path2 "path"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -224,6 +226,17 @@ func CopyFile(src, dst string) error {
 		return err
 	}
 	return os.Chmod(dst, srcinfo.Mode())
+}
+
+//Check for duplicate file names
+func GetNoDuplicateFileName(fullPath string) string {
+	path, fileName := filepath.Split(fullPath)
+	fileSuffix := path2.Ext(fileName)
+	filenameOnly := strings.TrimSuffix(fileName, fileSuffix)
+	for i := 0; Exists(fullPath); i++ {
+		fullPath = path2.Join(path, filenameOnly+"("+strconv.Itoa(i+1)+")"+fileSuffix)
+	}
+	return fullPath
 }
 
 // Dir copies a whole directory recursively

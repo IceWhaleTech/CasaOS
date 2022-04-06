@@ -1,0 +1,23 @@
+<svg width="64" height="64" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <clipPath id="a">
+   <path d="m302 290a8 8 0 1 1-16 0 8 8 0 1 1 16 0z" color="#bebebe" fill="#ddd" opacity=".5" overflow="visible"/>
+  </clipPath>
+  <linearGradient id="b" x1="49.571" x2="51.714" y1="52.714" y2="54.857" gradientTransform="matrix(2.3333,0,0,2.3333,-68.667,-72.001)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="scale(1)">
+  <rect x="8" y="4" width="48" height="56" ry="5" fill="#37a7e5" style="paint-order:stroke fill markers"/>
+  <path d="m56 46-14 14h9c2.77 0 5-2.23 5-5z" fill="url(#b)" fill-rule="evenodd" opacity=".15" stroke-width="8.8191" style="paint-order:stroke fill markers"/>
+ </g>
+ <g transform="translate(0,1.992)" stroke-width=".839">
+  <path d="m35.546 20.589-14.517 1.84 1.037 2.287 10.511-1.553 3.801 3.912 6.125-1.073zm-2.846 6.913-9.999 1.698 0.974 2.555 5.44-1.027 1.394 2.41 5.762-1.241zm-3.273 8.075-4.945 1.083 0.948 2.767 5.338-1.349z" fill="#fff"/>
+ </g>
+ <g transform="translate(-.2267 .99882)" stroke-width=".839">
+  <path transform="matrix(1.7399 0 0 2.0851 -462.12 -572.14)" d="m293 295.5c0 1.38-1.343 2.5-3 2.5s-3-1.12-3-2.5 1.343-2.5 3-2.5 3 1.12 3 2.5z" color="#bebebe" fill="none" opacity=".2" overflow="visible" stroke="#fff" stroke-linecap="round" stroke-width=".656"/>
+  <path transform="matrix(1.7399 0 0 2.0851 -462.12 -572.14)" d="m287 295.51c-7e-3 -1.38 1.33-2.504 2.987-2.51s3.006 1.109 3.013 2.49c7e-3 1.377-1.324 2.5-2.977 2.51" color="#bebebe" fill="none" overflow="visible" stroke="#fff" stroke-linecap="round" stroke-width=".656"/>
+  <path transform="matrix(.74566 0 0 .74467 -176.78 -171.96)" d="m287 294-3.057-5.029h6.057z" clip-path="url(#a)" fill="#fff"/>
+ </g>
+</svg>

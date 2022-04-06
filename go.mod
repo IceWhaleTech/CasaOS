@@ -50,6 +50,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/spf13/afero v1.2.2
 	github.com/swaggo/gin-swagger v1.3.0
 	github.com/swaggo/swag v1.7.3
 	github.com/tidwall/gjson v1.10.2

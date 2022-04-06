@@ -9,14 +9,17 @@ DateTimeFormat = 2006-01-02 15:04:05
 TimeFormat = 15:04:05
 DateFormat = 2006-01-02
 ProjectPath = /casaOS/server
+RootPath = /casaOS
 
 
 [server]
 HttpPort = 8089
+UDPPort = 
 RunMode = release
 ServerApi = https://api.casaos.zimaboard.com
-Handshake = 
+Handshake = socket.casaos.io
 Token = 
+USBAutoMount = true
 
 
 [user]
@@ -25,11 +28,8 @@ PWD = zimaboard
 Email = user@gmail.com
 Description = description
 Initialized = false
-
-[zerotier]
-UserName = user
-PWD = pwd
-Token = yBKYyavr2RdFAIVN7iTpzlsB1o6CqTgm
+Avatar = 
+NickName = 
 
 [redis]
 Host = 127.0.0.1:6379
@@ -43,3 +43,6 @@ ConfigStr =
 WidgetList =
 Analyse =
 
+[file]
+ShareDir =
+DownloadDir =

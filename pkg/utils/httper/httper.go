@@ -3,6 +3,7 @@ package httper
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -67,7 +68,8 @@ func Post(url string, data []byte, contentType string, head map[string]string) (
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, error := client.Do(req)
 	if error != nil {
-		panic(error)
+		fmt.Println(error)
+		return
 	}
 	defer resp.Body.Close()
 

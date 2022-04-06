@@ -1,0 +1,18 @@
+<svg width="64" height="64" version="1.1" viewBox="0 0 16.933 16.933" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <linearGradient id="a" x1="49.571" x2="51.714" y1="52.714" y2="54.857" gradientTransform="matrix(2.3333,0,0,2.3333,-68.667,-72.001)" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g transform="scale(.26458)">
+  <rect x="8" y="4" width="48" height="56" ry="5" fill="#f4f4f4" style="paint-order:stroke fill markers"/>
+  <path d="m56 46-14 14h9c2.77 0 5-2.23 5-5z" fill="url(#a)" fill-rule="evenodd" opacity=".1" stroke-width="8.8191" style="paint-order:stroke fill markers"/>
+ </g>
+ <g transform="matrix(.49563 0 0 .49563 -158.07 -64.931)" enable-background="new" opacity=".75" stroke-width=".13346">
+  <rect transform="rotate(90)" x="140.04" y="-343.99" width="16" height="16" color="#000000" enable-background="accumulate" fill="none"/>
+  <path d="m337.31 139.96-2.6322 0.39327v1.3534a6.4893 6.4775 43.146 0 1 2.6322 5e-3v-1.7515zm-5.3858 1.1906-2.0054 1.7049 0.98801 1.1776a6.4893 6.4775 43.146 0 1 2.0174-1.6908zm8.1287 0.0127-0.99285 1.1835a6.4893 6.4775 43.146 0 1 0.17056 0.0905 6.4893 6.4775 43.146 0 1 1.8446 1.6029l1.0051-1.1977zm-11.61 4.2168-0.44056 2.5954 1.5154 0.26739a6.4893 6.4775 43.146 0 1 0.45509-2.5927zm15.086 3e-3 -1.5228 0.26851a6.4893 6.4775 43.146 0 1 0.46365 2.5909l1.5329-0.27zm-13.682 4.6946-1.3515 0.78058h-3.4e-4l1.331 2.271 1.3381-0.77238a6.4893 6.4775 43.146 0 1-1.3172-2.2792zm12.301 3e-3a6.4893 6.4775 43.146 0 1-0.53478 1.2148 6.4893 6.4775 43.146 0 1-0.77388 1.0692l1.3388 0.77313 1.3016-2.2881zm-9.5569 3.4716-0.53479 1.4688 2.4795 0.88448 0.52585-1.4453a6.4893 6.4775 43.146 0 1-2.3034-0.79995 6.4893 6.4775 43.146 0 1-0.16721-0.10799zm6.8133 0.0153a6.4893 6.4775 43.146 0 1-2.4747 0.89752l0.53031 1.4565 2.4676-0.91651z" color="#000000" enable-background="accumulate" fill="#999"/>
+  <circle cx="336" cy="148" r="6.44" fill="none" opacity="1" stroke="#999" stroke-linecap="square" stroke-linejoin="round" stroke-width=".53382"/>
+  <circle cx="336" cy="148" r="4.44" fill="none" opacity="1" stroke="#999" stroke-linecap="square" stroke-linejoin="round" stroke-width=".53382"/>
+ </g>
+</svg>

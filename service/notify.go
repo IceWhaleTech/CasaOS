@@ -18,6 +18,7 @@ type NotifyServer interface {
 	DelLog(id string)
 	GetList(c int) (list []model.AppNotify)
 	MarkRead(id string, state int)
+	SendText(m model.AppNotify)
 }
 
 type notifyServer struct {
@@ -100,6 +101,26 @@ func SendMeg() {
 	// 	}(ws)
 	// }
 	//	}
+}
+
+func (i notifyServer) SendText(m model.AppNotify) {
+	list := []model.AppNotify{}
+	list = append(list, m)
+	json, _ := json2.Marshal(list)
+	var temp []*websocket.Conn
+	for _, v := range WebSocketConns {
+
+		err := v.WriteMessage(1, json)
+		if err == nil {
+			temp = append(temp, v)
+		}
+	}
+	WebSocketConns = temp
+
+	if len(WebSocketConns) == 0 {
+		SocketRun = false
+	}
+
 }
 
 func NewNotifyService(db *gorm.DB) NotifyServer {

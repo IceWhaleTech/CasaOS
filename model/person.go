@@ -40,8 +40,15 @@ type FileDetailModel struct {
 type FileSummaryModel struct {
 	Hash      string `json:"hash"` //Verify file
 	Name      string `json:"name"`
-	Path      string `json:"path"`
 	BlockSize int    `json:"block_size"`
 	Length    int    `json:"length"`
 	Size      int64  `json:"size"`
+	Message   string `json:"message"`
+}
+
+type FriendsModel struct {
+	Id       uint   `gorm:"column:id;primary_key" json:"id"`
+	NickName string `json:"nick_name"`
+	Desc     string `json:"desc"`
+	ShareId  string `json:"share_id"`
 }

@@ -24,41 +24,6 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) *
 
 /***/ }),
 
-/***/ "./node_modules/core-js/internals/array-for-each.js":
-/*!**********************************************************!*\
-  !*** ./node_modules/core-js/internals/array-for-each.js ***!
-  \**********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-eval("\nvar $forEach = __webpack_require__(/*! ../internals/array-iteration */ \"./node_modules/core-js/internals/array-iteration.js\").forEach;\nvar arrayMethodIsStrict = __webpack_require__(/*! ../internals/array-method-is-strict */ \"./node_modules/core-js/internals/array-method-is-strict.js\");\n\nvar STRICT_METHOD = arrayMethodIsStrict('forEach');\n\n// `Array.prototype.forEach` method implementation\n// https://tc39.es/ecma262/#sec-array.prototype.foreach\nmodule.exports = !STRICT_METHOD ? function forEach(callbackfn /* , thisArg */) {\n  return $forEach(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);\n// eslint-disable-next-line es/no-array-prototype-foreach -- safe\n} : [].forEach;\n\n\n//# sourceURL=webpack:///./node_modules/core-js/internals/array-for-each.js?");
-
-/***/ }),
-
-/***/ "./node_modules/core-js/internals/array-iteration.js":
-/*!***********************************************************!*\
-  !*** ./node_modules/core-js/internals/array-iteration.js ***!
-  \***********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-eval("var bind = __webpack_require__(/*! ../internals/function-bind-context */ \"./node_modules/core-js/internals/function-bind-context.js\");\nvar IndexedObject = __webpack_require__(/*! ../internals/indexed-object */ \"./node_modules/core-js/internals/indexed-object.js\");\nvar toObject = __webpack_require__(/*! ../internals/to-object */ \"./node_modules/core-js/internals/to-object.js\");\nvar toLength = __webpack_require__(/*! ../internals/to-length */ \"./node_modules/core-js/internals/to-length.js\");\nvar arraySpeciesCreate = __webpack_require__(/*! ../internals/array-species-create */ \"./node_modules/core-js/internals/array-species-create.js\");\n\nvar push = [].push;\n\n// `Array.prototype.{ forEach, map, filter, some, every, find, findIndex, filterReject }` methods implementation\nvar createMethod = function (TYPE) {\n  var IS_MAP = TYPE == 1;\n  var IS_FILTER = TYPE == 2;\n  var IS_SOME = TYPE == 3;\n  var IS_EVERY = TYPE == 4;\n  var IS_FIND_INDEX = TYPE == 6;\n  var IS_FILTER_REJECT = TYPE == 7;\n  var NO_HOLES = TYPE == 5 || IS_FIND_INDEX;\n  return function ($this, callbackfn, that, specificCreate) {\n    var O = toObject($this);\n    var self = IndexedObject(O);\n    var boundFunction = bind(callbackfn, that, 3);\n    var length = toLength(self.length);\n    var index = 0;\n    var create = specificCreate || arraySpeciesCreate;\n    var target = IS_MAP ? create($this, length) : IS_FILTER || IS_FILTER_REJECT ? create($this, 0) : undefined;\n    var value, result;\n    for (;length > index; index++) if (NO_HOLES || index in self) {\n      value = self[index];\n      result = boundFunction(value, index, O);\n      if (TYPE) {\n        if (IS_MAP) target[index] = result; // map\n        else if (result) switch (TYPE) {\n          case 3: return true;              // some\n          case 5: return value;             // find\n          case 6: return index;             // findIndex\n          case 2: push.call(target, value); // filter\n        } else switch (TYPE) {\n          case 4: return false;             // every\n          case 7: push.call(target, value); // filterReject\n        }\n      }\n    }\n    return IS_FIND_INDEX ? -1 : IS_SOME || IS_EVERY ? IS_EVERY : target;\n  };\n};\n\nmodule.exports = {\n  // `Array.prototype.forEach` method\n  // https://tc39.es/ecma262/#sec-array.prototype.foreach\n  forEach: createMethod(0),\n  // `Array.prototype.map` method\n  // https://tc39.es/ecma262/#sec-array.prototype.map\n  map: createMethod(1),\n  // `Array.prototype.filter` method\n  // https://tc39.es/ecma262/#sec-array.prototype.filter\n  filter: createMethod(2),\n  // `Array.prototype.some` method\n  // https://tc39.es/ecma262/#sec-array.prototype.some\n  some: createMethod(3),\n  // `Array.prototype.every` method\n  // https://tc39.es/ecma262/#sec-array.prototype.every\n  every: createMethod(4),\n  // `Array.prototype.find` method\n  // https://tc39.es/ecma262/#sec-array.prototype.find\n  find: createMethod(5),\n  // `Array.prototype.findIndex` method\n  // https://tc39.es/ecma262/#sec-array.prototype.findIndex\n  findIndex: createMethod(6),\n  // `Array.prototype.filterReject` method\n  // https://github.com/tc39/proposal-array-filtering\n  filterReject: createMethod(7)\n};\n\n\n//# sourceURL=webpack:///./node_modules/core-js/internals/array-iteration.js?");
-
-/***/ }),
-
-/***/ "./node_modules/core-js/internals/array-method-is-strict.js":
-/*!******************************************************************!*\
-  !*** ./node_modules/core-js/internals/array-method-is-strict.js ***!
-  \******************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-eval("\nvar fails = __webpack_require__(/*! ../internals/fails */ \"./node_modules/core-js/internals/fails.js\");\n\nmodule.exports = function (METHOD_NAME, argument) {\n  var method = [][METHOD_NAME];\n  return !!method && fails(function () {\n    // eslint-disable-next-line no-useless-call,no-throw-literal -- required for testing\n    method.call(null, argument || function () { throw 1; }, 1);\n  });\n};\n\n\n//# sourceURL=webpack:///./node_modules/core-js/internals/array-method-is-strict.js?");
-
-/***/ }),
-
 /***/ "./node_modules/core-js/internals/define-well-known-symbol.js":
 /*!********************************************************************!*\
   !*** ./node_modules/core-js/internals/define-well-known-symbol.js ***!
@@ -137,17 +102,6 @@ eval("var $ = __webpack_require__(/*! ../internals/export */ \"./node_modules/co
 
 /***/ }),
 
-/***/ "./node_modules/core-js/modules/es.object.keys.js":
-/*!********************************************************!*\
-  !*** ./node_modules/core-js/modules/es.object.keys.js ***!
-  \********************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-eval("var $ = __webpack_require__(/*! ../internals/export */ \"./node_modules/core-js/internals/export.js\");\nvar toObject = __webpack_require__(/*! ../internals/to-object */ \"./node_modules/core-js/internals/to-object.js\");\nvar nativeKeys = __webpack_require__(/*! ../internals/object-keys */ \"./node_modules/core-js/internals/object-keys.js\");\nvar fails = __webpack_require__(/*! ../internals/fails */ \"./node_modules/core-js/internals/fails.js\");\n\nvar FAILS_ON_PRIMITIVES = fails(function () { nativeKeys(1); });\n\n// `Object.keys` method\n// https://tc39.es/ecma262/#sec-object.keys\n$({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES }, {\n  keys: function keys(it) {\n    return nativeKeys(toObject(it));\n  }\n});\n\n\n//# sourceURL=webpack:///./node_modules/core-js/modules/es.object.keys.js?");
-
-/***/ }),
-
 /***/ "./node_modules/core-js/modules/es.symbol.js":
 /*!***************************************************!*\
   !*** ./node_modules/core-js/modules/es.symbol.js ***!
@@ -160,14 +114,25 @@ eval("\nvar $ = __webpack_require__(/*! ../internals/export */ \"./node_modules/
 
 /***/ }),
 
-/***/ "./node_modules/core-js/modules/web.dom-collections.for-each.js":
-/*!**********************************************************************!*\
-  !*** ./node_modules/core-js/modules/web.dom-collections.for-each.js ***!
-  \**********************************************************************/
+/***/ "./node_modules/is-valid-hostname/index.js":
+/*!*************************************************!*\
+  !*** ./node_modules/is-valid-hostname/index.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("module.exports = function isValidHostname(value) {\n  if (typeof value !== 'string') return false\n\n  const validHostnameChars = /^[a-zA-Z0-9-.]{1,253}\\.?$/g\n  if (!validHostnameChars.test(value)) {\n    return false\n  }\n\n  if (value.endsWith('.')) {\n    value = value.slice(0, value.length - 1)\n  }\n\n  if (value.length > 253) {\n    return false\n  }\n\n  const labels = value.split('.')\n\n  const isValid = labels.every(function (label) {\n    const validLabelChars = /^([a-zA-Z0-9-]+)$/g\n\n    const validLabel = (\n      validLabelChars.test(label) &&\n      label.length < 64 &&\n      !label.startsWith('-') &&\n      !label.endsWith('-')\n    )\n\n    return validLabel\n  })\n\n  return isValid\n}\n\n\n//# sourceURL=webpack:///./node_modules/is-valid-hostname/index.js?");
+
+/***/ }),
+
+/***/ "./node_modules/uuid-validate/index.js":
+/*!*********************************************!*\
+  !*** ./node_modules/uuid-validate/index.js ***!
+  \*********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("var global = __webpack_require__(/*! ../internals/global */ \"./node_modules/core-js/internals/global.js\");\nvar DOMIterables = __webpack_require__(/*! ../internals/dom-iterables */ \"./node_modules/core-js/internals/dom-iterables.js\");\nvar DOMTokenListPrototype = __webpack_require__(/*! ../internals/dom-token-list-prototype */ \"./node_modules/core-js/internals/dom-token-list-prototype.js\");\nvar forEach = __webpack_require__(/*! ../internals/array-for-each */ \"./node_modules/core-js/internals/array-for-each.js\");\nvar createNonEnumerableProperty = __webpack_require__(/*! ../internals/create-non-enumerable-property */ \"./node_modules/core-js/internals/create-non-enumerable-property.js\");\n\nvar handlePrototype = function (CollectionPrototype) {\n  // some Chrome versions have non-configurable methods on DOMTokenList\n  if (CollectionPrototype && CollectionPrototype.forEach !== forEach) try {\n    createNonEnumerableProperty(CollectionPrototype, 'forEach', forEach);\n  } catch (error) {\n    CollectionPrototype.forEach = forEach;\n  }\n};\n\nfor (var COLLECTION_NAME in DOMIterables) {\n  handlePrototype(global[COLLECTION_NAME] && global[COLLECTION_NAME].prototype);\n}\n\nhandlePrototype(DOMTokenListPrototype);\n\n\n//# sourceURL=webpack:///./node_modules/core-js/modules/web.dom-collections.for-each.js?");
+eval("/* WEBPACK VAR INJECTION */(function(Buffer) {// Regular expression used for basic parsing of the uuid.\nvar pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n\n/**\n * Unparses a UUID buffer to a string. From node-uuid:\n * https://github.com/defunctzombie/node-uuid/blob/master/uuid.js\n *\n * Copyright (c) 2010-2012 Robert Kieffer\n * MIT License - http://opensource.org/licenses/mit-license.php\n *\n * @param  {Buffer} buf\n * @param  {Number=0} offset\n * @return {String}\n */\nvar _byteToHex = [];\nfor (var i = 0; i < 256; i++) {\n    _byteToHex[i] = (i + 0x100).toString(16).substr(1);\n}\n\nfunction unparse(buf, offset) {\n  var i = offset || 0, bth = _byteToHex;\n  return  bth[buf[i++]] + bth[buf[i++]] +\n          bth[buf[i++]] + bth[buf[i++]] + '-' +\n          bth[buf[i++]] + bth[buf[i++]] + '-' +\n          bth[buf[i++]] + bth[buf[i++]] + '-' +\n          bth[buf[i++]] + bth[buf[i++]] + '-' +\n          bth[buf[i++]] + bth[buf[i++]] +\n          bth[buf[i++]] + bth[buf[i++]] +\n          bth[buf[i++]] + bth[buf[i++]];\n}\n\n/**\n * Determines whether the uuid is valid, converting\n * it from a buffer if necessary.\n *\n * @param  {String|Buffer}  uuid\n * @param  {Number=}  version\n * @return {Boolean}\n */\nmodule.exports = function (uuid, version) {\n    var parsedUuid;\n    // If the uuid is a biffer, parse it...\n    if (Buffer.isBuffer(uuid)) {\n        parsedUuid = unparse(uuid);\n    }\n    // If it's a string, it's already good.\n    else if (Object.prototype.toString.call(uuid) === '[object String]') {\n        parsedUuid = uuid;\n    }\n    // Otherwise, it's not valid.\n    else {\n        return false;\n    }\n\n    parsedUuid = parsedUuid.toLowerCase();\n\n    // All UUIDs fit a basic schema. Match that.\n    if (!pattern.test(parsedUuid)) {\n        return false;\n    }\n\n    // Now extract the version...\n    if (version === undefined) {\n        version = extractVersion(parsedUuid);\n    } else if (extractVersion(parsedUuid) !== version) {\n        return false;\n    }\n\n    switch (version) {\n        // For certain versions, the checks we did up to this point are fine.\n        case 1:\n        case 2:\n            return true;\n\n        // For versions 3 and 4, they must specify a variant.\n        case 3:\n        case 4:\n        case 5:\n            return ['8', '9', 'a', 'b'].indexOf(parsedUuid.charAt(19)) !== -1;\n\n        default:\n            // We should only be able to reach this if the consumer explicitly\n            // provided an invalid version. Prior to extractVersion we check\n            // that it's 1-4 in the regex.\n            throw new Error('Invalid version provided.');\n    }\n};\n\n/**\n * Extracts the version from the UUID, which is (by definition) the M in\n * xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx\n *\n * @param  {String} uuid\n * @return {Number}\n */\nvar extractVersion = module.exports.version = function (uuid) {\n    return uuid.charAt(14)|0;\n};\n\n/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../buffer/index.js */ \"./node_modules/buffer/index.js\").Buffer))\n\n//# sourceURL=webpack:///./node_modules/uuid-validate/index.js?");
 
 /***/ }),
 
@@ -195,17 +160,6 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) *
 
 /***/ }),
 
-/***/ "./src/assets/img/Account.png":
-/*!************************************!*\
-  !*** ./src/assets/img/Account.png ***!
-  \************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-eval("module.exports = __webpack_require__.p + \"img/Account.1bc4a418.png\";\n\n//# sourceURL=webpack:///./src/assets/img/Account.png?");
-
-/***/ }),
-
 /***/ "./src/plugins/vee-validate.js":
 /*!*************************************!*\
   !*** ./src/plugins/vee-validate.js ***!
@@ -214,7 +168,7 @@ eval("module.exports = __webpack_require__.p + \"img/Account.1bc4a418.png\";\n\n
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/objectSpread2 */ \"./node_modules/@babel/runtime/helpers/esm/objectSpread2.js\");\n/* harmony import */ var vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vee-validate/dist/rules */ \"./node_modules/vee-validate/dist/rules.js\");\n/* harmony import */ var vee_validate__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vee-validate */ \"./node_modules/vee-validate/dist/vee-validate.esm.js\");\n\n\n\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"required\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"required\"]), {}, {\n  message: \"This field is required\"\n}));\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"email\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"email\"]), {}, {\n  message: \"This field must be a valid email\"\n}));\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"confirmed\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"confirmed\"]), {}, {\n  message: \"This field confirmation does not match\"\n}));\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"length\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"length\"]), {}, {\n  message: \"This field must have 2 options\"\n}));\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"min\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"min\"]), {}, {\n  message: \"This field must have more than {length} characters\"\n}));\n\n//# sourceURL=webpack:///./src/plugins/vee-validate.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./node_modules/@babel/runtime/helpers/esm/objectSpread2 */ \"./node_modules/@babel/runtime/helpers/esm/objectSpread2.js\");\n/* harmony import */ var vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vee-validate/dist/rules */ \"./node_modules/vee-validate/dist/rules.js\");\n/* harmony import */ var vee_validate__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vee-validate */ \"./node_modules/vee-validate/dist/vee-validate.esm.js\");\n/* harmony import */ var is_valid_hostname__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! is-valid-hostname */ \"./node_modules/is-valid-hostname/index.js\");\n/* harmony import */ var is_valid_hostname__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(is_valid_hostname__WEBPACK_IMPORTED_MODULE_3__);\n/* harmony import */ var uuid_validate__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! uuid-validate */ \"./node_modules/uuid-validate/index.js\");\n/* harmony import */ var uuid_validate__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(uuid_validate__WEBPACK_IMPORTED_MODULE_4__);\n\n\n\n\n\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"required\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"required\"]), {}, {\n  message: \"This field is required\"\n}));\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"email\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"email\"]), {}, {\n  message: \"This field must be a valid email\"\n}));\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"confirmed\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"confirmed\"]), {}, {\n  message: \"This field confirmation does not match\"\n}));\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"length\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"length\"]), {}, {\n  message: \"This field must have 2 options\"\n}));\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])(\"min\", Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])(Object(_Users_liangjianli_go_CasaOSNew_CasaOS_UI_node_modules_babel_runtime_helpers_esm_objectSpread2__WEBPACK_IMPORTED_MODULE_0__[\"default\"])({}, vee_validate_dist_rules__WEBPACK_IMPORTED_MODULE_1__[\"min\"]), {}, {\n  message: \"This field must have more than {length} characters\"\n}));\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])('rfc1123', {\n  validate: function validate(value) {\n    return is_valid_hostname__WEBPACK_IMPORTED_MODULE_3___default()(value);\n  },\n  message: 'You entered an invalid RFC1123 hostname'\n});\nObject(vee_validate__WEBPACK_IMPORTED_MODULE_2__[\"extend\"])('uuid', {\n  validate: function validate(value) {\n    return uuid_validate__WEBPACK_IMPORTED_MODULE_4___default()(value);\n  },\n  message: 'You entered an invalid share ID'\n});\n\n//# sourceURL=webpack:///./src/plugins/vee-validate.js?");
 
 /***/ })
 
