@@ -18,6 +18,7 @@ var OnlineDemo bool = false
 func InitRouter() *gin.Engine {
 
 	r := gin.Default()
+
 	r.Use(middleware.Cors())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	gin.SetMode(config.ServerInfo.RunMode)
@@ -52,13 +53,16 @@ func InitRouter() *gin.Engine {
 			//chang head
 			v1UserGroup.POST("/head", v1.PostUserHead)
 			//chang user name
-			v1UserGroup.PUT("/changusername", v1.PutUserName)
+			v1UserGroup.PUT("/username", v1.PutUserName)
 			//chang pwd
-			v1UserGroup.PUT("/changuserpwd", v1.PutUserPwd)
+			v1UserGroup.PUT("/password", v1.PutUserPwd)
 			//edit user info
 			v1UserGroup.POST("/info", v1.PostUserChangeInfo)
 			v1UserGroup.PUT("/nick", v1.PutUserChangeNick)
 			v1UserGroup.PUT("/desc", v1.PutUserChangeDesc)
+			v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)
+
+			v1UserGroup.GET("/shareid", v1.GetUserShareID)
 
 		}
 
@@ -77,51 +81,6 @@ func InitRouter() *gin.Engine {
 
 			//获取系统信息
 			v1ZiMaGroup.GET("/sysinfo", v1.SysInfo)
-		}
-
-		v1ZeroTierGroup := v1Group.Group("/zerotier")
-		v1ZeroTierGroup.Use()
-		{
-			//获取zerotier token
-			v1ZeroTierGroup.POST("/login", v1.ZeroTierGetToken)
-			//注册zerotier
-			v1ZeroTierGroup.POST("/register", v1.ZeroTierRegister)
-			//是否需要登录
-			v1ZeroTierGroup.GET("/islogin", v1.ZeroTierIsNeedLogin)
-			//获取网络列表
-			v1ZeroTierGroup.GET("/list", v1.ZeroTierGetNetworkList)
-			//加入网络
-			v1ZeroTierGroup.POST("/join/:id", v1.ZeroTierJoinNetwork)
-			//离开网络
-			v1ZeroTierGroup.POST("/leave/:id", v1.ZeroTierLeaveNetwork)
-			//详情
-			v1ZeroTierGroup.GET("/info/:id", v1.ZeroTierGetNetworkGetInfo)
-			////网络状态
-			//v1ZeroTierGroup.GET("/status", v1.ZeroTierGetNetworkGetStatus)
-			//修改网络类型
-			//v1ZeroTierGroup.PUT("/type/:id", v1.ZeroTierEditType)
-			//修改网络类型
-			//v1ZeroTierGroup.PUT("/name/:id", v1.ZeroTierEditName)
-			//修改v6 assign
-			//v1ZeroTierGroup.PUT("/v6assign/:id", v1.ZeroTierEditV6Assign)
-			//修改 broadcast
-			//v1ZeroTierGroup.PUT("/broadcast/:id", v1.ZeroTierEditBroadcast)
-			//create new network
-			v1ZeroTierGroup.POST("/create", v1.ZeroTierCreateNetwork)
-			//获取用户列表
-			v1ZeroTierGroup.GET("/member/:id", v1.ZeroTierMemberList)
-			//修改用户信息
-			//v1ZeroTierGroup.PUT("/members/:id/auth/:mId", v1.ZeroTierMemberAuth)
-			//修改网络用户name
-			//v1ZeroTierGroup.PUT("/members/:id/name/:mId", v1.ZeroTierMemberName)
-			v1ZeroTierGroup.DELETE("/members/:id/del/:mId", v1.ZeroTierMemberDelete)
-			v1ZeroTierGroup.DELETE("/network/:id/del", v1.ZeroTierDeleteNetwork)
-			//修改网络用户bridge功能
-			//v1ZeroTierGroup.PUT("/members/:id/bridge/:mId", v1.ZeroTierMemberBridge)
-			v1ZeroTierGroup.PUT("/edit/:id", v1.ZeroTierEdit)
-			v1ZeroTierGroup.GET("/joined/list", v1.ZeroTierJoinedList)
-			v1ZeroTierGroup.PUT("/member/:id/edit/:mId", v1.ZeroTierMemberEdit)
-
 		}
 		v1DDNSGroup := v1Group.Group("/ddns")
 		v1DDNSGroup.Use()
@@ -201,6 +160,9 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
 			v1SysGroup.POST("/kill", v1.PostKillCasaOS)
 			v1SysGroup.GET("/info", v1.Info)
+			v1SysGroup.PUT("/usb/off", v1.PutSystemOffUSBAutoMount)
+			v1SysGroup.GET("/usb/on", v1.PutSystemOnUSBAutoMount)
+			v1SysGroup.GET("/usb", v1.GetSystemUSBAutoMount)
 		}
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()
@@ -216,6 +178,7 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.POST("/create", v1.PostCreateFile)
 
 			v1FileGroup.GET("/download", v1.GetDownloadFile)
+			v1FileGroup.GET("/new/download", v1.GetFileDownloadNew)
 			v1FileGroup.POST("/operate", v1.PostOperateFileOrDir)
 			v1FileGroup.DELETE("/delete", v1.DeleteFile)
 			v1FileGroup.PUT("/update", v1.PutFileContent)
@@ -289,19 +252,26 @@ func InitRouter() *gin.Engine {
 		{
 			v1SearchGroup.GET("/search", v1.GetSearchList)
 		}
-		v1PersonGroup := v1Group.Group("/persion")
+		v1PersonGroup := v1Group.Group("/person")
 		v1PersonGroup.Use()
 		{
 			v1PersonGroup.GET("/test", v1.PersonTest)
-			v1PersonGroup.GET("/users", v1.GetPersionFriend)
-			v1PersonGroup.POST("/user", v1.PostAddPersionFriend)
-			v1PersonGroup.GET("/directory", v1.GetPersionDirectory)
-			v1PersonGroup.GET("/file", v1.GetPersionFile)
-			v1PersonGroup.GET("/refile/:uuid", v1.GetPersionReFile)
-			v1PersonGroup.PUT("/nick/:token", v1.PutPersionNick)
-			v1PersonGroup.GET("/list", v1.GetPersionDownloadList)
-			v1PersonGroup.DELETE("/file/:uuid", v1.DeletePersionDownloadFile)
-			// v1PersonGroup.PUT("/state/:id", v1.PutPersionCancelDownload) //修改下载状态(开始暂停删除)
+			v1PersonGroup.GET("/users", v1.GetPersonFriend)
+			v1PersonGroup.POST("/user/:shareids", v1.PostAddPersonFriend)
+			v1PersonGroup.DELETE("/user/:shareid", v1.DeletePersonFriend)
+			v1PersonGroup.GET("/directory", v1.GetPersonDirectory)
+			v1PersonGroup.GET("/file", v1.GetPersonFile)
+			v1PersonGroup.GET("/refile/:uuid", v1.GetPersonReFile)
+			v1PersonGroup.PUT("/remarks/:shareid", v1.PutPersonRemarks)
+			v1PersonGroup.GET("/list", v1.GetPersonDownloadList)
+			v1PersonGroup.DELETE("/file/:uuid", v1.DeletePersonDownloadFile)
+
+			v1PersonGroup.POST("/share", v1.PostPersonShare)
+			v1PersonGroup.GET("/share", v1.GetPersonShare)
+			v1PersonGroup.POST("/down/dir", v1.PostPersonDownDir)
+			v1PersonGroup.GET("/down/dir", v1.GetPersonDownDir)
+			v1PersonGroup.PUT("/block/:shareid", v1.PutPersonBlock)
+			v1PersonGroup.GET("/public", v1.GetPersonPublic)
 
 		}
 		v1AnalyseGroup := v1Group.Group("/analyse")

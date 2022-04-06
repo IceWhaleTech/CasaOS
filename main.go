@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"runtime"
 	"time"
 
-	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
@@ -29,6 +29,24 @@ func init() {
 	config.InitSetup(*configFlag)
 	config.UpdateSetup()
 	loger2.LogSetup()
+	sysType := runtime.GOOS
+	if sysType == "windows" {
+		config.AppInfo.ProjectPath = "C:\\CasaOS\\service"
+		config.Cfg.Section("app").Key("ProjectPath").SetValue("C:\\CasaOS\\service")
+
+		config.AppInfo.RootPath = "C:\\CasaOS"
+		config.Cfg.Section("app").Key("RootPath").SetValue("C:\\CasaOS")
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	}
+	if sysType == "darwin" {
+		config.AppInfo.ProjectPath = "./CasaOS/service"
+		config.Cfg.Section("app").Key("ProjectPath").SetValue("./CasaOS/service")
+
+		config.AppInfo.RootPath = "./CasaOS"
+		config.Cfg.Section("app").Key("RootPath").SetValue("./CasaOS")
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	}
+
 	sqliteDB = sqlite.GetDb(config.AppInfo.ProjectPath)
 	//gredis.GetRedisConn(config.RedisInfo),
 	service.MyService = service.NewService(sqliteDB, loger2.NewOLoger())
@@ -36,10 +54,10 @@ func init() {
 
 	go service.UDPService()
 
-	service.Summary = make(map[string]model.FileSummaryModel)
+	fmt.Println("token", service.GetToken())
 	service.UDPAddressMap = make(map[string]string)
 	//go service.SocketConnect()
-
+	service.CancelList = make(map[string]string)
 	route.InitFunction()
 
 	go service.SendIPToServer()
@@ -69,20 +87,30 @@ func main() {
 	//gredis.Setup()
 	r := route.InitRouter()
 	//service.SyncTask(sqliteDB)
-	cron2 := cron.New() //创建一个cron实例
+	cron2 := cron.New()
 	//every day execution
 	err := cron2.AddFunc("0 0/5 * * * *", func() {
 		//service.PushIpInfo(*&config.ServerInfo.Token)
 		//service.UpdataDDNSList(mysqldb)
 		//service.SyncTask(sqliteDB)
+
 		service.SendIPToServer()
+
 		service.LoopFriend()
+
 	})
 	if err != nil {
 		fmt.Println(err)
 	}
+	// err = cron2.AddFunc("0/1 * * * * *", func() {
 
-	//启动/关闭
+	// 	//service.SendIPToServer()
+	// 	//service.LoopNet()
+
+	// })
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 	cron2.Start()
 	defer cron2.Stop()
 	s := &http.Server{

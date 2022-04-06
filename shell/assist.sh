@@ -1,13 +1,6 @@
 #!/bin/bash
 
-#add in v0.2.3
-version_0_2_3() {
-  ((EUID)) && sudo_cmd="sudo"
-  $sudo_cmd cp -rf /casaOS/server/shell/11-usb-mount.rules /etc/udev/rules.d/
-  $sudo_cmd chmod +x /casaOS/server/shell/usb-mount.sh
-  $sudo_cmd cp -rf /casaOS/server/shell/usb-mount@.service /etc/systemd/system/
 
-}
 
 # add in v0.2.5
 
@@ -16,7 +9,9 @@ readonly CASA_DEPANDS="curl smartmontools parted fdisk ntfs-3g"
 version_0_2_5() {
   install_depends "$CASA_DEPANDS"
 }
-
+version_0_2_11() {
+  sysctl -w net.core.rmem_max=2500000
+}
 
 #Install Depends
 install_depends() {
@@ -35,6 +30,6 @@ install_depends() {
     fi
 }
 
-version_0_2_3
-
 version_0_2_5
+
+version_0_2_11

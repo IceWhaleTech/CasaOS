@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -231,10 +232,10 @@ func CheckSerialDiskMount() {
 	}
 	service.MyService.Disk().RemoveLSBLKCache()
 	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;AutoRemoveUnuseDir")
-
 }
 func Update2_3() {
 	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/assist.sh")
+
 }
 func CheckToken2_11() {
 	if len(config.ServerInfo.Token) == 0 {
@@ -253,19 +254,33 @@ func CheckToken2_11() {
 	// 	config.AppInfo.RootPath = "/casaOS"
 	// 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	// }
-	if len(config.FileSettingInfo.ShareDir) == 0 {
-		config.Cfg.Section("file").Key("ShareDir").SetValue("/DATA")
-		config.FileSettingInfo.ShareDir[0] = "/DATA"
-
-		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-	}
-
+	sysType := runtime.GOOS
 	if len(config.FileSettingInfo.DownloadDir) == 0 {
-		config.Cfg.Section("file").Key("DownloadDir").SetValue("/DATA/share")
-		config.FileSettingInfo.DownloadDir = "/DATA/share"
+		downloadPath := "/DATA/Downloads"
+		if sysType == "windows" {
+			downloadPath = "C:\\CasaOS\\DATA\\Downloads"
+		}
+		if sysType == "darwin" {
+			downloadPath = "~/CasaOS/DATA/Downloads"
+		}
+		config.Cfg.Section("file").Key("DownloadDir").SetValue(downloadPath)
+		config.FileSettingInfo.DownloadDir = downloadPath
 		file.IsNotExistMkDir(config.FileSettingInfo.DownloadDir)
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
+
+	if len(config.UserInfo.Description) == 0 {
+		config.Cfg.Section("user").Key("Description").SetValue("nothing")
+		config.UserInfo.Description = "nothing"
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	}
+	if len(config.ServerInfo.Handshake) == 0 {
+		config.Cfg.Section("server").Key("Handshake").SetValue("socket.casaos.io")
+		config.ServerInfo.Handshake = "socket.casaos.io"
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	}
+
+	service.MyService.System().ExecUSBAutoMountShell(config.ServerInfo.USBAutoMount)
 
 	// str := []string{}
 	// str = append(str, "ddd")

@@ -25,9 +25,6 @@ var AppInfo = &model.APPModel{}
 //redis相关配置
 var RedisInfo = &model.RedisModel{}
 
-//zerotier相关
-var ZeroTierInfo = &model.ZeroTierModel{}
-
 //server相关
 var ServerInfo = &model.ServerModel{}
 
@@ -56,7 +53,6 @@ func InitSetup(config string) {
 
 	mapTo("user", UserInfo)
 	mapTo("app", AppInfo)
-	mapTo("zerotier", ZeroTierInfo)
 	mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)

@@ -17,6 +17,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/quic_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
+	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/lucas-clemente/quic-go"
@@ -32,6 +33,7 @@ type personService struct {
 }
 
 var IpInfo model.PersionModel
+var CancelList map[string]string
 
 func PushIpInfo(token string) {
 
@@ -63,9 +65,16 @@ var StreamList map[string]quic.Stream
 var ServiceMessage chan model.MessageModel
 
 func UDPService() {
+	port := 0
+	if len(config.ServerInfo.UDPPort) > 0 {
+		port, _ = strconv.Atoi(config.ServerInfo.UDPPort)
+		if port != 0 && !port2.IsPortAvailable(port, "udp") {
+			port = 0
+		}
+	}
 
 	srcAddr := &net.UDPAddr{
-		IP: net.IPv4zero, Port: 9904}
+		IP: net.IPv4zero, Port: port}
 	var err error
 	UDPConn, err = net.ListenUDP("udp", srcAddr)
 	if err != nil {
@@ -146,6 +155,7 @@ func ProcessingContent(stream quic.Stream) {
 		prefixByte := make([]byte, 6)
 		_, err := io.ReadFull(stream, prefixByte)
 		if err != nil {
+			fmt.Println(err)
 			return
 		}
 		prefixLength, err := strconv.Atoi(string(prefixByte))
@@ -166,14 +176,22 @@ func ProcessingContent(stream quic.Stream) {
 			//nothing
 			continue
 		} else if m.Type == types.PERSONDIRECTORY {
+			friend := model2.FriendModel{}
+			friend.Token = m.From
 			var list []model.Path
-			if m.Data.(string) == "" || m.Data.(string) == "/" {
-				for _, v := range config.FileSettingInfo.ShareDir {
-					tempList := MyService.ZiMa().GetDirPath(v)
-					list = append(list, tempList...)
+			rFriend := MyService.Friend().GetFriendById(friend)
+			if !reflect.DeepEqual(rFriend, model2.FriendModel{Token: m.From}) && !rFriend.Block {
+				if m.Data.(string) == "" || m.Data.(string) == "/" {
+					for _, v := range config.FileSettingInfo.ShareDir {
+						//tempList := MyService.ZiMa().GetDirPath(v)
+						temp := MyService.ZiMa().GetDirPathOne(v)
+						list = append(list, temp)
+					}
+				} else {
+					list = MyService.ZiMa().GetDirPath(m.Data.(string))
 				}
 			} else {
-				list = MyService.ZiMa().GetDirPath(m.Data.(string))
+				list = []model.Path{}
 			}
 			m.To = m.From
 			m.Data = list
@@ -185,6 +203,7 @@ func ProcessingContent(stream quic.Stream) {
 			SendFileData(stream, m.Data.(string), m.From, m.UUId)
 			break
 		} else if m.Type == types.PERSONADDFRIEND {
+			fmt.Println("有用户来请求加好友", m)
 			friend := model2.FriendModel{}
 			dataModelByte, _ := json.Marshal(m.Data)
 			err := json.Unmarshal(dataModelByte, &friend)
@@ -196,7 +215,7 @@ func ProcessingContent(stream quic.Stream) {
 			mi := model2.FriendModel{}
 			mi.Avatar = config.UserInfo.Avatar
 			mi.Profile = config.UserInfo.Description
-			mi.Name = config.UserInfo.NickName
+			mi.NickName = config.UserInfo.NickName
 			m.To = m.From
 			m.Data = mi
 			m.Type = types.PERSONADDFRIEND
@@ -210,19 +229,34 @@ func ProcessingContent(stream quic.Stream) {
 			} else {
 				delete(UDPAddressMap, m.From)
 			}
-			mi := model2.FriendModel{}
-			mi.Avatar = config.UserInfo.Avatar
-			mi.Profile = config.UserInfo.Description
-			mi.Name = config.UserInfo.NickName
-			mi.Token = config.ServerInfo.Token
+			// mi := model2.FriendModel{}
+			// mi.Avatar = config.UserInfo.Avatar
+			// mi.Profile = config.UserInfo.Description
+			// mi.NickName = config.UserInfo.NickName
+			// mi.Token = config.ServerInfo.Token
+
+			user := MyService.Casa().GetUserInfoByShareId(m.From)
+
+			friend := model2.FriendModel{}
+			friend.Token = m.From
+			friend.Avatar = user.Avatar
+			friend.Block = false
+			friend.NickName = user.NickName
+			friend.Profile = user.Avatar
+			friend.Version = user.Version
+			MyService.Friend().AddFriend(friend)
+
 			msg := model.MessageModel{}
-			msg.Type = types.PERSONADDFRIEND
-			msg.Data = mi
+			msg.Type = types.PERSONHELLO
+			msg.Data = ""
 			msg.To = m.From
 			msg.From = config.ServerInfo.Token
 			msg.UUId = m.UUId
 			Dial(msg, false)
 
+			break
+		} else if m.Type == types.PERSONCANCEL {
+			CancelList[m.UUId] = "cancel"
 			break
 		} else {
 			//不应有不做返回的数据
@@ -289,6 +323,9 @@ func SendFileData(stream quic.Stream, filePath, to, uuid string) error {
 
 	bufferedReader := bufio.NewReader(f)
 	buf := make([]byte, blockSize)
+
+	defer stream.Close()
+
 	for i := 0; i < length; i++ {
 
 		tran := model.TranFileModel{}
@@ -313,8 +350,11 @@ func SendFileData(stream quic.Stream, filePath, to, uuid string) error {
 		prefixLength := file.PrefixLength(len(b))
 		dataLength := file.DataLength(len(buf[:n]))
 		data := append(append(append(prefixLength, b...), dataLength...), buf[:n]...)
+		if _, ok := CancelList[uuid]; ok {
+			delete(CancelList, uuid)
+			return nil
+		}
 		stream.Write(data)
 	}
-	defer stream.Close()
 	return nil
 }

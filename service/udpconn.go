@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	path2 "path"
 	"strconv"
 	"time"
 
@@ -32,29 +33,52 @@ func Dial(msg model.MessageModel, server bool) (m model.MessageModel, err error)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	Message = make(chan model.MessageModel)
-
+	_, port, err := net.SplitHostPort(UDPConn.LocalAddr().String())
+	if config.ServerInfo.UDPPort != port {
+		config.ServerInfo.UDPPort = port
+		config.Cfg.Section("server").Key("UDPPort").SetValue(port)
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	}
+	p, err := strconv.Atoi(port)
 	srcAddr := &net.UDPAddr{
-		IP: net.IPv4zero, Port: 9904} //注意端口必须固定
+		IP: net.IPv4zero, Port: p} //注意端口必须固定
 	addr := UDPAddressMap[msg.To]
-	ticker := msg.To
+	ticket := msg.To
 	if server {
 		addr = config.ServerInfo.Handshake + ":9527"
-		ticker = "bench"
+		ticket = "bench"
 	}
 	dstAddr, err := net.ResolveUDPAddr("udp", addr)
 
 	//DialTCP在网络协议net上连接本地地址laddr和远端地址raddr。net必须是"udp"、"udp4"、"udp6"；如果laddr不是nil，将使用它作为本地地址，否则自动选择一个本地地址。
 	//(conn)UDPConn代表一个UDP网络连接，实现了Conn和PacketConn接口
 
-	session, err := quic.DialContext(ctx, UDPConn, dstAddr, srcAddr.String(), quic_helper.GetClientTlsConfig(ticker), quic_helper.GetQUICConfig())
+	session, err := quic.DialContext(ctx, UDPConn, dstAddr, srcAddr.String(), quic_helper.GetClientTlsConfig(ticket), quic_helper.GetQUICConfig())
 	if err != nil {
-		go MyService.Casa().PushConnectionStatus(m.UUId, err.Error(), m.From, m.To, m.Type)
+		if msg.Type == types.PERSONDOWNLOAD {
+			task := MyService.Download().GetDownloadById(msg.UUId)
+			task.Error = err.Error()
+			task.State = types.DOWNLOADERROR
+			MyService.Download().SetDownloadError(task)
+		}
+		if config.SystemConfigInfo.Analyse != "False" {
+			go MyService.Casa().PushConnectionStatus(msg.UUId, err.Error(), msg.From, msg.To, msg.Type)
+		}
+
 		return m, err
 	}
 
 	stream, err := session.OpenStreamSync(ctx)
 	if err != nil {
-		go MyService.Casa().PushConnectionStatus(m.UUId, err.Error(), m.From, m.To, m.Type)
+		if msg.Type == types.PERSONDOWNLOAD {
+			task := MyService.Download().GetDownloadById(msg.UUId)
+			task.Error = err.Error()
+			task.State = types.DOWNLOADERROR
+			MyService.Download().SetDownloadError(task)
+		}
+		if config.SystemConfigInfo.Analyse != "False" {
+			go MyService.Casa().PushConnectionStatus(msg.UUId, err.Error(), msg.From, msg.To, msg.Type)
+		}
 		session.CloseWithError(1, err.Error())
 		return m, err
 	}
@@ -66,7 +90,9 @@ func Dial(msg model.MessageModel, server bool) (m model.MessageModel, err error)
 	go ReadContent(stream)
 	result := <-Message
 	stream.Close()
-	go MyService.Casa().PushConnectionStatus(m.UUId, "OK", m.From, m.To, m.Type)
+	if config.SystemConfigInfo.Analyse != "False" {
+		go MyService.Casa().PushConnectionStatus(msg.UUId, "OK", msg.From, msg.To, msg.Type)
+	}
 	return result, nil
 }
 
@@ -88,8 +114,6 @@ func SendData(stream quic.Stream, m model.MessageModel) {
 	stream.Write(data)
 }
 
-var Summary map[string]model.FileSummaryModel
-
 //读取数据
 func ReadContent(stream quic.Stream) {
 	for {
@@ -97,6 +121,12 @@ func ReadContent(stream quic.Stream) {
 		_, err := io.ReadFull(stream, prefixByte)
 		if err != nil {
 			fmt.Println(err)
+			time.Sleep(time.Second * 1)
+			for k, v := range CancelList {
+				tempPath := config.AppInfo.RootPath + "/temp" + "/" + v
+				fmt.Println(file.RMDir(tempPath))
+				delete(CancelList, k)
+			}
 			break
 		}
 		prefixLength, err := strconv.Atoi(string(prefixByte))
@@ -112,12 +142,14 @@ func ReadContent(stream quic.Stream) {
 		}
 		m := model.MessageModel{}
 		err = json.Unmarshal(messageByte, &m)
+		fmt.Println("客户端", m)
 		if err != nil {
 			fmt.Println(err)
 			break
 		}
 
 		if m.Type == types.PERSONDOWNLOAD {
+
 			dataModelByte, _ := json.Marshal(m.Data)
 			dataModel := model.TranFileModel{}
 			err := json.Unmarshal(dataModelByte, &dataModel)
@@ -149,29 +181,32 @@ func ReadContent(stream quic.Stream) {
 				fmt.Println("hash不匹配", hash, dataModel.Hash)
 				continue
 			}
-
 			tempPath := config.AppInfo.RootPath + "/temp" + "/" + m.UUId
 			file.IsNotExistMkDir(tempPath)
 			filepath := tempPath + "/" + strconv.Itoa(dataModel.Index)
-			tempFile, err := os.Stat(filepath)
+			_, err = os.Stat(filepath)
 
-			if os.IsNotExist(err) || tempFile.Size() == 0 {
+			if os.IsNotExist(err) {
 				err = ioutil.WriteFile(filepath, dataByte, 0644)
-				task := model2.PersionDownloadDBModel{}
+				task := model2.PersonDownloadDBModel{}
 				task.UUID = m.UUId
-				task.Error = err.Error()
-				task.State = types.DOWNLOADERROR
-				MyService.Download().SetDownloadError(task)
+				if err != nil {
+					task.Error = err.Error()
+					task.State = types.DOWNLOADERROR
+					MyService.Download().SetDownloadError(task)
+				}
 
 			} else {
 				if file.GetHashByPath(filepath) != dataModel.Hash {
 					os.Remove(filepath)
 					err = ioutil.WriteFile(filepath, dataByte, 0644)
-					task := model2.PersionDownloadDBModel{}
+					task := model2.PersonDownloadDBModel{}
 					task.UUID = m.UUId
-					task.Error = err.Error()
-					task.State = types.DOWNLOADERROR
-					MyService.Download().SetDownloadError(task)
+					if err != nil {
+						task.Error = err.Error()
+						task.State = types.DOWNLOADERROR
+						MyService.Download().SetDownloadError(task)
+					}
 				}
 			}
 
@@ -181,21 +216,21 @@ func ReadContent(stream quic.Stream) {
 				continue
 			}
 			if len(files) >= dataModel.Length {
-				summary := Summary[m.UUId]
-				file.SpliceFiles(tempPath, config.FileSettingInfo.DownloadDir+"/"+summary.Name, dataModel.Length, 0)
-				if file.GetHashByPath(config.FileSettingInfo.DownloadDir+"/"+summary.Name) == summary.Hash {
+				summary := MyService.Download().GetDownloadById(m.UUId)
+				summary.State = types.DOWNLOADFINISH
+				MyService.Download().EditDownloadState(summary)
+				fullPath := file.GetNoDuplicateFileName(path2.Join(summary.LocalPath, summary.Name))
+				file.SpliceFiles(tempPath, fullPath, dataModel.Length, 0)
+				if file.GetHashByPath(fullPath) == summary.Hash {
 					file.RMDir(tempPath)
-					task := model2.PersionDownloadDBModel{}
-					task.UUID = m.UUId
-					task.State = types.DOWNLOADFINISH
-					MyService.Download().EditDownloadState(task)
-					delete(Summary, m.UUId)
+					summary.State = types.DOWNLOADFINISHED
+					MyService.Download().EditDownloadState(summary)
 				} else {
 					os.Remove(config.FileSettingInfo.DownloadDir + "/" + summary.Name)
-					task := model2.PersionDownloadDBModel{}
-					task.UUID = m.UUId
-					task.State = types.DOWNLOADERROR
-					MyService.Download().EditDownloadState(task)
+
+					summary.State = types.DOWNLOADERROR
+					summary.Error = "hash mismatch"
+					MyService.Download().SetDownloadError(summary)
 				}
 
 				break
@@ -205,42 +240,55 @@ func ReadContent(stream quic.Stream) {
 			dataModel := model.FileSummaryModel{}
 			dataModelByte, _ := json.Marshal(m.Data)
 			err := json.Unmarshal(dataModelByte, &dataModel)
-			fmt.Println(err)
+			if err != nil {
+				fmt.Println(err)
+			}
 
-			task := model2.PersionDownloadDBModel{}
-			task.UUID = m.UUId
-			task.Name = dataModel.Name
-			task.Length = dataModel.Length
-			task.Size = dataModel.Size
+			task := MyService.Download().GetDownloadById(m.UUId)
+			fullPath := path2.Join(task.LocalPath, task.Name)
 			task.State = types.DOWNLOADING
-			task.BlockSize = dataModel.BlockSize
-			task.Hash = dataModel.Hash
-			task.Type = 0
-			task.From = m.From
 			if len(dataModel.Message) > 0 {
 				task.State = types.DOWNLOADERROR
 				task.Error = dataModel.Message
 			}
+			if file.Exists(fullPath) && file.GetHashByPath(fullPath) == dataModel.Hash {
+				task.State = types.DOWNLOADFINISHED
+				go func(from, uuid string) {
+					m := model.MessageModel{}
+					m.Data = ""
+					m.From = config.ServerInfo.Token
+					m.To = from
+					m.Type = types.PERSONCANCEL
+					m.UUId = uuid
+					CancelList[uuid] = uuid
+					Dial(m, false)
+				}(task.From, task.UUID)
 
+			}
+			task.UUID = m.UUId
+			task.Name = dataModel.Name
+			task.Length = dataModel.Length
+			task.Size = dataModel.Size
+			task.BlockSize = dataModel.BlockSize
+			task.Hash = dataModel.Hash
+			task.Type = 0
+			task.From = m.From
 			MyService.Download().SaveDownload(task)
 
-			Summary[m.UUId] = dataModel
-
 		} else if m.Type == types.PERSONCONNECTION {
-
 			if len(m.Data.(string)) > 0 {
 				UDPAddressMap[m.From] = m.Data.(string)
 			} else {
 				delete(UDPAddressMap, m.From)
 			}
-			mi := model2.FriendModel{}
-			mi.Avatar = config.UserInfo.Avatar
-			mi.Profile = config.UserInfo.Description
-			mi.Name = config.UserInfo.NickName
-			mi.Token = config.ServerInfo.Token
+			// mi := model2.FriendModel{}
+			// mi.Avatar = config.UserInfo.Avatar
+			// mi.Profile = config.UserInfo.Description
+			// mi.NickName = config.UserInfo.NickName
+			// mi.Token = config.ServerInfo.Token
 			msg := model.MessageModel{}
-			msg.Type = types.PERSONADDFRIEND
-			msg.Data = mi
+			msg.Type = types.PERSONHELLO
+			msg.Data = ""
 			msg.To = m.From
 			msg.From = config.ServerInfo.Token
 			msg.UUId = m.UUId
@@ -248,9 +296,20 @@ func ReadContent(stream quic.Stream) {
 			Message <- m
 			break
 		} else if m.Type == "get_ip" {
+			notify := model2.AppNotify{}
+			notify.CustomId = m.From
 			if len(m.Data.(string)) == 0 {
+				if _, ok := UDPAddressMap[m.From]; ok {
+					notify.Type = types.NOTIFY_TYPE_PERSION_FIRNED_LEAVE
+					go MyService.Notify().SendText(notify)
+				}
 				delete(UDPAddressMap, m.From)
+				Message <- m
 				break
+			}
+			if _, ok := UDPAddressMap[m.From]; !ok {
+				notify.Type = types.NOTIFY_TYPE_PERSION_FIRNED_LIVE
+				go MyService.Notify().SendText(notify)
 			}
 			UDPAddressMap[m.From] = m.Data.(string)
 			Message <- m
@@ -264,7 +323,7 @@ func ReadContent(stream quic.Stream) {
 
 func SendIPToServer() {
 	msg := model.MessageModel{}
-	msg.Type = "hello"
+	msg.Type = types.PERSONHELLO
 	msg.Data = ""
 	msg.From = config.ServerInfo.Token
 	msg.To = config.ServerInfo.Token
@@ -282,9 +341,10 @@ func LoopFriend() {
 		msg.From = config.ServerInfo.Token
 		msg.To = list[i].Token
 		msg.UUId = uuid.NewV4().String()
+
 		Dial(msg, true)
 
-		msg.Type = "hello"
+		msg.Type = types.PERSONHELLO
 		msg.Data = ""
 		msg.From = config.ServerInfo.Token
 		msg.To = list[i].Token
@@ -292,6 +352,19 @@ func LoopFriend() {
 		if _, ok := UDPAddressMap[list[i].Token]; ok {
 			go Dial(msg, false)
 		}
+		go func(shareId string) {
+			user := MyService.Casa().GetUserInfoByShareId(shareId)
+			m := model2.FriendModel{}
+			m.Token = shareId
+			friend := MyService.Friend().GetFriendById(m)
+			if friend.Version != user.Version {
+				friend.Avatar = user.Avatar
+				friend.NickName = user.NickName
+				friend.Profile = user.Desc
+				friend.Version = user.Version
+				MyService.Friend().UpdateOrCreate(friend)
+			}
+		}(list[i].Token)
 
 	}
 }

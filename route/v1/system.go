@@ -251,6 +251,60 @@ func PostKillCasaOS(c *gin.Context) {
 	os.Exit(0)
 }
 
+// @Summary Turn off usb auto-mount
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/usg/off [put]
+func PutSystemOffUSBAutoMount(c *gin.Context) {
+	service.MyService.System().UpdateUSBAutoMount("False")
+	service.MyService.System().ExecUSBAutoMountShell("False")
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+		})
+}
+
+// @Summary Turn off usb auto-mount
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/usb [get]
+func GetSystemUSBAutoMount(c *gin.Context) {
+	state := "True"
+	if config.ServerInfo.USBAutoMount == "False" {
+		state = "False"
+	}
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Data:    state,
+		})
+}
+
+// @Summary Turn off usb auto-mount
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/usb/on [put]
+func PutSystemOnUSBAutoMount(c *gin.Context) {
+	service.MyService.System().UpdateUSBAutoMount("True")
+	service.MyService.System().ExecUSBAutoMountShell("True")
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+		})
+}
+
 // @Summary system info
 // @Produce  application/json
 // @Accept application/json
@@ -374,7 +428,7 @@ func Info(c *gin.Context) {
 			if n.Name == netCardName {
 				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
 				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))
-				item.DateTime = time.Now()
+				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
 				break
 			}

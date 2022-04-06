@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -32,11 +34,14 @@ type ZiMaService interface {
 	GetNetState(name string) string
 	GetSysInfo() host.InfoStat
 	GetDirPath(path string) []model.Path
+	GetDirPathOne(path string) (m model.Path)
 	MkdirAll(path string) (int, error)
 	CreateFile(path string) (int, error)
 	RenameFile(oldF, newF string) (int, error)
 	GetCpuInfo() []cpu.InfoStat
 }
+
+var NetArray [][]model.IOCountersStat
 
 type zima struct {
 }
@@ -84,15 +89,39 @@ func (c *zima) GetDirPath(path string) []model.Path {
 
 	ls, _ := ioutil.ReadDir(path)
 	dirs := []model.Path{}
-
 	if len(path) > 0 {
 		for _, l := range ls {
-			dirs = append(dirs, model.Path{Name: l.Name(), Path: path + "/" + l.Name(), IsDir: l.IsDir(), Date: l.ModTime(), Size: l.Size()})
+			filePath := filepath.Join(path, l.Name())
+			link, err := filepath.EvalSymlinks(filePath)
+			if err != nil {
+				link = filePath
+			}
+			temp := model.Path{Name: l.Name(), Path: filePath, IsDir: l.IsDir(), Date: l.ModTime(), Size: l.Size()}
+			if filePath != link {
+				file, _ := os.Stat(link)
+				temp.IsDir = file.IsDir()
+			}
+			dirs = append(dirs, temp)
 		}
 	} else {
 		dirs = append(dirs, model.Path{Name: "DATA", Path: "/DATA/", IsDir: true, Date: time.Now()})
 	}
 	return dirs
+}
+
+func (c *zima) GetDirPathOne(path string) (m model.Path) {
+
+	f, err := os.Stat(path)
+
+	if err != nil {
+		return
+	}
+	m.IsDir = f.IsDir()
+	m.Name = f.Name()
+	m.Path = path
+	m.Size = f.Size()
+	m.Date = f.ModTime()
+	return
 }
 
 //获取系统信息
@@ -173,4 +202,42 @@ func (c *zima) RenameFile(oldF, newF string) (int, error) {
 //获取zima服务
 func NewZiMaService() ZiMaService {
 	return &zima{}
+}
+
+func LoopNet() {
+	netList := MyService.ZiMa().GetNetInfo()
+
+	nets := MyService.ZiMa().GetNet(true)
+	num := 0
+	for i := 0; i < len(netList); i++ {
+
+		for _, netCardName := range nets {
+
+			if netList[i].Name == netCardName {
+				var netArray []model.IOCountersStat
+				if len(NetArray) < (num + 1) {
+					netArray = []model.IOCountersStat{}
+				} else {
+					netArray = NetArray[num]
+				}
+				item := *(*model.IOCountersStat)(unsafe.Pointer(&netList[i]))
+				item.State = strings.TrimSpace(MyService.ZiMa().GetNetState(netList[i].Name))
+				item.Time = time.Now().Unix()
+
+				if len(netArray) >= 60 {
+					netArray = netArray[1:]
+				}
+				netArray = append(netArray, item)
+				if len(NetArray) < (num + 1) {
+					NetArray = append(NetArray, []model.IOCountersStat{})
+				}
+
+				NetArray[num] = netArray
+
+				num++
+				break
+			}
+		}
+
+	}
 }

@@ -18,6 +18,8 @@ type SystemService interface {
 	UpdateAssist()
 	UpSystemPort(port string)
 	GetTimeZone() string
+	UpdateUSBAutoMount(state string)
+	ExecUSBAutoMountShell(state string)
 }
 type systemService struct {
 	log loger.OLog
@@ -37,6 +39,15 @@ func (s *systemService) GetTimeZone() string {
 	return command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetTimeZone")
 }
 
+func (s *systemService) ExecUSBAutoMountShell(state string) {
+	if state == "False" {
+		command2.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;USB_Remove_File")
+	} else {
+		command2.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;USB_Move_File")
+	}
+
+}
+
 func (s *systemService) GetSystemConfigDebug() []string {
 	return command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetSysInfo")
 }
@@ -49,6 +60,11 @@ func (s *systemService) UpSystemConfig(str string, widget string) {
 		config.Cfg.Section("system").Key("WidgetList").SetValue(widget)
 		config.SystemConfigInfo.WidgetList = widget
 	}
+	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+}
+func (s *systemService) UpdateUSBAutoMount(state string) {
+	config.ServerInfo.USBAutoMount = state
+	config.Cfg.Section("system").Key("USBAutoMount").SetValue(state)
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
 func (s *systemService) UpSystemPort(port string) {

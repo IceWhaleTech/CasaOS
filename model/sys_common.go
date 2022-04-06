@@ -22,12 +22,14 @@ type UserModel struct {
 
 //服务配置
 type ServerModel struct {
-	HttpPort    string
-	RunMode     string
-	ServerApi   string
-	LockAccount bool
-	Handshake   string
-	Token       string
+	HttpPort     string
+	RunMode      string
+	ServerApi    string
+	LockAccount  bool
+	Handshake    string
+	Token        string
+	UDPPort      string
+	USBAutoMount string
 }
 
 //服务配置
@@ -48,13 +50,6 @@ type Result struct {
 	Success int         `json:"success" example:"200"`
 	Message string      `json:"message" example:"ok"`
 	Data    interface{} `json:"data" example:"返回结果"`
-}
-
-//zeritier相关
-type ZeroTierModel struct {
-	UserName string
-	PWD      string
-	Token    string
 }
 
 //redis配置文件
