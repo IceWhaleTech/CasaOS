@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -342,7 +343,7 @@ func GetFileUpload(c *gin.Context) {
 	path := c.Query("path")
 	dirPath := ""
 	hash := file.GetHashByContent([]byte(fileName))
-	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks) + "/"
+	tempDir := config.AppInfo.RootPath + "/temp/" + hash + strconv.Itoa(totalChunks) + "/"
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
 		tempDir += dirPath
@@ -381,7 +382,7 @@ func PostFileUpload(c *gin.Context) {
 		c.JSON(oasis_err2.INVALID_PARAMS, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
-	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks) + "/"
+	tempDir := config.AppInfo.RootPath + "/temp/" + hash + strconv.Itoa(totalChunks) + "/"
 
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
@@ -504,7 +505,7 @@ func PutFileContent(c *gin.Context) {
 	path := c.PostForm("path")
 	content := c.PostForm("content")
 	if !file.Exists(path) {
-		c.JSON(oasis_err2.FILE_ALREADY_EXISTS, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
 		return
 	}
 	//err := os.Remove(path)
@@ -521,4 +522,43 @@ func PutFileContent(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary image thumbnail/original image
+// @Produce  application/json
+// @Accept  application/json
+// @Tags file
+// @Security ApiKeyAuth
+// @Param path query string true "path"
+// @Param type query string false "original,thumbnail" Enums(original,thumbnail)
+// @Success 200 {string} string "ok"
+// @Router /file/image [get]
+func GetFileImage(c *gin.Context) {
+	t := c.Query("type")
+	path := c.Query("path")
+	if !file.Exists(path) {
+		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+		return
+	}
+	if t == "thumbnail" {
+		f, err := file.GetImage(path, 100, 0)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			return
+		}
+		c.Writer.WriteString(string(f))
+		return
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+	}
+	defer f.Close()
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+	}
+	c.Writer.WriteString(string(data))
 }

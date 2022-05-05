@@ -16,6 +16,7 @@ import (
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
+	"github.com/pkg/errors"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
@@ -45,7 +46,8 @@ import (
 type DockerService interface {
 	DockerPullImage(imageName string, m model2.AppNotify) error
 	IsExistImage(imageName string) bool
-	DockerContainerCreate(imageName string, containerDbId string, m model.CustomizationPostData, net string) (containerId string, err error)
+	DockerContainerCreate(imageName string, m model.CustomizationPostData, net string) (containerId string, err error)
+	DockerContainerCopyCreate(info *types.ContainerJSON) (containerId string, err error)
 	DockerContainerStart(name string) error
 	DockerContainerStats(name string) (string, error)
 	DockerListByName(name string) (*types.Container, error)
@@ -58,8 +60,9 @@ type DockerService interface {
 	DockerContainerUpdate(m model.CustomizationPostData, id string) (err error)
 	DockerContainerLog(name string) (string, error)
 	DockerContainerCommit(name string)
+	DockerContainerList() []types.Container
 	DockerNetworkModelList() []types.NetworkResource
-	DockerImageInfo(image string)
+	DockerImageInfo(image string) (types.ImageInspect, error)
 	GetNetWorkNameByNetWorkID(id string) (string, error)
 	ContainerExecShell(container_id string) string
 }
@@ -67,6 +70,19 @@ type DockerService interface {
 type dockerService struct {
 	rootDir string
 	log     loger2.OLog
+}
+
+func (ds *dockerService) DockerContainerList() []types.Container {
+	cli, err := client2.NewClientWithOpts(client2.FromEnv, client2.WithTimeout(time.Second*5))
+	if err != nil {
+		return nil
+	}
+	defer cli.Close()
+	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true})
+	if err != nil {
+		return containers
+	}
+	return containers
 }
 
 func (ds *dockerService) ContainerExecShell(container_id string) string {
@@ -174,18 +190,16 @@ func DockerEx() {
 //
 //}
 
-func (ds *dockerService) DockerImageInfo(image string) {
+func (ds *dockerService) DockerImageInfo(image string) (types.ImageInspect, error) {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
-
-	//but := bytes.Buffer{}
-	d, b, err := cli.ImageInspectWithRaw(context.Background(), image)
-	st, _ := json2.Marshal(d.Config)
-	fmt.Println(string(st))
-	fmt.Println("换行")
-	fmt.Println(string(b))
 	if err != nil {
-		fmt.Print(err)
+		return types.ImageInspect{}, err
 	}
+	inspect, _, err := cli.ImageInspectWithRaw(context.Background(), image)
+	if err != nil {
+		return inspect, err
+	}
+	return inspect, nil
 }
 
 func MsqlExec(container string) error {
@@ -342,6 +356,18 @@ func (ds *dockerService) DockerPullImage(imageName string, m model2.AppNotify) e
 	}
 	return err
 }
+func (ds *dockerService) DockerContainerCopyCreate(info *types.ContainerJSON) (containerId string, err error) {
+	cli, err := client2.NewClientWithOpts(client2.FromEnv)
+	if err != nil {
+		return "", err
+	}
+	defer cli.Close()
+	container, err := cli.ContainerCreate(context.Background(), info.Config, info.HostConfig, &network.NetworkingConfig{info.NetworkSettings.Networks}, nil, info.Name)
+	if err != nil {
+		return "", err
+	}
+	return container.ID, err
+}
 
 //param imageName 镜像名称
 //param containerDbId 数据库的id
@@ -349,7 +375,7 @@ func (ds *dockerService) DockerPullImage(imageName string, m model2.AppNotify) e
 //param mapPort 容器主端口映射到外部的端口
 //param tcp 容器其他tcp端口
 //param udp 容器其他udp端口
-func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId string, m model.CustomizationPostData, net string) (containerId string, err error) {
+func (ds *dockerService) DockerContainerCreate(imageName string, m model.CustomizationPostData, net string) (containerId string, err error) {
 	if len(net) == 0 {
 		net = "bridge"
 	}
@@ -442,12 +468,12 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	for _, v := range m.Volumes {
 		path := v.Path
 		if len(path) == 0 {
-			path = docker.GetDir(containerDbId, v.Path)
+			path = docker.GetDir(m.Label, v.Path)
 			if len(path) == 0 {
 				continue
 			}
 		}
-		path = strings.ReplaceAll(path, "$AppID", containerDbId)
+		path = strings.ReplaceAll(path, "$AppID", m.Label)
 		//reg1 := regexp.MustCompile(`([^<>/\\\|:""\*\?]+\.\w+$)`)
 		//result1 := reg1.FindAllStringSubmatch(path, -1)
 		//if len(result1) == 0 {
@@ -495,12 +521,16 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 	}
 	config := &container.Config{
 		Image:  imageName,
-		Labels: map[string]string{"origin": m.Origin, m.Origin: m.Origin},
+		Labels: map[string]string{"origin": m.Origin, m.Origin: m.Origin, "casaos": "casaos"},
 		Env:    envArr,
 		//	Healthcheck: health,
 		Hostname: m.HostName,
 		Cmd:      m.Cmd,
 	}
+
+	config.Labels["web"] = m.PortMap
+	config.Labels["icon"] = m.Icon
+	config.Labels["desc"] = m.Description
 	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(net), Privileged: m.Privileged, CapAdd: m.CapAdd}
 	//if net != "host" {
 	config.ExposedPorts = ports
@@ -512,7 +542,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, containerDbId s
 		hostConfig,
 		&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{net: {NetworkID: "", Aliases: []string{}}}},
 		nil,
-		containerDbId)
+		m.Label)
 	if err != nil {
 		return "", err
 	}
@@ -694,6 +724,9 @@ func (ds *dockerService) DockerListByName(name string) (*types.Container, error)
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{Filters: filter})
 	if err != nil {
 		return &types.Container{}, err
+	}
+	if len(containers) == 0 {
+		return &types.Container{}, errors.New("not found")
 	}
 	return &containers[0], nil
 }

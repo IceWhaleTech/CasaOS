@@ -2,6 +2,7 @@ package ip_helper
 
 import (
 	"fmt"
+	"net"
 	"testing"
 )
 
@@ -19,4 +20,8 @@ func TestGetExternalIPV6(t *testing.T) {
 
 func TestGetLoclIp(t *testing.T) {
 	fmt.Println(GetLoclIp())
+}
+func TestHasLocalIP(t *testing.T) {
+	fmt.Println("dddd")
+	fmt.Println(HasLocalIP(net.ParseIP("192.168.2.10")))
 }

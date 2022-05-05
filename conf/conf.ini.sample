@@ -16,11 +16,10 @@ RootPath = /casaOS
 HttpPort = 8089
 UDPPort = 
 RunMode = release
-ServerApi = https://api.casaos.zimaboard.com
+ServerApi = https://api.casaos.io
 Handshake = socket.casaos.io
 Token = 
 USBAutoMount = true
-
 
 [user]
 UserName = admin
@@ -30,6 +29,7 @@ Description = description
 Initialized = false
 Avatar = 
 NickName = 
+PublicKey =
 
 [redis]
 Host = 127.0.0.1:6379

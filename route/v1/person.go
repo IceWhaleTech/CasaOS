@@ -1,18 +1,26 @@
 package v1
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	path2 "path"
+
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -20,33 +28,6 @@ import (
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 )
-
-func PersonTest(c *gin.Context) {
-	token := c.Query("token")
-	_, err := uuid.FromString(token)
-	fmt.Println(err)
-
-	//service.MyService.Person().GetPersionInfo("fb2333a1-72b2-4cb4-9e31-61ccaffa55b9")
-
-	msg := model.MessageModel{}
-	msg.Type = types.PERSONHELLO
-	msg.Data = ""
-	msg.From = config.ServerInfo.Token
-	msg.To = token
-	msg.UUId = uuid.NewV4().String()
-
-	dd, err := service.Dial(msg, true)
-	if err == nil {
-		fmt.Println(err)
-	}
-	fmt.Println(dd)
-	user := service.MyService.Casa().GetUserInfoByShareId(token)
-	if reflect.DeepEqual(user, model.UserInfo{}) {
-		fmt.Println("空数据")
-	}
-	fmt.Println(user)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
-}
 
 // @Summary Retry the file that failed to download
 // @Produce  application/json
@@ -135,7 +116,7 @@ func GetPersonFile(c *gin.Context) {
 	task.Size = 0
 	task.State = types.DOWNLOADAWAIT
 	task.Created = time.Now().Unix()
-	task.Type = 0
+	task.Type = types.PERSONFILEDOWNLOAD
 	task.LocalPath = localPath
 	if service.MyService.Download().GetDownloadListByPath(task) > 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_EXIST_DOWNLOAD, Message: oasis_err2.GetMsg(oasis_err2.PERSON_EXIST_DOWNLOAD)})
@@ -197,7 +178,7 @@ func DeletePersonDownloadFile(c *gin.Context) {
 // @Router /person/list [get]
 func GetPersonDownloadList(c *gin.Context) {
 	state := c.DefaultQuery("state", "")
-	list := service.MyService.Download().GetDownloadListByState(state)
+	list := service.MyService.Download().GetDownloadListByState(state, types.PERSONFILEDOWNLOAD)
 	//if it is  downloading, it need to add 'already'
 	for i := 0; i < len(list); i++ {
 		if list[i].State == types.DOWNLOADING {
@@ -235,6 +216,82 @@ func PutPersonRemarks(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
+// @Summary edit friend's
+// @Produce  application/json
+// @Accept application/json
+// @Tags person
+// @Param write formData bool true "write"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /person/write/{shareid} [put]
+func PutPersonWrite(c *gin.Context) {
+	token := c.Param("shareid")
+	_, err := uuid.FromString(token)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+	write, _ := strconv.ParseBool(c.PostForm("write"))
+	friend := model2.FriendModel{}
+	friend.Token = token
+	friend.Write = write
+	service.MyService.Friend().EditFriendMark(friend)
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary image thumbnail
+// @Produce  application/json
+// @Accept application/json
+// @Tags person
+// @Param write formData bool true "write"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /person/image/thumbnail/{shareid} [get]
+func GetPersonImageThumbnail(c *gin.Context) {
+	token := c.Param("shareid")
+	path := c.Query("path")
+	_, err := uuid.FromString(token)
+	if err != nil || len(path) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+	uuid := uuid.NewV4().String()
+	m := model.MessageModel{}
+	m.Data = path
+	m.From = config.ServerInfo.Token
+	m.To = token
+	m.Type = types.PERSONIMAGETHUMBNAIL
+	m.UUId = uuid
+
+	img, err := service.Dial(m, false)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+	}
+
+	//	var buf bytes.Buffer
+	//err = gob.NewEncoder(&buf).Encode(img.Data)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+	}
+	var buf bytes.Buffer
+	err = gob.NewEncoder(&buf).Encode(img.Data)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+	}
+	filesuffix := strings.Split(path2.Ext(path), ".")[1]
+
+	fmt.Println("data:image/" + filesuffix + ";base64," + img.Data.(string))
+
+	imageBuffer, _ := base64.StdEncoding.DecodeString(img.Data.(string))
+	c.Writer.WriteString(string(imageBuffer))
+	//	c.String(http.StatusOK, "data:image/"+filesuffix+";base64,"+img.Data.(string))
+	//c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: img.Data.(string)})
+}
+
 // @Summary get my friend list
 // @Produce  application/json
 // @Accept application/json
@@ -247,6 +304,10 @@ func GetPersonFriend(c *gin.Context) {
 	for i := 0; i < len(list); i++ {
 		if v, ok := service.UDPAddressMap[list[i].Token]; ok && len(v) > 0 {
 			list[i].OnLine = true
+			list[i].Avatar = v
+			if ip_helper.HasLocalIP(net.ParseIP(strings.Split(v, ":")[0])) {
+				list[i].LocalIP = strings.Split(v, ":")[0]
+			}
 		}
 	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
@@ -296,10 +357,20 @@ func PostAddPersonFriend(c *gin.Context) {
 
 		go service.Dial(message, true)
 
+		msg := model.MessageModel{}
+		msg.Type = types.PERSONGETIP
+		msg.Data = ""
+		msg.From = config.ServerInfo.Token
+		msg.To = v
+		msg.UUId = uuid.NewV4().String()
+
+		service.Dial(msg, true)
+
 		friend := model2.FriendModel{}
 		friend.Token = v
 		friend.Avatar = user.Avatar
 		friend.Block = false
+		friend.State = types.FRIENDSTATEWAIT
 		friend.NickName = user.NickName
 		friend.Profile = user.Desc
 		friend.Version = user.Version
@@ -439,6 +510,17 @@ func GetPersonShare(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: config.FileSettingInfo.ShareDir})
 }
 
+// @Summary Get the shareid
+// @Produce  application/json
+// @Accept application/json
+// @Tags person
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /person/shareid [get]
+func GetPersonShareId(c *gin.Context) {
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: config.ServerInfo.Token})
+}
+
 // @Summary Modify disabled status
 // @Produce  application/json
 // @Accept application/json
@@ -494,3 +576,209 @@ func GetPersonPublic(c *gin.Context) {
 	list := service.MyService.Casa().GetPersonPublic()
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
 }
+
+// @Summary upload file to friend
+// @Produce  application/json
+// @Accept application/json
+// @Tags person
+// @Security ApiKeyAuth
+// @Param path formData string true "Destination path"
+// @Param local_path formData string true "Full path of the file to be uploaded"
+// @Success 200 {string} string "ok"
+// @Router /person/file/{shareid} [post]
+func PostPersonFile(c *gin.Context) {
+	token := c.Param("shareid")
+	_, err := uuid.FromString(token)
+	path := c.PostForm("path")
+	localPath := c.PostForm("local_path")
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+	if !file.Exists(localPath) {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DOES_NOT_EXIST, Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST)})
+		return
+	}
+	uuid := uuid.NewV4().String()
+	m := model.MessageModel{}
+	m.Data = path
+	m.From = config.ServerInfo.Token
+	m.To = token
+	m.Type = types.PERSONUPLOAD
+	m.UUId = uuid
+	go service.UDPSendData(m, localPath)
+
+	f, _ := os.Stat(localPath)
+
+	task := model2.PersonDownloadDBModel{}
+	task.UUID = uuid
+	task.Name = f.Name()
+	task.Length = 0
+	task.From = token
+	task.Path = path
+	task.Size = f.Size()
+	task.State = types.DOWNLOADFINISHED
+	task.Created = time.Now().Unix()
+	task.Type = types.PERSONFILEUPLOAD
+	task.LocalPath = localPath
+	if service.MyService.Download().GetDownloadListByPath(task) > 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_EXIST_DOWNLOAD, Message: oasis_err2.GetMsg(oasis_err2.PERSON_EXIST_DOWNLOAD)})
+		return
+	}
+	service.MyService.Download().AddDownloadTask(task)
+
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary agree add friend
+// @Produce  application/json
+// @Accept application/json
+// @Tags person
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /person/friend/{shareid} [put]
+func PutPersonAgreeFriend(c *gin.Context) {
+	token := c.Param("shareid")
+	_, err := uuid.FromString(token)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+
+	user := service.MyService.Friend().GetFriendById(model2.FriendModel{Token: token})
+
+	if user.State != types.FRIENDSTATEREQUEST {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.COMMAND_ERROR_INVALID_OPERATION, Message: oasis_err2.GetMsg(oasis_err2.COMMAND_ERROR_INVALID_OPERATION)})
+		return
+	}
+	service.MyService.Friend().AgreeFrined(user.Token)
+
+	uuid := uuid.NewV4().String()
+	m := model.MessageModel{}
+	m.Data = ""
+	m.From = config.ServerInfo.Token
+	m.To = token
+	m.Type = types.PERSONAGREEFRIEND
+	m.UUId = uuid
+	go service.Dial(m, true)
+
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// // @Summary upload file
+// // @Produce  application/json
+// // @Accept  multipart/form-data
+// // @Tags person
+// // @Security ApiKeyAuth
+// // @Param path formData string false "file path"
+// // @Param file formData file true "file"
+// // @Success 200 {string} string "ok"
+// // @Router /person/upload/{shareid} [get]
+// func GetPersonFileUpload(c *gin.Context) {
+
+// 	token := c.Param("shareid")
+// 	_, err := uuid.FromString(token)
+// 	path := c.Query("path")
+// 	if err != nil {
+// 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+// 		return
+// 	}
+
+// 	relative := c.Query("relativePath")
+// 	fileName := c.Query("filename")
+// 	chunkNumber := c.Query("chunkNumber")
+// 	totalChunks, _ := strconv.Atoi(c.DefaultQuery("totalChunks", "0"))
+// 	dirPath := ""
+// 	hash := file.GetHashByContent([]byte(fileName))
+// 	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks) + "/"
+// 	if fileName != relative {
+// 		dirPath = strings.TrimSuffix(relative, fileName)
+// 		tempDir += dirPath
+// 		file.MkDir(path + "/" + dirPath)
+// 	}
+// 	tempDir += chunkNumber
+// 	if !file.CheckNotExist(tempDir) {
+// 		c.JSON(200, model.Result{Success: 200, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+// 		return
+// 	}
+
+// 	c.JSON(204, model.Result{Success: 204, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+// }
+
+// // @Summary upload file
+// // @Produce  application/json
+// // @Accept  multipart/form-data
+// // @Tags person
+// // @Security ApiKeyAuth
+// // @Param path formData string false "file path"
+// // @Param file formData file true "file"
+// // @Success 200 {string} string "ok"
+// // @Router /person/upload [post]
+// func PostPersonFileUpload(c *gin.Context) {
+// 	token := c.Param("shareid")
+// 	_, err := uuid.FromString(token)
+// 	if err != nil {
+// 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+// 		return
+// 	}
+// 	f, _, _ := c.Request.FormFile("file")
+// 	relative := c.PostForm("relativePath")
+// 	fileName := c.PostForm("filename")
+// 	totalChunks, _ := strconv.Atoi(c.DefaultPostForm("totalChunks", "0"))
+// 	chunkNumber := c.PostForm("chunkNumber")
+// 	dirPath := ""
+// 	path := c.PostForm("path")
+
+// 	hash := file.GetHashByContent([]byte(fileName))
+
+// 	if len(path) == 0 {
+// 		c.JSON(oasis_err2.INVALID_PARAMS, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+// 		return
+// 	}
+// 	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks) + "/"
+
+// 	if fileName != relative {
+// 		dirPath = strings.TrimSuffix(relative, fileName)
+// 		tempDir += dirPath
+// 		file.MkDir(path + "/" + dirPath)
+// 	}
+
+// 	path += "/" + relative
+
+// 	if !file.CheckNotExist(tempDir + chunkNumber) {
+// 		file.RMDir(tempDir + chunkNumber)
+// 	}
+
+// 	if totalChunks > 1 {
+// 		file.IsNotExistMkDir(tempDir)
+
+// 		out, _ := os.OpenFile(tempDir+chunkNumber, os.O_WRONLY|os.O_CREATE, 0644)
+// 		defer out.Close()
+// 		_, err := io.Copy(out, f)
+// 		if err != nil {
+// 			c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+// 			return
+// 		}
+// 	} else {
+// 		out, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
+// 		defer out.Close()
+// 		_, err := io.Copy(out, f)
+// 		if err != nil {
+// 			c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+// 			return
+// 		}
+// 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+// 		return
+// 	}
+
+// 	fileNum, err := ioutil.ReadDir(tempDir)
+// 	if err != nil {
+// 		c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+// 		return
+// 	}
+// 	if totalChunks == len(fileNum) {
+// 		file.RMDir(tempDir)
+// 	}
+
+// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+// }

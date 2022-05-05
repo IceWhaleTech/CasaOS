@@ -41,7 +41,8 @@ func InitRouter() *gin.Engine {
 	r.POST("/v1/user/setusernamepwd", v1.Set_Name_Pwd)
 	//get user info
 	r.GET("/v1/user/info", v1.GetUserInfo)
-
+	//get user info
+	r.GET("/v1/person/shareid", v1.GetPersonShareId)
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT(swagHandler))
@@ -102,7 +103,7 @@ func InitRouter() *gin.Engine {
 		v1AppGroup.Use()
 		{
 			//获取我的已安装的列表
-			v1AppGroup.GET("/mylist", v1.MyAppList)
+			v1AppGroup.GET("/my/list", v1.MyAppList)
 			//
 			v1AppGroup.GET("/usage", v1.AppUsageList)
 			//app详情
@@ -117,8 +118,7 @@ func InitRouter() *gin.Engine {
 			v1AppGroup.GET("/category", v1.CategoryList)
 			//容器相关
 			v1AppGroup.GET("/terminal/:id", v1.DockerTerminal)
-			//准备安装
-			//v1AppGroup.GET("/ready/:id", v1.ReadyInstall)
+			v1AppGroup.PUT("/index/:id", v1.PutAppIndex)
 			//app容器详情
 			v1AppGroup.GET("/info/:id", v1.ContainerInfo)
 			//app容器日志
@@ -139,7 +139,7 @@ func InitRouter() *gin.Engine {
 			v1AppGroup.GET("/update/:id/info", v1.ContainerUpdateInfo)
 			v1AppGroup.GET("/rely/:id/info", v1.ContainerRelyInfo)
 			v1AppGroup.GET("/install/config", v1.GetDockerInstallConfig)
-			//v1AppGroup.POST("/custom/install", v1.CustomInstallApp)
+			v1AppGroup.PUT("/update/:id", v1.PutAppUpdate)
 			v1AppGroup.POST("/share", v1.ShareAppFile)
 		}
 
@@ -148,6 +148,7 @@ func InitRouter() *gin.Engine {
 		{
 			//获取检查版本是否需要升级
 			v1SysGroup.GET("/check", v1.CheckVersion)
+			v1SysGroup.GET("/client/version", v1.GetClientVersion)
 			v1SysGroup.POST("/update", v1.SystemUpdate)
 			v1SysGroup.GET("/sys", v1.Sys)
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
@@ -182,6 +183,7 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.POST("/operate", v1.PostOperateFileOrDir)
 			v1FileGroup.DELETE("/delete", v1.DeleteFile)
 			v1FileGroup.PUT("/update", v1.PutFileContent)
+			v1FileGroup.GET("/image", v1.GetFileImage)
 
 			//v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
 		}
@@ -233,29 +235,17 @@ func InitRouter() *gin.Engine {
 			v1TaskGroup.PUT("/completion/:id", v1.PutTaskMarkerCompletion)
 
 		}
-		v1ShortcutsGroup := v1Group.Group("/shortcuts")
-		v1ShortcutsGroup.Use()
-		{
-			v1ShortcutsGroup.GET("/list", v1.GetShortcutsList)
-			v1ShortcutsGroup.POST("/add", v1.PostShortcutsAdd)
-			v1ShortcutsGroup.PUT("/edit", v1.PutShortcutsEdit)
-			v1ShortcutsGroup.DELETE("/del/:id", v1.DeleteShortcutsDelete)
-		}
+
 		v1NotifyGroup := v1Group.Group("/notify")
 		v1NotifyGroup.Use()
 		{
 			v1NotifyGroup.GET("/ws", v1.NotifyWS)
 			v1NotifyGroup.PUT("/read/:id", v1.PutNotifyRead)
 		}
-		v1SearchGroup := v1Group.Group("/search")
-		v1SearchGroup.Use()
-		{
-			v1SearchGroup.GET("/search", v1.GetSearchList)
-		}
+
 		v1PersonGroup := v1Group.Group("/person")
 		v1PersonGroup.Use()
 		{
-			v1PersonGroup.GET("/test", v1.PersonTest)
 			v1PersonGroup.GET("/users", v1.GetPersonFriend)
 			v1PersonGroup.POST("/user/:shareids", v1.PostAddPersonFriend)
 			v1PersonGroup.DELETE("/user/:shareid", v1.DeletePersonFriend)
@@ -267,11 +257,15 @@ func InitRouter() *gin.Engine {
 			v1PersonGroup.DELETE("/file/:uuid", v1.DeletePersonDownloadFile)
 
 			v1PersonGroup.POST("/share", v1.PostPersonShare)
+			v1PersonGroup.POST("/file/:shareid", v1.PostPersonFile)
 			v1PersonGroup.GET("/share", v1.GetPersonShare)
 			v1PersonGroup.POST("/down/dir", v1.PostPersonDownDir)
 			v1PersonGroup.GET("/down/dir", v1.GetPersonDownDir)
 			v1PersonGroup.PUT("/block/:shareid", v1.PutPersonBlock)
 			v1PersonGroup.GET("/public", v1.GetPersonPublic)
+			v1PersonGroup.PUT("/friend/:shareid", v1.PutPersonAgreeFriend)
+			v1PersonGroup.PUT("/write/:shareid", v1.PutPersonWrite)
+			v1PersonGroup.GET("/image/thumbnail/:shareid", v1.GetPersonImageThumbnail)
 
 		}
 		v1AnalyseGroup := v1Group.Group("/analyse")

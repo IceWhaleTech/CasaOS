@@ -17,6 +17,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/quic_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
@@ -34,11 +35,12 @@ type personService struct {
 
 var IpInfo model.PersionModel
 var CancelList map[string]string
+var InternalInspection map[string][]string
 
 func PushIpInfo(token string) {
 
 	m := model.PersionModel{}
-	m.Ips = GetDeviceAllIP()
+	m.Ips = ip_helper.GetDeviceAllIP("")
 	m.Token = token
 	b, _ := json.Marshal(m)
 
@@ -193,6 +195,11 @@ func ProcessingContent(stream quic.Stream) {
 			} else {
 				list = []model.Path{}
 			}
+			if rFriend.Write {
+				for i := 0; i < len(list); i++ {
+					list[i].Write = true
+				}
+			}
 			m.To = m.From
 			m.Data = list
 			m.From = config.ServerInfo.Token
@@ -200,10 +207,9 @@ func ProcessingContent(stream quic.Stream) {
 			break
 		} else if m.Type == types.PERSONDOWNLOAD {
 
-			SendFileData(stream, m.Data.(string), m.From, m.UUId)
+			SendFileData(stream, m.Data.(string), m.From, m.UUId, types.PERSONDOWNLOAD)
 			break
 		} else if m.Type == types.PERSONADDFRIEND {
-			fmt.Println("有用户来请求加好友", m)
 			friend := model2.FriendModel{}
 			dataModelByte, _ := json.Marshal(m.Data)
 			err := json.Unmarshal(dataModelByte, &friend)
@@ -225,6 +231,7 @@ func ProcessingContent(stream quic.Stream) {
 			break
 		} else if m.Type == types.PERSONCONNECTION {
 			if len(m.Data.(string)) > 0 {
+				fmt.Println("设置ip", m.Data.(string))
 				UDPAddressMap[m.From] = m.Data.(string)
 			} else {
 				delete(UDPAddressMap, m.From)
@@ -236,14 +243,18 @@ func ProcessingContent(stream quic.Stream) {
 			// mi.Token = config.ServerInfo.Token
 
 			user := MyService.Casa().GetUserInfoByShareId(m.From)
-
+			//好友申请 //不是好友
 			friend := model2.FriendModel{}
 			friend.Token = m.From
 			friend.Avatar = user.Avatar
 			friend.Block = false
 			friend.NickName = user.NickName
 			friend.Profile = user.Avatar
+			friend.Write = false
 			friend.Version = user.Version
+			if len(config.UserInfo.Public) > 0 {
+				friend.State = types.FRIENDSTATEREQUEST
+			}
 			MyService.Friend().AddFriend(friend)
 
 			msg := model.MessageModel{}
@@ -254,9 +265,95 @@ func ProcessingContent(stream quic.Stream) {
 			msg.UUId = m.UUId
 			Dial(msg, false)
 
+			//agree user
+			if len(config.UserInfo.Public) == 0 {
+				msg.Type = types.PERSONAGREEFRIEND
+				msg.Data = ""
+				msg.To = m.From
+				msg.From = config.ServerInfo.Token
+				msg.UUId = m.UUId
+				Dial(msg, true)
+			}
+			break
+		} else if m.Type == types.PERSONAGREEFRIEND {
+			MyService.Friend().AgreeFrined(m.From)
 			break
 		} else if m.Type == types.PERSONCANCEL {
 			CancelList[m.UUId] = "cancel"
+			break
+		} else if m.Type == types.PERSONSUMMARY {
+			Summary(m, "upload")
+			continue
+		} else if m.Type == types.PERSONUPLOAD {
+			//TODO:检查是否存在如果存在直接结束
+			task := model2.PersonDownloadDBModel{}
+			task.UUID = m.UUId
+			task.LocalPath = m.Data.(string)
+			MyService.Download().AddDownloadTask(task)
+			friend := MyService.Friend().GetFriendById(model2.FriendModel{Token: m.From})
+			if friend.Write {
+				continue
+			} else {
+				break
+			}
+		} else if m.Type == types.PERSONUPLOADDATA {
+			r := SaveFile(m, stream)
+			if r {
+				break
+			}
+			continue
+		} else if m.Type == types.PERSONINTERNALINSPECTION {
+			fmt.Println("内网测试")
+			var ips []string
+			dataModelByte, _ := json.Marshal(m.Data)
+			err := json.Unmarshal(dataModelByte, &ips)
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+
+			go MyService.Friend().InternalInspection(ips, m.From)
+
+		} else if m.Type == types.PERSONPING {
+			fmt.Println("来自", m.From, "的ping", m.Data)
+			msg := m
+			m.To = m.From
+			m.Data = config.ServerInfo.Token
+			m.From = config.ServerInfo.Token
+			SendData(stream, m)
+
+			var ips []string
+			dataModelByte, _ := json.Marshal(msg.Data)
+			err := json.Unmarshal(dataModelByte, &ips)
+			if err != nil {
+				fmt.Println(err)
+				break
+			}
+			backIP := false
+			if v, ok := UDPAddressMap[msg.From]; ok {
+				for _, ip := range ips {
+					if ip == v {
+						backIP = true
+						break
+					}
+				}
+			}
+			if !backIP {
+				fmt.Println("检测需要查询ip", msg.From)
+				go MyService.Friend().InternalInspection(ips, msg.From)
+			}
+
+			break
+		} else if m.Type == types.PERSONIMAGETHUMBNAIL {
+			m.To = m.From
+
+			if data, err := file.GetImage(m.Data.(string), 100, 0); err == nil {
+				m.Data = data
+			} else {
+				m.Data = ""
+			}
+			m.From = config.ServerInfo.Token
+			SendData(stream, m)
 			break
 		} else {
 			//不应有不做返回的数据
@@ -269,7 +366,7 @@ func ProcessingContent(stream quic.Stream) {
 }
 
 //文件分片发送
-func SendFileData(stream quic.Stream, filePath, to, uuid string) error {
+func SendFileData(stream quic.Stream, filePath, to, uuid, t string) error {
 	summary := model.FileSummaryModel{}
 
 	msg := model.MessageModel{}
@@ -341,7 +438,7 @@ func SendFileData(stream quic.Stream, filePath, to, uuid string) error {
 		tran.Length = length
 
 		fileMsg := model.MessageModel{}
-		fileMsg.Type = types.PERSONDOWNLOAD
+		fileMsg.Type = t
 		fileMsg.Data = tran
 		fileMsg.From = config.ServerInfo.Token
 		fileMsg.To = to
@@ -356,5 +453,18 @@ func SendFileData(stream quic.Stream, filePath, to, uuid string) error {
 		}
 		stream.Write(data)
 	}
+	record := model2.PersonDownRecordDBModel{}
+	record.UUID = uuid
+	record.Name = f.Name()
+	record.Downloader = to
+	record.Path = filePath
+	record.Size = fStat.Size()
+	record.Type = types.PERSONFILEDOWNLOAD
+	if t == types.PERSONUPLOADDATA {
+		record.Type = types.PERSONFILEUPLOAD
+	}
+
+	MyService.DownRecord().AddDownRecord(record)
+
 	return nil
 }

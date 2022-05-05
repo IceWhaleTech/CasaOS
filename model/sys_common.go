@@ -18,6 +18,7 @@ type UserModel struct {
 	Initialized bool
 	Avatar      string
 	NickName    string
+	Public      string
 }
 
 //服务配置

@@ -12,7 +12,7 @@ var Cache *cache.Cache
 var MyService Repository
 
 var WebSocketConns []*websocket.Conn
-
+var NewVersionApp map[string]string
 var SocketRun bool
 
 type Repository interface {
@@ -34,6 +34,7 @@ type Repository interface {
 	Person() PersonService
 	Friend() FriendService
 	Download() DownloadService
+	DownRecord() DownRecordService
 }
 
 func NewService(db *gorm.DB, log loger2.OLog) Repository {
@@ -57,6 +58,7 @@ func NewService(db *gorm.DB, log loger2.OLog) Repository {
 		person:         NewPersonService(db),
 		friend:         NewFriendService(db),
 		download:       NewDownloadService(db),
+		downrecord:     NewDownRecordService(db),
 	}
 }
 
@@ -79,6 +81,11 @@ type store struct {
 	person         PersonService
 	friend         FriendService
 	download       DownloadService
+	downrecord     DownRecordService
+}
+
+func (c *store) DownRecord() DownRecordService {
+	return c.downrecord
 }
 
 func (c *store) Download() DownloadService {

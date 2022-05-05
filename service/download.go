@@ -11,7 +11,7 @@ type DownloadService interface {
 	SaveDownload(m model2.PersonDownloadDBModel)
 	DelDownload(uuid string)
 	GetDownloadById(uuid string) model2.PersonDownloadDBModel
-	GetDownloadListByState(state string) []model2.PersonDownloadDBModel
+	GetDownloadListByState(state string, t int) []model2.PersonDownloadDBModel
 	SetDownloadError(m model2.PersonDownloadDBModel)
 	GetDownloadListByPath(m model2.PersonDownloadDBModel) int
 }
@@ -48,11 +48,11 @@ func (d *downloadService) GetDownloadById(uuid string) model2.PersonDownloadDBMo
 	d.db.Model(m).Where("uuid = ?", uuid).First(&m)
 	return m
 }
-func (d *downloadService) GetDownloadListByState(state string) (list []model2.PersonDownloadDBModel) {
+func (d *downloadService) GetDownloadListByState(state string, t int) (list []model2.PersonDownloadDBModel) {
 	if len(state) == 0 {
-		d.db.Find(&list)
+		d.db.Where("type = ?", t).Find(&list)
 	} else {
-		d.db.Where("state = ?", state).Find(&list)
+		d.db.Where("state = ? AND type= ?", state, t).Find(&list)
 	}
 
 	return

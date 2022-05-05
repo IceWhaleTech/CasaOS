@@ -86,6 +86,16 @@ func (c *zima) GetDiskInfo() *disk.UsageStat {
 
 //获取硬盘目录
 func (c *zima) GetDirPath(path string) []model.Path {
+	if path == "/DATA" {
+		sysType := runtime.GOOS
+		if sysType == "windows" {
+			path = "C:\\CasaOS\\DATA"
+		}
+		if sysType == "darwin" {
+			path = "./CasaOS/DATA"
+		}
+
+	}
 
 	ls, _ := ioutil.ReadDir(path)
 	dirs := []model.Path{}

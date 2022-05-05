@@ -27,6 +27,9 @@ func InitFunction() {
 	CheckSerialDiskMount()
 
 	CheckToken2_11()
+	ImportApplications()
+	ChangeAPIUrl()
+	InitSystemApplication()
 
 }
 
@@ -103,7 +106,7 @@ func installSyncthing(appId string) {
 	m.Restart = "always"
 	m.Volumes = appInfo.Volumes
 
-	containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, id, m, appInfo.NetworkModel)
+	containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m, appInfo.NetworkModel)
 	if err != nil {
 		fmt.Println("container create error", err)
 		// create container error
@@ -261,7 +264,7 @@ func CheckToken2_11() {
 			downloadPath = "C:\\CasaOS\\DATA\\Downloads"
 		}
 		if sysType == "darwin" {
-			downloadPath = "~/CasaOS/DATA/Downloads"
+			downloadPath = "./CasaOS/DATA/Downloads"
 		}
 		config.Cfg.Section("file").Key("DownloadDir").SetValue(downloadPath)
 		config.FileSettingInfo.DownloadDir = downloadPath
@@ -290,4 +293,36 @@ func CheckToken2_11() {
 
 	// config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 
+}
+
+func ImportApplications() {
+	service.MyService.App().ImportApplications(true)
+}
+
+// 0.3.1
+func ChangeAPIUrl() {
+	newAPIUrl := "https://api.casaos.io"
+	config.ServerInfo.ServerApi = newAPIUrl
+	config.Cfg.Section("server").Key("ServerApi").SetValue(newAPIUrl)
+	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+}
+
+// 0.3.1
+func InitSystemApplication() {
+	list := service.MyService.App().GetApplicationList()
+	if len(list) != 2 {
+		application := model2.ApplicationModel{}
+		application.Name = "Files"
+		application.Icon = "http://demo.casaos.io/ui/img/folder-open.d382f130.svg"
+		application.Type = "system"
+		application.Index = 0
+		service.MyService.App().CreateApplication(application)
+
+		application.Name = "CasaConnect"
+		application.Icon = "http://demo.casaos.io/ui/img/folder-publicshare.0219e0d4.svg"
+		application.Type = "system"
+		application.Index = 0
+
+		service.MyService.App().CreateApplication(application)
+	}
 }

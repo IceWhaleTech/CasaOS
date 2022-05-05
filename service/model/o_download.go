@@ -3,7 +3,7 @@ package model
 type PersonDownloadDBModel struct {
 	UUID      string `gorm:"column:uuid;primary_key" json:"uuid"`
 	State     int    `json:"state"`             //
-	Type      int    `json:"type"`              //defult 1
+	Type      int    `json:"type"`              //defult 0
 	Name      string `json:"name"`              //file name
 	Size      int64  `json:"size"`              //file size
 	BlockSize int    `json:"block_size"`        //Size of each file block

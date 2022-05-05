@@ -106,13 +106,18 @@ func PortCheck(c *gin.Context) {
 // @Param  size query int false "size"
 // @Param  position query bool false "是否是首页应用"
 // @Success 200 {string} string "ok"
-// @Router /app/mylist [get]
+// @Router /app/my/list [get]
 func MyAppList(c *gin.Context) {
 	index, _ := strconv.Atoi(c.DefaultQuery("index", "1"))
 	size, _ := strconv.Atoi(c.DefaultQuery("size", "0"))
 	position, _ := strconv.ParseBool(c.DefaultQuery("position", "true"))
-	list := service.MyService.App().GetMyList(index, size, position)
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+	list, unTranslation := service.MyService.App().GetMyList(index, size, position)
+
+	data := make(map[string]interface{}, 2)
+	data["list"] = list
+	data["local"] = unTranslation
+
+	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
 }
 
 // @Summary my app hardware usage list

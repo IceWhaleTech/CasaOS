@@ -23,7 +23,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary 系统信息
+// @Summary check version
 // @Produce  application/json
 // @Accept application/json
 // @Tags sys
@@ -48,6 +48,32 @@ func CheckVersion(c *gin.Context) {
 	data["current_version"] = types.CURRENTVERSION
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
 	return
+}
+
+// @Summary check client version
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/client/version [get]
+func GetClientVersion(c *gin.Context) {
+	need, version := version.IsClientNeedUpdate()
+	if need {
+		installLog := model2.AppNotify{}
+		installLog.State = 0
+		installLog.Message = "New version " + version.Version + " is ready, ready to upgrade"
+		installLog.Type = types.NOTIFY_TYPE_NEED_CONFIRM
+		installLog.CreatedAt = strconv.FormatInt(time.Now().Unix(), 10)
+		installLog.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
+		installLog.Name = "CasaOS System"
+		service.MyService.Notify().AddLog(installLog)
+	}
+	data := make(map[string]interface{}, 1)
+	data["is_need"] = need
+	data["version"] = version
+	data["current_version"] = types.CURRENTVERSION
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
 }
 
 // @Summary 系统信息

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	json2 "encoding/json"
+	"fmt"
 	"net/http"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -27,7 +27,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/jinzhu/copier"
 	uuid "github.com/satori/go.uuid"
-	"github.com/tidwall/gjson"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -154,6 +153,17 @@ func InstallApp(c *gin.Context) {
 	const CUSTOM = "custom"
 	var dockerImage string
 	var dockerImageVersion string
+
+	//check app name is exist
+	if _, err := service.MyService.Docker().DockerListByName(m.Label); err == nil {
+		if m.Origin != "custom" {
+			m.Label = m.Label + "_" + time.Now().Local().Format("02150405")
+		} else {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR_APP_NAME_EXIST, Message: oasis_err2.GetMsg(oasis_err2.ERROR_APP_NAME_EXIST)})
+			return
+		}
+
+	}
 	//检查端口
 	if len(m.PortMap) > 0 && m.PortMap != "0" {
 		//c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
@@ -247,13 +257,13 @@ func InstallApp(c *gin.Context) {
 	//if len(privileged) > 0 {
 	//
 	//}
-	id := uuid.NewV4().String()
+	//id := uuid.NewV4().String()
 
 	var relyMap = make(map[string]string)
 	go func() {
 		installLog := model2.AppNotify{}
 		installLog.State = 0
-		installLog.CustomId = id
+		installLog.CustomId = m.Label
 		installLog.Message = "installing rely"
 		installLog.Class = types.NOTIFY_APP
 		installLog.Type = types.NOTIFY_TYPE_UNIMPORTANT
@@ -281,7 +291,7 @@ func InstallApp(c *gin.Context) {
 						rely.Type = types.RELY_TYPE_MYSQL
 						rely.ContainerId = mysqlContainerId
 						rely.CustomId = mid
-						rely.ContainerCustomId = id
+						rely.ContainerCustomId = m.Label
 						var mysqlConfig model2.MysqlConfigs
 
 						//结构体转换
@@ -333,7 +343,7 @@ func InstallApp(c *gin.Context) {
 		// 	service.MyService.Notify().UpdateLog(installLog)
 		// 	return
 		// }
-		containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, id, m, appInfo.NetworkModel)
+		containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m, appInfo.NetworkModel)
 		installLog.Name = appInfo.Title
 		installLog.Icon = appInfo.Icon
 		if err != nil {
@@ -352,7 +362,7 @@ func InstallApp(c *gin.Context) {
 		//		echo -e "hellow\nworld" >>
 
 		//step：启动容器
-		err = service.MyService.Docker().DockerContainerStart(id)
+		err = service.MyService.Docker().DockerContainerStart(m.Label)
 		if err != nil {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":90}", 100)
 			installLog.State = 0
@@ -418,7 +428,7 @@ func InstallApp(c *gin.Context) {
 		}
 
 		//step: 启动成功     检查容器状态确认启动成功
-		container, err := service.MyService.Docker().DockerContainerInfo(id)
+		container, err := service.MyService.Docker().DockerContainerInfo(m.Label)
 		if err != nil && container.ContainerJSONBase.State.Running {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":100}", 100)
 			installLog.State = 0
@@ -449,7 +459,7 @@ func InstallApp(c *gin.Context) {
 		capAdd, _ := json.Marshal(m.CapAdd)
 		//step: 保存数据到数据库
 		md := model2.AppListDBModel{
-			CustomId: id,
+			CustomId: "",
 			Title:    appInfo.Title,
 			//ScreenshotLink: appInfo.ScreenshotLink,
 			Slogan:      appInfo.Tagline,
@@ -485,12 +495,13 @@ func InstallApp(c *gin.Context) {
 		//if appInfo.NetworkModel == "host" {
 		//	m.PortMap = m.Port
 		//}
-		service.MyService.App().SaveContainer(md)
+		fmt.Println(md)
+		//service.MyService.App().SaveContainer(md)
 		config.CasaOSGlobalVariables.AppChange = true
 
 	}()
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: id})
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: m.Label})
 
 }
 
@@ -691,10 +702,16 @@ func UnInstallApp(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
-	info := service.MyService.App().GetUninstallInfo(appId)
+	//info := service.MyService.App().GetUninstallInfo(appId)
+
+	info, err := service.MyService.Docker().DockerContainerInfo(appId)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+	}
 
 	//step：停止容器
-	err := service.MyService.Docker().DockerContainerStop(appId)
+	err = service.MyService.Docker().DockerContainerStop(appId)
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.UNINSTALL_APP_ERROR, Message: oasis_err2.GetMsg(oasis_err2.UNINSTALL_APP_ERROR), Data: err.Error()})
 		return
@@ -709,17 +726,16 @@ func UnInstallApp(c *gin.Context) {
 
 	//存在镜像正在使用的情况
 	// step：删除镜像
-	service.MyService.Docker().DockerImageRemove(info.Image + ":" + info.Version)
+	service.MyService.Docker().DockerImageRemove(info.Image)
 
 	//step: 删除本地数据
-	service.MyService.App().RemoveContainerById(appId)
-	if info.Origin != "custom" {
-
+	//service.MyService.App().RemoveContainerById(appId)
+	if info.Config.Labels["origin"] != "custom" {
+		fmt.Println(info.HostConfig.Mounts)
 		//step: 删除文件夹
-		vol := gjson.Get(info.Volumes, "#.host")
-		for _, v := range vol.Array() {
-			if strings.Contains(v.String(), appId) {
-				service.MyService.App().DelAppConfigDir(v.String())
+		for _, v := range info.HostConfig.Mounts {
+			if strings.Contains(v.Source, info.Name) {
+				service.MyService.App().DelAppConfigDir(v.Source)
 			}
 		}
 
@@ -793,7 +809,7 @@ func ChangAppState(c *gin.Context) {
 	} else if state == "start" {
 		err = service.MyService.Docker().DockerContainerStart(appId)
 	} else if state == "restart" {
-		err = service.MyService.Docker().DockerContainerStop(appId)
+		service.MyService.Docker().DockerContainerStop(appId)
 		err = service.MyService.Docker().DockerContainerStart(appId)
 	}
 	if err != nil {
@@ -889,16 +905,18 @@ func UpdateSetting(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
-	var cpd model.CustomizationPostData
+	//var cpd model.CustomizationPostData
 
-	copier.Copy(&cpd, &m)
+	//copier.Copy(&cpd, &m)
 
-	appInfo := service.MyService.App().GetAppDBInfo(id)
+	//appInfo := service.MyService.App().GetAppDBInfo(id)
+	//info, err := service.MyService.Docker().DockerContainerInfo(id)
 
-	var containerId string
-	containerId = appInfo.ContainerId
-
-	service.MyService.Docker().DockerContainerStop(id)
+	// //check app name is exist
+	// if _, err := service.MyService.Docker().DockerListByName(m.Label); err == nil {
+	// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR_APP_NAME_EXIST, Message: oasis_err2.GetMsg(oasis_err2.ERROR_APP_NAME_EXIST)})
+	// 	return
+	// }
 
 	portMap, _ := strconv.Atoi(m.PortMap)
 	if !port2.IsPortAvailable(portMap, "tcp") {
@@ -936,52 +954,27 @@ func UpdateSetting(c *gin.Context) {
 
 	}
 
-	//如果容器端口均未修改,这不进行处理
-	portsStr, _ := json2.Marshal(m.Ports)
+	service.MyService.Docker().DockerContainerStop(id)
+	service.MyService.Docker().DockerContainerUpdateName(id, id)
+	//service.MyService.Docker().DockerContainerRemove(id, true)
 
-	envsStr, _ := json2.Marshal(m.Envs)
-	volumesStr, _ := json2.Marshal(m.Volumes)
-	devicesStr, _ := json2.Marshal(m.Devices)
-	capAddStr, _ := json2.Marshal(m.CapAdd)
-	cmdStr, _ := json.Marshal(m.Cmd)
-	if !reflect.DeepEqual(string(portsStr), appInfo.Ports) || !reflect.DeepEqual(string(envsStr), appInfo.Envs) || !reflect.DeepEqual(string(volumesStr), appInfo.Volumes) || m.PortMap != appInfo.PortMap || m.NetworkModel != appInfo.NetModel || m.HostName != appInfo.HostName || !reflect.DeepEqual(string(cmdStr), appInfo.Cmd) || !reflect.DeepEqual(string(capAddStr), appInfo.CapAdd) || m.Privileged != appInfo.Privileged {
-
-		var newUUid = uuid.NewV4().String()
-		var err error
-
-		// networkName, err := service.MyService.Docker().GetNetWorkNameByNetWorkID(appInfo.NetModel)
-		// if err != nil {
-		// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
-		// 	return
-		// }
-		containerId, err = service.MyService.Docker().DockerContainerCreate(appInfo.Image+":"+appInfo.Version, newUUid, cpd, m.NetworkModel)
-
-		if err != nil {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
-			return
-		}
-
-		err = service.MyService.Docker().DockerContainerRemove(id, true)
-		if err != nil {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
-			return
-		}
-
-		service.MyService.Docker().DockerContainerUpdateName(appInfo.CustomId, newUUid)
-		if err != nil {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
-			return
-		}
-
-	} else if !reflect.DeepEqual(string(devicesStr), appInfo.Devices) || m.CpuShares != appInfo.CpuShares || m.Memory != appInfo.Memory || m.Restart != appInfo.Restart {
-		service.MyService.Docker().DockerContainerUpdate(cpd, id)
+	containerId, err := service.MyService.Docker().DockerContainerCreate(m.Image, m, m.NetworkModel)
+	if err != nil {
+		service.MyService.Docker().DockerContainerUpdateName(m.Label, id)
+		service.MyService.Docker().DockerContainerStart(id)
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		return
 	}
+	//		echo -e "hellow\nworld" >>
 
-	err := service.MyService.Docker().DockerContainerStart(id)
+	//step：启动容器
+	err = service.MyService.Docker().DockerContainerStart(containerId)
+
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
 		return
 	}
+	service.MyService.Docker().DockerContainerRemove(id, true)
 	//更新upnp
 	if m.Origin != CUSTOM {
 		//if appInfo.EnableUPNP != appInfo.EnableUPNP {
@@ -1047,27 +1040,117 @@ func UpdateSetting(c *gin.Context) {
 		//}
 	}
 
-	appInfo.ContainerId = containerId
-	appInfo.PortMap = m.PortMap
-	appInfo.Label = m.Label
-	appInfo.Index = m.Index
-	appInfo.Ports = string(portsStr)
-	appInfo.Envs = string(envsStr)
-	appInfo.Icon = m.Icon
-	appInfo.Volumes = string(volumesStr)
-	appInfo.Devices = string(devicesStr)
-	appInfo.NetModel = m.NetworkModel
-	appInfo.Position = m.Position
-	appInfo.EnableUPNP = m.EnableUPNP
-	appInfo.Restart = m.Restart
-	appInfo.Memory = m.Memory
-	appInfo.CpuShares = m.CpuShares
-	appInfo.Cmd = string(cmdStr)
-	appInfo.Privileged = m.Privileged
-	appInfo.CapAdd = string(capAddStr)
-	appInfo.HostName = m.HostName
-	appInfo.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
-	service.MyService.App().UpdateApp(appInfo)
+	//service.MyService.App().UpdateApp(appInfo)
+
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary update app version
+// @Produce  application/json
+// @Accept multipart/form-data
+// @Tags app
+// @Param  id path string true "容器id"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /app/update/{id} [put]
+func PutAppUpdate(c *gin.Context) {
+	id := c.Param("id")
+
+	if len(id) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+
+	inspect, err := service.MyService.Docker().DockerContainerInfo(id)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+
+	}
+	imageLatest := strings.Split(inspect.Config.Image, ":")[0] + ":latest"
+	err = service.MyService.Docker().DockerPullImage(imageLatest, model2.AppNotify{})
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+
+	}
+	service.MyService.Docker().DockerContainerStop(id)
+	service.MyService.Docker().DockerContainerUpdateName(id, id)
+	//service.MyService.Docker().DockerContainerRemove(id, true)
+	inspect.Image = imageLatest
+	inspect.Config.Image = imageLatest
+	containerId, err := service.MyService.Docker().DockerContainerCopyCreate(inspect)
+	if err != nil {
+		service.MyService.Docker().DockerContainerUpdateName(inspect.Name, id)
+		service.MyService.Docker().DockerContainerStart(id)
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		return
+	}
+
+	//step：启动容器
+	err = service.MyService.Docker().DockerContainerStart(containerId)
+
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		return
+	}
+	service.MyService.Docker().DockerContainerRemove(id, true)
+	delete(service.NewVersionApp, id)
+
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+}
+
+// @Summary update app index
+// @Produce  application/json
+// @Accept multipart/form-data
+// @Tags app
+// @Param id path string true "app id"
+// @Param index query int true "app index"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /app/index/{id} [put]
+func PutAppIndex(c *gin.Context) {
+	id := c.Param("id")
+	index, _ := strconv.Atoi(c.Query("index"))
+
+	if len(id) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		return
+	}
+
+	inspect, err := service.MyService.Docker().DockerContainerInfo(id)
+	if err != nil {
+		if len(service.MyService.App().GetApplicationById(id).Name) == 0 {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			return
+		} else {
+			service.MyService.App().UpdateApplicationIndexById(id, index)
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+			return
+		}
+
+	}
+	service.MyService.Docker().DockerContainerStop(id)
+	service.MyService.Docker().DockerContainerUpdateName(id, id)
+
+	inspect.Config.Labels["index"] = strconv.Itoa(index)
+
+	containerId, err := service.MyService.Docker().DockerContainerCopyCreate(inspect)
+	if err != nil {
+		service.MyService.Docker().DockerContainerUpdateName(inspect.Name, id)
+		service.MyService.Docker().DockerContainerStart(id)
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		return
+	}
+
+	//step：启动容器
+	err = service.MyService.Docker().DockerContainerStart(containerId)
+
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		return
+	}
+	service.MyService.Docker().DockerContainerRemove(id, true)
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
@@ -1160,7 +1243,7 @@ func ContainerRelyInfo(c *gin.Context) {
 // @Router /app/update/{id}/info [get]
 func ContainerUpdateInfo(c *gin.Context) {
 	appId := c.Param("id")
-	appInfo := service.MyService.App().GetAppDBInfo(appId)
+	//appInfo := service.MyService.App().GetAppDBInfo(appId)
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
 	if err != nil {
 		//todo 需要自定义错误
@@ -1168,50 +1251,75 @@ func ContainerUpdateInfo(c *gin.Context) {
 		return
 	}
 	var port model.PortArray
-	json2.Unmarshal([]byte(appInfo.Ports), &port)
+	// json2.Unmarshal([]byte(appInfo.Ports), &port)
 
-	var envs model.EnvArray
-	json2.Unmarshal([]byte(appInfo.Envs), &envs)
+	for k, v := range info.HostConfig.PortBindings {
+		temp := model.PortMap{
+			CommendPort:   v[0].HostPort,
+			ContainerPort: k.Port(),
 
-	var vol model.PathArray
-	json2.Unmarshal([]byte(appInfo.Volumes), &vol)
-
-	for i := 0; i < len(vol); i++ {
-		vol[i].Path = strings.ReplaceAll(vol[i].Path, "$AppID", appId)
+			Protocol: k.Proto(),
+		}
+		port = append(port, temp)
 	}
 
-	var dir model.PathArray
-	json2.Unmarshal([]byte(appInfo.Devices), &dir)
+	var envs model.EnvArray
+	// json2.Unmarshal([]byte(appInfo.Envs), &envs)
 
-	var cmd []string
-	json2.Unmarshal([]byte(appInfo.Cmd), &cmd)
-	var capAdd []string
-	json2.Unmarshal([]byte(appInfo.CapAdd), &capAdd)
+	for _, v := range info.Config.Env {
+
+		temp := model.Env{
+			Name:  strings.Split(v, "=")[0],
+			Value: strings.Split(v, "=")[1],
+		}
+		envs = append(envs, temp)
+	}
+
+	var vol model.PathArray
+	// json2.Unmarshal([]byte(appInfo.Volumes), &vol)
+
+	for i := 0; i < len(info.HostConfig.Mounts); i++ {
+		temp := model.PathMap{
+			Path:          strings.ReplaceAll(info.HostConfig.Mounts[i].Source, "$AppID", info.Name),
+			ContainerPath: info.HostConfig.Mounts[i].Target,
+		}
+		vol = append(vol, temp)
+	}
+	var driver model.PathArray
+
 	//volumesStr, _ := json2.Marshal(m.Volumes)
 	//devicesStr, _ := json2.Marshal(m.Devices)
+	for _, v := range info.HostConfig.Resources.Devices {
+		temp := model.PathMap{
+			Path:          v.PathOnHost,
+			ContainerPath: v.PathInContainer,
+		}
+		driver = append(driver, temp)
+	}
+
 	m := model.CustomizationPostData{}
-	m.Index = appInfo.Index
-	m.Icon = appInfo.Icon
+	m.Index = ""
+	m.Icon = info.Config.Labels["icon"]
 	m.Ports = port
-	m.Image = appInfo.Image + ":" + appInfo.Version
-	m.Origin = appInfo.Origin
-	m.NetworkModel = appInfo.NetModel
-	m.Description = appInfo.Description
-	m.Label = appInfo.Label
-	m.PortMap = appInfo.PortMap
-	m.Devices = dir //appInfo.Devices
+	m.Image = info.Image
+	m.Origin = info.Config.Labels["origin"]
+	m.NetworkModel = string(info.HostConfig.NetworkMode)
+	m.Description = info.Config.Labels["desc"]
+	m.Label = info.Name
+	m.PortMap = info.Config.Labels["web"]
+	m.Devices = driver
 	m.Envs = envs
 	m.Memory = info.HostConfig.Memory >> 20
 	m.CpuShares = info.HostConfig.CPUShares
 	m.Volumes = vol //appInfo.Volumes
 	m.Restart = info.HostConfig.RestartPolicy.Name
-	m.EnableUPNP = appInfo.EnableUPNP
-	m.Position = appInfo.Position
+	m.EnableUPNP = false
+	m.Position = false
 
-	m.CapAdd = capAdd
-	m.Cmd = cmd
-	m.HostName = appInfo.HostName
-	m.Privileged = appInfo.Privileged
+	m.CapAdd = info.HostConfig.CapAdd
+	m.Cmd = info.Config.Cmd
+	m.HostName = info.Config.Hostname
+	m.Privileged = info.HostConfig.Privileged
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: m})
 }
