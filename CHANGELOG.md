@@ -44,8 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Historical Application Data
 
-### Security
-
 ### Fixed
 
 - Fixed the problem that some Docker CLI commands failed to import
