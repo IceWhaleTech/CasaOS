@@ -44,6 +44,9 @@ curl -fsSL https://get.icewhale.io/casaos-uninstall.sh | bash
 ### System Compatibility
 
  - Ubuntu Server 20.04 amd64 (✅ Recommend, Tested)
+ - Armbian 22.02 armhf/arm64/amd64 (✅ Recommend, Tested)
+ - Elementary OS 6.1 Jólnir amd64 (✅ Recommend, Tested)
+ - Deepin 20.4 amd64 (⚠️ Not Fully Tested Yet)
  - Raspberry Pi Lite OS aarch64/arm64 (⚠️ Not Fully Tested Yet)
  - Debian 11 amd64 (⚠️ Not Fully Tested Yet)
  - OpenWrt 21.02 amd64 (⚠️ Not Fully Tested Yet)

@@ -9,7 +9,7 @@ import (
 func GetGithubClient() *github.Client {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: "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"},
+		&oauth2.Token{AccessToken: ""},
 	)
 	tc := oauth2.NewClient(ctx, ts)
 	client := github.NewClient(tc)
