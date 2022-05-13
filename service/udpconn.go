@@ -208,7 +208,6 @@ func ReadContent(stream quic.Stream) {
 			fmt.Println(err)
 			break
 		}
-		fmt.Println(m)
 		if m.Type == types.PERSONDOWNLOAD {
 			r := SaveFile(m, stream)
 			if r {
@@ -218,7 +217,6 @@ func ReadContent(stream quic.Stream) {
 			Summary(m, "download")
 		} else if m.Type == types.PERSONCONNECTION {
 			if len(m.Data.(string)) > 0 {
-				fmt.Println("设置ip", m.Data.(string))
 				UDPAddressMap[m.From] = m.Data.(string)
 			} else {
 				delete(UDPAddressMap, m.From)
@@ -253,12 +251,7 @@ func ReadContent(stream quic.Stream) {
 				notify.Type = types.NOTIFY_TYPE_PERSION_FIRNED_LIVE
 				go MyService.Notify().SendText(notify)
 			}
-			fmt.Println("设置ip", m.Data.(string))
 			UDPAddressMap[m.From] = m.Data.(string)
-			fmt.Println(config.ServerInfo.Token != m.From)
-			fmt.Println(strings.Split(m.Data.(string), ":")[0] == strings.Split(UDPAddressMap[config.ServerInfo.Token], ":")[0])
-			fmt.Println(strings.Split(m.Data.(string), ":")[0])
-			fmt.Println(strings.Split(UDPAddressMap[config.ServerInfo.Token], ":")[0])
 			if config.ServerInfo.Token != m.From && strings.Split(m.Data.(string), ":")[0] == strings.Split(UDPAddressMap[config.ServerInfo.Token], ":")[0] {
 				msg := model.MessageModel{}
 				msg.Type = types.PERSONINTERNALINSPECTION
@@ -304,7 +297,6 @@ func SendIPToServer() {
 
 func LoopFriend() {
 	list := MyService.Friend().GetFriendList()
-	//list := MyService.Friend().GetFriendListRemote()
 	msg := model.MessageModel{}
 	msg.Type = types.PERSONGETIP
 	msg.Data = ""
@@ -333,14 +325,10 @@ func LoopFriend() {
 		if v, ok := UDPAddressMap[list[i].Token]; ok {
 			if ip_helper.HasLocalIP(net.ParseIP(strings.Split(v, ":")[0])) {
 				msg.Data = ip_helper.GetDeviceAllIP(config.ServerInfo.UDPPort)
-				fmt.Println("判断为内网ip,设置自己的ip地址", msg.Data)
 			}
-			fmt.Println("ping的数据", UDPAddressMap[list[i].Token])
 			oldIP := UDPAddressMap[list[i].Token]
-			fmt.Println("old ip", oldIP)
 			data, err := Dial(msg, false)
 			if err != nil || reflect.DeepEqual(data, model.MessageModel{}) || len(data.Data.(string)) == 0 {
-				fmt.Println("ping失败", list[i].Token, err, data, UDPAddressMap[list[i].Token])
 				if oldIP == UDPAddressMap[list[i].Token] {
 					notify := model2.AppNotify{}
 					notify.CustomId = data.From

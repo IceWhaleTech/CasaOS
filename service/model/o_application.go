@@ -10,7 +10,7 @@ type ApplicationModel struct {
 	Icon      string    `json:"icon"`
 	State     int       `json:"state"`
 	Type      string    `json:"type"`
-	Index     int       `json:"index"`
+	Order     int       `json:"order"`
 	CreatedAt time.Time `gorm:"<-:create" json:"created_at"`
 	UpdatedAt time.Time `gorm:"<-:create;<-:update" json:"updated_at"`
 }

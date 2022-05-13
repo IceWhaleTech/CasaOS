@@ -49,15 +49,17 @@ func (p *AppListDBModel) TableName() string {
 }
 
 type MyAppList struct {
+	Id       string `json:"id"`
 	Name     string `json:"name"`
 	Icon     string `json:"icon"`
 	State    string `json:"state"`
 	CustomId string `gorm:"column:custom_id;primary_key" json:"custom_id"`
 	Index    string `json:"index"`
-	Port     string `json:"port"`
-	UpTime   string `json:"up_time"`
-	Slogan   string `json:"slogan"`
-	Type     string `json:"type"`
+	//Order    string `json:"order"`
+	Port   string `json:"port"`
+	UpTime string `json:"up_time"`
+	Slogan string `json:"slogan"`
+	Type   string `json:"type"`
 	//Rely       model.MapStrings `json:"rely"` //[{"mysql":"id"},{"mysql":"id"}]
 	Image      string `json:"image"`
 	Volumes    string `json:"volumes"`

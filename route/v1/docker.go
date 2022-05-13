@@ -16,6 +16,7 @@ import (
 	upnp2 "github.com/IceWhaleTech/CasaOS/pkg/upnp"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	ip_helper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/random"
@@ -155,15 +156,25 @@ func InstallApp(c *gin.Context) {
 	var dockerImageVersion string
 
 	//check app name is exist
-	if _, err := service.MyService.Docker().DockerListByName(m.Label); err == nil {
-		if m.Origin != "custom" {
-			m.Label = m.Label + "_" + time.Now().Local().Format("02150405")
-		} else {
+
+	if m.Origin != "custom" {
+		oldName := m.Label
+		for i := 0; true; i++ {
+			if i != 0 {
+				m.Label = oldName + "-" + strconv.Itoa(i)
+			}
+			if _, err := service.MyService.Docker().DockerListByName(m.Label); err != nil {
+				break
+			}
+		}
+	} else {
+		if _, err := service.MyService.Docker().DockerListByName(m.Label); err == nil {
 			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR_APP_NAME_EXIST, Message: oasis_err2.GetMsg(oasis_err2.ERROR_APP_NAME_EXIST)})
 			return
 		}
 
 	}
+
 	//检查端口
 	if len(m.PortMap) > 0 && m.PortMap != "0" {
 		//c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
@@ -257,8 +268,8 @@ func InstallApp(c *gin.Context) {
 	//if len(privileged) > 0 {
 	//
 	//}
-	//id := uuid.NewV4().String()
-
+	id := uuid.NewV4().String()
+	m.CustomId = id
 	var relyMap = make(map[string]string)
 	go func() {
 		installLog := model2.AppNotify{}
@@ -918,8 +929,10 @@ func UpdateSetting(c *gin.Context) {
 	// 	return
 	// }
 
+	service.MyService.Docker().DockerContainerStop(id)
 	portMap, _ := strconv.Atoi(m.PortMap)
 	if !port2.IsPortAvailable(portMap, "tcp") {
+		service.MyService.Docker().DockerContainerStart(id)
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + m.PortMap})
 		return
 	}
@@ -929,32 +942,34 @@ func UpdateSetting(c *gin.Context) {
 		if u.Protocol == "udp" {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
+				service.MyService.Docker().DockerContainerStart(id)
 				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "tcp" {
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
+				service.MyService.Docker().DockerContainerStart(id)
 				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "both" {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
+				service.MyService.Docker().DockerContainerStart(id)
 				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
+				service.MyService.Docker().DockerContainerStart(id)
 				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		}
 
 	}
-
-	service.MyService.Docker().DockerContainerStop(id)
 	service.MyService.Docker().DockerContainerUpdateName(id, id)
 	//service.MyService.Docker().DockerContainerRemove(id, true)
 
@@ -1100,59 +1115,34 @@ func PutAppUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
-// @Summary update app index
+// @Summary get app index
 // @Produce  application/json
-// @Accept multipart/form-data
+// @Accept application/json
 // @Tags app
-// @Param id path string true "app id"
-// @Param index query int true "app index"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /app/index/{id} [put]
-func PutAppIndex(c *gin.Context) {
-	id := c.Param("id")
-	index, _ := strconv.Atoi(c.Query("index"))
+// @Router /app/order [get]
+func GetAppOrder(c *gin.Context) {
+	data := service.MyService.System().GetAppOrderFile()
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: json.RawMessage(data)})
+}
 
-	if len(id) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
-		return
-	}
-
-	inspect, err := service.MyService.Docker().DockerContainerInfo(id)
-	if err != nil {
-		if len(service.MyService.App().GetApplicationById(id).Name) == 0 {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
-			return
-		} else {
-			service.MyService.App().UpdateApplicationIndexById(id, index)
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
-			return
-		}
-
-	}
-	service.MyService.Docker().DockerContainerStop(id)
-	service.MyService.Docker().DockerContainerUpdateName(id, id)
-
-	inspect.Config.Labels["index"] = strconv.Itoa(index)
-
-	containerId, err := service.MyService.Docker().DockerContainerCopyCreate(inspect)
-	if err != nil {
-		service.MyService.Docker().DockerContainerUpdateName(inspect.Name, id)
-		service.MyService.Docker().DockerContainerStart(id)
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
-		return
-	}
-
-	//step：启动容器
-	err = service.MyService.Docker().DockerContainerStart(containerId)
-
-	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
-		return
-	}
-	service.MyService.Docker().DockerContainerRemove(id, true)
-
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+// @Summary update app index
+// @Produce  application/json
+// @Accept application/json
+// @Tags app
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /app/order [post]
+func PostAppOrder(c *gin.Context) {
+	data := c.PostForm("data")
+	service.MyService.System().UpAppOrderFile(data)
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Data:    json.RawMessage(data),
+		})
 }
 
 // @Summary 获取容器详情
@@ -1298,14 +1288,16 @@ func ContainerUpdateInfo(c *gin.Context) {
 	}
 
 	m := model.CustomizationPostData{}
-	m.Index = ""
 	m.Icon = info.Config.Labels["icon"]
 	m.Ports = port
-	m.Image = info.Image
+	m.Image = info.Config.Image
 	m.Origin = info.Config.Labels["origin"]
+	if len(m.Origin) == 0 {
+		m.Origin = "local"
+	}
 	m.NetworkModel = string(info.HostConfig.NetworkMode)
 	m.Description = info.Config.Labels["desc"]
-	m.Label = info.Name
+	m.Label = strings.ReplaceAll(info.Name, "/", "")
 	m.PortMap = info.Config.Labels["web"]
 	m.Devices = driver
 	m.Envs = envs
@@ -1314,8 +1306,12 @@ func ContainerUpdateInfo(c *gin.Context) {
 	m.Volumes = vol //appInfo.Volumes
 	m.Restart = info.HostConfig.RestartPolicy.Name
 	m.EnableUPNP = false
+	m.Index = info.Config.Labels["index"]
 	m.Position = false
-
+	m.CustomId = info.Config.Labels["custom_id"]
+	if len(m.CustomId) == 0 {
+		m.CustomId = uuid.NewV4().String()
+	}
 	m.CapAdd = info.HostConfig.CapAdd
 	m.Cmd = info.Config.Cmd
 	m.HostName = info.Config.Hostname

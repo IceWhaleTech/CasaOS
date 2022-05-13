@@ -9,15 +9,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Connect and file add image thumbnail function
+### Changed
+
+### Removed
+
+### Security
+
+### Fixed
+
+## [0.3.1-pre] - 2022-05-13
+
+### Added
+
+- CasaConnect and file add image thumbnail function
 - Import of docker applications
-- Apply manual upgrades
+- List support custom sorting function
 - CasaConnect gives priority to LAN connections
+- USB auto-mount switch (Raspberry Pi is off by default)
+- Application custom installation supports Docker Compose configuration import in YAML format
+- You will see the new version changelog from the next version
+- Added live preview for icons in custom installed applications
 
 ### Changed
 
 - Application data is no longer saved to the database
 - Optimize app store speed issues
+- Optimize the way WebUI is filled in
+- Image preview has been completely upgraded and now supports switching between all images in the same folder, as well as dragging, zooming, rotating and resetting.
+- Added color levels to the CPU and RAM charts
+- Optimized the display of the Connect friends list right-click menu
+- Change the initial display directory to /DATA
 
 ### Removed
 
@@ -26,6 +47,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 ### Fixed
+
+- Fixed the problem that some Docker CLI commands failed to import
+- Fix the problem that the application is not easily recognized in /DATA/AppData directory and docker command line after installation, it will be shown as application name
+- Fix Pi-hole installation failure
+- Fixed the issue that the app could not be updated using WatchTower
+- Fixed the problem that the task status was lost after closing Files when there was an upload task
 
 ## [0.3.0] - 2022-04-08
 

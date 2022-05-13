@@ -225,10 +225,10 @@ func DirPath(c *gin.Context) {
 	path := c.DefaultQuery("path", "")
 	info := service.MyService.ZiMa().GetDirPath(path)
 	if path == "/DATA/AppData" {
-		list := service.MyService.App().GetAllDBApps()
+		list := service.MyService.Docker().DockerContainerList()
 		apps := make(map[string]string, len(list))
 		for _, v := range list {
-			apps[v.CustomId] = v.Label
+			apps[strings.ReplaceAll(v.Names[0], "/", "")] = strings.ReplaceAll(v.Names[0], "/", "")
 		}
 		for i := 0; i < len(info); i++ {
 			if v, ok := apps[info[i].Name]; ok {

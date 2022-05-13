@@ -19,11 +19,11 @@ RunMode = release
 ServerApi = https://api.casaos.io
 Handshake = socket.casaos.io
 Token = 
-USBAutoMount = true
+USBAutoMount =
 
 [user]
-UserName = admin
-PWD = zimaboard
+UserName = 
+PWD = 
 Email = user@gmail.com
 Description = description
 Initialized = false
@@ -31,17 +31,11 @@ Avatar =
 NickName = 
 PublicKey =
 
-[redis]
-Host = 127.0.0.1:6379
-Password =
-MaxIdle = 30
-MaxActive = 30
-IdleTimeout = 200
-
 [system]
 ConfigStr = 
 WidgetList =
 Analyse =
+
 
 [file]
 ShareDir =

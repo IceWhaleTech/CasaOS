@@ -118,7 +118,8 @@ func InitRouter() *gin.Engine {
 			v1AppGroup.GET("/category", v1.CategoryList)
 			//容器相关
 			v1AppGroup.GET("/terminal/:id", v1.DockerTerminal)
-			v1AppGroup.PUT("/index/:id", v1.PutAppIndex)
+			v1AppGroup.GET("/order", v1.GetAppOrder)
+			v1AppGroup.POST("/order", v1.PostAppOrder)
 			//app容器详情
 			v1AppGroup.GET("/info/:id", v1.ContainerInfo)
 			//app容器日志
@@ -146,11 +147,10 @@ func InitRouter() *gin.Engine {
 		v1SysGroup := v1Group.Group("/sys")
 		v1SysGroup.Use()
 		{
-			//获取检查版本是否需要升级
 			v1SysGroup.GET("/check", v1.CheckVersion)
+			v1SysGroup.GET("/hardware/info", v1.GetSystemHardwareInfo)
 			v1SysGroup.GET("/client/version", v1.GetClientVersion)
 			v1SysGroup.POST("/update", v1.SystemUpdate)
-			v1SysGroup.GET("/sys", v1.Sys)
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
 			v1SysGroup.GET("/config", v1.GetSystemConfig)
 			v1SysGroup.GET("/error/logs", v1.GetCasaOSErrorLogs)
@@ -162,13 +162,12 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.POST("/kill", v1.PostKillCasaOS)
 			v1SysGroup.GET("/info", v1.Info)
 			v1SysGroup.PUT("/usb/off", v1.PutSystemOffUSBAutoMount)
-			v1SysGroup.GET("/usb/on", v1.PutSystemOnUSBAutoMount)
+			v1SysGroup.PUT("/usb/on", v1.PutSystemOnUSBAutoMount)
 			v1SysGroup.GET("/usb", v1.GetSystemUSBAutoMount)
 		}
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()
 		{
-			//修改文件名称/目录名称
 			v1FileGroup.PUT("/rename", v1.RenamePath)
 			v1FileGroup.GET("/read", v1.GetFilerContent)
 			v1FileGroup.POST("/upload", v1.PostFileUpload)
@@ -246,6 +245,7 @@ func InitRouter() *gin.Engine {
 		v1PersonGroup := v1Group.Group("/person")
 		v1PersonGroup.Use()
 		{
+			v1PersonGroup.GET("/detection", v1.GetPersonDetection)
 			v1PersonGroup.GET("/users", v1.GetPersonFriend)
 			v1PersonGroup.POST("/user/:shareids", v1.PostAddPersonFriend)
 			v1PersonGroup.DELETE("/user/:shareid", v1.DeletePersonFriend)

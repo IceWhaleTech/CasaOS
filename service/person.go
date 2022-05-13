@@ -15,6 +15,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/quic_helper"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
@@ -27,6 +28,7 @@ import (
 
 type PersonService interface {
 	GetPersionInfo(token string) (m model.PersionModel, err error)
+	GetPersionNetWorkTypeDetection() string
 }
 
 type personService struct {
@@ -55,6 +57,16 @@ func (p *personService) GetPersionInfo(token string) (m model.PersionModel, err 
 	infoS := httper2.Get(config.ServerInfo.Handshake+"/v1/ips/"+token, nil)
 	err = json.Unmarshal([]byte(infoS), &m)
 	return
+}
+func (p *personService) GetPersionNetWorkTypeDetection() string {
+	data := make(chan string)
+	list := []string{"stun.l.google.com", "stun1.l.google.com", "stun2.l.google.com", "stun.sipgate.net"}
+	for _, v := range list {
+		go utils.GetNetWorkTypeDetection(data, v)
+	}
+	result := <-data
+	close(data)
+	return result
 }
 
 func NewPersonService(db *gorm.DB) PersonService {

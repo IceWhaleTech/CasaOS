@@ -27,6 +27,7 @@ func Get(url string, head map[string]string) (response string) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
+		fmt.Println(err)
 		//需要错误日志的处理
 		//loger.Error(error)
 		return ""

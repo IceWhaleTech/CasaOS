@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/gob"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -15,8 +14,7 @@ import (
 	"strings"
 	"time"
 
-	path2 "path"
-
+	natType "github.com/Curtis-Milo/nat-type-identifier-go"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -282,9 +280,6 @@ func GetPersonImageThumbnail(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
 		return
 	}
-	filesuffix := strings.Split(path2.Ext(path), ".")[1]
-
-	fmt.Println("data:image/" + filesuffix + ";base64," + img.Data.(string))
 
 	imageBuffer, _ := base64.StdEncoding.DecodeString(img.Data.(string))
 	c.Writer.WriteString(string(imageBuffer))
@@ -304,13 +299,37 @@ func GetPersonFriend(c *gin.Context) {
 	for i := 0; i < len(list); i++ {
 		if v, ok := service.UDPAddressMap[list[i].Token]; ok && len(v) > 0 {
 			list[i].OnLine = true
-			list[i].Avatar = v
 			if ip_helper.HasLocalIP(net.ParseIP(strings.Split(v, ":")[0])) {
 				list[i].LocalIP = strings.Split(v, ":")[0]
 			}
 		}
 	}
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+}
+
+// @Summary network type detection
+// @Produce application/json
+// @Accept application/json
+// @Tags person
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /person/detection [get]
+func GetPersonDetection(c *gin.Context) {
+	// - Blocked
+	// - Open Internet
+	// - Full Cone
+	// - Symmetric UDP Firewall
+	// - Restric NAT
+	// - Restric Port NAT
+	// - Symmetric NAT
+
+	result, err := natType.GetDeterminedNatType(true, 5, "stun.l.google.com")
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		return
+	}
+	//result := service.MyService.Person().GetPersionNetWorkTypeDetection()
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: result})
 }
 
 // @Summary add friend
@@ -571,7 +590,7 @@ func DeletePersonFriend(c *gin.Context) {
 // @Tags person
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /person/public [delete]
+// @Router /person/public [get]
 func GetPersonPublic(c *gin.Context) {
 	list := service.MyService.Casa().GetPersonPublic()
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})

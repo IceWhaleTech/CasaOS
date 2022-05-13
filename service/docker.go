@@ -135,10 +135,7 @@ func DockerPull() {
 	cli, _ := client2.NewClientWithOpts(client2.FromEnv)
 	defer cli.Close()
 
-	authConfig := types.AuthConfig{
-		Username: "cn-north-4@M4OW0IULZ3U6PCQPBUZC",
-		Password: "7390181a1565f90927bbd98038436b57d6ebc66a3828d7a11dfda42b9c19d91d",
-	}
+	authConfig := types.AuthConfig{}
 	encodedJSON, err := json2.Marshal(authConfig)
 	fmt.Println(err)
 
@@ -531,6 +528,9 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 	config.Labels["web"] = m.PortMap
 	config.Labels["icon"] = m.Icon
 	config.Labels["desc"] = m.Description
+	config.Labels["index"] = m.Index
+	config.Labels["custom_id"] = m.CustomId
+	//config.Labels["order"] = strconv.Itoa(MyService.App().GetCasaOSCount() + 1)
 	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(net), Privileged: m.Privileged, CapAdd: m.CapAdd}
 	//if net != "host" {
 	config.ExposedPorts = ports

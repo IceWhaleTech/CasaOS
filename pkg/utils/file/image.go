@@ -42,7 +42,9 @@ func GetThumbnailByOwnerPhotos(path string) ([]byte, error) {
 			break
 		}
 	}
-
+	if err != nil {
+		return nil, err
+	}
 	im, err := exifcommon.NewIfdMappingWithStandard()
 	if err != nil {
 		return nil, err
@@ -54,8 +56,8 @@ func GetThumbnailByOwnerPhotos(path string) ([]byte, error) {
 	}
 
 	ifd := index.RootIfd.NextIfd()
-	if err != nil {
-		return nil, err
+	if ifd == nil {
+		return nil, exif.ErrNoThumbnail
 	}
 	thumbnail, err := ifd.Thumbnail()
 	if err != nil {

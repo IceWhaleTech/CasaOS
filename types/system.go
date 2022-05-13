@@ -1,5 +1,15 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-02-17 18:53:22
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-05-13 18:08:25
+ * @FilePath: /CasaOS/types/system.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package types
 
-const CURRENTVERSION = "0.3.0"
+const CURRENTVERSION = "0.3.1"
 
-const BODY = "<li>Add CasaConnect function, now you can share private files peer-to-peer with your friends.</li><li>Add a widget for network traffic monitoring</li><li>Updated the initial directory of Files to the Root directory</li><li>Fix the application ipv6 opening problem</li>"
+const BODY = ""

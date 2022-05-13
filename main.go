@@ -49,8 +49,8 @@ func init() {
 	route.InitFunction()
 
 	go service.SendIPToServer()
-	go service.LoopFriend()
-	go service.MyService.App().CheckNewImage()
+	// go service.LoopFriend()
+	// go service.MyService.App().CheckNewImage()
 
 }
 
