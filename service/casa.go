@@ -10,6 +10,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/tidwall/gjson"
 )
 
@@ -154,6 +155,7 @@ func (o *casaService) PushAppAnalyse(uuid, t string, name, language string) {
 	m.Type = t
 	m.Name = name
 	m.Language = language
+	m.Version = types.CURRENTVERSION
 	b, _ := json.Marshal(m)
 
 	head := make(map[string]string)

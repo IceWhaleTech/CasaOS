@@ -1,7 +1,7 @@
 package model
 
 type FriendModel struct {
-	State     int    `json:"state"` //Reserved
+	State     int    `json:"state"`
 	CreatedAt int64  `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt int64  `gorm:"autoCreateTime;autoUpdateTime" json:"updated_at"`
 	NickName  string `json:"nick_name"`
@@ -12,6 +12,8 @@ type FriendModel struct {
 	Profile   string `json:"profile"` //Description
 	OnLine    bool   `json:"on_line" gorm:"-"`
 	Version   int    `json:"version"`
+	Write     bool   `json:"write"`
+	LocalIP   string `json:"local_ip"`
 }
 
 func (p *FriendModel) TableName() string {

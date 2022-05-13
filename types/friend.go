@@ -1,0 +1,7 @@
+package types
+
+const (
+	FRIENDSTATEDEFAULT = iota
+	FRIENDSTATEWAIT
+	FRIENDSTATEREQUEST
+)

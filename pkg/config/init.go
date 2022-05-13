@@ -22,8 +22,7 @@ var UserInfo = &model.UserModel{}
 //用户相关
 var AppInfo = &model.APPModel{}
 
-//redis相关配置
-var RedisInfo = &model.RedisModel{}
+//var RedisInfo = &model.RedisModel{}
 
 //server相关
 var ServerInfo = &model.ServerModel{}
@@ -53,7 +52,7 @@ func InitSetup(config string) {
 
 	mapTo("user", UserInfo)
 	mapTo("app", AppInfo)
-	mapTo("redis", RedisInfo)
+	//mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)
 	mapTo("file", FileSettingInfo)

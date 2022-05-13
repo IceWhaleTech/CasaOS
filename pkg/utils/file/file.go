@@ -283,7 +283,6 @@ func CopyDir(src string, dst string) error {
 	return nil
 }
 
-//文件写入临时目录
 func WriteToPath(data []byte, path, name string) error {
 	fullPath := path
 	if strings.HasSuffix(path, "/") {

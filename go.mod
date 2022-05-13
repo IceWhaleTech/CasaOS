@@ -3,16 +3,19 @@ module github.com/IceWhaleTech/CasaOS
 go 1.16
 
 require (
+	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/Microsoft/hcsshim v0.8.22 // indirect
-	github.com/PuerkitoBio/goquery v1.7.0
 	github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46 // indirect
 	github.com/bits-and-blooms/bitset v1.2.1 // indirect
 	github.com/containerd/containerd v1.5.7
 	github.com/containerd/continuity v0.2.0 // indirect
+	github.com/disintegration/imaging v1.6.2
 	github.com/docker/distribution v2.8.0+incompatible // indirect
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/go-connections v0.4.0
+	github.com/dsoprea/go-exif/v3 v3.0.0-20210625224831-a6301f85c82b
+	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/forease/gotld v0.0.0-20190808124948-c50ff635576b
 	github.com/gin-contrib/gzip v0.0.2
 	github.com/gin-gonic/gin v1.7.2

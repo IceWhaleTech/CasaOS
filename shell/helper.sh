@@ -32,7 +32,7 @@ GetNetCard() {
 
 
 GetTimeZone(){
-  timedatectl | grep "Time zone" | awk '{print $3}'
+  timedatectl | grep "Time zone" | awk '{printf $3}'
 }
 
 #查看网卡状态
@@ -341,4 +341,8 @@ USB_Remove_File() {
   ((EUID)) && sudo_cmd="sudo"
   $sudo_cmd rm -fr /etc/udev/rules.d/11-usb-mount.rules
   $sudo_cmd rm -fr /etc/systemd/system/usb-mount@.service
+}
+
+GetDeviceTree(){  
+  cat /proc/device-tree/model
 }

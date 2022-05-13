@@ -104,6 +104,7 @@ func (p *PathArray) Scan(input interface{}) error {
 //}
 
 type CustomizationPostData struct {
+	CustomId     string    `json:"custom_id"`
 	Origin       string    `json:"origin"`
 	NetworkModel string    `json:"network_model"`
 	Index        string    `json:"index"`

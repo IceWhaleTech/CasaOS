@@ -23,7 +23,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary 系统信息
+// @Summary check version
 // @Produce  application/json
 // @Accept application/json
 // @Tags sys
@@ -48,6 +48,32 @@ func CheckVersion(c *gin.Context) {
 	data["current_version"] = types.CURRENTVERSION
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
 	return
+}
+
+// @Summary check client version
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/client/version [get]
+func GetClientVersion(c *gin.Context) {
+	need, version := version.IsClientNeedUpdate()
+	if need {
+		installLog := model2.AppNotify{}
+		installLog.State = 0
+		installLog.Message = "New version " + version.Version + " is ready, ready to upgrade"
+		installLog.Type = types.NOTIFY_TYPE_NEED_CONFIRM
+		installLog.CreatedAt = strconv.FormatInt(time.Now().Unix(), 10)
+		installLog.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
+		installLog.Name = "CasaOS System"
+		service.MyService.Notify().AddLog(installLog)
+	}
+	data := make(map[string]interface{}, 1)
+	data["is_need"] = need
+	data["version"] = version
+	data["current_version"] = types.CURRENTVERSION
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
 }
 
 // @Summary 系统信息
@@ -115,7 +141,7 @@ func GetSystemConfigDebug(c *gin.Context) {
 	systemAppStatus += "Sync img: " + strconv.FormatBool(images) + "\n\t"
 
 	list := service.MyService.App().GetSystemAppList()
-	for _, v := range *list {
+	for _, v := range list {
 		systemAppStatus += v.Image + ",\n\t"
 	}
 
@@ -136,9 +162,6 @@ func GetSystemConfigDebug(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: bugContent})
 }
-func Sys(c *gin.Context) {
-	service.DockerPull()
-}
 
 //widget配置
 func GetWidgetConfig(c *gin.Context) {
@@ -155,9 +178,7 @@ func GetWidgetConfig(c *gin.Context) {
 func PostSetWidgetConfig(c *gin.Context) {
 	buf := make([]byte, 1024)
 	n, _ := c.Request.Body.Read(buf)
-	fmt.Println("错误", strconv.Itoa(n))
 	service.MyService.System().UpSystemConfig("", string(buf[0:n]))
-	fmt.Println("错误1", string(buf[0:n]))
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: oasis_err.SUCCESS,
@@ -257,7 +278,7 @@ func PostKillCasaOS(c *gin.Context) {
 // @Tags sys
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /sys/usg/off [put]
+// @Router /sys/usb/off [put]
 func PutSystemOffUSBAutoMount(c *gin.Context) {
 	service.MyService.System().UpdateUSBAutoMount("False")
 	service.MyService.System().ExecUSBAutoMountShell("False")
@@ -280,11 +301,31 @@ func GetSystemUSBAutoMount(c *gin.Context) {
 	if config.ServerInfo.USBAutoMount == "False" {
 		state = "False"
 	}
+
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: oasis_err.SUCCESS,
 			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
 			Data:    state,
+		})
+}
+
+// @Summary get system hardware info
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/hardware/info [get]
+func GetSystemHardwareInfo(c *gin.Context) {
+
+	data := make(map[string]string, 1)
+	data["drive_model"] = service.MyService.ZiMa().GetDeviceTree()
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Data:    data,
 		})
 }
 

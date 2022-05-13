@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"runtime"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
@@ -13,6 +12,8 @@ import (
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/IceWhaleTech/CasaOS/types"
 
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
@@ -21,7 +22,7 @@ import (
 var sqliteDB *gorm.DB
 
 var configFlag = flag.String("c", "", "config address")
-
+var dbFlag = flag.String("db", "", "db path")
 var showUserInfo = flag.Bool("show-user-info", false, "show user info")
 
 func init() {
@@ -29,25 +30,10 @@ func init() {
 	config.InitSetup(*configFlag)
 	config.UpdateSetup()
 	loger2.LogSetup()
-	sysType := runtime.GOOS
-	if sysType == "windows" {
-		config.AppInfo.ProjectPath = "C:\\CasaOS\\service"
-		config.Cfg.Section("app").Key("ProjectPath").SetValue("C:\\CasaOS\\service")
-
-		config.AppInfo.RootPath = "C:\\CasaOS"
-		config.Cfg.Section("app").Key("RootPath").SetValue("C:\\CasaOS")
-		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	if len(*dbFlag) == 0 {
+		*dbFlag = config.AppInfo.ProjectPath + "/db"
 	}
-	if sysType == "darwin" {
-		config.AppInfo.ProjectPath = "./CasaOS/service"
-		config.Cfg.Section("app").Key("ProjectPath").SetValue("./CasaOS/service")
-
-		config.AppInfo.RootPath = "./CasaOS"
-		config.Cfg.Section("app").Key("RootPath").SetValue("./CasaOS")
-		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-	}
-
-	sqliteDB = sqlite.GetDb(config.AppInfo.ProjectPath)
+	sqliteDB = sqlite.GetDb(*dbFlag)
 	//gredis.GetRedisConn(config.RedisInfo),
 	service.MyService = service.NewService(sqliteDB, loger2.NewOLoger())
 	service.Cache = cache.Init()
@@ -58,10 +44,13 @@ func init() {
 	service.UDPAddressMap = make(map[string]string)
 	//go service.SocketConnect()
 	service.CancelList = make(map[string]string)
+	service.InternalInspection = make(map[string][]string)
+	service.NewVersionApp = make(map[string]string)
 	route.InitFunction()
 
 	go service.SendIPToServer()
-	go service.LoopFriend()
+	// go service.LoopFriend()
+	// go service.MyService.App().CheckNewImage()
 
 }
 
@@ -97,20 +86,22 @@ func main() {
 		service.SendIPToServer()
 
 		service.LoopFriend()
+		service.MyService.App().CheckNewImage()
+	})
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = cron2.AddFunc("0/1 * * * * *", func() {
+		notify := model2.AppNotify{}
+		notify.CustomId = ""
+		notify.Type = types.NOTIFY_TYPE_HEALTH_CHECK
+
+		go service.MyService.Notify().SendText(notify)
 
 	})
 	if err != nil {
 		fmt.Println(err)
 	}
-	// err = cron2.AddFunc("0/1 * * * * *", func() {
-
-	// 	//service.SendIPToServer()
-	// 	//service.LoopNet()
-
-	// })
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
 	cron2.Start()
 	defer cron2.Stop()
 	s := &http.Server{

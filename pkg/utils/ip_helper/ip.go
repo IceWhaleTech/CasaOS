@@ -1,9 +1,10 @@
 package ip_helper
 
 import (
-	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"net"
 	"strings"
+
+	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 )
 
 func IsIPv4(address string) bool {
@@ -38,4 +39,36 @@ func GetLoclIp() string {
 		}
 	}
 	return "127.0.0.1"
+}
+func GetDeviceAllIP(port string) []string {
+	var address []string
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return address
+	}
+	for _, a := range addrs {
+		if ipNet, ok := a.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+			if ipNet.IP.To16() != nil {
+				address = append(address, ipNet.IP.String()+":"+port)
+			}
+		}
+	}
+	return address
+}
+
+func HasLocalIP(ip net.IP) bool {
+	if ip.IsLoopback() {
+		return true
+	}
+	ip.String()
+
+	ip4 := ip.To4()
+	if ip4 == nil {
+		return false
+	}
+
+	return ip4[0] == 10 || // 10.0.0.0/8
+		(ip4[0] == 172 && ip4[1] >= 16 && ip4[1] <= 31) || // 172.16.0.0/12
+		(ip4[0] == 169 && ip4[1] == 254) || // 169.254.0.0/16
+		(ip4[0] == 192 && ip4[1] == 168) // 192.168.0.0/16
 }

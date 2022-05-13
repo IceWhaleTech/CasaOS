@@ -13,10 +13,11 @@ const (
 	PWD_INVALID_OLD = 10003
 	ACCOUNT_LOCK    = 10004
 	//system
-	DIR_ALREADY_EXISTS  = 20001
-	FILE_ALREADY_EXISTS = 20002
-	FILE_OR_DIR_EXISTS  = 20003
-	PORT_IS_OCCUPIED    = 20004
+	DIR_ALREADY_EXISTS              = 20001
+	FILE_ALREADY_EXISTS             = 20002
+	FILE_OR_DIR_EXISTS              = 20003
+	PORT_IS_OCCUPIED                = 20004
+	COMMAND_ERROR_INVALID_OPERATION = 20005
 
 	//zerotier
 	GET_TOKEN_ERROR = 30001
@@ -29,9 +30,10 @@ const (
 	FORMAT_ERROR             = 40005
 
 	//app
-	UNINSTALL_APP_ERROR = 50001
-	PULL_IMAGE_ERROR    = 50002
-	DEVICE_NOT_EXIST    = 50003
+	UNINSTALL_APP_ERROR  = 50001
+	PULL_IMAGE_ERROR     = 50002
+	DEVICE_NOT_EXIST     = 50003
+	ERROR_APP_NAME_EXIST = 50004
 
 	//file
 	FILE_DOES_NOT_EXIST = 60001
@@ -73,9 +75,10 @@ var MsgFlags = map[int]string{
 	GET_TOKEN_ERROR: "Get token error,Please log in to zerotier's official website to confirm whether the account is available",
 
 	//app
-	UNINSTALL_APP_ERROR: "Error uninstalling app",
-	PULL_IMAGE_ERROR:    "Error pulling image",
-	DEVICE_NOT_EXIST:    "Device does not exist",
+	UNINSTALL_APP_ERROR:  "Error uninstalling app",
+	PULL_IMAGE_ERROR:     "Error pulling image",
+	DEVICE_NOT_EXIST:     "Device does not exist",
+	ERROR_APP_NAME_EXIST: "App name already exists",
 
 	//disk
 	NAME_NOT_AVAILABLE:       "Name not available",
@@ -93,12 +96,13 @@ var MsgFlags = map[int]string{
 	FILE_DELETE_ERROR:   "Delete error",
 	SHORTCUTS_URL_ERROR: "URL error",
 
-	PERSON_REMOTE_ERROR:   "Remote connection error",
-	PERSON_DOWN_NOT_EXIST: "Download record does not exist",
-	PERSON_EXIST_DOWNLOAD: "The same download task exists",
-	PERSON_EXIST_FRIEND:   "Friend already exist",
-	PERSON_NOT_EXIST_USER: "User does not exist",
-	PERSON_MYSELF:         "You can not add yourself",
+	PERSON_REMOTE_ERROR:             "Remote connection error",
+	PERSON_DOWN_NOT_EXIST:           "Download record does not exist",
+	PERSON_EXIST_DOWNLOAD:           "The same download task exists",
+	PERSON_EXIST_FRIEND:             "Friend already exist",
+	PERSON_NOT_EXIST_USER:           "User does not exist",
+	PERSON_MYSELF:                   "You can not add yourself",
+	COMMAND_ERROR_INVALID_OPERATION: "invalid operation",
 }
 
 //获取错误信息

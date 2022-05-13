@@ -10,4 +10,5 @@ type Path struct {
 	Size  int64     `json:"size"` //File Size
 	Type  string    `json:"type,omitempty"`
 	Label string    `json:"label,omitempty"`
+	Write bool      `json:"write"`
 }

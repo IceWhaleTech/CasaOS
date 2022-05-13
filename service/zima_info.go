@@ -39,6 +39,7 @@ type ZiMaService interface {
 	CreateFile(path string) (int, error)
 	RenameFile(oldF, newF string) (int, error)
 	GetCpuInfo() []cpu.InfoStat
+	GetDeviceTree() string
 }
 
 var NetArray [][]model.IOCountersStat
@@ -86,6 +87,16 @@ func (c *zima) GetDiskInfo() *disk.UsageStat {
 
 //获取硬盘目录
 func (c *zima) GetDirPath(path string) []model.Path {
+	if path == "/DATA" {
+		sysType := runtime.GOOS
+		if sysType == "windows" {
+			path = "C:\\CasaOS\\DATA"
+		}
+		if sysType == "darwin" {
+			path = "./CasaOS/DATA"
+		}
+
+	}
 
 	ls, _ := ioutil.ReadDir(path)
 	dirs := []model.Path{}
@@ -137,6 +148,10 @@ func (c *zima) GetNet(physics bool) []string {
 		t = "2"
 	}
 	return command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetNetCard " + t)
+}
+
+func (c *zima) GetDeviceTree() string {
+	return command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetDeviceTree")
 }
 
 //shell脚本参数 { 网卡名称 }

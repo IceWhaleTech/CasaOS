@@ -1,11 +1,8 @@
 package model
 
-import (
-	"github.com/IceWhaleTech/CasaOS/model"
-)
-
 const CONTAINERTABLENAME = "o_container"
 
+//Soon to be removed
 type AppListDBModel struct {
 	CustomId string `gorm:"column:custom_id;primary_key" json:"custom_id"`
 	Title    string `json:"title"`
@@ -52,15 +49,19 @@ func (p *AppListDBModel) TableName() string {
 }
 
 type MyAppList struct {
-	Name     string           `json:"name"`
-	Icon     string           `json:"icon"`
-	State    string           `json:"state"`
-	CustomId string           `gorm:"column:custom_id;primary_key" json:"custom_id"`
-	Index    string           `json:"index"`
-	Port     string           `json:"port"`
-	UpTime   string           `json:"up_time"`
-	Slogan   string           `json:"slogan"`
-	Rely     model.MapStrings `json:"rely"` //[{"mysql":"id"},{"mysql":"id"}]
-	Image    string           `json:"image"`
-	Volumes  string           `json:"volumes"`
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	Icon     string `json:"icon"`
+	State    string `json:"state"`
+	CustomId string `gorm:"column:custom_id;primary_key" json:"custom_id"`
+	Index    string `json:"index"`
+	//Order    string `json:"order"`
+	Port   string `json:"port"`
+	UpTime string `json:"up_time"`
+	Slogan string `json:"slogan"`
+	Type   string `json:"type"`
+	//Rely       model.MapStrings `json:"rely"` //[{"mysql":"id"},{"mysql":"id"}]
+	Image      string `json:"image"`
+	Volumes    string `json:"volumes"`
+	NewVersion bool   `json:"new_version"`
 }

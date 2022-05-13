@@ -1,17 +1,16 @@
 package route
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/model/system_app"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -27,6 +26,9 @@ func InitFunction() {
 	CheckSerialDiskMount()
 
 	CheckToken2_11()
+	ImportApplications()
+	ChangeAPIUrl()
+	InitSystemApplication()
 
 }
 
@@ -102,8 +104,9 @@ func installSyncthing(appId string) {
 	m.Ports = appInfo.Ports
 	m.Restart = "always"
 	m.Volumes = appInfo.Volumes
-
-	containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, id, m, appInfo.NetworkModel)
+	m.Label = id
+	m.CustomId = id
+	containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m, appInfo.NetworkModel)
 	if err != nil {
 		fmt.Println("container create error", err)
 		// create container error
@@ -111,46 +114,11 @@ func installSyncthing(appId string) {
 	}
 
 	//step：start container
-	err = service.MyService.Docker().DockerContainerStart(id)
+	err = service.MyService.Docker().DockerContainerStart(containerId)
 	if err != nil {
 		//start container error
 		return
 	}
-
-	portsStr, _ := json.Marshal(appInfo.Ports)
-	envsStr, _ := json.Marshal(appInfo.Envs)
-	volumesStr, _ := json.Marshal(appInfo.Volumes)
-	devicesStr, _ := json.Marshal(appInfo.Devices)
-	//step: 保存数据到数据库
-	md := model2.AppListDBModel{
-		CustomId: id,
-		Title:    appInfo.Title,
-		//ScreenshotLink: appInfo.ScreenshotLink,
-		Slogan:      appInfo.Tagline,
-		Description: appInfo.Description,
-		//Tags:           appInfo.Tags,
-		Icon:        appInfo.Icon,
-		Version:     dockerImageVersion,
-		ContainerId: containerId,
-		Image:       dockerImage,
-		Index:       appInfo.Index,
-		PortMap:     appInfo.PortMap,
-		Label:       appInfo.Title,
-		EnableUPNP:  false,
-		Ports:       string(portsStr),
-		Envs:        string(envsStr),
-		Volumes:     string(volumesStr),
-		Position:    true,
-		NetModel:    appInfo.NetworkModel,
-		Restart:     m.Restart,
-		CpuShares:   50,
-		Memory:      int64(appInfo.MaxMemory),
-		Devices:     string(devicesStr),
-		Origin:      m.Origin,
-		CreatedAt:   strconv.FormatInt(time.Now().Unix(), 10),
-		UpdatedAt:   strconv.FormatInt(time.Now().Unix(), 10),
-	}
-	service.MyService.App().SaveContainer(md)
 
 	checkSystemApp()
 }
@@ -158,36 +126,34 @@ func installSyncthing(appId string) {
 // check if the system application is installed
 func checkSystemApp() {
 	list := service.MyService.App().GetSystemAppList()
-	for _, v := range *list {
-		if v.Image == "linuxserver/syncthing" {
+	for _, v := range list {
+		info, err := service.MyService.Docker().DockerContainerInfo(v.ID)
+		if err != nil {
+			continue
+		}
+		if strings.Contains(info.Config.Image, "linuxserver/syncthing") {
 			if v.State != "running" {
 				//step：start container
-				service.MyService.Docker().DockerContainerStart(v.CustomId)
+				service.MyService.Docker().DockerContainerStart(v.ID)
 			}
 			syncIsExistence = true
-			if config.SystemConfigInfo.SyncPort != v.Port {
-				config.SystemConfigInfo.SyncPort = v.Port
+			if config.SystemConfigInfo.SyncPort != v.Labels["web"] {
+				config.SystemConfigInfo.SyncPort = v.Labels["web"]
 			}
-			var paths []model.PathMap
-			json.Unmarshal([]byte(v.Volumes), &paths)
+
 			path := ""
-			for _, i := range paths {
-				if i.ContainerPath == "/config" {
-					path = docker.GetDir(v.CustomId, i.Path) + "/config.xml"
-					for i := 0; i < 10; i++ {
-						if file.CheckNotExist(path) {
-							time.Sleep(1 * time.Second)
-						} else {
-							break
-						}
-					}
+			for _, i := range info.HostConfig.Mounts {
+				if i.Target == "/config" {
+					path = i.Source
+
 					break
 				}
 			}
-			content := file.ReadFullFile(path)
+			content := file.ReadFullFile(path + "config.xml")
 			syncConfig := &system_app.SyncConfig{}
 			xml.Unmarshal(content, &syncConfig)
 			config.SystemConfigInfo.SyncKey = syncConfig.Key
+			break
 		}
 	}
 	if !syncIsExistence {
@@ -261,7 +227,7 @@ func CheckToken2_11() {
 			downloadPath = "C:\\CasaOS\\DATA\\Downloads"
 		}
 		if sysType == "darwin" {
-			downloadPath = "~/CasaOS/DATA/Downloads"
+			downloadPath = "./CasaOS/DATA/Downloads"
 		}
 		config.Cfg.Section("file").Key("DownloadDir").SetValue(downloadPath)
 		config.FileSettingInfo.DownloadDir = downloadPath
@@ -280,7 +246,10 @@ func CheckToken2_11() {
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
 
-	service.MyService.System().ExecUSBAutoMountShell(config.ServerInfo.USBAutoMount)
+	if service.MyService.ZiMa().GetSysInfo().KernelArch == "aarch64" && config.ServerInfo.USBAutoMount != "True" && strings.Contains(service.MyService.ZiMa().GetDeviceTree(), "Raspberry Pi") {
+		service.MyService.System().UpdateUSBAutoMount("False")
+		service.MyService.System().ExecUSBAutoMountShell("False")
+	}
 
 	// str := []string{}
 	// str = append(str, "ddd")
@@ -290,4 +259,40 @@ func CheckToken2_11() {
 
 	// config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 
+}
+
+func ImportApplications() {
+	service.MyService.App().ImportApplications(true)
+}
+
+// 0.3.1
+func ChangeAPIUrl() {
+
+	newAPIUrl := "https://api.casaos.io/casaos-api"
+	if config.ServerInfo.ServerApi == "https://api.casaos.zimaboard.com" {
+		config.ServerInfo.ServerApi = newAPIUrl
+		config.Cfg.Section("server").Key("ServerApi").SetValue(newAPIUrl)
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	}
+
+}
+
+// 0.3.1
+func InitSystemApplication() {
+	list := service.MyService.App().GetApplicationList()
+	if len(list) != 2 {
+		application := model2.ApplicationModel{}
+		application.Name = "Files"
+		application.Icon = "/ui/img/Files.svg"
+		application.Type = "system"
+		application.Order = 0
+		service.MyService.App().CreateApplication(application)
+
+		application.Name = "CasaConnect"
+		application.Icon = "/ui/img/CasaConnect.svg"
+		application.Type = "system"
+		application.Order = 0
+
+		service.MyService.App().CreateApplication(application)
+	}
 }

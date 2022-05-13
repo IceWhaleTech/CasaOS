@@ -7,6 +7,7 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 )
 
@@ -20,6 +21,8 @@ type SystemService interface {
 	GetTimeZone() string
 	UpdateUSBAutoMount(state string)
 	ExecUSBAutoMountShell(state string)
+	UpAppOrderFile(str string)
+	GetAppOrderFile() []byte
 }
 type systemService struct {
 	log loger.OLog
@@ -62,9 +65,15 @@ func (s *systemService) UpSystemConfig(str string, widget string) {
 	}
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
+func (s *systemService) UpAppOrderFile(str string) {
+	file.WriteToPath([]byte(str), config.AppInfo.ProjectPath+"/conf", "app_order.json")
+}
+func (s *systemService) GetAppOrderFile() []byte {
+	return file.ReadFullFile(config.AppInfo.ProjectPath + "/conf/app_order.json")
+}
 func (s *systemService) UpdateUSBAutoMount(state string) {
 	config.ServerInfo.USBAutoMount = state
-	config.Cfg.Section("system").Key("USBAutoMount").SetValue(state)
+	config.Cfg.Section("server").Key("USBAutoMount").SetValue(state)
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
 func (s *systemService) UpSystemPort(port string) {
