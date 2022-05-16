@@ -246,14 +246,3 @@ func ShareAppFile(c *gin.Context) {
 	content := service.MyService.Casa().ShareAppFile(str)
 	c.JSON(http.StatusOK, json.RawMessage(content))
 }
-
-// @Summary Resource Usage
-// @Produce  application/json
-// @Accept application/json
-// @Tags app
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /app/shares [post]
-func AppListResourceUsage() {
-
-}
