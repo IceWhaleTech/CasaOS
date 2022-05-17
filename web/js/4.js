@@ -41,7 +41,7 @@ eval("/* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {/* globals 
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-eval("module.exports = __webpack_require__.p + \"img/default-avatar.d92cd43a.svg\";\n\n//# sourceURL=webpack:///./src/assets/img/account/default-avatar.svg?");
+eval("module.exports = __webpack_require__.p + \"img/default-avatar.ab3b9bda.svg\";\n\n//# sourceURL=webpack:///./src/assets/img/account/default-avatar.svg?");
 
 /***/ })
 
