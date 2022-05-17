@@ -1268,10 +1268,10 @@ func ContainerUpdateInfo(c *gin.Context) {
 	var vol model.PathArray
 	// json2.Unmarshal([]byte(appInfo.Volumes), &vol)
 
-	for i := 0; i < len(info.HostConfig.Mounts); i++ {
+	for i := 0; i < len(info.Mounts); i++ {
 		temp := model.PathMap{
-			Path:          strings.ReplaceAll(info.HostConfig.Mounts[i].Source, "$AppID", info.Name),
-			ContainerPath: info.HostConfig.Mounts[i].Target,
+			Path:          strings.ReplaceAll(info.Mounts[i].Source, "$AppID", info.Name),
+			ContainerPath: info.Mounts[i].Destination,
 		}
 		vol = append(vol, temp)
 	}
