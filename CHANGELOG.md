@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.3.1.1] - 2022-05-17
+
+### Fixed
+
+- Fix the data loss problem when importing local applications
+
 ## [0.3.1] - 2022-05-16
 
 ### Added
