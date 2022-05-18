@@ -43,7 +43,7 @@ jobs:
               --instance-snapshot-name ${{ env.OLD_INSTANCE_SNAPSHOT_NAME }} \
               --instance-names ${{ env.NEW_INSTANCE_NAME }} \
               --availability-zone us-west-2a \
-              --bundle-id large_2_0
+              --bundle-id medium_2_0
               
       - name: Wait for new instance running
         run: |
