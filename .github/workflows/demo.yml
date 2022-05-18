@@ -33,7 +33,7 @@ jobs:
           
       - name: Get old instance and snapshot name, create new instance name
         run: | 
-          echo "OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "CasaOS-Demo-Snapshot-1649411967' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')" >> $GITHUB_ENV
+          echo "OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "CasaOS-Demo-Snapshot-1652856810' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')" >> $GITHUB_ENV
           echo "OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')" >> $GITHUB_ENV
           echo "NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)" >> $GITHUB_ENV
           
