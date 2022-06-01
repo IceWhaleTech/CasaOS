@@ -127,4 +127,6 @@ type CustomizationPostData struct {
 	Privileged  bool     `json:"privileged"`
 	CapAdd      []string `json:"cap_add"`
 	Cmd         []string `json:"cmd"`
+	Protocol    string   `json:"protocol"`
+	Host        string   `json:"host"`
 }

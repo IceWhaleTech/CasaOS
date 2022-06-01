@@ -31,7 +31,6 @@ func InitRouter() *gin.Engine {
 	if swagHandler != nil {
 		r.GET("/swagger/*any", swagHandler)
 	}
-
 	r.POST("/v1/user/login", v1.Login)
 
 	r.GET("/v1/guide/check", v1.GetGuideCheck)
@@ -43,6 +42,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/v1/user/info", v1.GetUserInfo)
 	//get user info
 	r.GET("/v1/person/shareid", v1.GetPersonShareId)
+	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT(swagHandler))
@@ -127,7 +127,7 @@ func InitRouter() *gin.Engine {
 			//暂停或启动容器
 			v1AppGroup.PUT("/state/:id", v1.ChangAppState)
 			//安装app
-			v1AppGroup.POST("/install/:id", v1.InstallApp)
+			v1AppGroup.POST("/install", v1.InstallApp)
 			//卸载app
 			v1AppGroup.DELETE("/uninstall/:id", v1.UnInstallApp)
 			//获取安装进度
@@ -164,6 +164,7 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.PUT("/usb/off", v1.PutSystemOffUSBAutoMount)
 			v1SysGroup.PUT("/usb/on", v1.PutSystemOnUSBAutoMount)
 			v1SysGroup.GET("/usb", v1.GetSystemUSBAutoMount)
+
 		}
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()
@@ -178,7 +179,7 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.POST("/create", v1.PostCreateFile)
 
 			v1FileGroup.GET("/download", v1.GetDownloadFile)
-			v1FileGroup.GET("/new/download", v1.GetFileDownloadNew)
+			v1FileGroup.GET("/download/*path", v1.GetDownloadSingleFile)
 			v1FileGroup.POST("/operate", v1.PostOperateFileOrDir)
 			v1FileGroup.DELETE("/delete", v1.DeleteFile)
 			v1FileGroup.PUT("/update", v1.PutFileContent)
@@ -235,12 +236,12 @@ func InitRouter() *gin.Engine {
 
 		}
 
-		v1NotifyGroup := v1Group.Group("/notify")
-		v1NotifyGroup.Use()
-		{
-			v1NotifyGroup.GET("/ws", v1.NotifyWS)
-			v1NotifyGroup.PUT("/read/:id", v1.PutNotifyRead)
-		}
+		// v1NotifyGroup := v1Group.Group("/notify")
+		// v1NotifyGroup.Use()
+		// {
+		// 	v1NotifyGroup.GET("/ws", v1.NotifyWS)
+		// 	v1NotifyGroup.PUT("/read/:id", v1.PutNotifyRead)
+		// }
 
 		v1PersonGroup := v1Group.Group("/person")
 		v1PersonGroup.Use()

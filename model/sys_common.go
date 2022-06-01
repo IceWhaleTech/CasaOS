@@ -1,3 +1,13 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-05-13 18:15:46
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-05-30 16:43:59
+ * @FilePath: /CasaOS/model/sys_common.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package model
 
 import "time"
@@ -31,6 +41,7 @@ type ServerModel struct {
 	Token        string
 	UDPPort      string
 	USBAutoMount string
+	SocketPort   string
 }
 
 //服务配置

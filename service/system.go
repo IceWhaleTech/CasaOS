@@ -1,14 +1,19 @@
 package service
 
 import (
+	"fmt"
 	"io/ioutil"
-	"net"
+	net2 "net"
 	"os"
+	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v3/net"
 )
 
 type SystemService interface {
@@ -23,9 +28,44 @@ type SystemService interface {
 	ExecUSBAutoMountShell(state string)
 	UpAppOrderFile(str string)
 	GetAppOrderFile() []byte
+	GetNet(physics bool) []string
+	GetNetInfo() []net.IOCountersStat
+	GetCpuCoreNum() int
+	GetCpuPercent() float64
+	GetMemInfo() *mem.VirtualMemoryStat
 }
 type systemService struct {
 	log loger.OLog
+}
+
+func (c *systemService) GetMemInfo() *mem.VirtualMemoryStat {
+	memInfo, _ := mem.VirtualMemory()
+	memInfo.UsedPercent, _ = strconv.ParseFloat(fmt.Sprintf("%.1f", memInfo.UsedPercent), 64)
+	return memInfo
+}
+
+func (c *systemService) GetCpuPercent() float64 {
+	percent, _ := cpu.Percent(0, false)
+	value, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", percent[0]), 64)
+	return value
+}
+
+func (c *systemService) GetCpuCoreNum() int {
+	count, _ := cpu.Counts(false)
+	return count
+}
+
+func (c *systemService) GetNetInfo() []net.IOCountersStat {
+	parts, _ := net.IOCounters(true)
+	//fmt.Println(net.ConntrackStatsWithContext(true))
+	return parts
+}
+func (c *systemService) GetNet(physics bool) []string {
+	t := "1"
+	if physics {
+		t = "2"
+	}
+	return command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetNetCard " + t)
 }
 
 func (s *systemService) UpdateSystemVersion(version string) {
@@ -99,12 +139,12 @@ func (s *systemService) GetCasaOSLogs(lineNumber int) string {
 
 func GetDeviceAllIP() []string {
 	var address []string
-	addrs, err := net.InterfaceAddrs()
+	addrs, err := net2.InterfaceAddrs()
 	if err != nil {
 		return address
 	}
 	for _, a := range addrs {
-		if ipNet, ok := a.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+		if ipNet, ok := a.(*net2.IPNet); ok && !ipNet.IP.IsLoopback() {
 			if ipNet.IP.To16() != nil {
 				address = append(address, ipNet.IP.String())
 			}

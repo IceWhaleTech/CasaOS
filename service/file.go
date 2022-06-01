@@ -1,38 +1,28 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2021-12-20 14:15:46
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-05-30 18:49:46
+ * @FilePath: /CasaOS/service/file.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package service
 
 import (
 	"context"
 	"io"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 )
 
-// type InteruptReader struct {
-// 	r        io.Reader
-// 	interupt chan int
-// }
-
-// func NewInteruptReader(r io.Reader) InteruptReader {
-// 	return InteruptReader{
-// 		r,
-// 		make(chan int),
-// 	}
-// }
-
-// func (r InteruptReader) Read(p []byte) (n int, err error) {
-// 	if r.r == nil {
-// 		return 0, io.EOF
-// 	}
-// 	select {
-// 	case <-r.interupt:
-// 		return r.r.Read(p)
-// 	default:
-// 		r.r = nil
-// 		return 0, io.EOF
-// 	}
-// }
-
-// func (r InteruptReader) Cancel() {
-// 	r.interupt <- 0
-// }
+var FileQueue map[string]model.FileOperate
 
 type reader struct {
 	ctx context.Context
@@ -81,5 +71,57 @@ func (w *writer) Write(p []byte) (n int, err error) {
 		return 0, w.ctx.Err()
 	default:
 		return w.w.Write(p)
+	}
+}
+func FileOperate(list model.FileOperate) {
+	for _, v := range list.Item {
+		if list.Type == "move" {
+			lastPath := v.From[strings.LastIndex(v.From, "/")+1:]
+			if !file.CheckNotExist(list.To + "/" + lastPath) {
+				continue
+			}
+			err := os.Rename(v.From, list.To+"/"+lastPath)
+			if err != nil {
+				continue
+			}
+		} else if list.Type == "copy" {
+			err := file.CopyDir(v.From, list.To)
+			if err != nil {
+				continue
+			}
+		} else {
+			continue
+		}
+	}
+}
+
+// file move or copy and send notify
+func CheckFileStatus() {
+	for {
+		if len(FileQueue) == 0 {
+			return
+		}
+		for k, v := range FileQueue {
+			var total int64 = 0
+			for i := 0; i < len(v.Item); i++ {
+				if !v.Item[i].Finished {
+					size, err := file.GetFileOrDirSize(v.To + "/" + filepath.Base(v.Item[i].From))
+					if err != nil {
+						continue
+					}
+					v.Item[i].ProcessedSize = size
+					if size == v.Item[i].Size {
+						v.Item[i].Finished = true
+					}
+					total += size
+				} else {
+					total += v.Item[i].ProcessedSize
+				}
+
+			}
+			v.ProcessedSize = total
+			FileQueue[k] = v
+		}
+		time.Sleep(time.Second * 3)
 	}
 }

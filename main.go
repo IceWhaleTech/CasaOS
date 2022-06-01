@@ -4,16 +4,18 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
 	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
-	model2 "github.com/IceWhaleTech/CasaOS/service/model"
-	"github.com/IceWhaleTech/CasaOS/types"
 
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
@@ -46,6 +48,7 @@ func init() {
 	service.CancelList = make(map[string]string)
 	service.InternalInspection = make(map[string][]string)
 	service.NewVersionApp = make(map[string]string)
+	service.FileQueue = make(map[string]model.FileOperate)
 	route.InitFunction()
 
 	go service.SendIPToServer()
@@ -66,12 +69,24 @@ func init() {
 // @name Authorization
 // @BasePath /v1
 func main() {
+
+	service.NotifyMsg = make(chan notify.Message, 10)
 	if *showUserInfo {
 		fmt.Println("CasaOS User Info")
 		fmt.Println("UserName:" + config.UserInfo.UserName)
 		fmt.Println("Password:" + config.UserInfo.PWD)
 		return
 	}
+	p, _ := port.GetAvailablePort("tcp")
+	config.ServerInfo.SocketPort = strconv.Itoa(p)
+	go route.ScoketInit(p, service.NotifyMsg)
+	go func() {
+		for i := 0; i < 1000; i++ {
+			time.Sleep(2 * time.Second)
+			//service.NotifyMsg <- strconv.Itoa(i)
+		}
+	}()
+
 	//model.Setup()
 	//gredis.Setup()
 	r := route.InitRouter()
@@ -86,18 +101,19 @@ func main() {
 		service.SendIPToServer()
 
 		service.LoopFriend()
-		service.MyService.App().CheckNewImage()
+		//service.MyService.App().CheckNewImage()
 	})
 	if err != nil {
 		fmt.Println(err)
 	}
-	err = cron2.AddFunc("0/1 * * * * *", func() {
-		notify := model2.AppNotify{}
-		notify.CustomId = ""
-		notify.Type = types.NOTIFY_TYPE_HEALTH_CHECK
-
-		go service.MyService.Notify().SendText(notify)
-
+	err = cron2.AddFunc("0/3 * * * * *", func() {
+		if service.ClientCount > 0 {
+			route.SendNetINfoBySocket()
+			route.SendCPUBySocket()
+			route.SendMemBySocket()
+			route.SendDiskBySocket()
+			route.SendUSBBySocket()
+		}
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -114,4 +130,7 @@ func main() {
 
 	s.ListenAndServe()
 
+	// if err := r.Run(fmt.Sprintf(":%v", config.ServerInfo.HttpPort)); err != nil {
+	// 	fmt.Println("failed run app: ", err)
+	// }
 }

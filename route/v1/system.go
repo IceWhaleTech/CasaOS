@@ -452,18 +452,18 @@ func Info(c *gin.Context) {
 		}
 	}
 	data["usb"] = usb
-	cpu := service.MyService.ZiMa().GetCpuPercent()
-	num := service.MyService.ZiMa().GetCpuCoreNum()
+	cpu := service.MyService.System().GetCpuPercent()
+	num := service.MyService.System().GetCpuCoreNum()
 	cpuData := make(map[string]interface{})
 	cpuData["percent"] = cpu
 	cpuData["num"] = num
 	data["cpu"] = cpuData
-	data["mem"] = service.MyService.ZiMa().GetMemInfo()
+	data["mem"] = service.MyService.System().GetMemInfo()
 
 	//拼装网络信息
-	netList := service.MyService.ZiMa().GetNetInfo()
+	netList := service.MyService.System().GetNetInfo()
 	newNet := []model.IOCountersStat{}
-	nets := service.MyService.ZiMa().GetNet(true)
+	nets := service.MyService.System().GetNet(true)
 	for _, n := range netList {
 		for _, netCardName := range nets {
 			if n.Name == netCardName {
@@ -479,4 +479,21 @@ func Info(c *gin.Context) {
 	data["net"] = newNet
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+}
+
+// @Summary Get notification port
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/socket/port [get]
+func GetSystemSocketPort(c *gin.Context) {
+
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: oasis_err.SUCCESS,
+			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Data:    config.ServerInfo.SocketPort,
+		})
 }

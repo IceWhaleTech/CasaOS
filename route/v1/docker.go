@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	upnp2 "github.com/IceWhaleTech/CasaOS/pkg/upnp"
@@ -143,10 +144,8 @@ func SpeedPush(c *gin.Context) {
 // @Param  env formData string false "环境变量"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /app/install/{id} [post]
+// @Router /app/install [post]
 func InstallApp(c *gin.Context) {
-	appId := c.Param("id")
-	language := c.GetHeader("Language")
 	var appInfo model.ServerAppList
 	m := model.CustomizationPostData{}
 	c.BindJSON(&m)
@@ -156,7 +155,9 @@ func InstallApp(c *gin.Context) {
 	var dockerImageVersion string
 
 	//check app name is exist
-
+	if len(m.Protocol) == 0 {
+		m.Protocol = "http"
+	}
 	if m.Origin != "custom" {
 		oldName := m.Label
 		for i := 0; true; i++ {
@@ -175,7 +176,7 @@ func InstallApp(c *gin.Context) {
 
 	}
 
-	//检查端口
+	//check port
 	if len(m.PortMap) > 0 && m.PortMap != "0" {
 		//c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		portMap, _ := strconv.Atoi(m.PortMap)
@@ -195,21 +196,6 @@ func InstallApp(c *gin.Context) {
 	} else {
 		dockerImage = m.Image
 		dockerImageVersion = "latest"
-	}
-	if m.Origin != "custom" {
-		appInfo = service.MyService.Casa().GetServerAppInfo(appId, "", language)
-
-	} else {
-
-		appInfo.Title = m.Label
-		appInfo.Description = m.Description
-		appInfo.Icon = m.Icon
-		appInfo.ScreenshotLink = model.Strings{}
-		appInfo.NetworkModel = m.NetworkModel
-		appInfo.Tags = model.Strings{}
-		appInfo.Tagline = ""
-		appInfo.Index = m.Index
-
 	}
 
 	for _, u := range m.Ports {
@@ -272,16 +258,16 @@ func InstallApp(c *gin.Context) {
 	m.CustomId = id
 	var relyMap = make(map[string]string)
 	go func() {
-		installLog := model2.AppNotify{}
-		installLog.State = 0
-		installLog.CustomId = m.Label
-		installLog.Message = "installing rely"
-		installLog.Class = types.NOTIFY_APP
-		installLog.Type = types.NOTIFY_TYPE_UNIMPORTANT
-		installLog.CreatedAt = strconv.FormatInt(time.Now().Unix(), 10)
-		installLog.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
-		installLog.Id = uuid.NewV4().String()
-		service.MyService.Notify().AddLog(installLog)
+		// installLog := model2.AppNotify{}
+		// installLog.State = 0
+		// installLog.CustomId = m.Label
+		// installLog.Message = "installing rely"
+		// installLog.Class = types.NOTIFY_APP
+		// installLog.Type = types.NOTIFY_TYPE_UNIMPORTANT
+		// installLog.CreatedAt = strconv.FormatInt(time.Now().Unix(), 10)
+		// installLog.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
+		// installLog.Id = uuid.NewV4().String()
+		// service.MyService.Notify().AddLog(installLog)
 		if m.Origin != "custom" {
 			for _, plugin := range appInfo.Plugins {
 				if plugin == "mysql" {
@@ -314,24 +300,26 @@ func InstallApp(c *gin.Context) {
 
 					} else {
 						docker_base.MysqlDelete(mysqlContainerId)
-						installLog.State = 0
-						installLog.Message = err.Error()
-						service.MyService.Notify().UpdateLog(installLog)
+						// installLog.State = 0
+						// installLog.Message = err.Error()
+						// service.MyService.Notify().UpdateLog(installLog)
 					}
 				}
 			}
 		}
 
-		installLog.Message = "pulling"
-		service.MyService.Notify().UpdateLog(installLog)
-
 		// step：下载镜像
-		err := service.MyService.Docker().DockerPullImage(dockerImage+":"+dockerImageVersion, installLog)
+		err := service.MyService.Docker().DockerPullImage(dockerImage+":"+dockerImageVersion, m.Icon, m.Label)
 		if err != nil {
-			installLog.State = 0
-			installLog.Message = err.Error()
-			installLog.Type = types.NOTIFY_TYPE_ERROR
-			service.MyService.Notify().UpdateLog(installLog)
+			notify := notify.Application{}
+			notify.Icon = m.Icon
+			notify.Name = m.Label
+			notify.State = "PULLING"
+			notify.Type = "INSTALL"
+			notify.Success = false
+			notify.Finished = false
+			notify.Message = err.Error()
+			service.MyService.Notify().SendInstallAppBySocket(notify)
 			return
 		}
 
@@ -339,35 +327,28 @@ func InstallApp(c *gin.Context) {
 			time.Sleep(time.Second)
 		}
 
-		//if  {
-
-		//}
-
-		//step：创建容器
-		// networkName, err := service.MyService.Docker().GetNetWorkNameByNetWorkID(appInfo.NetworkModel)
-		// if err != nil {
-		// 	//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":80}", 100)
-		// 	installLog.State = 0
-		// 	installLog.Speed = 75
-		// 	installLog.Type = types.NOTIFY_TYPE_ERROR
-		// 	installLog.Message = err.Error()
-		// 	service.MyService.Notify().UpdateLog(installLog)
-		// 	return
-		// }
-		containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m, appInfo.NetworkModel)
-		installLog.Name = appInfo.Title
-		installLog.Icon = appInfo.Icon
+		_, err = service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m, appInfo.NetworkModel)
 		if err != nil {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":80}", 100)
-			installLog.State = 0
-			installLog.Type = types.NOTIFY_TYPE_ERROR
-			installLog.Message = err.Error()
-			service.MyService.Notify().UpdateLog(installLog)
+			notify := notify.Application{}
+			notify.Icon = m.Icon
+			notify.Name = m.Label
+			notify.State = "STARTING"
+			notify.Type = "INSTALL"
+			notify.Success = false
+			notify.Finished = false
+			notify.Message = err.Error()
+			service.MyService.Notify().SendInstallAppBySocket(notify)
 			return
 		} else {
-			//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"starting\",\"speed\":80}", 100)
-			installLog.Message = "starting"
-			service.MyService.Notify().UpdateLog(installLog)
+			notify := notify.Application{}
+			notify.Icon = m.Icon
+			notify.Name = m.Label
+			notify.State = "STARTING"
+			notify.Type = "INSTALL"
+			notify.Success = true
+			notify.Finished = false
+			service.MyService.Notify().SendInstallAppBySocket(notify)
 		}
 
 		//		echo -e "hellow\nworld" >>
@@ -376,23 +357,27 @@ func InstallApp(c *gin.Context) {
 		err = service.MyService.Docker().DockerContainerStart(m.Label)
 		if err != nil {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":90}", 100)
-			installLog.State = 0
-			installLog.Type = types.NOTIFY_TYPE_ERROR
-			installLog.Message = err.Error()
-			service.MyService.Notify().UpdateLog(installLog)
+			notify := notify.Application{}
+			notify.Icon = m.Icon
+			notify.Name = m.Label
+			notify.State = "STARTING"
+			notify.Type = "INSTALL"
+			notify.Success = false
+			notify.Finished = false
+			notify.Message = err.Error()
+			service.MyService.Notify().SendInstallAppBySocket(notify)
 			return
 		} else {
-			//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"setting upnp\",\"speed\":90}", 100)
-			if m.Origin != CUSTOM {
-				installLog.Message = "setting upnp"
-			} else {
-				installLog.Message = "nearing completion"
-			}
-			service.MyService.Notify().UpdateLog(installLog)
+			// if m.Origin != CUSTOM {
+			// 	installLog.Message = "setting upnp"
+			// } else {
+			// 	installLog.Message = "nearing completion"
+			// }
+			// service.MyService.Notify().UpdateLog(installLog)
 		}
 
 		if m.Origin != CUSTOM {
-			//step:启动upnp
+			//step:enable upnp
 			if m.EnableUPNP {
 				upnp, err := upnp2.Gateway()
 				if err == nil {
@@ -424,89 +409,49 @@ func InstallApp(c *gin.Context) {
 					}
 
 				}
-				if err != nil {
-					//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":95}", 100)
-					installLog.State = 0
-					installLog.Type = types.NOTIFY_TYPE_ERROR
-					installLog.Message = err.Error()
-					service.MyService.Notify().UpdateLog(installLog)
-				} else {
-					//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"checking\",\"speed\":95}", 100)
-					installLog.Message = "checking"
-					service.MyService.Notify().UpdateLog(installLog)
-				}
+				// if err != nil {
+				// 	//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":95}", 100)
+				// 	installLog.State = 0
+				// 	installLog.Type = types.NOTIFY_TYPE_ERROR
+				// 	installLog.Message = err.Error()
+				// 	service.MyService.Notify().UpdateLog(installLog)
+				// } else {
+				// 	//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"checking\",\"speed\":95}", 100)
+				// 	installLog.Message = "checking"
+				// 	service.MyService.Notify().UpdateLog(installLog)
+				// }
 			}
 		}
 
 		//step: 启动成功     检查容器状态确认启动成功
 		container, err := service.MyService.Docker().DockerContainerInfo(m.Label)
 		if err != nil && container.ContainerJSONBase.State.Running {
-			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":100}", 100)
-			installLog.State = 0
-			installLog.Type = types.NOTIFY_TYPE_ERROR
-			installLog.Message = err.Error()
-			service.MyService.Notify().UpdateLog(installLog)
+			notify := notify.Application{}
+			notify.Icon = m.Icon
+			notify.Name = m.Label
+			notify.State = "INSTALLED"
+			notify.Type = "INSTALL"
+			notify.Success = false
+			notify.Finished = true
+			notify.Message = err.Error()
+			service.MyService.Notify().SendInstallAppBySocket(notify)
 			return
 		} else {
-			//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"installed\",\"speed\":100}", 100)
-			installLog.Message = "installed"
-			service.MyService.Notify().UpdateLog(installLog)
+			notify := notify.Application{}
+			notify.Icon = m.Icon
+			notify.Name = m.Label
+			notify.State = "INSTALLED"
+			notify.Type = "INSTALL"
+			notify.Success = true
+			notify.Finished = true
+			service.MyService.Notify().SendInstallAppBySocket(notify)
 		}
 
-		rely := model.MapStrings{}
-
-		copier.Copy(&rely, &relyMap)
 		// if m.Origin != "custom" {
 		// 	for i := 0; i < len(m.Volumes); i++ {
 		// 		m.Volumes[i].Path = docker.GetDir(id, m.Volumes[i].Path)
 		// 	}
 		// }
-
-		portsStr, _ := json2.Marshal(m.Ports)
-		envsStr, _ := json2.Marshal(m.Envs)
-		volumesStr, _ := json2.Marshal(m.Volumes)
-		devicesStr, _ := json2.Marshal(m.Devices)
-		cmd, _ := json2.Marshal(m.Cmd)
-		capAdd, _ := json.Marshal(m.CapAdd)
-		//step: 保存数据到数据库
-		md := model2.AppListDBModel{
-			CustomId: "",
-			Title:    appInfo.Title,
-			//ScreenshotLink: appInfo.ScreenshotLink,
-			Slogan:      appInfo.Tagline,
-			Description: appInfo.Description,
-			//Tags:           appInfo.Tags,
-			Icon:        appInfo.Icon,
-			Version:     dockerImageVersion,
-			ContainerId: containerId,
-			Image:       dockerImage,
-			Index:       appInfo.Index,
-			//Port:           m.Port,
-			PortMap:    m.PortMap,
-			Label:      m.Label,
-			EnableUPNP: m.EnableUPNP,
-			Ports:      string(portsStr),
-			Envs:       string(envsStr),
-			Volumes:    string(volumesStr),
-			Position:   m.Position,
-			NetModel:   appInfo.NetworkModel,
-			Restart:    m.Restart,
-			CpuShares:  m.CpuShares,
-			Memory:     m.Memory,
-			Devices:    string(devicesStr),
-			//Rely:       rely,
-			Origin:     m.Origin,
-			CreatedAt:  strconv.FormatInt(time.Now().Unix(), 10),
-			UpdatedAt:  strconv.FormatInt(time.Now().Unix(), 10),
-			Cmd:        string(cmd),
-			CapAdd:     string(capAdd),
-			HostName:   m.HostName,
-			Privileged: m.Privileged,
-		}
-		//if appInfo.NetworkModel == "host" {
-		//	m.PortMap = m.Port
-		//}
-		fmt.Println(md)
 		//service.MyService.App().SaveContainer(md)
 		config.CasaOSGlobalVariables.AppChange = true
 
@@ -728,19 +673,15 @@ func UnInstallApp(c *gin.Context) {
 		return
 	}
 
-	//step：删除容器
 	err = service.MyService.Docker().DockerContainerRemove(appId, false)
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.UNINSTALL_APP_ERROR, Message: oasis_err2.GetMsg(oasis_err2.UNINSTALL_APP_ERROR), Data: err.Error()})
 		return
 	}
 
-	//存在镜像正在使用的情况
-	// step：删除镜像
-	service.MyService.Docker().DockerImageRemove(info.Image)
+	// step：remove image
+	service.MyService.Docker().DockerImageRemove(info.Config.Image)
 
-	//step: 删除本地数据
-	//service.MyService.App().RemoveContainerById(appId)
 	if info.Config.Labels["origin"] != "custom" {
 		fmt.Println(info.HostConfig.Mounts)
 		//step: 删除文件夹
@@ -791,13 +732,14 @@ func UnInstallApp(c *gin.Context) {
 		//}
 	}
 	config.CasaOSGlobalVariables.AppChange = true
-	unInstallLog := model2.AppNotify{}
-	unInstallLog.State = 0
-	unInstallLog.CustomId = appId
-	unInstallLog.Message = "uninstalled"
-	unInstallLog.Id = uuid.NewV4().String()
-	service.MyService.Notify().UpdateLog(unInstallLog)
-
+	notify := notify.Application{}
+	notify.Icon = info.Config.Labels["icon"]
+	notify.Name = strings.ReplaceAll(info.Name, "/", "")
+	notify.State = "FINISHED"
+	notify.Type = "UNINSTALL"
+	notify.Success = true
+	notify.Finished = true
+	service.MyService.Notify().SendUninstallAppBySocket(notify)
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 
 }
@@ -1083,7 +1025,7 @@ func PutAppUpdate(c *gin.Context) {
 
 	}
 	imageLatest := strings.Split(inspect.Config.Image, ":")[0] + ":latest"
-	err = service.MyService.Docker().DockerPullImage(imageLatest, model2.AppNotify{})
+	err = service.MyService.Docker().DockerPullImage(imageLatest, "", "")
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
 		return
@@ -1182,7 +1124,7 @@ func ContainerInfo(c *gin.Context) {
 	data := make(map[string]interface{}, 5)
 	data["app"] = appInfo
 	data["cpu"] = cpuModel
-	data["memory"] = service.MyService.ZiMa().GetMemInfo().Total
+	data["memory"] = service.MyService.System().GetMemInfo().Total
 	data["container"] = json2.RawMessage(containerInfo)
 	data["info"] = con
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
@@ -1205,7 +1147,7 @@ func GetDockerInstallConfig(c *gin.Context) {
 		}
 	}
 	data["networks"] = list
-	data["memory"] = service.MyService.ZiMa().GetMemInfo()
+	data["memory"] = service.MyService.System().GetMemInfo()
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
 }
 
@@ -1257,12 +1199,20 @@ func ContainerUpdateInfo(c *gin.Context) {
 	// json2.Unmarshal([]byte(appInfo.Envs), &envs)
 
 	for _, v := range info.Config.Env {
-
-		temp := model.Env{
-			Name:  strings.Split(v, "=")[0],
-			Value: strings.Split(v, "=")[1],
+		showENV := info.Config.Labels["show_env"]
+		showENVList := strings.Split(showENV, ",")
+		showENVMap := make(map[string]string)
+		for _, name := range showENVList {
+			showENVMap[name] = "1"
 		}
-		envs = append(envs, temp)
+		if _, ok := showENVMap[v]; ok {
+			temp := model.Env{
+				Name:  strings.Split(v, "=")[0],
+				Value: strings.Split(v, "=")[1],
+			}
+			envs = append(envs, temp)
+		}
+
 	}
 
 	var vol model.PathArray
@@ -1309,6 +1259,7 @@ func ContainerUpdateInfo(c *gin.Context) {
 	m.Index = info.Config.Labels["index"]
 	m.Position = false
 	m.CustomId = info.Config.Labels["custom_id"]
+	m.Host = info.Config.Labels["host"]
 	if len(m.CustomId) == 0 {
 		m.CustomId = uuid.NewV4().String()
 	}
@@ -1316,6 +1267,11 @@ func ContainerUpdateInfo(c *gin.Context) {
 	m.Cmd = info.Config.Cmd
 	m.HostName = info.Config.Hostname
 	m.Privileged = info.HostConfig.Privileged
+
+	m.Protocol = info.Config.Labels["protocol"]
+	if m.Protocol == "" {
+		m.Protocol = "http"
+	}
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: m})
 }

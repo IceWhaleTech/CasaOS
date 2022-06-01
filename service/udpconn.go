@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/quic_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -92,7 +93,7 @@ func UDPSendData(msg model.MessageModel, localFilePath string) error {
 }
 
 func Dial(msg model.MessageModel, server bool) (m model.MessageModel, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 	Message = make(chan model.MessageModel)
 	_, port, err := net.SplitHostPort(UDPConn.LocalAddr().String())
@@ -236,20 +237,20 @@ func ReadContent(stream quic.Stream) {
 			Message <- m
 			break
 		} else if m.Type == types.PERSONGETIP {
-			notify := model2.AppNotify{}
-			notify.CustomId = m.From
+			notify := notify.Person{}
+			notify.ShareId = m.From
 			if len(m.Data.(string)) == 0 {
 				if _, ok := UDPAddressMap[m.From]; ok {
-					notify.Type = types.NOTIFY_TYPE_PERSION_FIRNED_LEAVE
-					go MyService.Notify().SendText(notify)
+					notify.Type = "OFFLINE"
+					go MyService.Notify().SendPersonStatusBySocket(notify)
 				}
 				delete(UDPAddressMap, m.From)
 				Message <- m
 				break
 			}
 			if _, ok := UDPAddressMap[m.From]; !ok {
-				notify.Type = types.NOTIFY_TYPE_PERSION_FIRNED_LIVE
-				go MyService.Notify().SendText(notify)
+				notify.Type = "ONLINE"
+				go MyService.Notify().SendPersonStatusBySocket(notify)
 			}
 			UDPAddressMap[m.From] = m.Data.(string)
 			if config.ServerInfo.Token != m.From && strings.Split(m.Data.(string), ":")[0] == strings.Split(UDPAddressMap[config.ServerInfo.Token], ":")[0] {
@@ -330,10 +331,10 @@ func LoopFriend() {
 			data, err := Dial(msg, false)
 			if err != nil || reflect.DeepEqual(data, model.MessageModel{}) || len(data.Data.(string)) == 0 {
 				if oldIP == UDPAddressMap[list[i].Token] {
-					notify := model2.AppNotify{}
-					notify.CustomId = data.From
-					notify.Type = types.NOTIFY_TYPE_PERSION_FIRNED_LEAVE
-					go MyService.Notify().SendText(notify)
+					notify := notify.Person{}
+					notify.ShareId = data.From
+					notify.Type = "LEAVE"
+					go MyService.Notify().SendPersonStatusBySocket(notify)
 
 					delete(UDPAddressMap, list[i].Token)
 

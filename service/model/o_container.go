@@ -1,3 +1,13 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-05-13 18:15:46
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-05-30 17:33:21
+ * @FilePath: /CasaOS/service/model/o_container.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package model
 
 const CONTAINERTABLENAME = "o_container"
@@ -64,4 +74,6 @@ type MyAppList struct {
 	Image      string `json:"image"`
 	Volumes    string `json:"volumes"`
 	NewVersion bool   `json:"new_version"`
+	Host       string `json:"host"`
+	Protocol   string `json:"protocol"`
 }

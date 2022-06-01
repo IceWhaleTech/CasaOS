@@ -83,17 +83,26 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key, language s
 	return
 }
 
-func (o *casaService) GetServerCategoryList() []model.ServerCategoryList {
+func (o *casaService) GetServerCategoryList() (list []model.ServerCategoryList) {
+
+	keyName := fmt.Sprintf("category_list")
+	if result, ok := Cache.Get(keyName); ok {
+		res, ok := result.(string)
+		if ok {
+			json2.Unmarshal([]byte(gjson.Get(res, "data").String()), &list)
+			return list
+		}
+	}
 
 	head := make(map[string]string)
 	head["Authorization"] = GetToken()
 
 	listS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/category", head)
 
-	list := []model.ServerCategoryList{}
-
 	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &list)
-
+	if len(list) > 0 {
+		Cache.SetDefault(keyName, listS)
+	}
 	return list
 }
 func (o *casaService) GetServerAppInfo(id, t string, language string) model.ServerAppList {

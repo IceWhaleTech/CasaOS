@@ -215,6 +215,8 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 			Index:      "/",
 			Image:      "",
 			Type:       v.Type,
+			Host:       "",
+			Protocol:   "",
 			NewVersion: false,
 		})
 	}
@@ -239,6 +241,8 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 				Type:       m.Labels["origin"],
 				//Slogan: m.Slogan,
 				//Rely:     m.Rely,
+				Host:     m.Labels["host"],
+				Protocol: m.Labels["protocol"],
 			})
 		} else {
 			unTranslation = append(unTranslation, model2.MyAppList{
@@ -249,6 +253,8 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 				Id:         m.ID,
 				Port:       "",
 				NewVersion: false,
+				Host:       "",
+				Protocol:   "",
 				Image:      m.Image,
 			})
 		}

@@ -6,20 +6,24 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"net/url"
 	url2 "net/url"
 	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
-	"github.com/spf13/afero"
+	uuid "github.com/satori/go.uuid"
 )
 
 func downloadReadFile(c *gin.Context) {
@@ -46,24 +50,6 @@ func downloadReadFile(c *gin.Context) {
 		//line[0] 就是第几列
 		fmt.Println(line[0])
 	}
-}
-
-func downloadWriteFile(c *gin.Context) {
-	//写文件
-	var filename = "./output1.csv"
-
-	file, err := os.Create(filename) //创建文件
-	if err != nil {
-		c.String(400, err.Error())
-		return
-	}
-	buf := bufio.NewWriter(file) //创建新的 Writer 对象
-	buf.WriteString("test")
-	buf.Flush()
-	defer file.Close()
-
-	//返回文件流
-	c.File(filename)
 }
 
 // @Summary 读取文件
@@ -135,82 +121,106 @@ func GetLocalFile(c *gin.Context) {
 // @Accept application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param path query string true "path of file"
+// @Param t query string false "Compression format" Enums(zip,tar,targz)
+// @Param files query string true "file list eg: filename1,filename2,filename3 "
 // @Success 200 {string} string "ok"
 // @Router /file/download [get]
 func GetDownloadFile(c *gin.Context) {
-	filePath := c.Query("path")
-	if len(filePath) == 0 {
+
+	t := c.Query("t")
+
+	files := c.Query("files")
+
+	if len(files) == 0 {
 		c.JSON(http.StatusOK, model.Result{
 			Success: oasis_err2.INVALID_PARAMS,
 			Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS),
 		})
 		return
 	}
-	if !file.Exists(filePath) {
+	list := strings.Split(files, ",")
+	for _, v := range list {
+		if !file.Exists(v) {
+			c.JSON(http.StatusOK, model.Result{
+				Success: oasis_err2.FILE_DOES_NOT_EXIST,
+				Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST),
+			})
+			return
+		}
+	}
+	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Cache-Control", "private")
+	// handles only single files not folders and multiple files
+	if len(list) == 1 {
+
+		filePath := list[0]
+		info, err := os.Stat(filePath)
+		if err != nil {
+			c.JSON(http.StatusOK, model.Result{
+				Success: oasis_err2.FILE_DOES_NOT_EXIST,
+				Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST),
+			})
+			return
+		}
+		if !info.IsDir() {
+
+			//打开文件
+			fileTmp, _ := os.Open(filePath)
+			defer fileTmp.Close()
+
+			//获取文件的名称
+			fileName := path.Base(filePath)
+			c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
+			c.File(filePath)
+			return
+		}
+	}
+
+	extension, ar, err := file.GetCompressionAlgorithm(t)
+	if err != nil {
 		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.FILE_DOES_NOT_EXIST,
-			Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST),
+			Success: oasis_err2.INVALID_PARAMS,
+			Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS),
 		})
 		return
 	}
-	//打开文件
-	fileTmp, _ := os.Open(filePath)
-	defer fileTmp.Close()
-	//获取文件的名称
-	fileName := path.Base(filePath)
-	c.Header("Content-Type", "application/octet-stream")
-	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
-	c.Header("Content-Transfer-Encoding", "binary")
-	c.Header("Cache-Control", "no-cache")
 
-	c.File(filePath)
+	err = ar.Create(c.Writer)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{
+			Success: oasis_err.ERROR,
+			Message: oasis_err2.GetMsg(oasis_err2.ERROR),
+			Data:    err.Error(),
+		})
+		return
+	}
+	defer ar.Close()
+	commonDir := file.CommonPrefix(filepath.Separator, list...)
+
+	currentPath := filepath.Base(commonDir)
+
+	name := "_" + currentPath
+	name += extension
+	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(name))
+	for _, fname := range list {
+		err = file.AddFile(ar, fname, commonDir)
+		if err != nil {
+			log.Printf("Failed to archive %s: %v", fname, err)
+		}
+	}
+
 }
 
-// @Summary download
-// @Produce  application/json
-// @Accept application/json
-// @Tags file
-// @Security ApiKeyAuth
-// @Param path query string true "path of file"
-// @Success 200 {string} string "ok"
-// @Router /file/new/download [get]
-func GetFileDownloadNew(c *gin.Context) {
-	filePath := c.Query("path")
-	if len(filePath) == 0 {
-		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.INVALID_PARAMS,
-			Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS),
-		})
-		return
-	}
-	if !file.Exists(filePath) {
-		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.FILE_DOES_NOT_EXIST,
-			Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST),
-		})
-		return
-	}
-	//打开文件
-	fileStat, _ := os.Stat(filePath)
-	var AppFs = afero.NewOsFs()
-	fileT, _ := AppFs.Open(filePath)
-	//fileTmp, _ := os.Open(filePath)
-	//defer fileTmp.Close()
-	//获取文件的名称
-	//fileName := path.Base(filePath)
+func GetDownloadSingleFile(c *gin.Context) {
+	filePath := c.Param("path")
+	fileTmp, _ := os.Open(filePath)
+	defer fileTmp.Close()
 
-	//c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
-	//在线
+	fileName := path.Base(filePath)
 	//c.Header("Content-Disposition", "inline")
-	// extraHeaders := map[string]string{
-	// 	"Content-Disposition": `attachment; filename="` + url2.PathEscape(fileName) + `"`,
-	// }
-
-	//c.Header("Cache-Control", "private")
-	//c.Header("Content-Type", "application/octet-stream")
-
-	http.ServeContent(c.Writer, c.Request, fileStat.Name(), fileStat.ModTime(), fileT)
+	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
+	c.File(filePath)
 }
 
 // @Summary 获取目录列表
@@ -272,13 +282,15 @@ func DirPath(c *gin.Context) {
 // @Accept application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param oldpath formData string true "path of old"
-// @Param newpath formData string true "path of new"
+// @Param oldpath body string true "path of old"
+// @Param newpath body string true "path of new"
 // @Success 200 {string} string "ok"
 // @Router /file/rename [put]
 func RenamePath(c *gin.Context) {
-	op := c.PostForm("oldpath")
-	np := c.PostForm("newpath")
+	json := make(map[string]string)
+	c.BindJSON(&json)
+	op := json["oldpath"]
+	np := json["newpath"]
 	if len(op) == 0 || len(np) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
@@ -289,45 +301,59 @@ func RenamePath(c *gin.Context) {
 
 // @Summary create folder
 // @Produce  application/json
-// @Accept  multipart/form-data
+// @Accept  application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param path formData string true "path of folder"
+// @Param path body string true "path of folder"
 // @Success 200 {string} string "ok"
 // @Router /file/mkdir [post]
 func MkdirAll(c *gin.Context) {
-	path := c.PostForm("path")
+	json := make(map[string]string)
+	c.BindJSON(&json)
+	path := json["path"]
 	var code int
 	if len(path) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
+	// decodedPath, err := url.QueryUnescape(path)
+	// if err != nil {
+	// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+	// 	return
+	// }
 	code, _ = service.MyService.ZiMa().MkdirAll(path)
 	c.JSON(http.StatusOK, model.Result{Success: code, Message: oasis_err2.GetMsg(code)})
 }
 
 // @Summary create file
 // @Produce  application/json
-// @Accept  multipart/form-data
+// @Accept  application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param path formData string false "路径"
+// @Param path body string true "path of folder (path need to url encode)"
 // @Success 200 {string} string "ok"
 // @Router /file/create [post]
 func PostCreateFile(c *gin.Context) {
-	path := c.PostForm("path")
+	json := make(map[string]string)
+	c.BindJSON(&json)
+	path := json["path"]
 	var code int
 	if len(path) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
+	// decodedPath, err := url.QueryUnescape(path)
+	// if err != nil {
+	// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+	// 	return
+	// }
 	code, _ = service.MyService.ZiMa().CreateFile(path)
 	c.JSON(http.StatusOK, model.Result{Success: code, Message: oasis_err2.GetMsg(code)})
 }
 
 // @Summary upload file
 // @Produce  application/json
-// @Accept  multipart/form-data
+// @Accept  application/json
 // @Tags file
 // @Security ApiKeyAuth
 // @Param path formData string false "file path"
@@ -432,90 +458,106 @@ func PostFileUpload(c *gin.Context) {
 
 // @Summary copy or move file
 // @Produce  application/json
-// @Accept  multipart/form-data
+// @Accept  application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param from formData string true "from path"
-// @Param to formData string true "to path"
-// @Param type formData string true "action" Enums(move,copy)
+// @Param body body model.FileOperate true "type:move,copy"
 // @Success 200 {string} string "ok"
 // @Router /file/operate [post]
 func PostOperateFileOrDir(c *gin.Context) {
-	from := c.PostForm("from")
-	to := c.PostForm("to")
-	t := c.PostForm("type")
-	if len(from) == 0 || len(t) == 0 || len(to) == 0 {
+
+	list := model.FileOperate{}
+	c.BindJSON(&list)
+
+	if len(list.Item) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
-	if t == "move" {
-		lastPath := from[strings.LastIndex(from, "/")+1:]
-		if !file.CheckNotExist(to + "/" + lastPath) {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_OR_DIR_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
-			return
-		}
-		err := os.Rename(from, to+"/"+lastPath)
+	var total int64 = 0
+	for i := 0; i < len(list.Item); i++ {
+
+		size, err := file.GetFileOrDirSize(list.Item[i].From)
 		if err != nil {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
-			return
+			continue
 		}
-	} else if t == "copy" {
-		err := file.CopyDir(from, to)
-		if err != nil {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
-			return
-		}
-	} else {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
-		return
+		list.Item[i].Size = size
+		total += size
 	}
+
+	list.TotalSize = total
+	list.ProcessedSize = 0
+
+	uid := uuid.NewV4().String()
+	service.FileQueue[uid] = list
+	if len(service.FileQueue) == 1 {
+		go service.MyService.Notify().SendFileOperateNotify()
+		go service.CheckFileStatus()
+
+	}
+	go service.FileOperate(list)
+
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
 // @Summary delete file
 // @Produce  application/json
-// @Accept  multipart/form-data
+// @Accept  application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param path query string true "path"
+// @Param body body string true "paths eg ["/a/b/c","/d/e/f"]"
 // @Success 200 {string} string "ok"
 // @Router /file/delete [delete]
 func DeleteFile(c *gin.Context) {
-	path := c.Query("path")
-	//err := os.Remove(path)
-	err := os.RemoveAll(path)
-	if err != nil {
-		fmt.Println(err)
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DELETE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.FILE_DELETE_ERROR), Data: err})
+
+	paths := []string{}
+	c.BindJSON(&paths)
+	if len(paths) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
+	//	path := c.Query("path")
+
+	//	paths := strings.Split(path, ",")
+
+	for _, v := range paths {
+		err := os.RemoveAll(v)
+		if err != nil {
+			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DELETE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.FILE_DELETE_ERROR), Data: err})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
 
 // @Summary update file
 // @Produce  application/json
-// @Accept  multipart/form-data
+// @Accept  application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param path formData string true "path"
-// @Param content formData string true "content"
+// @Param path body string true "path"
+// @Param content body string true "content"
 // @Success 200 {string} string "ok"
 // @Router /file/update [put]
 func PutFileContent(c *gin.Context) {
-	path := c.PostForm("path")
-	content := c.PostForm("content")
-	if !file.Exists(path) {
+
+	fi := model.FileUpdate{}
+	c.BindJSON(&fi)
+
+	// path := c.PostForm("path")
+	// content := c.PostForm("content")
+	if !file.Exists(fi.FilePath) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
 		return
 	}
 	//err := os.Remove(path)
-	err := os.RemoveAll(path)
+	err := os.RemoveAll(fi.FilePath)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DELETE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.FILE_DELETE_ERROR), Data: err})
 		return
 	}
-	err = file.CreateFileAndWriteContent(path, content)
+	err = file.CreateFileAndWriteContent(fi.FilePath, fi.FileContent)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err})

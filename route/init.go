@@ -3,6 +3,7 @@ package route
 import (
 	"encoding/xml"
 	"fmt"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
@@ -79,14 +80,12 @@ func installSyncthing(appId string) {
 		appInfo.Tip = env_helper.ReplaceStringDefaultENV(appInfo.Tip)
 	}
 
-	appInfo.MaxMemory = service.MyService.ZiMa().GetMemInfo().Total >> 20
+	appInfo.MaxMemory = service.MyService.System().GetMemInfo().Total >> 20
 
 	id := uuid.NewV4().String()
 
-	installLog := model2.AppNotify{}
-
 	// step：下载镜像
-	err := service.MyService.Docker().DockerPullImage(dockerImage+":"+dockerImageVersion, installLog)
+	err := service.MyService.Docker().DockerPullImage(dockerImage+":"+dockerImageVersion, "", "")
 	if err != nil {
 		//pull image error
 		fmt.Println("pull image error", err, dockerImage, dockerImageVersion)
@@ -142,14 +141,13 @@ func checkSystemApp() {
 			}
 
 			path := ""
-			for _, i := range info.HostConfig.Mounts {
-				if i.Target == "/config" {
+			for _, i := range info.Mounts {
+				if i.Destination == "/config" {
 					path = i.Source
-
 					break
 				}
 			}
-			content := file.ReadFullFile(path + "config.xml")
+			content := file.ReadFullFile(filepath.Join(path, "config.xml"))
 			syncConfig := &system_app.SyncConfig{}
 			xml.Unmarshal(content, &syncConfig)
 			config.SystemConfigInfo.SyncKey = syncConfig.Key

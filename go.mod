@@ -7,6 +7,9 @@ require (
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/Microsoft/hcsshim v0.8.22 // indirect
 	github.com/StackExchange/wmi v0.0.0-20210224194228-fe8f1750fd46 // indirect
+	github.com/ambelovsky/go-structs v1.1.0 // indirect
+	github.com/ambelovsky/gosf v0.0.0-20201109201340-237aea4d6109
+	github.com/ambelovsky/gosf-socketio v0.0.0-20201109193639-add9d32f8b19 // indirect
 	github.com/bits-and-blooms/bitset v1.2.1 // indirect
 	github.com/containerd/containerd v1.5.7
 	github.com/containerd/continuity v0.2.0 // indirect
@@ -29,6 +32,7 @@ require (
 	github.com/gomodule/redigo v1.8.5
 	github.com/google/go-github/v36 v36.0.0
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/googollee/go-socket.io v1.6.2
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.4.2
 	github.com/jinzhu/copier v0.3.2
@@ -39,6 +43,7 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-sqlite3 v1.14.11 // indirect
+	github.com/mholt/archiver/v3 v3.5.1
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
@@ -53,7 +58,6 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
-	github.com/spf13/afero v1.2.2
 	github.com/swaggo/gin-swagger v1.3.0
 	github.com/swaggo/swag v1.7.3
 	github.com/tidwall/gjson v1.10.2

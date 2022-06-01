@@ -1,3 +1,13 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2021-09-30 18:18:14
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-05-27 18:07:13
+ * @FilePath: /CasaOS/route/v1/zima_info.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package v1
 
 import (
@@ -21,8 +31,8 @@ import (
 // @Router /zima/getcpuinfo [get]
 func CupInfo(c *gin.Context) {
 	//检查参数是否正确
-	cpu := service.MyService.ZiMa().GetCpuPercent()
-	num := service.MyService.ZiMa().GetCpuCoreNum()
+	cpu := service.MyService.System().GetCpuPercent()
+	num := service.MyService.System().GetCpuCoreNum()
 	data := make(map[string]interface{})
 	data["percent"] = cpu
 	data["num"] = num
@@ -40,7 +50,7 @@ func CupInfo(c *gin.Context) {
 func MemInfo(c *gin.Context) {
 
 	//检查参数是否正确
-	mem := service.MyService.ZiMa().GetMemInfo()
+	mem := service.MyService.System().GetMemInfo()
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: mem})
 
 }
@@ -65,11 +75,11 @@ func DiskInfo(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /zima/getnetinfo [get]
 func NetInfo(c *gin.Context) {
-	netList := service.MyService.ZiMa().GetNetInfo()
+	netList := service.MyService.System().GetNetInfo()
 
 	newNet := []model.IOCountersStat{}
 	for _, n := range netList {
-		for _, netCardName := range service.MyService.ZiMa().GetNet(true) {
+		for _, netCardName := range service.MyService.System().GetNet(true) {
 			if n.Name == netCardName {
 				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
 				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))

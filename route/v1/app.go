@@ -209,7 +209,7 @@ func AppInfo(c *gin.Context) {
 	// sort.VolSort(volOrder).Sort(info.Volumes.([]model.PathMap))
 	// sort.DevSort(devOrder).Sort(info.Devices)
 
-	info.MaxMemory = service.MyService.ZiMa().GetMemInfo().Total >> 20
+	info.MaxMemory = service.MyService.System().GetMemInfo().Total >> 20
 
 	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: info})
 }
