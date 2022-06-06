@@ -59,6 +59,7 @@ func (i *notifyServer) SendFileOperateNotify() {
 			task.ProcessedSize = v.ProcessedSize
 			task.TotalSize = v.TotalSize
 			task.To = v.To
+			task.Type = v.Type
 			if task.ProcessedSize == 0 {
 				task.Status = "STARTING"
 			} else {

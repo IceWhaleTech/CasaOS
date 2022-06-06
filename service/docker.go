@@ -15,13 +15,14 @@ import (
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 
 	//"github.com/containerd/containerd/oci"
 	"io"
@@ -67,7 +68,6 @@ type DockerService interface {
 
 type dockerService struct {
 	rootDir string
-	log     loger2.OLog
 }
 
 func (ds *dockerService) DockerContainerList() []types.Container {
@@ -482,7 +482,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 		//if len(result1) == 0 {
 		err = file.IsNotExistMkDir(path)
 		if err != nil {
-			ds.log.Error("mkdir error", err)
+			loger.Error("Failed to create a folder", zap.Any("err", err))
 			continue
 		}
 		//}
@@ -836,8 +836,8 @@ func (ds *dockerService) DockerNetworkModelList() []types.NetworkResource {
 	networks, _ := cli.NetworkList(context.Background(), types.NetworkListOptions{})
 	return networks
 }
-func NewDockerService(log loger2.OLog) DockerService {
-	return &dockerService{rootDir: command2.ExecResultStr(`source ./shell/helper.sh ;GetDockerRootDir`), log: log}
+func NewDockerService() DockerService {
+	return &dockerService{rootDir: command2.ExecResultStr(`source ./shell/helper.sh ;GetDockerRootDir`)}
 }
 
 //   ---------------------------------------test------------------------------------

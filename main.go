@@ -12,7 +12,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
-	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -31,18 +31,18 @@ func init() {
 	flag.Parse()
 	config.InitSetup(*configFlag)
 	config.UpdateSetup()
-	loger2.LogSetup()
+	loger.LogInit()
 	if len(*dbFlag) == 0 {
 		*dbFlag = config.AppInfo.ProjectPath + "/db"
 	}
 	sqliteDB = sqlite.GetDb(*dbFlag)
 	//gredis.GetRedisConn(config.RedisInfo),
-	service.MyService = service.NewService(sqliteDB, loger2.NewOLoger())
+	service.MyService = service.NewService(sqliteDB)
 	service.Cache = cache.Init()
 
 	go service.UDPService()
 
-	fmt.Println("token", service.GetToken())
+	fmt.Println("t", service.GetToken())
 	service.UDPAddressMap = make(map[string]string)
 	//go service.SocketConnect()
 	service.CancelList = make(map[string]string)
@@ -69,7 +69,6 @@ func init() {
 // @name Authorization
 // @BasePath /v1
 func main() {
-
 	service.NotifyMsg = make(chan notify.Message, 10)
 	if *showUserInfo {
 		fmt.Println("CasaOS User Info")

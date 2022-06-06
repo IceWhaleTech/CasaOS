@@ -6,7 +6,6 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
-	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/tidwall/gjson"
@@ -24,8 +23,7 @@ type TaskService interface {
 }
 
 type taskService struct {
-	db  *gorm.DB
-	log loger2.OLog
+	db *gorm.DB
 }
 
 func (s *taskService) List(desc bool) []model.TaskDBModel {
@@ -141,6 +139,6 @@ func SyncTask(db *gorm.DB) {
 		}
 	}(list)
 }
-func NewTaskService(db *gorm.DB, log loger2.OLog) TaskService {
-	return &taskService{db: db, log: log}
+func NewTaskService(db *gorm.DB) TaskService {
+	return &taskService{db: db}
 }

@@ -152,6 +152,6 @@ func GetDeviceAllIP() []string {
 	}
 	return address
 }
-func NewSystemService(log loger.OLog) SystemService {
-	return &systemService{log: log}
+func NewSystemService() SystemService {
+	return &systemService{}
 }

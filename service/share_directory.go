@@ -1,13 +1,15 @@
 package service
 
 import (
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
-	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
-	"github.com/IceWhaleTech/CasaOS/service/model"
-	"gorm.io/gorm"
 	"os"
 	"strconv"
+
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/service/model"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type ShareDirService interface {
@@ -20,8 +22,7 @@ type ShareDirService interface {
 }
 
 type shareDirService struct {
-	db  *gorm.DB
-	log loger2.OLog
+	db *gorm.DB
 }
 
 func (s *shareDirService) List(desc bool) []model.ShareDirDBModel {
@@ -305,7 +306,7 @@ func (s *shareDirService) UpConfig() {
 	// /etc/samba/smb.conf
 	f, err := os.OpenFile("/etc/samba/smb.conf", os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	if err != nil {
-		s.log.Error("file create failed. err: " + err.Error())
+		loger.Error("Failed to create file", zap.Any("err", err))
 	} else {
 		defer f.Close()
 		f.WriteString(str)
@@ -318,6 +319,6 @@ func (s *shareDirService) Info(id string) model.ShareDirDBModel {
 	return m
 }
 
-func NewShareDirService(db *gorm.DB, log loger2.OLog) ShareDirService {
-	return &shareDirService{db: db, log: log}
+func NewShareDirService(db *gorm.DB) ShareDirService {
+	return &shareDirService{db: db}
 }

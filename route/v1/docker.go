@@ -791,20 +791,6 @@ func ContainerLog(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: log})
 }
 
-// @Summary 获取安装进度
-// @Produce  application/json
-// @Accept application/json
-// @Tags app
-// @Param  id path string true "容器id"
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /app/speed/{id} [get]
-func GetInstallSpeed(c *gin.Context) {
-	id := c.Param("id")
-	b := service.MyService.Notify().GetLog(id)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: b})
-}
-
 // @Summary 获取容器状态
 // @Produce  application/json
 // @Accept application/json
