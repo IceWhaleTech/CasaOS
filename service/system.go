@@ -57,7 +57,6 @@ func (c *systemService) GetCpuCoreNum() int {
 
 func (c *systemService) GetNetInfo() []net.IOCountersStat {
 	parts, _ := net.IOCounters(true)
-	//fmt.Println(net.ConntrackStatsWithContext(true))
 	return parts
 }
 func (c *systemService) GetNet(physics bool) []string {

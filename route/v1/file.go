@@ -274,7 +274,22 @@ func DirPath(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: info})
+	//Hide the files or folders in operation
+	fileQueue := make(map[string]string)
+	for _, v := range service.FileQueue {
+		for _, i := range v.Item {
+			lastPath := i.From[strings.LastIndex(i.From, "/")+1:]
+			fileQueue[v.To+"/"+lastPath] = i.From
+		}
+	}
+	pathList := []model.Path{}
+	for i := 0; i < len(info); i++ {
+		if _, ok := fileQueue[info[i].Path]; !ok {
+			pathList = append(pathList, info[i])
+		}
+	}
+
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: pathList})
 }
 
 // @Summary rename file or dir
@@ -489,12 +504,18 @@ func PostOperateFileOrDir(c *gin.Context) {
 
 	uid := uuid.NewV4().String()
 	service.FileQueue[uid] = list
+	service.OpStrArr = append(service.OpStrArr, uid)
+	if len(service.OpFile) == 0 {
+		service.OpFile = make(chan string, 1)
+		go service.FileOperate()
+		go service.Op()
+	}
+
 	if len(service.FileQueue) == 1 {
 		go service.MyService.Notify().SendFileOperateNotify()
 		go service.CheckFileStatus()
 
 	}
-	go service.FileOperate(list)
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
@@ -553,13 +574,11 @@ func PutFileContent(c *gin.Context) {
 	//err := os.Remove(path)
 	err := os.RemoveAll(fi.FilePath)
 	if err != nil {
-		fmt.Println(err)
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DELETE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.FILE_DELETE_ERROR), Data: err})
 		return
 	}
 	err = file.CreateFileAndWriteContent(fi.FilePath, fi.FileContent)
 	if err != nil {
-		fmt.Println(err)
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err})
 		return
 	}

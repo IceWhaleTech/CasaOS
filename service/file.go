@@ -1,8 +1,8 @@
 /*
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-12-20 14:15:46
- * @LastEditors: LinkLeong
- * @LastEditTime: 2022-05-30 18:49:46
+ * @LastEditors: link a624669980@163.com
+ * @LastEditTime: 2022-06-07 22:21:29
  * @FilePath: /CasaOS/service/file.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -12,6 +12,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -23,6 +24,9 @@ import (
 )
 
 var FileQueue map[string]model.FileOperate
+var OpFile chan string
+
+var OpStrArr []string
 
 type reader struct {
 	ctx context.Context
@@ -73,25 +77,42 @@ func (w *writer) Write(p []byte) (n int, err error) {
 		return w.w.Write(p)
 	}
 }
-func FileOperate(list model.FileOperate) {
-	for _, v := range list.Item {
-		if list.Type == "move" {
-			lastPath := v.From[strings.LastIndex(v.From, "/")+1:]
-			if !file.CheckNotExist(list.To + "/" + lastPath) {
+func FileOperate() {
+	for i := range OpFile {
+		list := FileQueue[i]
+		for _, v := range list.Item {
+			if list.Type == "move" {
+				lastPath := v.From[strings.LastIndex(v.From, "/")+1:]
+				if !file.CheckNotExist(list.To + "/" + lastPath) {
+					continue
+				}
+				err := os.Rename(v.From, list.To+"/"+lastPath)
+				if err != nil {
+					continue
+				}
+			} else if list.Type == "copy" {
+				err := file.CopyDir(v.From, list.To)
+				if err != nil {
+					continue
+				}
+			} else {
 				continue
 			}
-			err := os.Rename(v.From, list.To+"/"+lastPath)
-			if err != nil {
-				continue
-			}
-		} else if list.Type == "copy" {
-			err := file.CopyDir(v.From, list.To)
-			if err != nil {
-				continue
-			}
-		} else {
-			continue
 		}
+	}
+
+}
+
+func Op() {
+	for {
+		//TODO:Debugging is also required. .
+		if len(OpStrArr) == 0 {
+			close(OpFile)
+			return
+		}
+		fmt.Println("start")
+		OpFile <- OpStrArr[0]
+		fmt.Println("end")
 	}
 }
 

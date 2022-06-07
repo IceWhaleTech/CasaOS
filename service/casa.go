@@ -5,6 +5,7 @@ import (
 	json2 "encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -78,7 +79,7 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key, language s
 	json2.Unmarshal([]byte(gjson.Get(listS, "data.community").String()), &community)
 
 	if len(list) > 0 {
-		Cache.SetDefault(keyName, listS)
+		Cache.Set(keyName, listS, time.Hour*24)
 	}
 	return
 }
@@ -101,10 +102,48 @@ func (o *casaService) GetServerCategoryList() (list []model.ServerCategoryList) 
 
 	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &list)
 	if len(list) > 0 {
-		Cache.SetDefault(keyName, listS)
+		Cache.Set(keyName, listS, time.Hour*24)
 	}
 	return list
 }
+
+// func (o *casaService) GetServerCategoryList() (list model.ServerCategoryList) {
+
+// 	results := file.ReadFullFile(config.AppInfo.ProjectPath + "/conf/app_category.json")
+// 	err := json2.Unmarshal(results, &list)
+// 	if err != nil {
+// 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
+// 	}
+// 	return list
+// }
+
+// func (o *casaService) AsyncGetServerCategoryList() {
+// 	list := model.ServerCategoryList{}
+// 	results := file.ReadFullFile(config.AppInfo.ProjectPath + "/conf/app_category.json")
+// 	err := json2.Unmarshal(results, &list)
+// 	if err != nil {
+// 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
+// 	}
+
+// 	if list.Version == GetAppVersion() {
+// 		return
+// 	}
+// 	item := []model.CategoryList{}
+// 	head := make(map[string]string)
+// 	head["Authorization"] = GetToken()
+// 	listS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/category", head)
+// 	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &item)
+// 	if len(item) > 0 {
+// 		list.Version = GetAppVersion()
+// 		list.Item = item
+// 		by, err := json.Marshal(list)
+// 		if err != nil {
+// 			loger.Error("marshal error", zap.Any("err", err))
+// 		}
+// 		file.WriteToPath(by, config.AppInfo.ProjectPath+"/conf", "app_category.json")
+// 	}
+// }
+
 func (o *casaService) GetServerAppInfo(id, t string, language string) model.ServerAppList {
 
 	head := make(map[string]string)

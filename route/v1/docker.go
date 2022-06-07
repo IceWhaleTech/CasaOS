@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	json2 "encoding/json"
-	"fmt"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -683,11 +683,11 @@ func UnInstallApp(c *gin.Context) {
 	service.MyService.Docker().DockerImageRemove(info.Config.Image)
 
 	if info.Config.Labels["origin"] != "custom" {
-		fmt.Println(info.HostConfig.Mounts)
 		//step: 删除文件夹
-		for _, v := range info.HostConfig.Mounts {
+		for _, v := range info.Mounts {
 			if strings.Contains(v.Source, info.Name) {
-				service.MyService.App().DelAppConfigDir(v.Source)
+				path := filepath.Join(strings.Split(v.Source, info.Name)[0], info.Name)
+				service.MyService.App().DelAppConfigDir(path)
 			}
 		}
 
@@ -1164,7 +1164,7 @@ func ContainerUpdateInfo(c *gin.Context) {
 	//appInfo := service.MyService.App().GetAppDBInfo(appId)
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
 	if err != nil {
-		//todo 需要自定义错误
+
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: err.Error()})
 		return
 	}

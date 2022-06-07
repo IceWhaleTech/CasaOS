@@ -69,6 +69,7 @@ func (i *notifyServer) SendFileOperateNotify() {
 				task.Finished = true
 				task.Status = "FINISHED"
 				delete(FileQueue, k)
+				OpStrArr = OpStrArr[1:]
 				list = append(list, task)
 				break
 			}
