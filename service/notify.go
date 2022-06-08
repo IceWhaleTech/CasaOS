@@ -47,11 +47,13 @@ type notifyServer struct {
 func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 
 	if nowSend {
+
 		len := 0
 		FileQueue.Range(func(k, v interface{}) bool {
 			len++
 			return true
 		})
+
 		model := notify.NotifyModel{}
 		listMsg := make(map[string]interface{})
 		if len == 0 {
@@ -91,7 +93,9 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 			} else {
 				task.Status = "PROCESSING"
 			}
+
 			if temp.ProcessedSize >= temp.TotalSize {
+
 				task.Finished = true
 				task.Status = "FINISHED"
 				FileQueue.Delete(v)

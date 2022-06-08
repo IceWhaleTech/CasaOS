@@ -199,6 +199,7 @@ func GetDownloadFile(c *gin.Context) {
 	defer ar.Close()
 	commonDir := file.CommonPrefix(filepath.Separator, list...)
 
+
 	currentPath := filepath.Base(commonDir)
 
 	name := "_" + currentPath
@@ -515,7 +516,9 @@ func PostOperateFileOrDir(c *gin.Context) {
 	if len(service.OpStrArr) == 1 {
 		go service.ExecOpFile()
 		go service.CheckFileStatus()
+
 		go service.MyService.Notify().SendFileOperateNotify(false)
+
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
