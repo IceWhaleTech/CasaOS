@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -197,6 +198,7 @@ func GetDownloadFile(c *gin.Context) {
 	}
 	defer ar.Close()
 	commonDir := file.CommonPrefix(filepath.Separator, list...)
+
 
 	currentPath := filepath.Base(commonDir)
 
@@ -514,7 +516,9 @@ func PostOperateFileOrDir(c *gin.Context) {
 	if len(service.OpStrArr) == 1 {
 		go service.ExecOpFile()
 		go service.CheckFileStatus()
-		go service.MyService.Notify().SendFileOperateNotify()
+
+		go service.MyService.Notify().SendFileOperateNotify(false)
+
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
@@ -622,4 +626,26 @@ func GetFileImage(c *gin.Context) {
 		return
 	}
 	c.Writer.WriteString(string(data))
+}
+
+func DeleteOperateFileOrDir(c *gin.Context) {
+	id := c.Param("id")
+	if id == "0" {
+		service.FileQueue = sync.Map{}
+		service.OpStrArr = []string{}
+	} else {
+
+		service.FileQueue.Delete(id)
+		tempList := []string{}
+		for _, v := range service.OpStrArr {
+			if v != id {
+				tempList = append(tempList, v)
+			}
+		}
+		service.OpStrArr = tempList
+
+	}
+
+	go service.MyService.Notify().SendFileOperateNotify(true)
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
 }
