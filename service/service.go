@@ -1,7 +1,6 @@
 package service
 
 import (
-	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/gorilla/websocket"
 	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
@@ -37,22 +36,21 @@ type Repository interface {
 	DownRecord() DownRecordService
 }
 
-func NewService(db *gorm.DB, log loger2.OLog) Repository {
+func NewService(db *gorm.DB) Repository {
 
 	return &store{
-		app:    NewAppService(db, log),
-		ddns:   NewDDNSService(db, log),
+		app:    NewAppService(db),
 		user:   NewUserService(),
-		docker: NewDockerService(log),
+		docker: NewDockerService(),
 		//redis:      NewRedisService(rp),
 		zima:           NewZiMaService(),
 		casa:           NewCasaService(),
-		disk:           NewDiskService(log, db),
+		disk:           NewDiskService(db),
 		notify:         NewNotifyService(db),
-		shareDirectory: NewShareDirService(db, log),
-		task:           NewTaskService(db, log),
-		rely:           NewRelyService(db, log),
-		system:         NewSystemService(log),
+		shareDirectory: NewShareDirService(db),
+		task:           NewTaskService(db),
+		rely:           NewRelyService(db),
+		system:         NewSystemService(),
 		shortcuts:      NewShortcutsService(db),
 		search:         NewSearchService(),
 		person:         NewPersonService(db),

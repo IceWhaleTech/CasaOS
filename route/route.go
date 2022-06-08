@@ -31,7 +31,6 @@ func InitRouter() *gin.Engine {
 	if swagHandler != nil {
 		r.GET("/swagger/*any", swagHandler)
 	}
-
 	r.POST("/v1/user/login", v1.Login)
 
 	r.GET("/v1/guide/check", v1.GetGuideCheck)
@@ -43,6 +42,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/v1/user/info", v1.GetUserInfo)
 	//get user info
 	r.GET("/v1/person/shareid", v1.GetPersonShareId)
+	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT(swagHandler))
@@ -65,39 +65,6 @@ func InitRouter() *gin.Engine {
 
 			v1UserGroup.GET("/shareid", v1.GetUserShareID)
 
-		}
-
-		v1ZiMaGroup := v1Group.Group("/zima")
-		v1ZiMaGroup.Use()
-		{
-			//获取cpu信息
-			v1ZiMaGroup.GET("/getcpuinfo", v1.CupInfo)
-			//获取内存信息
-			v1ZiMaGroup.GET("/getmeminfo", v1.MemInfo)
-			//获取硬盘信息
-			v1ZiMaGroup.GET("/getdiskinfo", v1.DiskInfo)
-
-			//获取网络信息
-			v1ZiMaGroup.GET("/getnetinfo", v1.NetInfo)
-
-			//获取系统信息
-			v1ZiMaGroup.GET("/sysinfo", v1.SysInfo)
-		}
-		v1DDNSGroup := v1Group.Group("/ddns")
-		v1DDNSGroup.Use()
-		{
-			//获取ddns列表
-			v1DDNSGroup.GET("/getlist", v1.DDNSGetDomainList)
-			//测试连接性
-			v1DDNSGroup.GET("/ping/:api_host", v1.DDNSPing)
-			//获取ip
-			v1DDNSGroup.GET("/ip", v1.DDNSGetIP)
-			//设置ddns
-			v1DDNSGroup.POST("/set", v1.DDNSAddConfig)
-			//获取ddns
-			v1DDNSGroup.GET("/list", v1.DDNSConfigList)
-			//获取ddns
-			v1DDNSGroup.DELETE("/delete/:id", v1.DDNSDelete)
 		}
 		v1AppGroup := v1Group.Group("/app")
 		v1AppGroup.Use()
@@ -127,11 +94,9 @@ func InitRouter() *gin.Engine {
 			//暂停或启动容器
 			v1AppGroup.PUT("/state/:id", v1.ChangAppState)
 			//安装app
-			v1AppGroup.POST("/install/:id", v1.InstallApp)
+			v1AppGroup.POST("/install", v1.InstallApp)
 			//卸载app
 			v1AppGroup.DELETE("/uninstall/:id", v1.UnInstallApp)
-			//获取安装进度
-			v1AppGroup.GET("/speed/:id", v1.GetInstallSpeed)
 			//获取进度
 			v1AppGroup.GET("/state/:id", v1.GetContainerState)
 			//更新容器配置
@@ -149,7 +114,6 @@ func InitRouter() *gin.Engine {
 		{
 			v1SysGroup.GET("/check", v1.CheckVersion)
 			v1SysGroup.GET("/hardware/info", v1.GetSystemHardwareInfo)
-			v1SysGroup.GET("/client/version", v1.GetClientVersion)
 			v1SysGroup.POST("/update", v1.SystemUpdate)
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
 			v1SysGroup.GET("/config", v1.GetSystemConfig)
@@ -164,6 +128,11 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.PUT("/usb/off", v1.PutSystemOffUSBAutoMount)
 			v1SysGroup.PUT("/usb/on", v1.PutSystemOnUSBAutoMount)
 			v1SysGroup.GET("/usb", v1.GetSystemUSBAutoMount)
+			v1SysGroup.GET("/cpu", v1.CupInfo)
+			v1SysGroup.GET("/mem", v1.MemInfo)
+			v1SysGroup.GET("/disk", v1.DiskInfo)
+			v1SysGroup.GET("/network", v1.NetInfo)
+
 		}
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()
@@ -178,7 +147,7 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.POST("/create", v1.PostCreateFile)
 
 			v1FileGroup.GET("/download", v1.GetDownloadFile)
-			v1FileGroup.GET("/new/download", v1.GetFileDownloadNew)
+			v1FileGroup.GET("/download/*path", v1.GetDownloadSingleFile)
 			v1FileGroup.POST("/operate", v1.PostOperateFileOrDir)
 			v1FileGroup.DELETE("/delete", v1.DeleteFile)
 			v1FileGroup.PUT("/update", v1.PutFileContent)
@@ -232,14 +201,6 @@ func InitRouter() *gin.Engine {
 			v1TaskGroup.PUT("/update", v1.PutTaskUpdate)
 			v1TaskGroup.POST("/add", v1.PostTaskAdd)
 			v1TaskGroup.PUT("/completion/:id", v1.PutTaskMarkerCompletion)
-
-		}
-
-		v1NotifyGroup := v1Group.Group("/notify")
-		v1NotifyGroup.Use()
-		{
-			v1NotifyGroup.GET("/ws", v1.NotifyWS)
-			v1NotifyGroup.PUT("/read/:id", v1.PutNotifyRead)
 		}
 
 		v1PersonGroup := v1Group.Group("/person")

@@ -11,11 +11,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+
 ### Removed
 
 ### Security
 
 ### Fixed
+
+## [0.3.2-pre]
+
+### Added
+
+- [Files] Files can now be selected multiple files and downloaded, deleted, moved, etc.
+- [Apps] Support to modify the application opening address.([#204](https://github.com/IceWhaleTech/CasaOS/issues/204))
+
+### Changed
+
+- [Apps] Hide the display of non-essential environment variables in the application.([#196](https://github.com/IceWhaleTech/CasaOS/issues/196))
+- [System] Network, disk, cpu, memory, etc. information is modified to be pushed via socket.
+- [System] Optimize opening speed.([#214](https://github.com/IceWhaleTech/CasaOS/issues/214))
+- [Language] Update language pack [zarevskaya](https://github.com/zarevskaya) [patrickhilker](https://github.com/patrickhilker)
+- [System] Interface path adjustment
+
+### Removed
+
+- [Files] Remove the online preview function of PDF files
+
+### Fixed
+
+- [System] Fixed the problem that sync data cannot submit the device ID ([#68](https://github.com/IceWhaleTech/CasaOS/issues/68))
+- [Files] Fixed the code editor center alignment display problem.([#210](https://github.com/IceWhaleTech/CasaOS/issues/210))
+- [Files] Fixed the problem of wrong name when downloading files.([#240](https://github.com/IceWhaleTech/CasaOS/issues/240))
+- [System] Fixed the network display as a negative number problem.([#224](https://github.com/IceWhaleTech/CasaOS/issues/224))
+- [System] Fixed the problem of wireless network card traffic display.([#222](https://github.com/IceWhaleTech/CasaOS/issues/222))
+
 
 ## [0.3.1.1] - 2022-05-17
 

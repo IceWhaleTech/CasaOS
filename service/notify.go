@@ -2,13 +2,22 @@ package service
 
 import (
 	json2 "encoding/json"
+	"fmt"
 	"time"
 
+	model2 "github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
+	"github.com/ambelovsky/gosf"
+	socketio "github.com/googollee/go-socket.io"
 	"github.com/gorilla/websocket"
+	"github.com/shirou/gopsutil/v3/mem"
 	"gorm.io/gorm"
 )
+
+var NotifyMsg chan notify.Message
+var ClientCount int = 0
 
 type NotifyServer interface {
 	GetLog(id string) model.AppNotify
@@ -18,11 +27,222 @@ type NotifyServer interface {
 	DelLog(id string)
 	GetList(c int) (list []model.AppNotify)
 	MarkRead(id string, state int)
-	SendText(m model.AppNotify)
+	//	SendText(m model.AppNotify)
+	SendUninstallAppBySocket(app notify.Application)
+	SendNetInfoBySocket(netList []model2.IOCountersStat)
+	SendCPUInfoBySocket(cpu map[string]interface{})
+	SendMemInfoBySocket(mem *mem.VirtualMemoryStat)
+	SendUSBInfoBySocket(list []model2.DriveUSB)
+	SendDiskInfoBySocket(disk model2.Summary)
+	SendPersonStatusBySocket(status notify.Person)
+	SendFileOperateNotify()
+	SendInstallAppBySocket(app notify.Application)
 }
 
 type notifyServer struct {
 	db *gorm.DB
+}
+
+// Send periodic broadcast messages
+func (i *notifyServer) SendFileOperateNotify() {
+	for {
+
+		len := 0
+		FileQueue.Range(func(k, v interface{}) bool {
+			len++
+			return true
+		})
+		if len == 0 {
+			return
+		}
+		listMsg := make(map[string]interface{})
+		model := notify.NotifyModel{}
+		model.State = "NORMAL"
+		list := []notify.File{}
+		OpStrArrbak := OpStrArr
+
+		for _, v := range OpStrArrbak {
+			tempItem, ok := FileQueue.Load(v)
+			temp := tempItem.(model2.FileOperate)
+			if !ok {
+				continue
+			}
+			task := notify.File{}
+			task.Id = v
+			task.ProcessedSize = temp.ProcessedSize
+			task.TotalSize = temp.TotalSize
+			task.To = temp.To
+			task.Type = temp.Type
+			if task.ProcessedSize == 0 {
+				task.Status = "STARTING"
+			} else {
+				task.Status = "PROCESSING"
+			}
+			if temp.ProcessedSize == temp.TotalSize {
+				task.Finished = true
+				task.Status = "FINISHED"
+				FileQueue.Delete(v)
+				OpStrArr = OpStrArr[1:]
+				go ExecOpFile()
+				list = append(list, task)
+				continue
+			}
+			for _, v := range temp.Item {
+				if v.Size != v.ProcessedSize {
+					task.ProcessingPath = v.From
+					break
+				}
+			}
+
+			list = append(list, task)
+		}
+		model.Data = list
+
+		listMsg["file_operate"] = model
+
+		msg := gosf.Message{}
+		msg.Success = true
+		msg.Body = listMsg
+		msg.Text = "file_operate"
+
+		notify := notify.Message{}
+		notify.Path = "file_operate"
+		notify.Msg = msg
+		NotifyMsg <- notify
+		time.Sleep(time.Second * 3)
+	}
+}
+
+func (i *notifyServer) SendPersonStatusBySocket(status notify.Person) {
+	body := make(map[string]interface{})
+	body["data"] = status
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "person_status"
+
+	notify := notify.Message{}
+	notify.Path = "person_status"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+}
+
+func (i *notifyServer) SendDiskInfoBySocket(disk model2.Summary) {
+	body := make(map[string]interface{})
+	body["data"] = disk
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "sys_disk"
+
+	notify := notify.Message{}
+	notify.Path = "sys_disk"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+}
+
+func (i *notifyServer) SendUSBInfoBySocket(list []model2.DriveUSB) {
+	body := make(map[string]interface{})
+	body["data"] = list
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "sys_usb"
+
+	notify := notify.Message{}
+	notify.Path = "sys_usb"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+}
+
+func (i *notifyServer) SendMemInfoBySocket(mem *mem.VirtualMemoryStat) {
+	body := make(map[string]interface{})
+	body["data"] = mem
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "sys_mem"
+
+	notify := notify.Message{}
+	notify.Path = "sys_mem"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+}
+
+func (i *notifyServer) SendInstallAppBySocket(app notify.Application) {
+	body := make(map[string]interface{})
+	body["data"] = app
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "app_install"
+
+	notify := notify.Message{}
+	notify.Path = "app_install"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+}
+
+func (i *notifyServer) SendCPUInfoBySocket(cpu map[string]interface{}) {
+	body := make(map[string]interface{})
+	body["data"] = cpu
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "sys_cpu"
+
+	notify := notify.Message{}
+	notify.Path = "sys_cpu"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+}
+func (i *notifyServer) SendNetInfoBySocket(netList []model2.IOCountersStat) {
+	body := make(map[string]interface{})
+	body["data"] = netList
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "sys_net"
+
+	notify := notify.Message{}
+	notify.Path = "sys_net"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+}
+
+func (i *notifyServer) SendUninstallAppBySocket(app notify.Application) {
+	body := make(map[string]interface{})
+	body["data"] = app
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "app_uninstall"
+
+	notify := notify.Message{}
+	notify.Path = "app_uninstall"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+}
+
+func (i *notifyServer) SSR() {
+	server := socketio.NewServer(nil)
+	fmt.Println(server)
 }
 
 func (i notifyServer) GetList(c int) (list []model.AppNotify) {
@@ -103,25 +323,25 @@ func SendMeg() {
 	//	}
 }
 
-func (i notifyServer) SendText(m model.AppNotify) {
-	list := []model.AppNotify{}
-	list = append(list, m)
-	json, _ := json2.Marshal(list)
-	var temp []*websocket.Conn
-	for _, v := range WebSocketConns {
+// func (i notifyServer) SendText(m model.AppNotify) {
+// 	list := []model.AppNotify{}
+// 	list = append(list, m)
+// 	json, _ := json2.Marshal(list)
+// 	var temp []*websocket.Conn
+// 	for _, v := range WebSocketConns {
 
-		err := v.WriteMessage(1, json)
-		if err == nil {
-			temp = append(temp, v)
-		}
-	}
-	WebSocketConns = temp
+// 		err := v.WriteMessage(1, json)
+// 		if err == nil {
+// 			temp = append(temp, v)
+// 		}
+// 	}
+// 	WebSocketConns = temp
 
-	if len(WebSocketConns) == 0 {
-		SocketRun = false
-	}
+// 	if len(WebSocketConns) == 0 {
+// 		SocketRun = false
+// 	}
 
-}
+// }
 
 func NewNotifyService(db *gorm.DB) NotifyServer {
 	return &notifyServer{db: db}

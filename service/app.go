@@ -15,13 +15,14 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
-	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	client2 "github.com/docker/docker/client"
 	"github.com/pkg/errors"
 	uuid "github.com/satori/go.uuid"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -50,8 +51,7 @@ type AppService interface {
 }
 
 type appStruct struct {
-	db  *gorm.DB
-	log loger2.OLog
+	db *gorm.DB
 }
 
 func (a *appStruct) GetApplicationById(id string) (m model2.ApplicationModel) {
@@ -159,10 +159,9 @@ func (a *appStruct) ImportApplications(casaApp bool) {
 }
 
 func (a *appStruct) GetCasaOSCount() int {
-	//获取docker应用
 	cli, err := client2.NewClientWithOpts(client2.FromEnv, client2.WithTimeout(time.Second*5))
 	if err != nil {
-		a.log.Error("初始化client失败", "app.getmylist", "line:36", err)
+		loger.Error("Failed to init client", zap.Any("err", err))
 		return 0
 	}
 	defer cli.Close()
@@ -172,7 +171,7 @@ func (a *appStruct) GetCasaOSCount() int {
 
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{Filters: fts, Limit: 200})
 	if err != nil {
-		a.log.Error("获取docker容器失败", "app.getmylist", "line:42", err)
+		loger.Error("failed to get container_list", zap.Any("err", err))
 		return 0
 	}
 
@@ -182,10 +181,9 @@ func (a *appStruct) GetCasaOSCount() int {
 
 //获取我的应用列表
 func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppList, *[]model2.MyAppList) {
-	//获取docker应用
 	cli, err := client2.NewClientWithOpts(client2.FromEnv, client2.WithTimeout(time.Second*5))
 	if err != nil {
-		a.log.Error("初始化client失败", "app.getmylist", "line:36", err)
+		loger.Error("Failed to init client", zap.Any("err", err))
 	}
 	defer cli.Close()
 	// fts := filters.NewArgs()
@@ -194,7 +192,7 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 	//fts.Add("casaos", "casaos")
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true})
 	if err != nil {
-		a.log.Error("获取docker容器失败", "app.getmylist", "line:42", err)
+		loger.Error("Failed to get container_list", zap.Any("err", err))
 	}
 	//获取本地数据库应用
 
@@ -215,6 +213,8 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 			Index:      "/",
 			Image:      "",
 			Type:       v.Type,
+			Host:       "",
+			Protocol:   "",
 			NewVersion: false,
 		})
 	}
@@ -239,6 +239,8 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 				Type:       m.Labels["origin"],
 				//Slogan: m.Slogan,
 				//Rely:     m.Rely,
+				Host:     m.Labels["host"],
+				Protocol: m.Labels["protocol"],
 			})
 		} else {
 			unTranslation = append(unTranslation, model2.MyAppList{
@@ -249,6 +251,8 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 				Id:         m.ID,
 				Port:       "",
 				NewVersion: false,
+				Host:       "",
+				Protocol:   "",
 				Image:      m.Image,
 			})
 		}
@@ -304,14 +308,14 @@ func (a *appStruct) GetSystemAppList() []types.Container {
 	//获取docker应用
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
-		a.log.Error("初始化client失败", "app.getmylist", "line:36", err)
+		loger.Error("Failed to init client", zap.Any("err", err))
 	}
 	defer cli.Close()
 	fts := filters.NewArgs()
 	fts.Add("label", "origin=system")
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
 	if err != nil {
-		a.log.Error("获取docker容器失败", "app.sys", "line:123", err)
+		loger.Error("Failed to get container_list", zap.Any("err", err))
 	}
 
 	//获取本地数据库应用
@@ -339,13 +343,13 @@ func (a *appStruct) GetContainerInfo(name string) (types.Container, error) {
 	//获取docker应用
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
-		a.log.Error("初始化client失败", "app.getmylist", "line:36", err)
+		loger.Error("Failed to init client", zap.Any("err", err))
 	}
 	filters := filters.NewArgs()
 	filters.Add("name", name)
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filters})
 	if err != nil {
-		a.log.Error("获取docker容器失败", "app.getcontainerinfo", "line:182", err)
+		loger.Error("Failed to get container_list", zap.Any("err", err))
 	}
 
 	if len(containers) > 0 {
@@ -464,7 +468,7 @@ func (a *appStruct) GetHardwareUsageSteam() {
 	//fts.Add("casaos", "casaos")
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
 	if err != nil {
-		a.log.Error("获取docker容器失败", "app.getmylist", "line:42", err)
+		loger.Error("Failed to get container_list", zap.Any("err", err))
 	}
 	for i := 0; i < 100; i++ {
 		if config.CasaOSGlobalVariables.AppChange {
@@ -511,6 +515,6 @@ func (a *appStruct) GetHardwareUsageSteam() {
 	cancel()
 }
 
-func NewAppService(db *gorm.DB, logger loger2.OLog) AppService {
-	return &appStruct{db: db, log: logger}
+func NewAppService(db *gorm.DB) AppService {
+	return &appStruct{db: db}
 }

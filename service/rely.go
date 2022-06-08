@@ -1,7 +1,16 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2021-09-30 18:18:14
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-06-02 18:00:57
+ * @FilePath: /CasaOS/service/rely.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package service
 
 import (
-	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"gorm.io/gorm"
 )
@@ -13,8 +22,7 @@ type RelyService interface {
 }
 
 type relyService struct {
-	db  *gorm.DB
-	log loger2.OLog
+	db *gorm.DB
 }
 
 func (r *relyService) Create(rely model2.RelyDBModel) {
@@ -35,6 +43,6 @@ func (r *relyService) Delete(id string) {
 	r.db.Where("custom_id = ?", id).Delete(&c)
 }
 
-func NewRelyService(db *gorm.DB, log loger2.OLog) RelyService {
-	return &relyService{db: db, log: log}
+func NewRelyService(db *gorm.DB) RelyService {
+	return &relyService{db: db}
 }

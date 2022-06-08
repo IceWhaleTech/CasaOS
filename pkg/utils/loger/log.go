@@ -1,109 +1,92 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-06-02 15:09:38
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-06-02 17:43:38
+ * @FilePath: /CasaOS/pkg/utils/loger/log.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package loger
 
 import (
 	"fmt"
-	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
-	
+
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	file2 "github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-//定义一个int的别名
-type Level int
+var loggers *zap.Logger
 
-type OLog interface {
-	Debug(v ...interface{})
-	Info(v ...interface{})
-	Warn(v ...interface{})
-	Error(v ...interface{})
-	Fatal(v ...interface{})
-	Path() string
-}
-
-type oLog struct {
-}
-
-var (
-	F                  *os.File
-	DefaultPrefix      = ""
-	DefaultCallerDepth = 2
-	logger             *log.Logger
-	logPrefix          = ""
-	levelFlags         = []string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
-)
-
-//iota在const关键字出现时将被重置为0(const内部的第一行之前)，const中每新增一行常量声明将使iota计数一次(iota可理解为const语句块中的行索引)。
-const (
-	DEBUG Level = iota
-	INFO
-	WARN
-	ERROR
-	FATAL
-)
-
-//日志初始化
-func LogSetup() {
-	var err error
-	filePath := fmt.Sprintf("%s", config.AppInfo.LogSavePath)
-	fileName := fmt.Sprintf("%s.%s",
-		config.AppInfo.LogSaveName,
-		config.AppInfo.LogFileExt,
-	)
-	F, err = file2.MustOpen(fileName, filePath)
-	if err != nil {
-		log.Fatalf("logging.Setup err: %v", err)
+func getFileLogWriter() (writeSyncer zapcore.WriteSyncer) {
+	// 使用 lumberjack 实现 log rotate
+	lumberJackLogger := &lumberjack.Logger{
+		Filename: filepath.Join(config.AppInfo.LogSavePath, fmt.Sprintf("%s.%s",
+			config.AppInfo.LogSaveName,
+			config.AppInfo.LogFileExt,
+		)),
+		MaxSize:    100,
+		MaxBackups: 60,
+		MaxAge:     1,
+		Compress:   true,
 	}
 
-	logger = log.New(F, DefaultPrefix, log.LstdFlags)
-
+	return zapcore.AddSync(lumberJackLogger)
 }
-func (o *oLog) Path() string {
-	filePath := fmt.Sprintf("%s", config.AppInfo.LogSavePath)
-	fileName := fmt.Sprintf("%s.%s",
-		config.AppInfo.LogSaveName,
-		config.AppInfo.LogFileExt,
+
+func LogInit() {
+	encoderConfig := zap.NewProductionEncoderConfig()
+	encoderConfig.EncodeTime = zapcore.EpochTimeEncoder
+	encoder := zapcore.NewJSONEncoder(encoderConfig)
+	fileWriteSyncer := getFileLogWriter()
+	core := zapcore.NewTee(
+		zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zapcore.DebugLevel),
+		zapcore.NewCore(encoder, fileWriteSyncer, zapcore.DebugLevel),
 	)
-	return filePath + fileName
-}
-func (o *oLog) Debug(v ...interface{}) {
-	setPrefix(DEBUG)
-	logger.Println(v)
+	loggers = zap.New(core)
+
 }
 
-func (o *oLog) Info(v ...interface{}) {
-	setPrefix(INFO)
-	logger.Println(v)
+func Info(message string, fields ...zap.Field) {
+	callerFields := getCallerInfoForLog()
+	fields = append(fields, callerFields...)
+	loggers.Info(message, fields...)
 }
 
-func (o *oLog) Warn(v ...interface{}) {
-	setPrefix(WARN)
-	logger.Println(v)
+func Debug(message string, fields ...zap.Field) {
+	callerFields := getCallerInfoForLog()
+	fields = append(fields, callerFields...)
+	loggers.Debug(message, fields...)
 }
 
-func (o *oLog) Error(v ...interface{}) {
-	setPrefix(ERROR)
-	logger.Println(v)
+func Error(message string, fields ...zap.Field) {
+	callerFields := getCallerInfoForLog()
+	fields = append(fields, callerFields...)
+	loggers.Error(message, fields...)
 }
 
-func (o *oLog) Fatal(v ...interface{}) {
-	setPrefix(FATAL)
-	logger.Println(v)
+func Warn(message string, fields ...zap.Field) {
+	callerFields := getCallerInfoForLog()
+	fields = append(fields, callerFields...)
+	loggers.Warn(message, fields...)
 }
 
-func setPrefix(level Level) {
-	_, file, line, ok := runtime.Caller(DefaultCallerDepth)
-	if ok {
-		logPrefix = fmt.Sprintf("[%s][%s:%d]", levelFlags[level], filepath.Base(file), line)
-	} else {
-		logPrefix = fmt.Sprintf("[%s]", levelFlags[level])
+func getCallerInfoForLog() (callerFields []zap.Field) {
+
+	pc, file, line, ok := runtime.Caller(2) // 回溯两层，拿到写日志的调用方的函数信息
+	if !ok {
+		return
 	}
+	funcName := runtime.FuncForPC(pc).Name()
+	funcName = path.Base(funcName) //Base函数返回路径的最后一个元素，只保留函数名
 
-	logger.SetPrefix(logPrefix)
-}
-
-func NewOLoger() OLog {
-	return &oLog{}
+	callerFields = append(callerFields, zap.String("func", funcName), zap.String("file", file), zap.Int("line", line))
+	return
 }

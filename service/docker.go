@@ -7,23 +7,22 @@ import (
 	"encoding/binary"
 	json2 "encoding/json"
 	"fmt"
-	"reflect"
 	"syscall"
 
-	model2 "github.com/IceWhaleTech/CasaOS/service/model"
-	types2 "github.com/IceWhaleTech/CasaOS/types"
+	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/containerd/containerd"
 	"github.com/containerd/containerd/cio"
 	"github.com/containerd/containerd/namespaces"
 	"github.com/containerd/containerd/oci"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 
 	//"github.com/containerd/containerd/oci"
 	"io"
@@ -44,7 +43,7 @@ import (
 )
 
 type DockerService interface {
-	DockerPullImage(imageName string, m model2.AppNotify) error
+	DockerPullImage(imageName string, icon, name string) error
 	IsExistImage(imageName string) bool
 	DockerContainerCreate(imageName string, m model.CustomizationPostData, net string) (containerId string, err error)
 	DockerContainerCopyCreate(info *types.ContainerJSON) (containerId string, err error)
@@ -69,7 +68,6 @@ type DockerService interface {
 
 type dockerService struct {
 	rootDir string
-	log     loger2.OLog
 }
 
 func (ds *dockerService) DockerContainerList() []types.Container {
@@ -319,7 +317,7 @@ func (ds *dockerService) IsExistImage(imageName string) bool {
 }
 
 //安装镜像
-func (ds *dockerService) DockerPullImage(imageName string, m model2.AppNotify) error {
+func (ds *dockerService) DockerPullImage(imageName string, icon, name string) error {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
 		return err
@@ -334,7 +332,8 @@ func (ds *dockerService) DockerPullImage(imageName string, m model2.AppNotify) e
 
 		return err
 	}
-	buf := make([]byte, 256)
+	//io.Copy()
+	buf := make([]byte, 2048*4)
 	for {
 		n, err := out.Read(buf)
 		if err != nil {
@@ -343,11 +342,16 @@ func (ds *dockerService) DockerPullImage(imageName string, m model2.AppNotify) e
 			}
 			break
 		}
-		if !reflect.DeepEqual(m, model2.AppNotify{}) {
-			m.Type = types2.NOTIFY_TYPE_INSTALL_LOG
-			m.State = 0
-			m.Message = string(buf[:n])
-			MyService.Notify().UpdateLog(m)
+		if len(icon) > 0 && len(name) > 0 {
+			notify := notify.Application{}
+			notify.Icon = icon
+			notify.Name = name
+			notify.State = "PULLING"
+			notify.Type = "INSTALL"
+			notify.Finished = false
+			notify.Success = true
+			notify.Message = string(buf[:n])
+			MyService.Notify().SendInstallAppBySocket(notify)
 		}
 
 	}
@@ -433,12 +437,14 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 	}
 
 	var envArr []string
+	var showENV []string
 	for _, e := range m.Envs {
 		if strings.HasPrefix(e.Value, "$") {
 			envArr = append(envArr, e.Name+"="+env_helper.ReplaceDefaultENV(e.Value, MyService.System().GetTimeZone()))
 			continue
 		}
 		if len(e.Value) > 0 {
+			showENV = append(showENV, e.Name)
 			if e.Value == "port_map" {
 				envArr = append(envArr, e.Name+"="+m.PortMap)
 				continue
@@ -476,7 +482,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 		//if len(result1) == 0 {
 		err = file.IsNotExistMkDir(path)
 		if err != nil {
-			ds.log.Error("mkdir error", err)
+			loger.Error("Failed to create a folder", zap.Any("err", err))
 			continue
 		}
 		//}
@@ -530,6 +536,9 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 	config.Labels["desc"] = m.Description
 	config.Labels["index"] = m.Index
 	config.Labels["custom_id"] = m.CustomId
+	config.Labels["show_env"] = strings.Join(showENV, ",")
+	config.Labels["protocol"] = m.Protocol
+	config.Labels["host"] = m.Host
 	//config.Labels["order"] = strconv.Itoa(MyService.App().GetCasaOSCount() + 1)
 	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(net), Privileged: m.Privileged, CapAdd: m.CapAdd}
 	//if net != "host" {
@@ -827,8 +836,8 @@ func (ds *dockerService) DockerNetworkModelList() []types.NetworkResource {
 	networks, _ := cli.NetworkList(context.Background(), types.NetworkListOptions{})
 	return networks
 }
-func NewDockerService(log loger2.OLog) DockerService {
-	return &dockerService{rootDir: command2.ExecResultStr(`source ./shell/helper.sh ;GetDockerRootDir`), log: log}
+func NewDockerService() DockerService {
+	return &dockerService{rootDir: command2.ExecResultStr(`source ./shell/helper.sh ;GetDockerRootDir`)}
 }
 
 //   ---------------------------------------test------------------------------------

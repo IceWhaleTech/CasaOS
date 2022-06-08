@@ -2,9 +2,11 @@ package file
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"mime/multipart"
 	"os"
 	"path"
@@ -12,6 +14,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/mholt/archiver/v3"
 )
 
 // GetSize get the file size
@@ -331,4 +335,150 @@ func SpliceFiles(dir, path string, length int, startPoint int) error {
 	bufferedWriter.Flush()
 
 	return nil
+}
+
+func GetCompressionAlgorithm(t string) (string, archiver.Writer, error) {
+
+	switch t {
+	case "zip", "":
+		return ".zip", archiver.NewZip(), nil
+	case "tar":
+		return ".tar", archiver.NewTar(), nil
+	case "targz":
+		return ".tar.gz", archiver.NewTarGz(), nil
+	case "tarbz2":
+		return ".tar.bz2", archiver.NewTarBz2(), nil
+	case "tarxz":
+		return ".tar.xz", archiver.NewTarXz(), nil
+	case "tarlz4":
+		return ".tar.lz4", archiver.NewTarLz4(), nil
+	case "tarsz":
+		return ".tar.sz", archiver.NewTarSz(), nil
+	default:
+		return "", nil, errors.New("format not implemented")
+	}
+}
+func AddFile(ar archiver.Writer, path, commonPath string) error {
+
+	info, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	if !info.IsDir() && !info.Mode().IsRegular() {
+		return nil
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if path != commonPath {
+		filename := info.Name()
+		err = ar.Write(archiver.File{
+			FileInfo: archiver.FileInfo{
+				FileInfo:   info,
+				CustomName: filename,
+			},
+			ReadCloser: file,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if info.IsDir() {
+		names, err := file.Readdirnames(0)
+		if err != nil {
+			return err
+		}
+
+		for _, name := range names {
+			err = AddFile(ar, filepath.Join(path, name), commonPath)
+			if err != nil {
+				log.Printf("Failed to archive %v", err)
+			}
+		}
+	}
+
+	return nil
+}
+func CommonPrefix(sep byte, paths ...string) string {
+	// Handle special cases.
+	switch len(paths) {
+	case 0:
+		return ""
+	case 1:
+		return path.Clean(paths[0])
+	}
+
+	// Note, we treat string as []byte, not []rune as is often
+	// done in Go. (And sep as byte, not rune). This is because
+	// most/all supported OS' treat paths as string of non-zero
+	// bytes. A filename may be displayed as a sequence of Unicode
+	// runes (typically encoded as UTF-8) but paths are
+	// not required to be valid UTF-8 or in any normalized form
+	// (e.g. "é" (U+00C9) and "é" (U+0065,U+0301) are different
+	// file names.
+	c := []byte(path.Clean(paths[0]))
+
+	// We add a trailing sep to handle the case where the
+	// common prefix directory is included in the path list
+	// (e.g. /home/user1, /home/user1/foo, /home/user1/bar).
+	// path.Clean will have cleaned off trailing / separators with
+	// the exception of the root directory, "/" (in which case we
+	// make it "//", but this will get fixed up to "/" bellow).
+	c = append(c, sep)
+
+	// Ignore the first path since it's already in c
+	for _, v := range paths[1:] {
+		// Clean up each path before testing it
+		v = path.Clean(v) + string(sep)
+
+		// Find the first non-common byte and truncate c
+		if len(v) < len(c) {
+			c = c[:len(v)]
+		}
+		for i := 0; i < len(c); i++ {
+			if v[i] != c[i] {
+				c = c[:i]
+				break
+			}
+		}
+	}
+
+	// Remove trailing non-separator characters and the final separator
+	for i := len(c) - 1; i >= 0; i-- {
+		if c[i] == sep {
+			c = c[:i]
+			break
+		}
+	}
+
+	return string(c)
+}
+
+func GetFileOrDirSize(path string) (int64, error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return 0, err
+	}
+	if fileInfo.IsDir() {
+		return DirSizeB(path + "/")
+	}
+	return fileInfo.Size(), nil
+}
+
+//getFileSize get file size by path(B)
+func DirSizeB(path string) (int64, error) {
+	var size int64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	return size, err
 }
