@@ -35,7 +35,7 @@ type NotifyServer interface {
 	SendUSBInfoBySocket(list []model2.DriveUSB)
 	SendDiskInfoBySocket(disk model2.Summary)
 	SendPersonStatusBySocket(status notify.Person)
-	SendFileOperateNotify()
+	SendFileOperateNotify(nowSend bool)
 	SendInstallAppBySocket(app notify.Application)
 }
 
@@ -44,19 +44,32 @@ type notifyServer struct {
 }
 
 // Send periodic broadcast messages
-func (i *notifyServer) SendFileOperateNotify() {
-	for {
+func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 
+	if nowSend {
 		len := 0
 		FileQueue.Range(func(k, v interface{}) bool {
 			len++
 			return true
 		})
+		model := notify.NotifyModel{}
+		listMsg := make(map[string]interface{})
 		if len == 0 {
+			model.Data = []string{}
+
+			listMsg["file_operate"] = model
+			msg := gosf.Message{}
+			msg.Success = true
+			msg.Body = listMsg
+			msg.Text = "file_operate"
+
+			notify := notify.Message{}
+			notify.Path = "file_operate"
+			notify.Msg = msg
+			NotifyMsg <- notify
 			return
 		}
-		listMsg := make(map[string]interface{})
-		model := notify.NotifyModel{}
+
 		model.State = "NORMAL"
 		list := []notify.File{}
 		OpStrArrbak := OpStrArr
@@ -78,7 +91,7 @@ func (i *notifyServer) SendFileOperateNotify() {
 			} else {
 				task.Status = "PROCESSING"
 			}
-			if temp.ProcessedSize == temp.TotalSize {
+			if temp.ProcessedSize >= temp.TotalSize {
 				task.Finished = true
 				task.Status = "FINISHED"
 				FileQueue.Delete(v)
@@ -109,8 +122,75 @@ func (i *notifyServer) SendFileOperateNotify() {
 		notify.Path = "file_operate"
 		notify.Msg = msg
 		NotifyMsg <- notify
-		time.Sleep(time.Second * 3)
+	} else {
+		for {
+
+			len := 0
+			FileQueue.Range(func(k, v interface{}) bool {
+				len++
+				return true
+			})
+			if len == 0 {
+				return
+			}
+			listMsg := make(map[string]interface{})
+			model := notify.NotifyModel{}
+			model.State = "NORMAL"
+			list := []notify.File{}
+			OpStrArrbak := OpStrArr
+
+			for _, v := range OpStrArrbak {
+				tempItem, ok := FileQueue.Load(v)
+				temp := tempItem.(model2.FileOperate)
+				if !ok {
+					continue
+				}
+				task := notify.File{}
+				task.Id = v
+				task.ProcessedSize = temp.ProcessedSize
+				task.TotalSize = temp.TotalSize
+				task.To = temp.To
+				task.Type = temp.Type
+				if task.ProcessedSize == 0 {
+					task.Status = "STARTING"
+				} else {
+					task.Status = "PROCESSING"
+				}
+				if temp.ProcessedSize >= temp.TotalSize {
+					task.Finished = true
+					task.Status = "FINISHED"
+					FileQueue.Delete(v)
+					OpStrArr = OpStrArr[1:]
+					go ExecOpFile()
+					list = append(list, task)
+					continue
+				}
+				for _, v := range temp.Item {
+					if v.Size != v.ProcessedSize {
+						task.ProcessingPath = v.From
+						break
+					}
+				}
+
+				list = append(list, task)
+			}
+			model.Data = list
+
+			listMsg["file_operate"] = model
+
+			msg := gosf.Message{}
+			msg.Success = true
+			msg.Body = listMsg
+			msg.Text = "file_operate"
+
+			notify := notify.Message{}
+			notify.Path = "file_operate"
+			notify.Msg = msg
+			NotifyMsg <- notify
+			time.Sleep(time.Second * 3)
+		}
 	}
+
 }
 
 func (i *notifyServer) SendPersonStatusBySocket(status notify.Person) {

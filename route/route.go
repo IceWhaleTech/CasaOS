@@ -152,6 +152,7 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.DELETE("/delete", v1.DeleteFile)
 			v1FileGroup.PUT("/update", v1.PutFileContent)
 			v1FileGroup.GET("/image", v1.GetFileImage)
+			v1FileGroup.DELETE("/operate/:id", v1.DeleteOperateFileOrDir)
 
 			//v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
 		}
