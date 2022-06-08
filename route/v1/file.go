@@ -150,7 +150,7 @@ func GetDownloadFile(c *gin.Context) {
 	}
 	c.Header("Content-Type", "application/octet-stream")
 	c.Header("Content-Transfer-Encoding", "binary")
-	c.Header("Cache-Control", "private")
+	c.Header("Cache-Control", "no-cache")
 	// handles only single files not folders and multiple files
 	if len(list) == 1 {
 
