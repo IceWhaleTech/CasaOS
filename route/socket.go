@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-23 17:18:56
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-05-30 17:06:08
+ * @LastEditTime: 2022-06-08 16:31:24
  * @FilePath: /CasaOS/route/socket.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -11,14 +11,35 @@
 package route
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model/notify"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/service"
 	f "github.com/ambelovsky/gosf"
 )
 
-func ScoketInit(port int, msg chan notify.Message) {
+func SocketInit(msg chan notify.Message) {
+
+	// set socket port
+	socketPort := 0
+	if len(config.ServerInfo.SocketPort) == 0 {
+		socketPort, _ = port.GetAvailablePort("tcp")
+		config.ServerInfo.SocketPort = strconv.Itoa(socketPort)
+		config.Cfg.Section("server").Key("SocketPort").SetValue(strconv.Itoa(socketPort))
+		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	} else {
+		socketPort, _ = strconv.Atoi(config.ServerInfo.SocketPort)
+		if !port.IsPortAvailable(socketPort, "tcp") {
+			socketPort, _ := port.GetAvailablePort("tcp")
+			config.ServerInfo.SocketPort = strconv.Itoa(socketPort)
+			config.Cfg.Section("server").Key("SocketPort").SetValue(strconv.Itoa(socketPort))
+			config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+		}
+	}
+
 	f.OnConnect(func(c *f.Client, request *f.Request) {
 		service.ClientCount += 1
 	})
@@ -34,6 +55,6 @@ func ScoketInit(port int, msg chan notify.Message) {
 	}(msg)
 
 	f.Startup(map[string]interface{}{
-		"port": port})
+		"port": socketPort})
 
 }

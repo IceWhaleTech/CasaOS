@@ -1,8 +1,8 @@
 /*
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-12-20 14:15:46
- * @LastEditors: link a624669980@163.com
- * @LastEditTime: 2022-06-07 22:21:29
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-06-08 15:46:36
  * @FilePath: /CasaOS/service/file.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -12,19 +12,18 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 )
 
-var FileQueue map[string]model.FileOperate
-var OpFile chan string
+var FileQueue sync.Map
 
 var OpStrArr []string
 
@@ -77,71 +76,84 @@ func (w *writer) Write(p []byte) (n int, err error) {
 		return w.w.Write(p)
 	}
 }
-func FileOperate() {
-	for i := range OpFile {
-		list := FileQueue[i]
-		for _, v := range list.Item {
-			if list.Type == "move" {
-				lastPath := v.From[strings.LastIndex(v.From, "/")+1:]
-				if !file.CheckNotExist(list.To + "/" + lastPath) {
-					continue
-				}
-				err := os.Rename(v.From, list.To+"/"+lastPath)
-				if err != nil {
-					continue
-				}
-			} else if list.Type == "copy" {
-				err := file.CopyDir(v.From, list.To)
-				if err != nil {
-					continue
-				}
-			} else {
+func FileOperate(k string) {
+
+	list, ok := FileQueue.Load(k)
+	if !ok {
+		return
+	}
+
+	temp := list.(model.FileOperate)
+	if temp.ProcessedSize > 0 {
+		return
+	}
+	for _, v := range temp.Item {
+		if temp.Type == "move" {
+			lastPath := v.From[strings.LastIndex(v.From, "/")+1:]
+			if !file.CheckNotExist(temp.To + "/" + lastPath) {
 				continue
 			}
+			err := os.Rename(v.From, temp.To+"/"+lastPath)
+			if err != nil {
+				continue
+			}
+		} else if temp.Type == "copy" {
+			err := file.CopyDir(v.From, temp.To)
+			if err != nil {
+				continue
+			}
+		} else {
+			continue
 		}
 	}
 
 }
 
-func Op() {
-	for {
-		//TODO:Debugging is also required. .
-		if len(OpStrArr) == 0 {
-			close(OpFile)
-			return
-		}
-		fmt.Println("start")
-		OpFile <- OpStrArr[0]
-		fmt.Println("end")
+func ExecOpFile() {
+	len := len(OpStrArr)
+	if len == 0 {
+		return
+	}
+	if len > 1 {
+		len = 1
+	}
+	for i := 0; i < len; i++ {
+		go FileOperate(OpStrArr[i])
 	}
 }
 
 // file move or copy and send notify
 func CheckFileStatus() {
 	for {
-		if len(FileQueue) == 0 {
+		if len(OpStrArr) == 0 {
 			return
 		}
-		for k, v := range FileQueue {
+		for _, v := range OpStrArr {
 			var total int64 = 0
-			for i := 0; i < len(v.Item); i++ {
-				if !v.Item[i].Finished {
-					size, err := file.GetFileOrDirSize(v.To + "/" + filepath.Base(v.Item[i].From))
+			item, ok := FileQueue.Load(v)
+			if !ok {
+				continue
+			}
+			temp := item.(model.FileOperate)
+			for i := 0; i < len(temp.Item); i++ {
+
+				if !temp.Item[i].Finished {
+					size, err := file.GetFileOrDirSize(temp.To + "/" + filepath.Base(temp.Item[i].From))
 					if err != nil {
 						continue
 					}
-					v.Item[i].ProcessedSize = size
-					if size == v.Item[i].Size {
-						v.Item[i].Finished = true
+					temp.Item[i].ProcessedSize = size
+					if size == temp.Item[i].Size {
+						temp.Item[i].Finished = true
 					}
 					total += size
 				} else {
-					total += v.Item[i].ProcessedSize
+					total += temp.Item[i].ProcessedSize
 				}
 
 			}
-			v.ProcessedSize = total
-			FileQueue[k] = v
+			temp.ProcessedSize = total
+			FileQueue.Store(v, temp)
 		}
 		time.Sleep(time.Second * 3)
 	}

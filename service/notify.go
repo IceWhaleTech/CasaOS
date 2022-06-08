@@ -46,34 +46,48 @@ type notifyServer struct {
 // Send periodic broadcast messages
 func (i *notifyServer) SendFileOperateNotify() {
 	for {
-		if len(FileQueue) == 0 {
+
+		len := 0
+		FileQueue.Range(func(k, v interface{}) bool {
+			len++
+			return true
+		})
+		if len == 0 {
 			return
 		}
 		listMsg := make(map[string]interface{})
 		model := notify.NotifyModel{}
 		model.State = "NORMAL"
 		list := []notify.File{}
-		for k, v := range FileQueue {
+		OpStrArrbak := OpStrArr
+
+		for _, v := range OpStrArrbak {
+			tempItem, ok := FileQueue.Load(v)
+			temp := tempItem.(model2.FileOperate)
+			if !ok {
+				continue
+			}
 			task := notify.File{}
-			task.Id = k
-			task.ProcessedSize = v.ProcessedSize
-			task.TotalSize = v.TotalSize
-			task.To = v.To
-			task.Type = v.Type
+			task.Id = v
+			task.ProcessedSize = temp.ProcessedSize
+			task.TotalSize = temp.TotalSize
+			task.To = temp.To
+			task.Type = temp.Type
 			if task.ProcessedSize == 0 {
 				task.Status = "STARTING"
 			} else {
 				task.Status = "PROCESSING"
 			}
-			if v.ProcessedSize == v.TotalSize {
+			if temp.ProcessedSize == temp.TotalSize {
 				task.Finished = true
 				task.Status = "FINISHED"
-				delete(FileQueue, k)
+				FileQueue.Delete(v)
 				OpStrArr = OpStrArr[1:]
+				go ExecOpFile()
 				list = append(list, task)
-				break
+				continue
 			}
-			for _, v := range v.Item {
+			for _, v := range temp.Item {
 				if v.Size != v.ProcessedSize {
 					task.ProcessingPath = v.From
 					break

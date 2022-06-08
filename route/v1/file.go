@@ -276,10 +276,15 @@ func DirPath(c *gin.Context) {
 
 	//Hide the files or folders in operation
 	fileQueue := make(map[string]string)
-	for _, v := range service.FileQueue {
-		for _, i := range v.Item {
+	for _, v := range service.OpStrArr {
+		v, ok := service.FileQueue.Load(v)
+		if !ok {
+			continue
+		}
+		vt := v.(model.FileOperate)
+		for _, i := range vt.Item {
 			lastPath := i.From[strings.LastIndex(i.From, "/")+1:]
-			fileQueue[v.To+"/"+lastPath] = i.From
+			fileQueue[vt.To+"/"+lastPath] = i.From
 		}
 	}
 	pathList := []model.Path{}
@@ -503,18 +508,13 @@ func PostOperateFileOrDir(c *gin.Context) {
 	list.ProcessedSize = 0
 
 	uid := uuid.NewV4().String()
-	service.FileQueue[uid] = list
+	service.FileQueue.Store(uid, list)
 	service.OpStrArr = append(service.OpStrArr, uid)
-	if len(service.OpFile) == 0 {
-		service.OpFile = make(chan string, 1)
-		go service.FileOperate()
-		go service.Op()
-	}
 
-	if len(service.FileQueue) == 1 {
-		go service.MyService.Notify().SendFileOperateNotify()
+	if len(service.OpStrArr) == 1 {
+		go service.ExecOpFile()
 		go service.CheckFileStatus()
-
+		go service.MyService.Notify().SendFileOperateNotify()
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})

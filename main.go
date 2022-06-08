@@ -4,16 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
-	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
 
@@ -48,7 +45,6 @@ func init() {
 	service.CancelList = make(map[string]string)
 	service.InternalInspection = make(map[string][]string)
 	service.NewVersionApp = make(map[string]string)
-	service.FileQueue = make(map[string]model.FileOperate)
 	route.InitFunction()
 
 	go service.SendIPToServer()
@@ -76,9 +72,8 @@ func main() {
 		fmt.Println("Password:" + config.UserInfo.PWD)
 		return
 	}
-	p, _ := port.GetAvailablePort("tcp")
-	config.ServerInfo.SocketPort = strconv.Itoa(p)
-	go route.ScoketInit(p, service.NotifyMsg)
+
+	go route.SocketInit(service.NotifyMsg)
 	go func() {
 		for i := 0; i < 1000; i++ {
 			time.Sleep(2 * time.Second)
