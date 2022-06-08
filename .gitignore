@@ -29,6 +29,7 @@ gen
 /out/
 /db/
 /docs/
+/web/
 /conf/conf.ini
 __debug_bin
 main
