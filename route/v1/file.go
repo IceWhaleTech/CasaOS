@@ -495,6 +495,11 @@ func PostOperateFileOrDir(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
 		return
 	}
+	if list.To == list.Item[0].From[:strings.LastIndex(list.Item[0].From, "/")] {
+		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SOURCE_DES_SAME, Message: oasis_err2.GetMsg(oasis_err2.SOURCE_DES_SAME)})
+		return
+	}
+
 	var total int64 = 0
 	for i := 0; i < len(list.Item); i++ {
 

@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-20 16:27:12
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-08 15:40:33
+ * @LastEditTime: 2022-06-09 18:18:46
  * @FilePath: /CasaOS/model/file.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -16,6 +16,8 @@ type FileOperate struct {
 	TotalSize     int64      `json:"total_size"`
 	ProcessedSize int64      `json:"processed_size"`
 	To            string     `json:"to" binding:"required"`
+	Style         string     `json:"style"`
+	Finished      bool       `json:"finished"`
 }
 
 type FileItem struct {

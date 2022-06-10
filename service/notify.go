@@ -37,10 +37,37 @@ type NotifyServer interface {
 	SendPersonStatusBySocket(status notify.Person)
 	SendFileOperateNotify(nowSend bool)
 	SendInstallAppBySocket(app notify.Application)
+	SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat)
 }
 
 type notifyServer struct {
 	db *gorm.DB
+}
+
+func (i *notifyServer) SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat) {
+
+	body := make(map[string]interface{})
+	body["sys_disk"] = disk
+
+	body["sys_usb"] = list
+
+	body["sys_mem"] = mem
+
+	body["sys_cpu"] = cpu
+
+	body["sys_net"] = netList
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "sys_hardware_status"
+
+	notify := notify.Message{}
+	notify.Path = "sys_hardware_status"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+
 }
 
 // Send periodic broadcast messages
@@ -94,7 +121,7 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 				task.Status = "PROCESSING"
 			}
 
-			if temp.ProcessedSize >= temp.TotalSize {
+			if temp.Finished || temp.ProcessedSize >= temp.TotalSize {
 
 				task.Finished = true
 				task.Status = "FINISHED"
@@ -160,7 +187,8 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 				} else {
 					task.Status = "PROCESSING"
 				}
-				if temp.ProcessedSize >= temp.TotalSize {
+				if temp.Finished || temp.ProcessedSize >= temp.TotalSize {
+
 					task.Finished = true
 					task.Status = "FINISHED"
 					FileQueue.Delete(v)

@@ -186,7 +186,7 @@ func ReadFullFile(path string) []byte {
 }
 
 // File copies a single file from src to dst
-func CopyFile(src, dst string) error {
+func CopyFile(src, dst, style string) error {
 	var err error
 	var srcfd *os.File
 	var dstfd *os.File
@@ -197,20 +197,13 @@ func CopyFile(src, dst string) error {
 	if !strings.HasSuffix(dst, "/") {
 		dst += "/"
 	}
-	dstPath := dst
 	dst += lastPath
-	for i := 0; Exists(dst); i++ {
-		name := strings.Split(lastPath, ".")
-		nameIndex := 0
-		if len(name) > 2 {
-			nameIndex = len(name) - 2
+	if Exists(dst) {
+		if style == "skip" {
+			return nil
+		} else {
+			os.Remove(dst)
 		}
-		name[nameIndex] = name[nameIndex] + "(Copy)"
-		dst = dstPath
-		for _, v := range name {
-			dst += v + "."
-		}
-		dst = strings.TrimSuffix(dst, ".")
 	}
 
 	if srcfd, err = os.Open(src); err != nil {
@@ -244,7 +237,7 @@ func GetNoDuplicateFileName(fullPath string) string {
 }
 
 // Dir copies a whole directory recursively
-func CopyDir(src string, dst string) error {
+func CopyDir(src string, dst string, style string) error {
 	var err error
 	var fds []os.FileInfo
 	var srcinfo os.FileInfo
@@ -253,16 +246,23 @@ func CopyDir(src string, dst string) error {
 		return err
 	}
 	if !srcinfo.IsDir() {
-		if err = CopyFile(src, dst); err != nil {
+		if err = CopyFile(src, dst, style); err != nil {
 			fmt.Println(err)
 		}
 		return nil
 	}
-	dstPath := dst
+	//dstPath := dst
 	lastPath := src[strings.LastIndex(src, "/")+1:]
 	dst += "/" + lastPath
-	for i := 0; Exists(dst); i++ {
-		dst = dstPath + "/" + lastPath + strconv.Itoa(i+1)
+	// for i := 0; Exists(dst); i++ {
+	// 	dst = dstPath + "/" + lastPath + strconv.Itoa(i+1)
+	// }
+	if Exists(dst) {
+		if style == "skip" {
+			return nil
+		} else {
+			os.Remove(dst)
+		}
 	}
 	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
 		return err
@@ -275,11 +275,11 @@ func CopyDir(src string, dst string) error {
 		dstfp := dst //path.Join(dst, fd.Name())
 
 		if fd.IsDir() {
-			if err = CopyDir(srcfp, dstfp); err != nil {
+			if err = CopyDir(srcfp, dstfp, style); err != nil {
 				fmt.Println(err)
 			}
 		} else {
-			if err = CopyFile(srcfp, dstfp); err != nil {
+			if err = CopyFile(srcfp, dstfp, style); err != nil {
 				fmt.Println(err)
 			}
 		}

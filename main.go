@@ -102,11 +102,12 @@ func main() {
 	}
 	err = cron2.AddFunc("0/3 * * * * *", func() {
 		if service.ClientCount > 0 {
-			route.SendNetINfoBySocket()
-			route.SendCPUBySocket()
-			route.SendMemBySocket()
-			route.SendDiskBySocket()
-			route.SendUSBBySocket()
+			// route.SendNetINfoBySocket()
+			// route.SendCPUBySocket()
+			// route.SendMemBySocket()
+			// route.SendDiskBySocket()
+			// route.SendUSBBySocket()
+			route.SendAllHardwareStatusBySocket()
 		}
 	})
 	if err != nil {
