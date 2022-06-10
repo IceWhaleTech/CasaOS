@@ -199,7 +199,6 @@ func GetDownloadFile(c *gin.Context) {
 	defer ar.Close()
 	commonDir := file.CommonPrefix(filepath.Separator, list...)
 
-
 	currentPath := filepath.Base(commonDir)
 
 	name := "_" + currentPath
@@ -278,17 +277,20 @@ func DirPath(c *gin.Context) {
 
 	//Hide the files or folders in operation
 	fileQueue := make(map[string]string)
-	for _, v := range service.OpStrArr {
-		v, ok := service.FileQueue.Load(v)
-		if !ok {
-			continue
-		}
-		vt := v.(model.FileOperate)
-		for _, i := range vt.Item {
-			lastPath := i.From[strings.LastIndex(i.From, "/")+1:]
-			fileQueue[vt.To+"/"+lastPath] = i.From
+	if len(service.OpStrArr) > 0 {
+		for _, v := range service.OpStrArr {
+			v, ok := service.FileQueue.Load(v)
+			if !ok {
+				continue
+			}
+			vt := v.(model.FileOperate)
+			for _, i := range vt.Item {
+				lastPath := i.From[strings.LastIndex(i.From, "/")+1:]
+				fileQueue[vt.To+"/"+lastPath] = i.From
+			}
 		}
 	}
+
 	pathList := []model.Path{}
 	for i := 0; i < len(info); i++ {
 		if _, ok := fileQueue[info[i].Path]; !ok {

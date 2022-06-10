@@ -67,7 +67,7 @@ func (d *diskService) SmartCTL(path string) model.SmartctlA {
 		loger.Error("Failed to unmarshal json", zap.Any("err", err))
 	}
 	if !reflect.DeepEqual(m, model.SmartctlA{}) {
-		Cache.Add(key, m, time.Second*10)
+		Cache.Add(key, m, time.Hour*24)
 	}
 	return m
 }
