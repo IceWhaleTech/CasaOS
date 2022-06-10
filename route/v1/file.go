@@ -199,6 +199,7 @@ func GetDownloadFile(c *gin.Context) {
 	defer ar.Close()
 	commonDir := file.CommonPrefix(filepath.Separator, list...)
 
+
 	currentPath := filepath.Base(commonDir)
 
 	name := "_" + currentPath

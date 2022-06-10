@@ -122,6 +122,7 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 			}
 
 			if temp.Finished || temp.ProcessedSize >= temp.TotalSize {
+
 				task.Finished = true
 				task.Status = "FINISHED"
 				FileQueue.Delete(v)
@@ -187,6 +188,7 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 					task.Status = "PROCESSING"
 				}
 				if temp.Finished || temp.ProcessedSize >= temp.TotalSize {
+
 					task.Finished = true
 					task.Status = "FINISHED"
 					FileQueue.Delete(v)
