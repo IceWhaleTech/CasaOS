@@ -100,7 +100,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	err = cron2.AddFunc("0/3 * * * * *", func() {
+	err = cron2.AddFunc("0/5 * * * * *", func() {
 		if service.ClientCount > 0 {
 			// route.SendNetINfoBySocket()
 			// route.SendCPUBySocket()
