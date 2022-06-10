@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-23 17:18:56
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-08 16:31:24
+ * @LastEditTime: 2022-06-09 21:48:10
  * @FilePath: /CasaOS/route/socket.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -49,7 +49,7 @@ func SocketInit(msg chan notify.Message) {
 	go func(msg chan notify.Message) {
 		for v := range msg {
 			f.Broadcast("", v.Path, &v.Msg)
-			time.Sleep(time.Millisecond * 300)
+			time.Sleep(time.Millisecond * 100)
 		}
 
 	}(msg)

@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-12-20 14:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-08 15:46:36
+ * @LastEditTime: 2022-06-09 18:15:54
  * @FilePath: /CasaOS/service/file.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -21,6 +21,8 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"go.uber.org/zap"
 )
 
 var FileQueue sync.Map
@@ -87,26 +89,37 @@ func FileOperate(k string) {
 	if temp.ProcessedSize > 0 {
 		return
 	}
-	for _, v := range temp.Item {
+	for i := 0; i < len(temp.Item); i++ {
+		v := temp.Item[i]
 		if temp.Type == "move" {
 			lastPath := v.From[strings.LastIndex(v.From, "/")+1:]
+
 			if !file.CheckNotExist(temp.To + "/" + lastPath) {
-				continue
+				if temp.Style == "skip" {
+					temp.Item[i].Finished = true
+					continue
+				} else {
+					os.Remove(temp.To + "/" + lastPath)
+				}
 			}
+
 			err := os.Rename(v.From, temp.To+"/"+lastPath)
 			if err != nil {
+				loger.Debug("file move error", zap.Any("err", err))
 				continue
 			}
 		} else if temp.Type == "copy" {
-			err := file.CopyDir(v.From, temp.To)
+			err := file.CopyDir(v.From, temp.To, temp.Style)
 			if err != nil {
 				continue
 			}
 		} else {
 			continue
 		}
-	}
 
+	}
+	temp.Finished = true
+	FileQueue.Store(k, temp)
 }
 
 func ExecOpFile() {

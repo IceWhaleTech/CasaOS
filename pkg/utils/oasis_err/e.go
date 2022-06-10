@@ -40,6 +40,7 @@ const (
 	FILE_READ_ERROR     = 60002
 	FILE_DELETE_ERROR   = 60003
 	DIR_NOT_EXISTS      = 60004
+	SOURCE_DES_SAME     = 60005
 
 	//shortcuts
 	SHORTCUTS_URL_ERROR = 70001
@@ -88,6 +89,7 @@ var MsgFlags = map[int]string{
 	FORMAT_ERROR:             "Formatting failed, please check if the directory is occupied",
 
 	//
+	SOURCE_DES_SAME:     "Source and destination cannot be the same.",
 	FILE_DOES_NOT_EXIST: "File does not exist",
 
 	DIR_NOT_EXISTS: "Directory does not exist",
