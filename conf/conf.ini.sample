@@ -21,20 +21,10 @@ Handshake = socket.casaos.io
 Token = 
 USBAutoMount =
 
-[user]
-UserName = 
-PWD = 
-Email = user@gmail.com
-Description = description
-Initialized = false
-Avatar = 
-NickName = 
-PublicKey =
 
 [system]
 ConfigStr = 
 WidgetList =
-Analyse =
 
 
 [file]

@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.3.2.1] - 2022-06-13
+
+### Fixed
+
+- Fix the problem of application opening failure on non-80 ports ([#283](https://github.com/IceWhaleTech/CasaOS/issues/283) [#280](https://github.com/IceWhaleTech/CasaOS/issues/280))
+- Modify port failure problem ([#282](https://github.com/IceWhaleTech/CasaOS/issues/282))
+- Modify environment variables disappearing problem([#284](https://github.com/IceWhaleTech/CasaOS/issues/284))
 ## [0.3.2] - 2022-06-10
 
 ### Added
