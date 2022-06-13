@@ -1184,14 +1184,24 @@ func ContainerUpdateInfo(c *gin.Context) {
 	var envs model.EnvArray
 	// json2.Unmarshal([]byte(appInfo.Envs), &envs)
 
-	for _, v := range info.Config.Env {
-		showENV := info.Config.Labels["show_env"]
-		showENVList := strings.Split(showENV, ",")
-		showENVMap := make(map[string]string)
+	showENV := info.Config.Labels["show_env"]
+	showENVList := strings.Split(showENV, ",")
+	showENVMap := make(map[string]string)
+	if len(showENVList) > 1 {
 		for _, name := range showENVList {
 			showENVMap[name] = "1"
 		}
-		if _, ok := showENVMap[v]; ok {
+	}
+	for _, v := range info.Config.Env {
+		if len(showENVList) > 1 {
+			if _, ok := showENVMap[strings.Split(v, "=")[0]]; ok {
+				temp := model.Env{
+					Name:  strings.Split(v, "=")[0],
+					Value: strings.Split(v, "=")[1],
+				}
+				envs = append(envs, temp)
+			}
+		} else {
 			temp := model.Env{
 				Name:  strings.Split(v, "=")[0],
 				Value: strings.Split(v, "=")[1],

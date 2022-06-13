@@ -64,6 +64,8 @@ func InitRouter() *gin.Engine {
 			v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)
 
 			v1UserGroup.GET("/shareid", v1.GetUserShareID)
+			// v1UserGroup.GET("/custom/:name")
+			// v1UserGroup.POST("/custom/:name")
 
 		}
 		v1AppGroup := v1Group.Group("/app")
@@ -112,7 +114,7 @@ func InitRouter() *gin.Engine {
 		v1SysGroup := v1Group.Group("/sys")
 		v1SysGroup.Use()
 		{
-			v1SysGroup.GET("/check", v1.CheckVersion)
+			v1SysGroup.GET("/version/check", v1.GetSystemCheckVersion)
 			v1SysGroup.GET("/hardware/info", v1.GetSystemHardwareInfo)
 			v1SysGroup.POST("/update", v1.SystemUpdate)
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
@@ -123,15 +125,14 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)
 			v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
-			v1SysGroup.POST("/kill", v1.PostKillCasaOS)
-			v1SysGroup.GET("/info", v1.Info)
-			v1SysGroup.PUT("/usb/off", v1.PutSystemOffUSBAutoMount)
-			v1SysGroup.PUT("/usb/on", v1.PutSystemOnUSBAutoMount)
-			v1SysGroup.GET("/usb", v1.GetSystemUSBAutoMount)
-			v1SysGroup.GET("/cpu", v1.CupInfo)
-			v1SysGroup.GET("/mem", v1.MemInfo)
-			v1SysGroup.GET("/disk", v1.DiskInfo)
-			v1SysGroup.GET("/network", v1.NetInfo)
+			v1SysGroup.POST("/stop", v1.PostKillCasaOS)
+			v1SysGroup.GET("/utilization", v1.GetSystemUtilization)
+			v1SysGroup.PUT("/usb/:status", v1.PutSystemUSBAutoMount)
+			v1SysGroup.GET("/usb/status", v1.GetSystemUSBAutoMount)
+			v1SysGroup.GET("/cpu", v1.GetSystemCupInfo)
+			v1SysGroup.GET("/mem", v1.GetSystemMemInfo)
+			v1SysGroup.GET("/disk", v1.GetSystemDiskInfo)
+			v1SysGroup.GET("/network", v1.GetSystemNetInfo)
 
 		}
 		v1FileGroup := v1Group.Group("/file")

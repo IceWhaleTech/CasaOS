@@ -438,13 +438,14 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 
 	var envArr []string
 	var showENV []string
+	showENV = append(showENV, "casaos")
 	for _, e := range m.Envs {
+		showENV = append(showENV, e.Name)
 		if strings.HasPrefix(e.Value, "$") {
 			envArr = append(envArr, e.Name+"="+env_helper.ReplaceDefaultENV(e.Value, MyService.System().GetTimeZone()))
 			continue
 		}
 		if len(e.Value) > 0 {
-			showENV = append(showENV, e.Name)
 			if e.Value == "port_map" {
 				envArr = append(envArr, e.Name+"="+m.PortMap)
 				continue

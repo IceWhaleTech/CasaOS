@@ -29,8 +29,8 @@ import (
 // @Tags sys
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /sys/check [get]
-func CheckVersion(c *gin.Context) {
+// @Router /sys/version/check [get]
+func GetSystemCheckVersion(c *gin.Context) {
 	need, version := version.IsNeedUpdate()
 	if need {
 		installLog := model2.AppNotify{}
@@ -47,7 +47,6 @@ func CheckVersion(c *gin.Context) {
 	data["version"] = version
 	data["current_version"] = types.CURRENTVERSION
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
-	return
 }
 
 // @Summary 系统信息
@@ -65,7 +64,7 @@ func SystemUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
 }
 
-//系统配置
+//Get system config
 func GetSystemConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.ConfigStr)})
 }
@@ -182,11 +181,14 @@ func GetCasaOSPort(c *gin.Context) {
 // @Accept application/json
 // @Tags sys
 // @Security ApiKeyAuth
-// @Param port formData string true "port"
+// @Param port json string true "port"
 // @Success 200 {string} string "ok"
 // @Router /sys/port [put]
 func PutCasaOSPort(c *gin.Context) {
-	port, err := strconv.Atoi(c.PostForm("port"))
+	json := make(map[string]string)
+	c.BindJSON(&json)
+	portStr := json["port"]
+	port, err := strconv.Atoi(portStr)
 	if err != nil {
 		c.JSON(http.StatusOK,
 			model.Result{
@@ -241,7 +243,7 @@ func GetGuideCheck(c *gin.Context) {
 // @Tags sys
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /sys/kill [post]
+// @Router /sys/restart [post]
 func PostKillCasaOS(c *gin.Context) {
 	os.Exit(0)
 }
@@ -253,9 +255,16 @@ func PostKillCasaOS(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/usb/off [put]
-func PutSystemOffUSBAutoMount(c *gin.Context) {
-	service.MyService.System().UpdateUSBAutoMount("False")
-	service.MyService.System().ExecUSBAutoMountShell("False")
+func PutSystemUSBAutoMount(c *gin.Context) {
+	status := c.Param("status")
+	if status == "on" {
+		service.MyService.System().UpdateUSBAutoMount("True")
+		service.MyService.System().ExecUSBAutoMountShell("True")
+	} else {
+		service.MyService.System().UpdateUSBAutoMount("False")
+		service.MyService.System().ExecUSBAutoMountShell("False")
+	}
+
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: oasis_err.SUCCESS,
@@ -303,31 +312,14 @@ func GetSystemHardwareInfo(c *gin.Context) {
 		})
 }
 
-// @Summary Turn off usb auto-mount
+// @Summary system utilization
 // @Produce  application/json
 // @Accept application/json
 // @Tags sys
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /sys/usb/on [put]
-func PutSystemOnUSBAutoMount(c *gin.Context) {
-	service.MyService.System().UpdateUSBAutoMount("True")
-	service.MyService.System().ExecUSBAutoMountShell("True")
-	c.JSON(http.StatusOK,
-		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
-		})
-}
-
-// @Summary system info
-// @Produce  application/json
-// @Accept application/json
-// @Tags sys
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /sys/info [get]
-func Info(c *gin.Context) {
+// @Router /sys/utilization [get]
+func GetSystemUtilization(c *gin.Context) {
 	var data = make(map[string]interface{}, 6)
 
 	list := service.MyService.Disk().LSBLK(true)
@@ -470,4 +462,72 @@ func GetSystemSocketPort(c *gin.Context) {
 			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
 			Data:    config.ServerInfo.SocketPort,
 		})
+}
+
+// @Summary get cpu info
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/cpu [get]
+func GetSystemCupInfo(c *gin.Context) {
+	cpu := service.MyService.System().GetCpuPercent()
+	num := service.MyService.System().GetCpuCoreNum()
+	data := make(map[string]interface{})
+	data["percent"] = cpu
+	data["num"] = num
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+
+}
+
+// @Summary get mem info
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/mem [get]
+func GetSystemMemInfo(c *gin.Context) {
+	mem := service.MyService.System().GetMemInfo()
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: mem})
+
+}
+
+// @Summary get disk info
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/disk [get]
+func GetSystemDiskInfo(c *gin.Context) {
+	disk := service.MyService.ZiMa().GetDiskInfo()
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: disk})
+}
+
+// @Summary get Net info
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /sys/net [get]
+func GetSystemNetInfo(c *gin.Context) {
+	netList := service.MyService.System().GetNetInfo()
+
+	newNet := []model.IOCountersStat{}
+	for _, n := range netList {
+		for _, netCardName := range service.MyService.System().GetNet(true) {
+			if n.Name == netCardName {
+				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
+				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))
+				item.Time = time.Now().Unix()
+				newNet = append(newNet, item)
+				break
+			}
+		}
+	}
+
+	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: newNet})
 }
