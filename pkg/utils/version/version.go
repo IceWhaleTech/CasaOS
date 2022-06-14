@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-14 08:55:39
+ * @LastEditTime: 2022-06-14 11:17:16
  * @FilePath: /CasaOS/pkg/utils/version/version.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -31,9 +31,6 @@ func IsNeedUpdate() (bool, model.Version) {
 	v1 := strings.Split(version.Version, ".")
 
 	v2 := strings.Split(types.CURRENTVERSION, ".")
-
-	// v1 := strings.Split("0.3.2", ".")
-	// v2 := strings.Split("0.3.1.1", ".")
 
 	for len(v1) < len(v2) {
 		v1 = append(v1, "0")
