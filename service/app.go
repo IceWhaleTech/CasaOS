@@ -464,12 +464,8 @@ func (a *appStruct) GetHardwareUsageSteam() {
 
 	fts := filters.NewArgs()
 	fts.Add("label", "casaos=casaos")
-	//fts.Add("label", "casaos")
-	//fts.Add("casaos", "casaos")
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
-	if err != nil {
-		loger.Error("Failed to get container_list", zap.Any("err", err))
-	}
+	fts.Add("status", "running")
+
 	for i := 0; i < 100; i++ {
 		if config.CasaOSGlobalVariables.AppChange {
 			config.CasaOSGlobalVariables.AppChange = false
@@ -479,6 +475,10 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				return true
 			})
 		}
+		containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
+		if err != nil {
+			loger.Error("Failed to get container_list", zap.Any("err", err))
+		}
 		var wg sync.WaitGroup
 		for _, v := range containers {
 			wg.Add(1)
@@ -486,6 +486,7 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				defer wg.Done()
 				stats, err := cli.ContainerStats(ctx, v.ID, true)
 				if err != nil {
+					dataStats.Delete(v.ID)
 					return
 				}
 				decode := json.NewDecoder(stats.Body)
@@ -501,6 +502,7 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				dockerStats.Data = data
 				dockerStats.Icon = v.Labels["icon"]
 				dockerStats.Title = strings.ReplaceAll(v.Names[0], "/", "")
+
 				dataStats.Store(v.ID, dockerStats)
 				if i == 99 {
 					stats.Body.Close()
@@ -509,7 +511,7 @@ func (a *appStruct) GetHardwareUsageSteam() {
 		}
 		wg.Wait()
 		isFinish = true
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 1)
 	}
 	isFinish = false
 	cancel()
