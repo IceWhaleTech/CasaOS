@@ -13,18 +13,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var user_service service.UserService
-
-func init() {
-	user_service = service.NewUserService()
-}
-
-// @Summary 设置用户名和密码
+// @Summary set username and password
 // @Produce  application/json
 // @Accept multipart/form-data
 // @Tags user
-// @Param username formData string true "User name"
-// @Param pwd  formData string true "password"
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /user/setusernamepwd [post]

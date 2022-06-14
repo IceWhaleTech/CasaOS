@@ -13,6 +13,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model/system_app"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
@@ -31,6 +32,7 @@ func InitFunction() {
 	ChangeAPIUrl()
 	InitSystemApplication()
 
+	MoveUserToDB()
 }
 
 var syncIsExistence = false
@@ -213,11 +215,7 @@ func CheckToken2_11() {
 		config.AppInfo.RootPath = "/casaOS"
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
-	// if len(config.ServerInfo.Handshake) == 0 {
-	// 	config.Cfg.Section("app").Key("RootPath").SetValue("/casaOS")
-	// 	config.AppInfo.RootPath = "/casaOS"
-	// 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-	// }
+
 	sysType := runtime.GOOS
 	if len(config.FileSettingInfo.DownloadDir) == 0 {
 		downloadPath := "/DATA/Downloads"
@@ -292,5 +290,21 @@ func InitSystemApplication() {
 		application.Order = 0
 
 		service.MyService.App().CreateApplication(application)
+	}
+}
+
+//0.3.3
+//Transferring user data to the database
+func MoveUserToDB() {
+
+	if service.MyService.User().GetUserInfoByUserName(config.UserInfo.UserName).Id == 0 {
+		user := model2.UserDBModel{}
+		user.UserName = config.UserInfo.UserName
+		user.Avatar = config.UserInfo.Avatar
+		user.Email = config.UserInfo.Email
+		user.NickName = config.UserInfo.NickName
+		user.Password = encryption.GetMD5ByStr(config.UserInfo.PWD)
+		user.Role = "admin"
+		service.MyService.User().CreateUser(user)
 	}
 }

@@ -40,7 +40,7 @@ func NewService(db *gorm.DB) Repository {
 
 	return &store{
 		app:    NewAppService(db),
-		user:   NewUserService(),
+		user:   NewUserService(db),
 		docker: NewDockerService(),
 		//redis:      NewRedisService(rp),
 		zima:           NewZiMaService(),

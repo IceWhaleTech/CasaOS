@@ -64,9 +64,8 @@ func InitRouter() *gin.Engine {
 			v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)
 
 			v1UserGroup.GET("/shareid", v1.GetUserShareID)
-			// v1UserGroup.GET("/custom/:name")
-			// v1UserGroup.POST("/custom/:name")
-
+			v1UserGroup.GET("/custom/:name")
+			v1UserGroup.POST("/custom/:name")
 		}
 		v1AppGroup := v1Group.Group("/app")
 		v1AppGroup.Use()
@@ -119,10 +118,10 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.POST("/update", v1.SystemUpdate)
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
 			v1SysGroup.GET("/config", v1.GetSystemConfig)
+			//v1SysGroup.POST("/config", v1.PostSetSystemConfig)
 			v1SysGroup.GET("/error/logs", v1.GetCasaOSErrorLogs)
-			v1SysGroup.POST("/config", v1.PostSetSystemConfig)
 			v1SysGroup.GET("/widget/config", v1.GetWidgetConfig)
-			v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)
+			//v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)
 			v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
 			v1SysGroup.POST("/stop", v1.PostKillCasaOS)
