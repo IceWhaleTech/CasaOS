@@ -479,10 +479,10 @@ func (a *appStruct) GetHardwareUsageSteam() {
 		if err != nil {
 			loger.Error("Failed to get container_list", zap.Any("err", err))
 		}
+		var temp sync.Map
 		var wg sync.WaitGroup
 		for _, v := range containers {
 			if v.State != "running" {
-				dataStats.Delete(v.ID)
 				continue
 			}
 			wg.Add(1)
@@ -490,7 +490,6 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				defer wg.Done()
 				stats, err := cli.ContainerStats(ctx, v.ID, true)
 				if err != nil {
-					dataStats.Delete(v.ID)
 					return
 				}
 				decode := json.NewDecoder(stats.Body)
@@ -507,14 +506,16 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				dockerStats.Icon = v.Labels["icon"]
 				dockerStats.Title = strings.ReplaceAll(v.Names[0], "/", "")
 
-				dataStats.Store(v.ID, dockerStats)
+				temp.Store(v.ID, dockerStats)
 				if i == 99 {
 					stats.Body.Close()
 				}
 			}(v, i)
 		}
 		wg.Wait()
+		dataStats = temp
 		isFinish = true
+
 		time.Sleep(time.Second * 1)
 	}
 	isFinish = false
