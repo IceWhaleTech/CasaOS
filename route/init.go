@@ -103,9 +103,10 @@ func installSyncthing(appId string) {
 	m.Ports = appInfo.Ports
 	m.Restart = "always"
 	m.Volumes = appInfo.Volumes
+	m.NetworkModel = appInfo.NetworkModel
 	m.Label = id
 	m.CustomId = id
-	containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m, appInfo.NetworkModel)
+	containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m)
 	if err != nil {
 		fmt.Println("container create error", err)
 		// create container error
