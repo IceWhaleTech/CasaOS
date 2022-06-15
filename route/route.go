@@ -36,13 +36,14 @@ func InitRouter() *gin.Engine {
 	r.GET("/v1/guide/check", v1.GetGuideCheck)
 
 	r.GET("/v1/debug", v1.GetSystemConfigDebug)
-	//set user
-	r.POST("/v1/user/setusernamepwd", v1.Set_Name_Pwd)
+
+	r.POST("/v1/user/register", v1.PostUserRegister)
 	//get user info
 	r.GET("/v1/user/info", v1.GetUserInfo)
 	//get user info
 	r.GET("/v1/person/shareid", v1.GetPersonShareId)
 	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
+	r.POST("/v1/sys/refresh/token", v1.PostSystemRefreshToken)
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT(swagHandler))
@@ -132,6 +133,7 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.GET("/mem", v1.GetSystemMemInfo)
 			v1SysGroup.GET("/disk", v1.GetSystemDiskInfo)
 			v1SysGroup.GET("/network", v1.GetSystemNetInfo)
+			v1SysGroup.POST("/refresh/token", v1.GetSystemRefreshToken)
 
 		}
 		v1FileGroup := v1Group.Group("/file")

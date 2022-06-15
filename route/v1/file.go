@@ -19,9 +19,8 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
-	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
@@ -65,15 +64,15 @@ func GetFilerContent(c *gin.Context) {
 	filePath := c.Query("path")
 	if len(filePath) == 0 {
 		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.INVALID_PARAMS,
-			Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS),
+			Success: common_err.INVALID_PARAMS,
+			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
 		return
 	}
 	if !file.Exists(filePath) {
 		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.FILE_DOES_NOT_EXIST,
-			Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST),
+			Success: common_err.FILE_DOES_NOT_EXIST,
+			Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
 		})
 		return
 	}
@@ -81,8 +80,8 @@ func GetFilerContent(c *gin.Context) {
 	info, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.FILE_READ_ERROR,
-			Message: oasis_err2.GetMsg(oasis_err2.FILE_READ_ERROR),
+			Success: common_err.FILE_READ_ERROR,
+			Message: common_err.GetMsg(common_err.FILE_READ_ERROR),
 			Data:    err.Error(),
 		})
 		return
@@ -91,8 +90,8 @@ func GetFilerContent(c *gin.Context) {
 
 	//返回结果
 	c.JSON(http.StatusOK, model.Result{
-		Success: oasis_err2.SUCCESS,
-		Message: oasis_err2.GetMsg(oasis_err2.SUCCESS),
+		Success: common_err.SUCCESS,
+		Message: common_err.GetMsg(common_err.SUCCESS),
 		Data:    result,
 	})
 }
@@ -101,15 +100,15 @@ func GetLocalFile(c *gin.Context) {
 	path := c.Query("path")
 	if len(path) == 0 {
 		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.INVALID_PARAMS,
-			Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS),
+			Success: common_err.INVALID_PARAMS,
+			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
 		return
 	}
 	if !file.Exists(path) {
 		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.FILE_DOES_NOT_EXIST,
-			Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST),
+			Success: common_err.FILE_DOES_NOT_EXIST,
+			Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
 		})
 		return
 	}
@@ -134,8 +133,8 @@ func GetDownloadFile(c *gin.Context) {
 
 	if len(files) == 0 {
 		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.INVALID_PARAMS,
-			Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS),
+			Success: common_err.INVALID_PARAMS,
+			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
 		return
 	}
@@ -143,8 +142,8 @@ func GetDownloadFile(c *gin.Context) {
 	for _, v := range list {
 		if !file.Exists(v) {
 			c.JSON(http.StatusOK, model.Result{
-				Success: oasis_err2.FILE_DOES_NOT_EXIST,
-				Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST),
+				Success: common_err.FILE_DOES_NOT_EXIST,
+				Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
 			})
 			return
 		}
@@ -159,8 +158,8 @@ func GetDownloadFile(c *gin.Context) {
 		info, err := os.Stat(filePath)
 		if err != nil {
 			c.JSON(http.StatusOK, model.Result{
-				Success: oasis_err2.FILE_DOES_NOT_EXIST,
-				Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST),
+				Success: common_err.FILE_DOES_NOT_EXIST,
+				Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
 			})
 			return
 		}
@@ -181,8 +180,8 @@ func GetDownloadFile(c *gin.Context) {
 	extension, ar, err := file.GetCompressionAlgorithm(t)
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err2.INVALID_PARAMS,
-			Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS),
+			Success: common_err.INVALID_PARAMS,
+			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
 		return
 	}
@@ -190,8 +189,8 @@ func GetDownloadFile(c *gin.Context) {
 	err = ar.Create(c.Writer)
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{
-			Success: oasis_err.ERROR,
-			Message: oasis_err2.GetMsg(oasis_err2.ERROR),
+			Success: common_err.ERROR,
+			Message: common_err.GetMsg(common_err.ERROR),
 			Data:    err.Error(),
 		})
 		return
@@ -298,7 +297,7 @@ func DirPath(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: pathList})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: pathList})
 }
 
 // @Summary rename file or dir
@@ -316,11 +315,11 @@ func RenamePath(c *gin.Context) {
 	op := json["oldpath"]
 	np := json["newpath"]
 	if len(op) == 0 || len(np) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	success, err := service.MyService.ZiMa().RenameFile(op, np)
-	c.JSON(http.StatusOK, model.Result{Success: success, Message: oasis_err2.GetMsg(success), Data: err})
+	c.JSON(http.StatusOK, model.Result{Success: success, Message: common_err.GetMsg(success), Data: err})
 }
 
 // @Summary create folder
@@ -337,16 +336,16 @@ func MkdirAll(c *gin.Context) {
 	path := json["path"]
 	var code int
 	if len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	// decodedPath, err := url.QueryUnescape(path)
 	// if err != nil {
-	// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+	// 	c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	// 	return
 	// }
 	code, _ = service.MyService.ZiMa().MkdirAll(path)
-	c.JSON(http.StatusOK, model.Result{Success: code, Message: oasis_err2.GetMsg(code)})
+	c.JSON(http.StatusOK, model.Result{Success: code, Message: common_err.GetMsg(code)})
 }
 
 // @Summary create file
@@ -363,16 +362,16 @@ func PostCreateFile(c *gin.Context) {
 	path := json["path"]
 	var code int
 	if len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	// decodedPath, err := url.QueryUnescape(path)
 	// if err != nil {
-	// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+	// 	c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	// 	return
 	// }
 	code, _ = service.MyService.ZiMa().CreateFile(path)
-	c.JSON(http.StatusOK, model.Result{Success: code, Message: oasis_err2.GetMsg(code)})
+	c.JSON(http.StatusOK, model.Result{Success: code, Message: common_err.GetMsg(code)})
 }
 
 // @Summary upload file
@@ -401,11 +400,11 @@ func GetFileUpload(c *gin.Context) {
 	}
 	tempDir += chunkNumber
 	if !file.CheckNotExist(tempDir) {
-		c.JSON(200, model.Result{Success: 200, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+		c.JSON(200, model.Result{Success: 200, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 		return
 	}
 
-	c.JSON(204, model.Result{Success: 204, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(204, model.Result{Success: 204, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary upload file
@@ -429,7 +428,7 @@ func PostFileUpload(c *gin.Context) {
 	hash := file.GetHashByContent([]byte(fileName))
 
 	if len(path) == 0 {
-		c.JSON(oasis_err2.INVALID_PARAMS, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(common_err.INVALID_PARAMS, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	tempDir := config.AppInfo.RootPath + "/temp/" + hash + strconv.Itoa(totalChunks) + "/"
@@ -453,7 +452,7 @@ func PostFileUpload(c *gin.Context) {
 		defer out.Close()
 		_, err := io.Copy(out, f)
 		if err != nil {
-			c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			c.JSON(common_err.ERROR, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 			return
 		}
 	} else {
@@ -461,15 +460,15 @@ func PostFileUpload(c *gin.Context) {
 		defer out.Close()
 		_, err := io.Copy(out, f)
 		if err != nil {
-			c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			c.JSON(common_err.ERROR, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 		return
 	}
 	fileNum, err := ioutil.ReadDir(tempDir)
 	if err != nil {
-		c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(common_err.ERROR, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	if totalChunks == len(fileNum) {
@@ -477,7 +476,7 @@ func PostFileUpload(c *gin.Context) {
 		file.RMDir(tempDir)
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary copy or move file
@@ -494,11 +493,11 @@ func PostOperateFileOrDir(c *gin.Context) {
 	c.BindJSON(&list)
 
 	if len(list.Item) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if list.To == list.Item[0].From[:strings.LastIndex(list.Item[0].From, "/")] {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SOURCE_DES_SAME, Message: oasis_err2.GetMsg(oasis_err2.SOURCE_DES_SAME)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.SOURCE_DES_SAME, Message: common_err.GetMsg(common_err.SOURCE_DES_SAME)})
 		return
 	}
 
@@ -528,7 +527,7 @@ func PostOperateFileOrDir(c *gin.Context) {
 
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary delete file
@@ -544,7 +543,7 @@ func DeleteFile(c *gin.Context) {
 	paths := []string{}
 	c.BindJSON(&paths)
 	if len(paths) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	//	path := c.Query("path")
@@ -554,12 +553,12 @@ func DeleteFile(c *gin.Context) {
 	for _, v := range paths {
 		err := os.RemoveAll(v)
 		if err != nil {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DELETE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.FILE_DELETE_ERROR), Data: err})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR), Data: err})
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary update file
@@ -579,21 +578,21 @@ func PutFileContent(c *gin.Context) {
 	// path := c.PostForm("path")
 	// content := c.PostForm("content")
 	if !file.Exists(fi.FilePath) {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 		return
 	}
 	//err := os.Remove(path)
 	err := os.RemoveAll(fi.FilePath)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DELETE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.FILE_DELETE_ERROR), Data: err})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR), Data: err})
 		return
 	}
 	err = file.CreateFileAndWriteContent(fi.FilePath, fi.FileContent)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err})
 		return
 	}
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary image thumbnail/original image
@@ -609,13 +608,13 @@ func GetFileImage(c *gin.Context) {
 	t := c.Query("type")
 	path := c.Query("path")
 	if !file.Exists(path) {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 		return
 	}
 	if t == "thumbnail" {
 		f, err := file.GetImage(path, 100, 0)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 			return
 		}
 		c.Writer.WriteString(string(f))
@@ -623,13 +622,13 @@ func GetFileImage(c *gin.Context) {
 	}
 	f, err := os.Open(path)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	defer f.Close()
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	c.Writer.WriteString(string(data))
@@ -654,5 +653,5 @@ func DeleteOperateFileOrDir(c *gin.Context) {
 	}
 
 	go service.MyService.Notify().SendFileOperateNotify(true)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }

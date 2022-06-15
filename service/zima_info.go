@@ -13,8 +13,8 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
@@ -127,30 +127,30 @@ func (c *zima) GetNetState(name string) string {
 func (c *zima) MkdirAll(path string) (int, error) {
 	_, err := os.Stat(path)
 	if err == nil {
-		return oasis_err.DIR_ALREADY_EXISTS, nil
+		return common_err.DIR_ALREADY_EXISTS, nil
 	} else {
 		if os.IsNotExist(err) {
 			os.MkdirAll(path, os.ModePerm)
-			return oasis_err.SUCCESS, nil
+			return common_err.SUCCESS, nil
 		} else if strings.Contains(err.Error(), ": not a directory") {
-			return oasis_err.FILE_OR_DIR_EXISTS, err
+			return common_err.FILE_OR_DIR_EXISTS, err
 		}
 	}
-	return oasis_err.ERROR, err
+	return common_err.ERROR, err
 }
 
 //create
 func (c *zima) CreateFile(path string) (int, error) {
 	_, err := os.Stat(path)
 	if err == nil {
-		return oasis_err.FILE_OR_DIR_EXISTS, nil
+		return common_err.FILE_OR_DIR_EXISTS, nil
 	} else {
 		if os.IsNotExist(err) {
 			file.CreateFile(path)
-			return oasis_err.SUCCESS, nil
+			return common_err.SUCCESS, nil
 		}
 	}
-	return oasis_err.ERROR, err
+	return common_err.ERROR, err
 }
 
 //修改文件
@@ -158,17 +158,17 @@ func (c *zima) RenameFile(oldF, newF string) (int, error) {
 
 	_, err := os.Stat(newF)
 	if err == nil {
-		return oasis_err.DIR_ALREADY_EXISTS, nil
+		return common_err.DIR_ALREADY_EXISTS, nil
 	} else {
 		if os.IsNotExist(err) {
 			err := os.Rename(oldF, newF)
 			if err != nil {
-				return oasis_err.ERROR, err
+				return common_err.ERROR, err
 			}
-			return oasis_err.SUCCESS, nil
+			return common_err.SUCCESS, nil
 		}
 	}
-	return oasis_err.ERROR, err
+	return common_err.ERROR, err
 }
 
 //获取zima服务

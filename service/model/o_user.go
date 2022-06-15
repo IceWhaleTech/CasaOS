@@ -14,7 +14,7 @@ package model
 type UserDBModel struct {
 	Id       int    `gorm:"column:id;primary_key" json:"id"`
 	UserName string `json:"user_name"`
-	Password string `json:"password"`
+	Password string `json:"password omitempty"`
 	Role     string `json:"role"`
 	Email    string `json:"email"`
 	Avatar   string `json:"avatar"`

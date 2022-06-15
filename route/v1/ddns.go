@@ -2,17 +2,18 @@ package v1
 
 import (
 	"fmt"
-	"github.com/IceWhaleTech/CasaOS/model"
-	ip_helper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
-	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
-	"github.com/IceWhaleTech/CasaOS/service"
-	model2 "github.com/IceWhaleTech/CasaOS/service/model"
-	"github.com/forease/gotld"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	ip_helper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
+	"github.com/IceWhaleTech/CasaOS/service"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/forease/gotld"
+	"github.com/gin-gonic/gin"
 )
 
 // @Summary 获取可以设置的ddns列表
@@ -34,8 +35,8 @@ func DDNSGetDomainList(c *gin.Context) {
 	data["godaddy"] = &model.GoDaddyModel{Type: t, ApiHost: api}
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err2.SUCCESS,
-			Message: oasis_err2.GetMsg(oasis_err2.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    data,
 		})
 	return
@@ -59,7 +60,7 @@ func DDNSAddConfig(c *gin.Context) {
 	if service.MyService.DDNS().IsExis(t, domain, sub) {
 		c.JSON(http.StatusOK,
 			model.Result{
-				Success: oasis_err2.ERROR,
+				Success: common_err.ERROR,
 				Message: "Repeat add",
 			})
 		return
@@ -69,16 +70,16 @@ func DDNSAddConfig(c *gin.Context) {
 	if err := service.MyService.DDNS().SaveConfig(m); err != nil {
 		c.JSON(http.StatusOK,
 			model.Result{
-				Success: oasis_err2.ERROR,
-				Message: oasis_err2.GetMsg(oasis_err2.ERROR),
+				Success: common_err.ERROR,
+				Message: common_err.GetMsg(common_err.ERROR),
 				Data:    err.Error(),
 			})
 		return
 	}
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err2.SUCCESS,
-			Message: oasis_err2.GetMsg(oasis_err2.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 		})
 }
 
@@ -95,8 +96,8 @@ func DDNSGetIP(c *gin.Context) {
 	ipjson["ipv4"] = ipv4
 	ipjson["ipv6"] = ipv6
 	c.JSON(http.StatusOK, &model.Result{
-		Success: oasis_err2.SUCCESS,
-		Message: oasis_err2.GetMsg(oasis_err2.SUCCESS),
+		Success: common_err.SUCCESS,
+		Message: common_err.GetMsg(common_err.SUCCESS),
 		Data:    ipjson,
 	})
 }
@@ -117,14 +118,14 @@ func DDNSPing(c *gin.Context) {
 	err := cmd.Run()
 	if err != nil {
 		c.JSON(http.StatusOK, &model.Result{
-			Success: oasis_err2.ERROR,
+			Success: common_err.ERROR,
 			Message: err.Error(),
 			Data:    false,
 		})
 	} else {
 		c.JSON(http.StatusOK, &model.Result{
-			Success: oasis_err2.SUCCESS,
-			Message: oasis_err2.GetMsg(oasis_err2.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    true,
 		})
 	}
@@ -152,7 +153,7 @@ func DDNSConfigList(c *gin.Context) {
 			(*j)[i].State = true
 		}
 	}
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: j})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: j})
 }
 
 // @Summary 删除ddns
@@ -166,9 +167,9 @@ func DDNSConfigList(c *gin.Context) {
 func DDNSDelete(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
-		c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, &model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	isok := service.MyService.DDNS().DeleteConfig(uint(id))
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: isok})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: isok})
 }

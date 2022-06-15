@@ -12,9 +12,10 @@ import (
 	"unsafe"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/model/system_model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
-	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -46,7 +47,7 @@ func GetSystemCheckVersion(c *gin.Context) {
 	data["is_need"] = need
 	data["version"] = version
 	data["current_version"] = types.CURRENTVERSION
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary 系统信息
@@ -61,12 +62,12 @@ func SystemUpdate(c *gin.Context) {
 	if need {
 		service.MyService.System().UpdateSystemVersion(version.Version)
 	}
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 //Get system config
 func GetSystemConfig(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.ConfigStr)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.ConfigStr)})
 }
 
 // @Summary  get logs
@@ -78,7 +79,7 @@ func GetSystemConfig(c *gin.Context) {
 // @Router /sys/error/logs [get]
 func GetCasaOSErrorLogs(c *gin.Context) {
 	line, _ := strconv.Atoi(c.DefaultQuery("line", "100"))
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: service.MyService.System().GetCasaOSLogs(line)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: service.MyService.System().GetCasaOSLogs(line)})
 }
 
 // @Summary 修改配置文件
@@ -96,8 +97,8 @@ func PostSetSystemConfig(c *gin.Context) {
 	service.MyService.System().UpSystemConfig(string(buf[0:n]), "")
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    json.RawMessage(config.SystemConfigInfo.ConfigStr),
 		})
 }
@@ -133,12 +134,12 @@ func GetSystemConfigDebug(c *gin.Context) {
 
 	//	array = append(array, fmt.Sprintf("disk,total:%v,used:%v,UsedPercent:%v", disk.Total>>20, disk.Used>>20, disk.UsedPercent))
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: bugContent})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: bugContent})
 }
 
 //widget配置
 func GetWidgetConfig(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.WidgetList)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.WidgetList)})
 }
 
 // @Summary 修改组件配置文件
@@ -154,8 +155,8 @@ func PostSetWidgetConfig(c *gin.Context) {
 	service.MyService.System().UpSystemConfig("", string(buf[0:n]))
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    json.RawMessage(config.SystemConfigInfo.WidgetList),
 		})
 }
@@ -170,8 +171,8 @@ func PostSetWidgetConfig(c *gin.Context) {
 func GetCasaOSPort(c *gin.Context) {
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    config.ServerInfo.HttpPort,
 		})
 }
@@ -192,7 +193,7 @@ func PutCasaOSPort(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK,
 			model.Result{
-				Success: oasis_err.ERROR,
+				Success: common_err.ERROR,
 				Message: err.Error(),
 			})
 		return
@@ -202,16 +203,16 @@ func PutCasaOSPort(c *gin.Context) {
 	if !isAvailable {
 		c.JSON(http.StatusOK,
 			model.Result{
-				Success: oasis_err.PORT_IS_OCCUPIED,
-				Message: oasis_err.GetMsg(oasis_err.PORT_IS_OCCUPIED),
+				Success: common_err.PORT_IS_OCCUPIED,
+				Message: common_err.GetMsg(common_err.PORT_IS_OCCUPIED),
 			})
 		return
 	}
 	service.MyService.System().UpSystemPort(strconv.Itoa(port))
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 		})
 }
 
@@ -231,8 +232,8 @@ func GetGuideCheck(c *gin.Context) {
 	data["need_init_user"] = initUser
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    data,
 		})
 }
@@ -267,8 +268,8 @@ func PutSystemUSBAutoMount(c *gin.Context) {
 
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 		})
 }
 
@@ -287,8 +288,8 @@ func GetSystemUSBAutoMount(c *gin.Context) {
 
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    state,
 		})
 }
@@ -306,8 +307,8 @@ func GetSystemHardwareInfo(c *gin.Context) {
 	data["drive_model"] = service.MyService.ZiMa().GetDeviceTree()
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    data,
 		})
 }
@@ -444,7 +445,7 @@ func GetSystemUtilization(c *gin.Context) {
 
 	data["net"] = newNet
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary Get notification port
@@ -458,8 +459,8 @@ func GetSystemSocketPort(c *gin.Context) {
 
 	c.JSON(http.StatusOK,
 		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    config.ServerInfo.SocketPort,
 		})
 }
@@ -477,7 +478,7 @@ func GetSystemCupInfo(c *gin.Context) {
 	data := make(map[string]interface{})
 	data["percent"] = cpu
 	data["num"] = num
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 
 }
 
@@ -490,7 +491,7 @@ func GetSystemCupInfo(c *gin.Context) {
 // @Router /sys/mem [get]
 func GetSystemMemInfo(c *gin.Context) {
 	mem := service.MyService.System().GetMemInfo()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: mem})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: mem})
 
 }
 
@@ -503,7 +504,7 @@ func GetSystemMemInfo(c *gin.Context) {
 // @Router /sys/disk [get]
 func GetSystemDiskInfo(c *gin.Context) {
 	disk := service.MyService.ZiMa().GetDiskInfo()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: disk})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: disk})
 }
 
 // @Summary get Net info
@@ -529,5 +530,33 @@ func GetSystemNetInfo(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: newNet})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: newNet})
+}
+
+//refresh token
+func PostSystemRefreshToken(c *gin.Context) {
+	json := make(map[string]string)
+	c.BindJSON(&json)
+	refresh := json["refresh"]
+	claims, err := jwt.ParseToken(refresh)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE), Data: err.Error()})
+		return
+	}
+	if claims.VerifyExpiresAt(time.Now(), true) || claims.VerifyIssuer("refresh", true) {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.VERIFICATION_FAILURE, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE)})
+		return
+	}
+	newToken := jwt.GetAccessToken(claims.UserName, claims.PassWord)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		return
+	}
+	verifyInfo := system_model.VerifyInformation{}
+	verifyInfo.AccessToken = newToken
+	verifyInfo.RefreshToken = jwt.GetRefreshToken(claims.UserName, claims.PassWord)
+	verifyInfo.ExpiresAt = time.Now().Add(3 * time.Hour * time.Duration(1)).Format("2006-01-02 15:04:05")
+
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: verifyInfo})
+
 }

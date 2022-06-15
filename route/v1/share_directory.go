@@ -1,13 +1,14 @@
 package v1
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"strconv"
 )
 
 // @Summary 获取列表
@@ -19,7 +20,7 @@ import (
 // @Router /share/list [get]
 func GetShareDirList(c *gin.Context) {
 	list := service.MyService.ShareDirectory().List(true)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: list})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary 添加文件共享
@@ -47,7 +48,7 @@ func PostShareDirAdd(c *gin.Context) {
 	user := c.PostForm("user")
 
 	if len(name) == 0 || len(comment) == 0 || len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 
@@ -62,7 +63,7 @@ func PostShareDirAdd(c *gin.Context) {
 
 	service.MyService.ShareDirectory().Add(&m)
 	service.MyService.ShareDirectory().UpConfig()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary 删除分享
@@ -77,7 +78,7 @@ func DeleteShareDirDel(c *gin.Context) {
 	id := c.Param("id")
 	service.MyService.ShareDirectory().Delete(id)
 	service.MyService.ShareDirectory().UpConfig()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary 分享详情
@@ -91,7 +92,7 @@ func DeleteShareDirDel(c *gin.Context) {
 func GetShareDirInfo(c *gin.Context) {
 	id := c.Param("id")
 	info := service.MyService.ShareDirectory().Info(id)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: info})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info})
 }
 
 // @Summary 更新分享详情
@@ -125,7 +126,7 @@ func PutShareDirEdit(c *gin.Context) {
 	user := c.PostForm("user")
 
 	if len(name) == 0 || len(comment) == 0 || len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 
@@ -140,5 +141,5 @@ func PutShareDirEdit(c *gin.Context) {
 	m.ValidUsers = user
 	service.MyService.ShareDirectory().Update(&m)
 	service.MyService.ShareDirectory().UpConfig()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }

@@ -17,9 +17,10 @@ import (
 	natType "github.com/Curtis-Milo/nat-type-identifier-go"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
-	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
@@ -40,18 +41,18 @@ func GetPersonReFile(c *gin.Context) {
 	uid := c.Param("uuid")
 	_, err := uuid.FromString(uid)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 
 	task := service.MyService.Download().GetDownloadById(uid)
 	if reflect.DeepEqual(task, model2.PersonDownloadDBModel{}) {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_REMOTE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PERSON_REMOTE_ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_REMOTE_ERROR, Message: common_err.GetMsg(common_err.PERSON_REMOTE_ERROR)})
 		return
 	}
 	token := task.From
 	if _, ok := service.UDPAddressMap[token]; !ok {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_REMOTE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PERSON_REMOTE_ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_REMOTE_ERROR, Message: common_err.GetMsg(common_err.PERSON_REMOTE_ERROR)})
 		return
 	}
 
@@ -63,7 +64,7 @@ func GetPersonReFile(c *gin.Context) {
 	m.UUId = uid
 	go service.Dial(m, false)
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary download file
@@ -85,20 +86,20 @@ func GetPersonFile(c *gin.Context) {
 	fileName := c.Query("file_name")
 	_, err := uuid.FromString(token)
 	if len(path) == 0 || err != nil || len(localPath) == 0 || len(fileName) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if file.CheckNotExist(localPath) {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.DIR_NOT_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.DIR_NOT_EXISTS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.DIR_NOT_EXISTS, Message: common_err.GetMsg(common_err.DIR_NOT_EXISTS)})
 		return
 	}
 	if _, ok := service.UDPAddressMap[token]; !ok {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_REMOTE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PERSON_REMOTE_ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_REMOTE_ERROR, Message: common_err.GetMsg(common_err.PERSON_REMOTE_ERROR)})
 		return
 	}
 
 	if _, ok := service.UDPAddressMap[token]; !ok {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_REMOTE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PERSON_REMOTE_ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_REMOTE_ERROR, Message: common_err.GetMsg(common_err.PERSON_REMOTE_ERROR)})
 		return
 	}
 
@@ -117,7 +118,7 @@ func GetPersonFile(c *gin.Context) {
 	task.Type = types.PERSONFILEDOWNLOAD
 	task.LocalPath = localPath
 	if service.MyService.Download().GetDownloadListByPath(task) > 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_EXIST_DOWNLOAD, Message: oasis_err2.GetMsg(oasis_err2.PERSON_EXIST_DOWNLOAD)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_EXIST_DOWNLOAD, Message: common_err.GetMsg(common_err.PERSON_EXIST_DOWNLOAD)})
 		return
 	}
 	service.MyService.Download().AddDownloadTask(task)
@@ -130,7 +131,7 @@ func GetPersonFile(c *gin.Context) {
 	m.UUId = uuid
 	go service.Dial(m, false)
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary delete download file records
@@ -146,7 +147,7 @@ func DeletePersonDownloadFile(c *gin.Context) {
 	id := c.Param("uuid")
 	_, err := uuid.FromString(id)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 
@@ -163,7 +164,7 @@ func DeletePersonDownloadFile(c *gin.Context) {
 	}
 	service.MyService.Download().DelDownload(id)
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary Get file download list
@@ -188,7 +189,7 @@ func GetPersonDownloadList(c *gin.Context) {
 		}
 		list[i].Duration = time.Now().Unix() - list[i].Created
 	}
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary edit friend's remarks
@@ -204,14 +205,14 @@ func PutPersonRemarks(c *gin.Context) {
 	_, err := uuid.FromString(token)
 	mark := c.PostForm("remarks")
 	if err != nil || len(mark) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	friend := model2.FriendModel{}
 	friend.Token = token
 	friend.Mark = mark
 	service.MyService.Friend().EditFriendMark(friend)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary edit friend's
@@ -226,7 +227,7 @@ func PutPersonWrite(c *gin.Context) {
 	token := c.Param("shareid")
 	_, err := uuid.FromString(token)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	write, _ := strconv.ParseBool(c.PostForm("write"))
@@ -234,7 +235,7 @@ func PutPersonWrite(c *gin.Context) {
 	friend.Token = token
 	friend.Write = write
 	service.MyService.Friend().EditFriendMark(friend)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary image thumbnail
@@ -250,7 +251,7 @@ func GetPersonImageThumbnail(c *gin.Context) {
 	path := c.Query("path")
 	_, err := uuid.FromString(token)
 	if err != nil || len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	uuid := uuid.NewV4().String()
@@ -263,7 +264,7 @@ func GetPersonImageThumbnail(c *gin.Context) {
 
 	img, err := service.Dial(m, false)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 
@@ -271,20 +272,20 @@ func GetPersonImageThumbnail(c *gin.Context) {
 	//err = gob.NewEncoder(&buf).Encode(img.Data)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	var buf bytes.Buffer
 	err = gob.NewEncoder(&buf).Encode(img.Data)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 
 	imageBuffer, _ := base64.StdEncoding.DecodeString(img.Data.(string))
 	c.Writer.WriteString(string(imageBuffer))
 	//	c.String(http.StatusOK, "data:image/"+filesuffix+";base64,"+img.Data.(string))
-	//c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: img.Data.(string)})
+	//c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: img.Data.(string)})
 }
 
 // @Summary get my friend list
@@ -304,7 +305,7 @@ func GetPersonFriend(c *gin.Context) {
 			}
 		}
 	}
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary network type detection
@@ -325,11 +326,11 @@ func GetPersonDetection(c *gin.Context) {
 
 	result, err := natType.GetDeterminedNatType(true, 5, "stun.l.google.com")
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	//result := service.MyService.Person().GetPersionNetWorkTypeDetection()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: result})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: result})
 }
 
 // @Summary add friend
@@ -346,24 +347,24 @@ func PostAddPersonFriend(c *gin.Context) {
 	for _, v := range tokenList {
 		_, err := uuid.FromString(v)
 		if err != nil {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 			return
 		}
 
 		if v == config.ServerInfo.Token {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_MYSELF, Message: oasis_err2.GetMsg(oasis_err2.PERSON_MYSELF)})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_MYSELF, Message: common_err.GetMsg(common_err.PERSON_MYSELF)})
 			return
 		}
 
 		udb := service.MyService.Friend().GetFriendById(model2.FriendModel{Token: v})
 		if !reflect.DeepEqual(udb, model2.FriendModel{Token: v}) {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_EXIST_FRIEND, Message: oasis_err2.GetMsg(oasis_err2.PERSON_EXIST_FRIEND)})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_EXIST_FRIEND, Message: common_err.GetMsg(common_err.PERSON_EXIST_FRIEND)})
 			return
 		}
 
 		user := service.MyService.Casa().GetUserInfoByShareId(v)
 		if reflect.DeepEqual(user, model.UserInfo{}) {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_NOT_EXIST_USER, Message: oasis_err2.GetMsg(oasis_err2.PERSON_NOT_EXIST_USER)})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_NOT_EXIST_USER, Message: common_err.GetMsg(common_err.PERSON_NOT_EXIST_USER)})
 			return
 		}
 
@@ -396,7 +397,7 @@ func PostAddPersonFriend(c *gin.Context) {
 		service.MyService.Friend().AddFriend(friend)
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary Get a list of directories
@@ -413,11 +414,11 @@ func GetPersonDirectory(c *gin.Context) {
 	token := c.Query("share_id")
 	_, err := uuid.FromString(token)
 	if len(path) == 0 || err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if _, ok := service.UDPAddressMap[token]; !ok {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_REMOTE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PERSON_REMOTE_ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_REMOTE_ERROR, Message: common_err.GetMsg(common_err.PERSON_REMOTE_ERROR)})
 		return
 	}
 	uuid := uuid.NewV4().String()
@@ -429,7 +430,7 @@ func GetPersonDirectory(c *gin.Context) {
 	m.UUId = uuid
 	result, err := service.Dial(m, false)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	dataModel := []model.Path{}
@@ -437,11 +438,11 @@ func GetPersonDirectory(c *gin.Context) {
 		dataModelByte, _ := json.Marshal(result.Data)
 		err := json.Unmarshal(dataModelByte, &dataModel)
 		if err != nil {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 			return
 		}
 	}
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: dataModel})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: dataModel})
 }
 
 // @Summary Modify the download storage directory
@@ -457,17 +458,17 @@ func PostPersonDownDir(c *gin.Context) {
 	downPath := c.PostForm("path")
 
 	if len(downPath) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if file.CheckNotExist(downPath) {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.DIR_NOT_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.DIR_NOT_EXISTS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.DIR_NOT_EXISTS, Message: common_err.GetMsg(common_err.DIR_NOT_EXISTS)})
 		return
 	}
 	config.Cfg.Section("file").Key("DownloadDir").SetValue(downPath)
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	config.FileSettingInfo.DownloadDir = downPath
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary Get the download storage directory
@@ -478,7 +479,7 @@ func PostPersonDownDir(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /person/down/dir [get]
 func GetPersonDownDir(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: config.FileSettingInfo.DownloadDir})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: config.FileSettingInfo.DownloadDir})
 }
 
 // @Summary Modify the shared directory
@@ -494,7 +495,7 @@ func PostPersonShare(c *gin.Context) {
 	share := c.PostForm("share")
 
 	if len(share) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 
@@ -502,12 +503,12 @@ func PostPersonShare(c *gin.Context) {
 	json.Unmarshal([]byte(share), &list)
 
 	if len(list) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	for _, v := range list {
 		if !file.Exists(v) {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_ALREADY_EXISTS, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 			return
 		}
 	}
@@ -515,7 +516,7 @@ func PostPersonShare(c *gin.Context) {
 	config.Cfg.Section("file").Key("ShareDir").SetValue(strings.Join(list, "|"))
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	config.FileSettingInfo.ShareDir = list
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary Get the shared directory
@@ -526,7 +527,7 @@ func PostPersonShare(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /person/share [get]
 func GetPersonShare(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: config.FileSettingInfo.ShareDir})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: config.FileSettingInfo.ShareDir})
 }
 
 // @Summary Get the shareid
@@ -537,7 +538,7 @@ func GetPersonShare(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /person/shareid [get]
 func GetPersonShareId(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: config.ServerInfo.Token})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: config.ServerInfo.Token})
 }
 
 // @Summary Modify disabled status
@@ -553,14 +554,14 @@ func PutPersonBlock(c *gin.Context) {
 	_, err := uuid.FromString(token)
 	block, _ := strconv.ParseBool(c.PostForm("block"))
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	friend := model2.FriendModel{}
 	friend.Token = token
 	friend.Block = block
 	service.MyService.Friend().EditFriendBlock(friend)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary Delete my friend
@@ -574,14 +575,14 @@ func DeletePersonFriend(c *gin.Context) {
 	token := c.Param("shareid")
 	_, err := uuid.FromString(token)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	friend := model2.FriendModel{}
 	friend.Token = token
 
 	service.MyService.Friend().DeleteFriend(friend)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary Get public person
@@ -593,7 +594,7 @@ func DeletePersonFriend(c *gin.Context) {
 // @Router /person/public [get]
 func GetPersonPublic(c *gin.Context) {
 	list := service.MyService.Casa().GetPersonPublic()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary upload file to friend
@@ -611,11 +612,11 @@ func PostPersonFile(c *gin.Context) {
 	path := c.PostForm("path")
 	localPath := c.PostForm("local_path")
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if !file.Exists(localPath) {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.FILE_DOES_NOT_EXIST, Message: oasis_err2.GetMsg(oasis_err2.FILE_DOES_NOT_EXIST)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.FILE_DOES_NOT_EXIST, Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST)})
 		return
 	}
 	uuid := uuid.NewV4().String()
@@ -641,12 +642,12 @@ func PostPersonFile(c *gin.Context) {
 	task.Type = types.PERSONFILEUPLOAD
 	task.LocalPath = localPath
 	if service.MyService.Download().GetDownloadListByPath(task) > 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PERSON_EXIST_DOWNLOAD, Message: oasis_err2.GetMsg(oasis_err2.PERSON_EXIST_DOWNLOAD)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.PERSON_EXIST_DOWNLOAD, Message: common_err.GetMsg(common_err.PERSON_EXIST_DOWNLOAD)})
 		return
 	}
 	service.MyService.Download().AddDownloadTask(task)
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary agree add friend
@@ -660,14 +661,14 @@ func PutPersonAgreeFriend(c *gin.Context) {
 	token := c.Param("shareid")
 	_, err := uuid.FromString(token)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 
 	user := service.MyService.Friend().GetFriendById(model2.FriendModel{Token: token})
 
 	if user.State != types.FRIENDSTATEREQUEST {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.COMMAND_ERROR_INVALID_OPERATION, Message: oasis_err2.GetMsg(oasis_err2.COMMAND_ERROR_INVALID_OPERATION)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.COMMAND_ERROR_INVALID_OPERATION, Message: common_err.GetMsg(common_err.COMMAND_ERROR_INVALID_OPERATION)})
 		return
 	}
 	service.MyService.Friend().AgreeFrined(user.Token)
@@ -681,7 +682,7 @@ func PutPersonAgreeFriend(c *gin.Context) {
 	m.UUId = uuid
 	go service.Dial(m, true)
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // // @Summary upload file
@@ -699,7 +700,7 @@ func PutPersonAgreeFriend(c *gin.Context) {
 // 	_, err := uuid.FromString(token)
 // 	path := c.Query("path")
 // 	if err != nil {
-// 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+// 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 // 		return
 // 	}
 
@@ -717,11 +718,11 @@ func PutPersonAgreeFriend(c *gin.Context) {
 // 	}
 // 	tempDir += chunkNumber
 // 	if !file.CheckNotExist(tempDir) {
-// 		c.JSON(200, model.Result{Success: 200, Message: oasis_err2.GetMsg(oasis_err2.FILE_ALREADY_EXISTS)})
+// 		c.JSON(200, model.Result{Success: 200, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 // 		return
 // 	}
 
-// 	c.JSON(204, model.Result{Success: 204, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+// 	c.JSON(204, model.Result{Success: 204, Message: common_err.GetMsg(common_err.SUCCESS)})
 // }
 
 // // @Summary upload file
@@ -737,7 +738,7 @@ func PutPersonAgreeFriend(c *gin.Context) {
 // 	token := c.Param("shareid")
 // 	_, err := uuid.FromString(token)
 // 	if err != nil {
-// 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+// 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 // 		return
 // 	}
 // 	f, _, _ := c.Request.FormFile("file")
@@ -751,7 +752,7 @@ func PutPersonAgreeFriend(c *gin.Context) {
 // 	hash := file.GetHashByContent([]byte(fileName))
 
 // 	if len(path) == 0 {
-// 		c.JSON(oasis_err2.INVALID_PARAMS, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+// 		c.JSON(common_err.INVALID_PARAMS, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 // 		return
 // 	}
 // 	tempDir := "/casaOS/temp/" + hash + strconv.Itoa(totalChunks) + "/"
@@ -775,7 +776,7 @@ func PutPersonAgreeFriend(c *gin.Context) {
 // 		defer out.Close()
 // 		_, err := io.Copy(out, f)
 // 		if err != nil {
-// 			c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+// 			c.JSON(common_err.ERROR, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 // 			return
 // 		}
 // 	} else {
@@ -783,21 +784,21 @@ func PutPersonAgreeFriend(c *gin.Context) {
 // 		defer out.Close()
 // 		_, err := io.Copy(out, f)
 // 		if err != nil {
-// 			c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+// 			c.JSON(common_err.ERROR, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 // 			return
 // 		}
-// 		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+// 		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 // 		return
 // 	}
 
 // 	fileNum, err := ioutil.ReadDir(tempDir)
 // 	if err != nil {
-// 		c.JSON(oasis_err2.ERROR, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+// 		c.JSON(common_err.ERROR, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 // 		return
 // 	}
 // 	if totalChunks == len(fileNum) {
 // 		file.RMDir(tempDir)
 // 	}
 
-// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+// 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 // }
