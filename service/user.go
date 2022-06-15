@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-03-18 11:40:55
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-14 14:04:53
+ * @LastEditTime: 2022-06-15 17:09:20
  * @FilePath: /CasaOS/service/user.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -28,12 +28,17 @@ type UserService interface {
 	UpdateUser(m model.UserDBModel)
 	GetUserInfoById(id string) (m model.UserDBModel)
 	GetUserInfoByUserName(userName string) (m model.UserDBModel)
+	GetAllUserName() (list []model.UserDBModel)
 }
 
 type userService struct {
 	db *gorm.DB
 }
 
+func (u *userService) GetAllUserName() (list []model.UserDBModel) {
+	u.db.Select("user_name").Find(&list)
+	return
+}
 func (u *userService) CreateUser(m model.UserDBModel) model.UserDBModel {
 	u.db.Create(&m)
 	return m

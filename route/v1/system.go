@@ -537,7 +537,7 @@ func GetSystemNetInfo(c *gin.Context) {
 func PostSystemRefreshToken(c *gin.Context) {
 	json := make(map[string]string)
 	c.BindJSON(&json)
-	refresh := json["refresh"]
+	refresh := json["refresh_token"]
 	claims, err := jwt.ParseToken(refresh)
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE), Data: err.Error()})

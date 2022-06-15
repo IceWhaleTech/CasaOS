@@ -31,15 +31,17 @@ func InitRouter() *gin.Engine {
 	if swagHandler != nil {
 		r.GET("/swagger/*any", swagHandler)
 	}
+
+	r.POST("/v1/user/register", v1.PostUserRegister)
 	r.POST("/v1/user/login", v1.Login)
+	r.POST("/v1/user/all/name", v1.GetUserAllUserName)
 
 	r.GET("/v1/guide/check", v1.GetGuideCheck)
 
 	r.GET("/v1/debug", v1.GetSystemConfigDebug)
 
-	r.POST("/v1/user/register", v1.PostUserRegister)
 	//get user info
-	r.GET("/v1/user/info", v1.GetUserInfo)
+
 	//get user info
 	r.GET("/v1/person/shareid", v1.GetPersonShareId)
 	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
@@ -53,18 +55,20 @@ func InitRouter() *gin.Engine {
 		{
 
 			//chang head
-			v1UserGroup.POST("/head", v1.PostUserHead)
+			//v1UserGroup.POST("/head", v1.PostUserHead)
 			//chang user name
-			v1UserGroup.PUT("/username", v1.PutUserName)
+			v1UserGroup.PUT("/username:/id", v1.PutUserName)
 			//chang pwd
-			v1UserGroup.PUT("/password", v1.PutUserPwd)
+			v1UserGroup.PUT("/password/:id", v1.PutUserPwd)
 			//edit user info
-			v1UserGroup.POST("/info", v1.PostUserChangeInfo)
-			v1UserGroup.PUT("/nick", v1.PutUserChangeNick)
-			v1UserGroup.PUT("/desc", v1.PutUserChangeDesc)
-			v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)
+			//v1UserGroup.POST("/info", v1.PostUserChangeInfo)
+			v1UserGroup.PUT("/nick:/id", v1.PutUserNick)
+			v1UserGroup.PUT("/desc/:id", v1.PutUserDesc)
+			v1UserGroup.GET("/v1/user/info/:id", v1.GetUserInfo)
+			//v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)
 
 			v1UserGroup.GET("/shareid", v1.GetUserShareID)
+
 			v1UserGroup.GET("/custom/:name")
 			v1UserGroup.POST("/custom/:name")
 		}
@@ -133,7 +137,6 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.GET("/mem", v1.GetSystemMemInfo)
 			v1SysGroup.GET("/disk", v1.GetSystemDiskInfo)
 			v1SysGroup.GET("/network", v1.GetSystemNetInfo)
-			v1SysGroup.POST("/refresh/token", v1.GetSystemRefreshToken)
 
 		}
 		v1FileGroup := v1Group.Group("/file")

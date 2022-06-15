@@ -55,6 +55,7 @@ func PostUserRegister(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
 		return
 	}
+	//TODO:创建文件夹
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 
 }
@@ -266,62 +267,67 @@ func PutUserNick(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /user/desc [put]
-func PutUserChangeDesc(c *gin.Context) {
-	desc := c.PostForm("description")
+func PutUserDesc(c *gin.Context) {
+	id := c.Param("id")
+	json := make(map[string]string)
+	c.BindJSON(&json)
 
+	desc := json["description"]
 	if len(desc) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	user_service.SetUser("", "", "", "", desc, "")
-	data := make(map[string]string, 1)
-	data["description"] = config.UserInfo.Description
-	go service.MyService.Casa().PushUserInfo()
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
-}
-
-// @Summary Modify user person information (Initialization use)
-// @Produce  application/json
-// @Accept multipart/form-data
-// @Tags user
-// @Param nick_name formData string false "user nick name"
-// @Param description formData string false "Description"
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /user/person/info [post]
-func PostUserPersonInfo(c *gin.Context) {
-	desc := c.PostForm("description")
-	nickName := c.PostForm("nick_name")
-	if len(desc) == 0 || len(nickName) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+	user := service.MyService.User().GetUserInfoById(id)
+	if user.Id == 0 {
+		c.JSON(http.StatusOK,
+			model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
 		return
 	}
-	user_service.SetUser("", "", "", "", desc, nickName)
-	data := make(map[string]string, 2)
-	data["description"] = config.UserInfo.Description
-	data["nick_name"] = config.UserInfo.NickName
-	go service.MyService.Casa().PushUserInfo()
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	user.Description = desc
+
+	service.MyService.User().UpdateUser(user)
+
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: user})
 }
+
+// // @Summary Modify user person information (Initialization use)
+// // @Produce  application/json
+// // @Accept multipart/form-data
+// // @Tags user
+// // @Param nick_name formData string false "user nick name"
+// // @Param description formData string false "Description"
+// // @Security ApiKeyAuth
+// // @Success 200 {string} string "ok"
+// // @Router /user/person/info [post]
+// func PostUserPersonInfo(c *gin.Context) {
+// 	desc := c.PostForm("description")
+// 	nickName := c.PostForm("nick_name")
+// 	if len(desc) == 0 || len(nickName) == 0 {
+// 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+// 		return
+// 	}
+// 	user_service.SetUser("", "", "", "", desc, nickName)
+// 	data := make(map[string]string, 2)
+// 	data["description"] = config.UserInfo.Description
+// 	data["nick_name"] = config.UserInfo.NickName
+// 	go service.MyService.Casa().PushUserInfo()
+// 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+// }
 
 // @Summary get user info
 // @Produce  application/json
-// @Accept mapplication/json
+// @Accept  application/json
 // @Tags user
 // @Success 200 {string} string "ok"
-// @Router /user/info [get]
+// @Router /user/info/:id [get]
 func GetUserInfo(c *gin.Context) {
-	var u = make(map[string]string, 5)
-	u["user_name"] = config.UserInfo.UserName
-	u["head"] = config.UserInfo.Head
-	u["email"] = config.UserInfo.Email
-	u["description"] = config.UserInfo.Description
-	u["nick_name"] = config.UserInfo.NickName
+	id := c.Param("id")
+	user := service.MyService.User().GetUserInfoById(id)
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    u,
+			Data:    user,
 		})
 }
 
@@ -334,4 +340,22 @@ func GetUserInfo(c *gin.Context) {
 // @Router /user/shareid [get]
 func GetUserShareID(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: config.ServerInfo.Token})
+}
+
+// @Summary get user info
+// @Produce  application/json
+// @Accept  application/json
+// @Tags user
+func GetUserAllUserName(c *gin.Context) {
+	users := service.MyService.User().GetAllUserName()
+	names := []string{}
+	for _, v := range users {
+		names = append(names, v.UserName)
+	}
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
+			Data:    names,
+		})
 }
