@@ -464,7 +464,7 @@ func (a *appStruct) GetHardwareUsageSteam() {
 
 	fts := filters.NewArgs()
 	fts.Add("label", "casaos=casaos")
-	fts.Add("status", "running")
+	//fts.Add("status", "running")
 
 	for i := 0; i < 100; i++ {
 		if config.CasaOSGlobalVariables.AppChange {
@@ -481,6 +481,10 @@ func (a *appStruct) GetHardwareUsageSteam() {
 		}
 		var wg sync.WaitGroup
 		for _, v := range containers {
+			if v.State != "running" {
+				dataStats.Delete(v.ID)
+				continue
+			}
 			wg.Add(1)
 			go func(v types.Container, i int) {
 				defer wg.Done()
