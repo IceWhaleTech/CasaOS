@@ -45,7 +45,7 @@ import (
 type DockerService interface {
 	DockerPullImage(imageName string, icon, name string) error
 	IsExistImage(imageName string) bool
-	DockerContainerCreate(imageName string, m model.CustomizationPostData, net string) (containerId string, err error)
+	DockerContainerCreate(imageName string, m model.CustomizationPostData) (containerId string, err error)
 	DockerContainerCopyCreate(info *types.ContainerJSON) (containerId string, err error)
 	DockerContainerStart(name string) error
 	DockerContainerStats(name string) (string, error)
@@ -376,9 +376,9 @@ func (ds *dockerService) DockerContainerCopyCreate(info *types.ContainerJSON) (c
 //param mapPort 容器主端口映射到外部的端口
 //param tcp 容器其他tcp端口
 //param udp 容器其他udp端口
-func (ds *dockerService) DockerContainerCreate(imageName string, m model.CustomizationPostData, net string) (containerId string, err error) {
-	if len(net) == 0 {
-		net = "bridge"
+func (ds *dockerService) DockerContainerCreate(imageName string, m model.CustomizationPostData) (containerId string, err error) {
+	if len(m.NetworkModel) == 0 {
+		m.NetworkModel = "bridge"
 	}
 
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
@@ -402,7 +402,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 			tContainer, _ := strconv.Atoi(portMap.ContainerPort)
 			if tContainer > 0 {
 				ports[nat.Port(portMap.ContainerPort+"/tcp")] = struct{}{}
-				if net != "host" {
+				if m.NetworkModel != "host" {
 					portMaps[nat.Port(portMap.ContainerPort+"/tcp")] = []nat.PortBinding{{HostPort: portMap.CommendPort}}
 				}
 			}
@@ -411,7 +411,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 			tContainer, _ := strconv.Atoi(portMap.ContainerPort)
 			if tContainer > 0 {
 				ports[nat.Port(portMap.ContainerPort+"/tcp")] = struct{}{}
-				if net != "host" {
+				if m.NetworkModel != "host" {
 					portMaps[nat.Port(portMap.ContainerPort+"/tcp")] = []nat.PortBinding{{HostPort: portMap.CommendPort}}
 				}
 			}
@@ -419,7 +419,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 			uContainer, _ := strconv.Atoi(portMap.ContainerPort)
 			if uContainer > 0 {
 				ports[nat.Port(portMap.ContainerPort+"/udp")] = struct{}{}
-				if net != "host" {
+				if m.NetworkModel != "host" {
 					portMaps[nat.Port(portMap.ContainerPort+"/udp")] = []nat.PortBinding{{HostPort: portMap.CommendPort}}
 				}
 			}
@@ -428,7 +428,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 			uContainer, _ := strconv.Atoi(portMap.ContainerPort)
 			if uContainer > 0 {
 				ports[nat.Port(portMap.ContainerPort+"/udp")] = struct{}{}
-				if net != "host" {
+				if m.NetworkModel != "host" {
 					portMaps[nat.Port(portMap.ContainerPort+"/udp")] = []nat.PortBinding{{HostPort: portMap.CommendPort}}
 				}
 			}
@@ -541,7 +541,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 	config.Labels["protocol"] = m.Protocol
 	config.Labels["host"] = m.Host
 	//config.Labels["order"] = strconv.Itoa(MyService.App().GetCasaOSCount() + 1)
-	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(net), Privileged: m.Privileged, CapAdd: m.CapAdd}
+	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(m.NetworkModel), Privileged: m.Privileged, CapAdd: m.CapAdd}
 	//if net != "host" {
 	config.ExposedPorts = ports
 	hostConfig.PortBindings = portMaps
@@ -550,7 +550,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 	containerDb, err := cli.ContainerCreate(context.Background(),
 		config,
 		hostConfig,
-		&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{net: {NetworkID: "", Aliases: []string{}}}},
+		&network.NetworkingConfig{EndpointsConfig: map[string]*network.EndpointSettings{m.NetworkModel: {NetworkID: "", Aliases: []string{}}}},
 		nil,
 		m.Label)
 	if err != nil {
