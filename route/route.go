@@ -114,6 +114,7 @@ func InitRouter() *gin.Engine {
 		v1SysGroup := v1Group.Group("/sys")
 		v1SysGroup.Use()
 		{
+			v1SysGroup.GET("/check", v1.GetSystemCheckVersion)
 			v1SysGroup.GET("/version/check", v1.GetSystemCheckVersion)
 			v1SysGroup.GET("/hardware/info", v1.GetSystemHardwareInfo)
 			v1SysGroup.POST("/update", v1.SystemUpdate)
