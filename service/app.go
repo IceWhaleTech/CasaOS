@@ -403,7 +403,7 @@ func (a *appStruct) UpdateApp(m model2.AppListDBModel) {
 }
 
 func (a *appStruct) DelAppConfigDir(path string) {
-	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;DelAppConfigDir " + path)
+	command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;DelAppConfigDir " + path)
 }
 
 func (a *appStruct) DeleteApp(id string) {

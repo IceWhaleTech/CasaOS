@@ -14,6 +14,7 @@ const (
 	PWD_IS_TOO_SIMPLE = 10005
 	USER_NOT_EXIST    = 10006
 	USER_EXIST        = 10007
+	KEY_NOT_EXIST     = 10008
 
 	//system
 	DIR_ALREADY_EXISTS              = 20001
@@ -69,6 +70,7 @@ var MsgFlags = map[int]string{
 	PWD_IS_TOO_SIMPLE: "Password is too simple",
 	USER_NOT_EXIST:    "User does not exist",
 	USER_EXIST:        "User already exists",
+	KEY_NOT_EXIST:     "Key does not exist",
 
 	//system
 	DIR_ALREADY_EXISTS:   "Folder already exists",

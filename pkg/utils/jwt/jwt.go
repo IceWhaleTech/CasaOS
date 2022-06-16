@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-09-30 18:18:14
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-15 15:07:16
+ * @LastEditTime: 2022-06-16 18:05:00
  * @FilePath: /CasaOS/pkg/utils/jwt/jwt.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -19,16 +19,18 @@ import (
 type Claims struct {
 	UserName string `json:"username"`
 	PassWord string `json:"password"`
+	Id       int    `json:"id"`
 	jwt.RegisteredClaims
 }
 
 var jwtSecret []byte
 
 //创建token
-func GenerateToken(username, password string, issuer string, t time.Duration) (string, error) {
+func GenerateToken(username, password string, id int, issuer string, t time.Duration) (string, error) {
 	clims := Claims{
 		username,
 		password,
+		id,
 		jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(t)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -310,7 +310,7 @@ func (s *shareDirService) UpConfig() {
 	} else {
 		defer f.Close()
 		f.WriteString(str)
-		command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;ReloadSamba")
+		command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;ReloadSamba")
 	}
 }
 func (s *shareDirService) Info(id string) model.ShareDirDBModel {

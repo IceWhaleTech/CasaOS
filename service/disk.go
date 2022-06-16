@@ -74,31 +74,31 @@ func (d *diskService) SmartCTL(path string) model.SmartctlA {
 
 //通过脚本获取外挂磁盘
 func (d *diskService) GetPlugInDisk() []string {
-	return command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetPlugInDisk")
+	return command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetPlugInDisk")
 }
 
 //格式化硬盘
 func (d *diskService) FormatDisk(path, format string) []string {
-	r := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;FormatDisk " + path + " " + format)
+	r := command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;FormatDisk " + path + " " + format)
 	return r
 }
 
 //移除挂载点,删除目录
 func (d *diskService) UmountPointAndRemoveDir(path string) []string {
-	r := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;UMountPorintAndRemoveDir " + path)
+	r := command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;UMountPorintAndRemoveDir " + path)
 	return r
 }
 
 //删除分区
 func (d *diskService) DelPartition(path, num string) string {
-	r := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;DelPartition " + path + " " + num)
+	r := command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;DelPartition " + path + " " + num)
 	fmt.Println(r)
 	return ""
 }
 
 //part
 func (d *diskService) AddPartition(path string) string {
-	command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;AddPartition " + path)
+	command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;AddPartition " + path)
 	return ""
 }
 
@@ -152,7 +152,7 @@ func (d *diskService) LSBLK(isUseCache bool) []model.LSBLKModel {
 			fsused = 0
 			for _, child := range i.Children {
 				if child.RM {
-					child.Health = strings.TrimSpace(command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetDiskHealthState " + child.Path))
+					child.Health = strings.TrimSpace(command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDiskHealthState " + child.Path))
 					if strings.ToLower(strings.TrimSpace(child.State)) != "ok" {
 						health = false
 					}
@@ -163,7 +163,7 @@ func (d *diskService) LSBLK(isUseCache bool) []model.LSBLKModel {
 				}
 				c = append(c, child)
 			}
-			i.Format = strings.TrimSpace(command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetDiskType " + i.Path))
+			i.Format = strings.TrimSpace(command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDiskType " + i.Path))
 			if health {
 				i.Health = "OK"
 			}
@@ -208,7 +208,7 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 	return m
 	// 下面为计算是否可以继续分区的部分,暂时不需要
 	chiArr := make(map[string]string)
-	chiList := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetPartitionSectors " + m.Path)
+	chiList := command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetPartitionSectors " + m.Path)
 	if len(chiList) == 0 {
 		loger.Error("chiList length error", zap.Any("err", "chiList length error"))
 	}
@@ -226,7 +226,7 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 		}
 
 	}
-	diskEndSector := command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetDiskSizeAndSectors " + m.Path)
+	diskEndSector := command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDiskSizeAndSectors " + m.Path)
 
 	if len(diskEndSector) < 2 {
 		loger.Error("diskEndSector length error", zap.Any("err", "diskEndSector length error"))
@@ -242,7 +242,7 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 }
 
 func (d *diskService) MountDisk(path, volume string) {
-	r := command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;do_mount " + path + " " + volume)
+	r := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;do_mount " + path + " " + volume)
 	fmt.Print(r)
 }
 
@@ -264,7 +264,7 @@ func (d *diskService) DeleteMountPoint(path, mountPoint string) {
 
 	d.db.Where("path = ? AND mount_point = ?", path, mountPoint).Delete(&model2.SerialDisk{})
 
-	command2.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;do_umount " + path)
+	command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;do_umount " + path)
 }
 
 func (d *diskService) GetSerialAll() []model2.SerialDisk {

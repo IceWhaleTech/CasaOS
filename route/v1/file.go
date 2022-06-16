@@ -392,7 +392,7 @@ func GetFileUpload(c *gin.Context) {
 	path := c.Query("path")
 	dirPath := ""
 	hash := file.GetHashByContent([]byte(fileName))
-	tempDir := config.AppInfo.RootPath + "/temp/" + hash + strconv.Itoa(totalChunks) + "/"
+	tempDir := config.AppInfo.TempPath + "/" + hash + strconv.Itoa(totalChunks) + "/"
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
 		tempDir += dirPath
@@ -431,7 +431,7 @@ func PostFileUpload(c *gin.Context) {
 		c.JSON(common_err.INVALID_PARAMS, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	tempDir := config.AppInfo.RootPath + "/temp/" + hash + strconv.Itoa(totalChunks) + "/"
+	tempDir := config.AppInfo.TempPath + "/" + hash + strconv.Itoa(totalChunks) + "/"
 
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)

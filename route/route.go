@@ -57,12 +57,12 @@ func InitRouter() *gin.Engine {
 			//chang head
 			//v1UserGroup.POST("/head", v1.PostUserHead)
 			//chang user name
-			v1UserGroup.PUT("/username:/id", v1.PutUserName)
+			v1UserGroup.PUT("/username/:id", v1.PutUserName)
 			//chang pwd
 			v1UserGroup.PUT("/password/:id", v1.PutUserPwd)
 			//edit user info
 			//v1UserGroup.POST("/info", v1.PostUserChangeInfo)
-			v1UserGroup.PUT("/nick:/id", v1.PutUserNick)
+			v1UserGroup.PUT("/nick/:id", v1.PutUserNick)
 			v1UserGroup.PUT("/desc/:id", v1.PutUserDesc)
 			v1UserGroup.GET("/v1/user/info/:id", v1.GetUserInfo)
 			//v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)

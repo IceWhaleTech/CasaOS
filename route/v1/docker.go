@@ -1050,7 +1050,8 @@ func PutAppUpdate(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /app/order [get]
 func GetAppOrder(c *gin.Context) {
-	data := service.MyService.System().GetAppOrderFile()
+	id := c.GetHeader("user_id")
+	data := service.MyService.System().GetAppOrderFile(id)
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json.RawMessage(data)})
 }
 
@@ -1063,7 +1064,8 @@ func GetAppOrder(c *gin.Context) {
 // @Router /app/order [post]
 func PostAppOrder(c *gin.Context) {
 	data := c.PostForm("data")
-	service.MyService.System().UpAppOrderFile(data)
+	id := c.GetHeader("user_id")
+	service.MyService.System().UpAppOrderFile(data, id)
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: common_err.SUCCESS,

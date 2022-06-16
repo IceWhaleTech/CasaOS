@@ -1,3 +1,13 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-05-13 18:15:46
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-06-16 17:44:23
+ * @FilePath: /CasaOS/pkg/config/init.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package config
 
 import (
@@ -57,6 +67,21 @@ func InitSetup(config string) {
 	mapTo("system", SystemConfigInfo)
 	mapTo("file", FileSettingInfo)
 	SystemConfigInfo.ConfigPath = configDir
+	if len(AppInfo.DBPath) == 0 {
+		AppInfo.DBPath = "/var/lib/casaos"
+	}
+	if len(AppInfo.LogPath) == 0 {
+		AppInfo.LogPath = "/var/log/casaos/"
+	}
+	if len(AppInfo.ShellPath) == 0 {
+		AppInfo.ShellPath = "/usr/share/casaos/shell"
+	}
+	if len(AppInfo.UserDataPath) == 0 {
+		AppInfo.UserDataPath = "/var/lib/casaos/conf"
+	}
+	if len(AppInfo.TempPath) == 0 {
+		AppInfo.TempPath = "/var/lib/casaos/temp"
+	}
 	//	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
 
 }

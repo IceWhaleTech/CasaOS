@@ -3,6 +3,7 @@ package route
 import (
 	"encoding/xml"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -197,10 +198,10 @@ func CheckSerialDiskMount() {
 		}
 	}
 	service.MyService.Disk().RemoveLSBLKCache()
-	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;AutoRemoveUnuseDir")
+	command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;AutoRemoveUnuseDir")
 }
 func Update2_3() {
-	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/assist.sh")
+	command.OnlyExec("source " + config.AppInfo.ShellPath + "/assist.sh")
 
 }
 func CheckToken2_11() {
@@ -208,11 +209,6 @@ func CheckToken2_11() {
 		token := uuid.NewV4().String
 		config.ServerInfo.Token = token()
 		config.Cfg.Section("server").Key("Token").SetValue(token())
-		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-	}
-	if len(config.AppInfo.RootPath) == 0 {
-		config.Cfg.Section("app").Key("RootPath").SetValue("/casaOS")
-		config.AppInfo.RootPath = "/casaOS"
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
 
@@ -305,6 +301,12 @@ func MoveUserToDB() {
 		user.NickName = config.UserInfo.NickName
 		user.Password = encryption.GetMD5ByStr(config.UserInfo.PWD)
 		user.Role = "admin"
-		service.MyService.User().CreateUser(user)
+		user = service.MyService.User().CreateUser(user)
+		if user.Id > 0 {
+			userPath := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id)
+			file.MkDir(userPath)
+			os.Rename("/casaOS/server/conf/app_order.json", userPath+"/app_order.json")
+		}
+
 	}
 }

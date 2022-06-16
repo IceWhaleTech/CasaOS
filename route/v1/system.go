@@ -22,6 +22,7 @@ import (
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
+	uuid "github.com/satori/go.uuid"
 )
 
 // @Summary check version
@@ -222,19 +223,21 @@ func PutCasaOSPort(c *gin.Context) {
 // @Tags sys
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
-// @Router /guide/check [get]
+// @Router /sys/init/check [get]
 func GetGuideCheck(c *gin.Context) {
-	initUser := false
-	if !config.UserInfo.Initialized {
-		initUser = true
+	data := make(map[string]interface{}, 2)
+
+	if service.MyService.User().GetUserCount() > 0 {
+		data["initialized"] = true
+	} else {
+		data["key"] = uuid.NewV4().String()
+		data["initialized"] = false
 	}
-	data := make(map[string]interface{}, 1)
-	data["need_init_user"] = initUser
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    data,
+			Data:    true,
 		})
 }
 
@@ -547,14 +550,14 @@ func PostSystemRefreshToken(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.VERIFICATION_FAILURE, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE)})
 		return
 	}
-	newToken := jwt.GetAccessToken(claims.UserName, claims.PassWord)
+	newToken := jwt.GetAccessToken(claims.UserName, claims.PassWord, claims.Id)
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	verifyInfo := system_model.VerifyInformation{}
 	verifyInfo.AccessToken = newToken
-	verifyInfo.RefreshToken = jwt.GetRefreshToken(claims.UserName, claims.PassWord)
+	verifyInfo.RefreshToken = jwt.GetRefreshToken(claims.UserName, claims.PassWord, claims.Id)
 	verifyInfo.ExpiresAt = time.Now().Add(3 * time.Hour * time.Duration(1)).Format("2006-01-02 15:04:05")
 
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: verifyInfo})

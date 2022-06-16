@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-05-30 16:43:59
+ * @LastEditTime: 2022-06-16 17:50:56
  * @FilePath: /CasaOS/model/sys_common.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -46,15 +46,17 @@ type ServerModel struct {
 
 //服务配置
 type APPModel struct {
-	LogSavePath    string
+	LogPath        string
 	LogSaveName    string
 	LogFileExt     string
 	DateStrFormat  string
 	DateTimeFormat string
+	UserDataPath   string
 	TimeFormat     string
 	DateFormat     string
-	ProjectPath    string
-	RootPath       string
+	DBPath         string
+	ShellPath      string
+	TempPath       string
 }
 
 //公共返回模型

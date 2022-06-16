@@ -115,12 +115,12 @@ func (c *zima) GetSysInfo() host.InfoStat {
 }
 
 func (c *zima) GetDeviceTree() string {
-	return command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetDeviceTree")
+	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDeviceTree")
 }
 
 //shell脚本参数 { 网卡名称 }
 func (c *zima) GetNetState(name string) string {
-	return command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;CatNetCardState " + name)
+	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CatNetCardState " + name)
 }
 
 //mkdir

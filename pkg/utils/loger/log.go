@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-02 15:09:38
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-02 17:43:38
+ * @LastEditTime: 2022-06-16 18:15:58
  * @FilePath: /CasaOS/pkg/utils/loger/log.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -28,7 +28,7 @@ var loggers *zap.Logger
 func getFileLogWriter() (writeSyncer zapcore.WriteSyncer) {
 	// 使用 lumberjack 实现 log rotate
 	lumberJackLogger := &lumberjack.Logger{
-		Filename: filepath.Join(config.AppInfo.LogSavePath, fmt.Sprintf("%s.%s",
+		Filename: filepath.Join(config.AppInfo.LogPath, fmt.Sprintf("%s.%s",
 			config.AppInfo.LogSaveName,
 			config.AppInfo.LogFileExt,
 		)),

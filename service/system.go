@@ -26,8 +26,8 @@ type SystemService interface {
 	GetTimeZone() string
 	UpdateUSBAutoMount(state string)
 	ExecUSBAutoMountShell(state string)
-	UpAppOrderFile(str string)
-	GetAppOrderFile() []byte
+	UpAppOrderFile(str, id string)
+	GetAppOrderFile(id string) []byte
 	GetNet(physics bool) []string
 	GetNetInfo() []net.IOCountersStat
 	GetCpuCoreNum() int
@@ -64,34 +64,34 @@ func (c *systemService) GetNet(physics bool) []string {
 	if physics {
 		t = "2"
 	}
-	return command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetNetCard " + t)
+	return command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetNetCard " + t)
 }
 
 func (s *systemService) UpdateSystemVersion(version string) {
 	//command2.OnlyExec(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
 	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
-	s.log.Error(command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/tools.sh ;update " + version))
+	s.log.Error(command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/tools.sh ;update " + version))
 	//s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
 }
 func (s *systemService) UpdateAssist() {
-	s.log.Error(command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/assist.sh"))
+	s.log.Error(command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/assist.sh"))
 }
 
 func (s *systemService) GetTimeZone() string {
-	return command2.ExecResultStr("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetTimeZone")
+	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetTimeZone")
 }
 
 func (s *systemService) ExecUSBAutoMountShell(state string) {
 	if state == "False" {
-		command2.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;USB_Remove_File")
+		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Remove_File")
 	} else {
-		command2.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;USB_Move_File")
+		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Move_File")
 	}
 
 }
 
 func (s *systemService) GetSystemConfigDebug() []string {
-	return command2.ExecResultStrArray("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;GetSysInfo")
+	return command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetSysInfo")
 }
 func (s *systemService) UpSystemConfig(str string, widget string) {
 	if len(str) > 0 && str != config.SystemConfigInfo.ConfigStr {
@@ -104,11 +104,11 @@ func (s *systemService) UpSystemConfig(str string, widget string) {
 	}
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
-func (s *systemService) UpAppOrderFile(str string) {
-	file.WriteToPath([]byte(str), config.AppInfo.ProjectPath+"/conf", "app_order.json")
+func (s *systemService) UpAppOrderFile(str, id string) {
+	file.WriteToPath([]byte(str), config.AppInfo.DBPath+"/"+id, "app_order.json")
 }
-func (s *systemService) GetAppOrderFile() []byte {
-	return file.ReadFullFile(config.AppInfo.ProjectPath + "/conf/app_order.json")
+func (s *systemService) GetAppOrderFile(id string) []byte {
+	return file.ReadFullFile(config.AppInfo.UserDataPath + "/" + id + "/app_order.json")
 }
 func (s *systemService) UpdateUSBAutoMount(state string) {
 	config.ServerInfo.USBAutoMount = state

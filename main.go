@@ -30,7 +30,7 @@ func init() {
 	config.UpdateSetup()
 	loger.LogInit()
 	if len(*dbFlag) == 0 {
-		*dbFlag = config.AppInfo.ProjectPath + "/db"
+		*dbFlag = config.AppInfo.DBPath + "/db"
 	}
 	sqliteDB = sqlite.GetDb(*dbFlag)
 	//gredis.GetRedisConn(config.RedisInfo),

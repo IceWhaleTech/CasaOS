@@ -1,5 +1,15 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2021-09-30 18:18:14
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-06-16 18:11:41
+ * @FilePath: /CasaOS/pkg/config/config.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package config
 
 const (
-	USERCONFIGURL = "conf/conf.ini"
+	USERCONFIGURL = "conf/conf.json"
 )

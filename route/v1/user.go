@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -10,6 +10,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 
@@ -25,8 +26,11 @@ func PostUserRegister(c *gin.Context) {
 	username := json["user_name"]
 	pwd := json["password"]
 	key := c.GetHeader("key")
-	//TODO:检查hash
-	fmt.Println(key)
+	if _, ok := service.UserRegisterHash[key]; !ok {
+		c.JSON(http.StatusOK,
+			model.Result{Success: common_err.KEY_NOT_EXIST, Message: common_err.GetMsg(common_err.KEY_NOT_EXIST)})
+		return
+	}
 
 	if len(username) == 0 || len(pwd) == 0 {
 		c.JSON(http.StatusOK,
@@ -55,7 +59,8 @@ func PostUserRegister(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
 		return
 	}
-	//TODO:创建文件夹
+	file.MkDir(config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id))
+	delete(service.UserRegisterHash, key)
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 
 }
@@ -96,8 +101,8 @@ func Login(c *gin.Context) {
 	}
 	user.Password = ""
 	token := system_model.VerifyInformation{}
-	token.AccessToken = jwt.GetAccessToken(user.UserName, user.Password)
-	token.RefreshToken = jwt.GetRefreshToken(user.UserName, user.Password)
+	token.AccessToken = jwt.GetAccessToken(user.UserName, user.Password, user.Id)
+	token.RefreshToken = jwt.GetRefreshToken(user.UserName, user.Password, user.Id)
 	token.ExpiresAt = time.Now().Add(3 * time.Hour * time.Duration(1)).Format("2006-01-02 15:04:05")
 	data := make(map[string]interface{}, 2)
 	data["token"] = token

@@ -181,7 +181,7 @@ func GetPersonDownloadList(c *gin.Context) {
 	//if it is  downloading, it need to add 'already'
 	for i := 0; i < len(list); i++ {
 		if list[i].State == types.DOWNLOADING {
-			tempDir := config.AppInfo.RootPath + "/temp" + "/" + list[i].UUID
+			tempDir := config.AppInfo.TempPath + "/" + list[i].UUID
 			files, err := ioutil.ReadDir(tempDir)
 			if err == nil {
 				list[i].Already = len(files)

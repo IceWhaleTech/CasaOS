@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-03-18 11:40:55
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-15 17:09:20
+ * @LastEditTime: 2022-06-16 19:08:09
  * @FilePath: /CasaOS/service/user.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -30,6 +30,8 @@ type UserService interface {
 	GetUserInfoByUserName(userName string) (m model.UserDBModel)
 	GetAllUserName() (list []model.UserDBModel)
 }
+
+var UserRegisterHash = make(map[string]string)
 
 type userService struct {
 	db *gorm.DB
