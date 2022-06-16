@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-14 11:17:16
+ * @LastEditTime: 2022-06-16 20:08:21
  * @FilePath: /CasaOS/pkg/utils/version/version.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -41,6 +41,9 @@ func IsNeedUpdate() (bool, model.Version) {
 	for i := 0; i < len(v1); i++ {
 		a, _ := strconv.Atoi(v1[i])
 		b, _ := strconv.Atoi(v2[i])
+		if i == 0 && a > b {
+			continue
+		}
 		if a > b {
 			return true, version
 		}
