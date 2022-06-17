@@ -18,14 +18,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-## [0.3.2.1] - 2022-06-14
+## [0.3.2.1] - 2022-06-16(UTC)
+
+### Changed
+
+- [System] Adjusted the display style.
 
 ### Fixed
 
-- Fix the problem of application opening failure on non-80 ports ([#283](https://github.com/IceWhaleTech/CasaOS/issues/283) [#280](https://github.com/IceWhaleTech/CasaOS/issues/280))
-- Modify port failure problem ([#282](https://github.com/IceWhaleTech/CasaOS/issues/282))
-- Modify environment variables disappearing problem([#284](https://github.com/IceWhaleTech/CasaOS/issues/284))
-- Fix no update alert([#278](https://github.com/IceWhaleTech/CasaOS/issues/278))
+- [System] Fixed the issue of widgets displaying wrongly on mobile devices.
+- [App] Fix the problem of application opening failure on non-80 ports ([#283](https://github.com/IceWhaleTech/CasaOS/issues/283) [#280](https://github.com/IceWhaleTech/CasaOS/issues/280))
+- [System] Modify port failure problem ([#282](https://github.com/IceWhaleTech/CasaOS/issues/282))
+- [App]Modify environment variables disappearing problem([#284](https://github.com/IceWhaleTech/CasaOS/issues/284))
+- [System]Fix no update alert([#278](https://github.com/IceWhaleTech/CasaOS/issues/278))
+- [System] Fixed some bugs of application cpu usage and memory staging([#272](https://github.com/IceWhaleTech/CasaOS/issues/272))
+- [App] Fixed plex and HA network mode error issues ([#299](https://github.com/IceWhaleTech/CasaOS/issues/299))
+- [App] Fix application terminal not working ([#266](https://github.com/IceWhaleTech/CasaOS/issues/266))
 
 ## [0.3.2] - 2022-06-10
 

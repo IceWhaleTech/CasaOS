@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-12-20 14:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-09 18:15:54
+ * @LastEditTime: 2022-06-16 16:47:46
  * @FilePath: /CasaOS/service/file.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -93,13 +93,12 @@ func FileOperate(k string) {
 		v := temp.Item[i]
 		if temp.Type == "move" {
 			lastPath := v.From[strings.LastIndex(v.From, "/")+1:]
-
 			if !file.CheckNotExist(temp.To + "/" + lastPath) {
 				if temp.Style == "skip" {
 					temp.Item[i].Finished = true
 					continue
 				} else {
-					os.Remove(temp.To + "/" + lastPath)
+					os.RemoveAll(temp.To + "/" + lastPath)
 				}
 			}
 

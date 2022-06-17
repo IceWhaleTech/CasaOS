@@ -326,7 +326,7 @@ func InstallApp(c *gin.Context) {
 			time.Sleep(time.Second)
 		}
 
-		_, err = service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m, appInfo.NetworkModel)
+		_, err = service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m)
 		if err != nil {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":80}", 100)
 			notify := notify.Application{}
@@ -900,7 +900,7 @@ func UpdateSetting(c *gin.Context) {
 	service.MyService.Docker().DockerContainerUpdateName(id, id)
 	//service.MyService.Docker().DockerContainerRemove(id, true)
 
-	containerId, err := service.MyService.Docker().DockerContainerCreate(m.Image, m, m.NetworkModel)
+	containerId, err := service.MyService.Docker().DockerContainerCreate(m.Image, m)
 	if err != nil {
 		service.MyService.Docker().DockerContainerUpdateName(m.Label, id)
 		service.MyService.Docker().DockerContainerStart(id)
