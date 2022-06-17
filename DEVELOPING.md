@@ -1,5 +1,5 @@
 # CasaOS Development
-Here we will describe the steps required to setup a development with CasaOS.  
+Here we will describe the steps required to setup a development environment with CasaOS.  
 
 - [Setting up development environment](#setting-up-development-environment)  
     - [Pre-requisites](#pre-requisites)  
