@@ -1,11 +1,11 @@
 # CasaOS Development
 Here we will describe the steps required to setup a development with CasaOS.  
 
-── [Setting up development environment](#setting-up-development-environment)  
-    ├── [Pre-requisites](#pre-requisites)  
-    ├── [1. Fork the Repo](#1.-fork-the-repo)  
-    ├── [2. Clone the repo down](#2.-clone-the-repo-down)  
-    └── [3. Install dependencies](#3.-install-dependencies)  
+- [Setting up development environment](#setting-up-development-environment)  
+    - [Pre-requisites](#pre-requisites)  
+    - [1. Fork the Repo](#1.-fork-the-repo)  
+    - [2. Clone the repo down](#2.-clone-the-repo-down)  
+    - [3. Install dependencies](#3.-install-dependencies)  
 
 
 ## Setting up a development environment
