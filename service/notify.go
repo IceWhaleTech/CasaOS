@@ -12,7 +12,6 @@ import (
 	"github.com/ambelovsky/gosf"
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/gorilla/websocket"
-	"github.com/shirou/gopsutil/v3/mem"
 	"gorm.io/gorm"
 )
 
@@ -31,7 +30,7 @@ type NotifyServer interface {
 	SendUninstallAppBySocket(app notify.Application)
 	SendNetInfoBySocket(netList []model2.IOCountersStat)
 	SendCPUInfoBySocket(cpu map[string]interface{})
-	SendMemInfoBySocket(mem *mem.VirtualMemoryStat)
+	SendMemInfoBySocket(mem map[string]interface{})
 	SendUSBInfoBySocket(list []model2.DriveUSB)
 	SendDiskInfoBySocket(disk model2.Summary)
 	SendPersonStatusBySocket(status notify.Person)
@@ -273,7 +272,7 @@ func (i *notifyServer) SendUSBInfoBySocket(list []model2.DriveUSB) {
 	NotifyMsg <- notify
 }
 
-func (i *notifyServer) SendMemInfoBySocket(mem *mem.VirtualMemoryStat) {
+func (i *notifyServer) SendMemInfoBySocket(mem map[string]interface{}) {
 	body := make(map[string]interface{})
 	body["data"] = mem
 

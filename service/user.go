@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-03-18 11:40:55
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-16 19:08:09
+ * @LastEditTime: 2022-06-23 19:45:49
  * @FilePath: /CasaOS/service/user.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -26,7 +26,11 @@ type UserService interface {
 	CreateUser(m model.UserDBModel) model.UserDBModel
 	GetUserCount() (userCount int64)
 	UpdateUser(m model.UserDBModel)
+	UpdateUserPassword(m model.UserDBModel)
 	GetUserInfoById(id string) (m model.UserDBModel)
+	GetUserAllInfoById(id string) (m model.UserDBModel)
+	GetUserAllInfoByName(userName string) (m model.UserDBModel)
+	DeleteUserById(id string)
 	GetUserInfoByUserName(userName string) (m model.UserDBModel)
 	GetAllUserName() (list []model.UserDBModel)
 }
@@ -35,6 +39,10 @@ var UserRegisterHash = make(map[string]string)
 
 type userService struct {
 	db *gorm.DB
+}
+
+func (u *userService) DeleteUserById(id string) {
+	u.db.Where("id= ?", id).Delete(&model.UserDBModel{})
 }
 
 func (u *userService) GetAllUserName() (list []model.UserDBModel) {
@@ -52,16 +60,26 @@ func (u *userService) GetUserCount() (userCount int64) {
 }
 
 func (u *userService) UpdateUser(m model.UserDBModel) {
-	u.db.Save(&m)
+	u.db.Model(&m).Omit("password").Updates(&m)
 }
-
-func (u *userService) GetUserInfoById(id string) (m model.UserDBModel) {
+func (u *userService) UpdateUserPassword(m model.UserDBModel) {
+	u.db.Model(&m).Update("password", m.Password)
+}
+func (u *userService) GetUserAllInfoById(id string) (m model.UserDBModel) {
 	u.db.Where("id= ?", id).First(&m)
+	return
+}
+func (u *userService) GetUserAllInfoByName(userName string) (m model.UserDBModel) {
+	u.db.Where("user_name= ?", userName).First(&m)
+	return
+}
+func (u *userService) GetUserInfoById(id string) (m model.UserDBModel) {
+	u.db.Select("user_name", "id", "role", "nick_name", "description", "avatar").Where("id= ?", id).First(&m)
 	return
 }
 
 func (u *userService) GetUserInfoByUserName(userName string) (m model.UserDBModel) {
-	u.db.Where("user_name= ?", userName).First(&m)
+	u.db.Select("user_name", "id", "role", "nick_name", "description", "avatar").Where("user_name= ?", userName).First(&m)
 	return
 }
 

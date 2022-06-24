@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+type ServerAppListCollection struct {
+	List      []ServerAppList `json:"list"`
+	Recommend []ServerAppList `json:"recommend"`
+	Community []ServerAppList `json:"Community"`
+	Version   string          `json:"version"`
+}
+
 type ServerAppList struct {
 	Id             uint      `gorm:"column:id;primary_key" json:"id"`
 	Title          string    `json:"title"`
@@ -15,6 +22,7 @@ type ServerAppList struct {
 	Icon           string    `json:"icon"`
 	ScreenshotLink Strings   `gorm:"type:json" json:"screenshot_link"`
 	Category       string    `json:"category"`
+	CategoryId     int       `json:"category_id"`
 	CategoryFont   string    `json:"category_font"`
 	PortMap        string    `json:"port_map"`
 	ImageVersion   string    `json:"image_version"`
@@ -38,6 +46,7 @@ type ServerAppList struct {
 	Plugins        Strings   `json:"plugins"`
 	Origin         string    `json:"origin"`
 	Type           int       `json:"type"`
+	QueryCount     int       `json:"query_count"`
 	Developer      string    `json:"developer"`
 	HostName       string    `json:"host_name"`
 	Privileged     bool      `json:"privileged"`

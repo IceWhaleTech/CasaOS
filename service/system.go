@@ -5,13 +5,20 @@ import (
 	"io/ioutil"
 	net2 "net"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strconv"
+	"strings"
+	"time"
 
+	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/host"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/net"
 )
@@ -32,16 +39,149 @@ type SystemService interface {
 	GetNetInfo() []net.IOCountersStat
 	GetCpuCoreNum() int
 	GetCpuPercent() float64
-	GetMemInfo() *mem.VirtualMemoryStat
+	GetMemInfo() map[string]interface{}
+	GetCpuInfo() []cpu.InfoStat
+	GetDirPath(path string) []model.Path
+	GetDirPathOne(path string) (m model.Path)
+	GetNetState(name string) string
+	GetDiskInfo() *disk.UsageStat
+	GetSysInfo() host.InfoStat
+	GetDeviceTree() string
+	CreateFile(path string) (int, error)
+	RenameFile(oldF, newF string) (int, error)
+	MkdirAll(path string) (int, error)
 }
 type systemService struct {
-	log loger.OLog
 }
 
-func (c *systemService) GetMemInfo() *mem.VirtualMemoryStat {
+func (c *systemService) MkdirAll(path string) (int, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return common_err.DIR_ALREADY_EXISTS, nil
+	} else {
+		if os.IsNotExist(err) {
+			os.MkdirAll(path, os.ModePerm)
+			return common_err.SUCCESS, nil
+		} else if strings.Contains(err.Error(), ": not a directory") {
+			return common_err.FILE_OR_DIR_EXISTS, err
+		}
+	}
+	return common_err.ERROR, err
+}
+func (c *systemService) RenameFile(oldF, newF string) (int, error) {
+
+	_, err := os.Stat(newF)
+	if err == nil {
+		return common_err.DIR_ALREADY_EXISTS, nil
+	} else {
+		if os.IsNotExist(err) {
+			err := os.Rename(oldF, newF)
+			if err != nil {
+				return common_err.ERROR, err
+			}
+			return common_err.SUCCESS, nil
+		}
+	}
+	return common_err.ERROR, err
+}
+func (c *systemService) CreateFile(path string) (int, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return common_err.FILE_OR_DIR_EXISTS, nil
+	} else {
+		if os.IsNotExist(err) {
+			file.CreateFile(path)
+			return common_err.SUCCESS, nil
+		}
+	}
+	return common_err.ERROR, err
+}
+func (c *systemService) GetDeviceTree() string {
+	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDeviceTree")
+}
+func (c *systemService) GetSysInfo() host.InfoStat {
+	info, _ := host.Info()
+	return *info
+}
+
+func (c *systemService) GetDiskInfo() *disk.UsageStat {
+	path := "/"
+	if runtime.GOOS == "windows" {
+		path = "C:"
+	}
+	diskInfo, _ := disk.Usage(path)
+	diskInfo.UsedPercent, _ = strconv.ParseFloat(fmt.Sprintf("%.1f", diskInfo.UsedPercent), 64)
+	diskInfo.InodesUsedPercent, _ = strconv.ParseFloat(fmt.Sprintf("%.1f", diskInfo.InodesUsedPercent), 64)
+	return diskInfo
+}
+
+func (c *systemService) GetNetState(name string) string {
+	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CatNetCardState " + name)
+}
+
+func (c *systemService) GetDirPathOne(path string) (m model.Path) {
+
+	f, err := os.Stat(path)
+
+	if err != nil {
+		return
+	}
+	m.IsDir = f.IsDir()
+	m.Name = f.Name()
+	m.Path = path
+	m.Size = f.Size()
+	m.Date = f.ModTime()
+	return
+}
+
+func (c *systemService) GetDirPath(path string) []model.Path {
+	if path == "/DATA" {
+		sysType := runtime.GOOS
+		if sysType == "windows" {
+			path = "C:\\CasaOS\\DATA"
+		}
+		if sysType == "darwin" {
+			path = "./CasaOS/DATA"
+		}
+
+	}
+
+	ls, _ := ioutil.ReadDir(path)
+	dirs := []model.Path{}
+	if len(path) > 0 {
+		for _, l := range ls {
+			filePath := filepath.Join(path, l.Name())
+			link, err := filepath.EvalSymlinks(filePath)
+			if err != nil {
+				link = filePath
+			}
+			temp := model.Path{Name: l.Name(), Path: filePath, IsDir: l.IsDir(), Date: l.ModTime(), Size: l.Size()}
+			if filePath != link {
+				file, _ := os.Stat(link)
+				temp.IsDir = file.IsDir()
+			}
+			dirs = append(dirs, temp)
+		}
+	} else {
+		dirs = append(dirs, model.Path{Name: "DATA", Path: "/DATA/", IsDir: true, Date: time.Now()})
+	}
+	return dirs
+}
+func (c *systemService) GetCpuInfo() []cpu.InfoStat {
+	info, _ := cpu.Info()
+	return info
+}
+
+func (c *systemService) GetMemInfo() map[string]interface{} {
 	memInfo, _ := mem.VirtualMemory()
 	memInfo.UsedPercent, _ = strconv.ParseFloat(fmt.Sprintf("%.1f", memInfo.UsedPercent), 64)
-	return memInfo
+	memData := make(map[string]interface{})
+	memData["total"] = memInfo.Total
+	memData["available"] = memInfo.Available
+	memData["used"] = memInfo.Used
+	memData["free"] = memInfo.Free
+	memData["usedPercent"] = memInfo.UsedPercent
+	return memData
 }
 
 func (c *systemService) GetCpuPercent() float64 {
@@ -70,11 +210,11 @@ func (c *systemService) GetNet(physics bool) []string {
 func (s *systemService) UpdateSystemVersion(version string) {
 	//command2.OnlyExec(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
 	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
-	s.log.Error(command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/tools.sh ;update " + version))
+	command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/tools.sh ;update " + version)
 	//s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
 }
 func (s *systemService) UpdateAssist() {
-	s.log.Error(command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/assist.sh"))
+	command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/assist.sh")
 }
 
 func (s *systemService) GetTimeZone() string {
@@ -123,7 +263,10 @@ func (s *systemService) UpSystemPort(port string) {
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
 func (s *systemService) GetCasaOSLogs(lineNumber int) string {
-	file, err := os.Open(s.log.Path())
+	file, err := os.Open(filepath.Join(config.AppInfo.LogPath, fmt.Sprintf("%s.%s",
+		config.AppInfo.LogSaveName,
+		config.AppInfo.LogFileExt,
+	)))
 	if err != nil {
 		return err.Error()
 	}

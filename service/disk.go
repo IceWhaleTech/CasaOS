@@ -163,7 +163,7 @@ func (d *diskService) LSBLK(isUseCache bool) []model.LSBLKModel {
 				}
 				c = append(c, child)
 			}
-			i.Format = strings.TrimSpace(command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDiskType " + i.Path))
+			//i.Format = strings.TrimSpace(command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDiskType " + i.Path))
 			if health {
 				i.Health = "OK"
 			}

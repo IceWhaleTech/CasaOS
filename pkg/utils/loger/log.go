@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-02 15:09:38
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-16 18:15:58
+ * @LastEditTime: 2022-06-21 15:08:34
  * @FilePath: /CasaOS/pkg/utils/loger/log.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -47,8 +47,8 @@ func LogInit() {
 	encoder := zapcore.NewJSONEncoder(encoderConfig)
 	fileWriteSyncer := getFileLogWriter()
 	core := zapcore.NewTee(
-		zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zapcore.DebugLevel),
-		zapcore.NewCore(encoder, fileWriteSyncer, zapcore.DebugLevel),
+		zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zapcore.InfoLevel),
+		zapcore.NewCore(encoder, fileWriteSyncer, zapcore.InfoLevel),
 	)
 	loggers = zap.New(core)
 

@@ -36,8 +36,11 @@ func AppList(c *gin.Context) {
 	t := c.DefaultQuery("type", "rank")
 	categoryId := c.DefaultQuery("category_id", "0")
 	key := c.DefaultQuery("key", "")
-	language := c.GetHeader("Language")
-	recommend, list, community := service.MyService.Casa().GetServerList(index, size, t, categoryId, key, language)
+	if len(index) == 0 || len(size) == 0 || len(t) == 0 || len(categoryId) == 0 {
+		c.JSON(http.StatusOK, &model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
+	}
+	collection := service.MyService.Casa().GetServerList(index, size, t, categoryId, key)
 	// for i := 0; i < len(recommend); i++ {
 	// 	ct, _ := service.MyService.Docker().DockerListByImage(recommend[i].Image, recommend[i].ImageVersion)
 	// 	if ct != nil {
@@ -57,9 +60,9 @@ func AppList(c *gin.Context) {
 	// 	}
 	// }
 	data := make(map[string]interface{}, 3)
-	data["recommend"] = recommend
-	data["list"] = list
-	data["community"] = community
+	data["recommend"] = collection.Community
+	data["list"] = collection.List
+	data["community"] = collection.Community
 
 	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
@@ -210,7 +213,7 @@ func AppInfo(c *gin.Context) {
 	// sort.VolSort(volOrder).Sort(info.Volumes.([]model.PathMap))
 	// sort.DevSort(devOrder).Sort(info.Devices)
 
-	info.MaxMemory = service.MyService.System().GetMemInfo().Total >> 20
+	info.MaxMemory = (service.MyService.System().GetMemInfo()["total"]).(uint64) >> 20
 
 	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info})
 }
@@ -229,8 +232,8 @@ func CategoryList(c *gin.Context) {
 		count += category.Count
 	}
 
-	rear := append([]model.ServerCategoryList{}, list[0:]...)
-	list = append(list[:0], model.ServerCategoryList{Count: count, Name: "All", Font: "apps"})
+	rear := append([]model.CategoryList{}, list[0:]...)
+	list = append(list[:0], model.CategoryList{Count: count, Name: "All", Font: "apps"})
 	list = append(list, rear...)
 	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }

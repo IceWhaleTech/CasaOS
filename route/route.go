@@ -8,11 +8,11 @@ import (
 	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
 	"github.com/IceWhaleTech/CasaOS/web"
+
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
-var swagHandler gin.HandlerFunc
 var OnlineDemo bool = false
 
 func InitRouter() *gin.Engine {
@@ -20,57 +20,62 @@ func InitRouter() *gin.Engine {
 	r := gin.Default()
 
 	r.Use(middleware.Cors())
+	r.Use(middleware.WriteLog())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	gin.SetMode(config.ServerInfo.RunMode)
-
 	r.StaticFS("/ui", http.FS(web.Static))
 	r.GET("/", WebUIHome)
+	// r.StaticFS("/assets", http.Dir("./static/assets"))
+	// r.StaticFile("/favicon.ico", "./static/favicon.ico")
 	//r.GET("/", func(c *gin.Context) {
 	//	c.Redirect(http.StatusMovedPermanently, "ui/")
 	//})
-	if swagHandler != nil {
-		r.GET("/swagger/*any", swagHandler)
-	}
 
-	r.POST("/v1/user/register", v1.PostUserRegister)
-	r.POST("/v1/user/login", v1.Login)
-	r.POST("/v1/user/all/name", v1.GetUserAllUserName)
+	r.POST("/v1/user/register/:key", v1.PostUserRegister)
+	r.POST("/v1/user/login", v1.PostUserLogin)
+	r.GET("/v1/user/all/name", v1.GetUserAllUserName)
 
-	r.GET("/v1/guide/check", v1.GetGuideCheck)
+	r.GET("/v1/sys/init/check", v1.GetSystemInitCheck)
 
 	r.GET("/v1/debug", v1.GetSystemConfigDebug)
+
+	r.GET("/v1/user/avatar/:id", v1.GetUserAvatar)
+	r.GET("/v1/user/image", v1.GetUserImage)
 
 	//get user info
 
 	//get user info
 	r.GET("/v1/person/shareid", v1.GetPersonShareId)
 	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
-	r.POST("/v1/sys/refresh/token", v1.PostSystemRefreshToken)
+	r.POST("/v1/user/refresh/token", v1.PostUserRefreshToken)
 	v1Group := r.Group("/v1")
 
-	v1Group.Use(jwt2.JWT(swagHandler))
+	v1Group.Use(jwt2.JWT())
 	{
 		v1UserGroup := v1Group.Group("/user")
 		v1UserGroup.Use()
 		{
+			v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
+			v1UserGroup.GET("/avatar", v1.GetUserAvatar)
 
-			//chang head
-			//v1UserGroup.POST("/head", v1.PostUserHead)
-			//chang user name
-			v1UserGroup.PUT("/username/:id", v1.PutUserName)
-			//chang pwd
-			v1UserGroup.PUT("/password/:id", v1.PutUserPwd)
-			//edit user info
-			//v1UserGroup.POST("/info", v1.PostUserChangeInfo)
-			v1UserGroup.PUT("/nick/:id", v1.PutUserNick)
-			v1UserGroup.PUT("/desc/:id", v1.PutUserDesc)
-			v1UserGroup.GET("/v1/user/info/:id", v1.GetUserInfo)
-			//v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)
+			v1UserGroup.PUT("/name", v1.PutUserName)
+			v1UserGroup.PUT("/password", v1.PutUserPwd)
+			v1UserGroup.PUT("/nick", v1.PutUserNick)
+			v1UserGroup.PUT("/desc", v1.PutUserDesc)
+			v1UserGroup.GET("/info", v1.GetUserInfo)
+
+			v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)
 
 			v1UserGroup.GET("/shareid", v1.GetUserShareID)
 
-			v1UserGroup.GET("/custom/:name")
-			v1UserGroup.POST("/custom/:name")
+			v1UserGroup.GET("/custom/:key", v1.GetUserCustomConf)
+			v1UserGroup.POST("/custom/:key", v1.PostUserCustomConf)
+			v1UserGroup.DELETE("/custom/:key", v1.DeleteUserCustomConf)
+			v1UserGroup.DELETE("/delete/:id", v1.DeleteUser)
+			v1UserGroup.POST("/upload/image/:key", v1.PostUserUploadImage)
+			v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
+			v1UserGroup.DELETE("/image", v1.DeleteUserImage)
+
 		}
 		v1AppGroup := v1Group.Group("/app")
 		v1AppGroup.Use()
@@ -87,12 +92,10 @@ func InitRouter() *gin.Engine {
 			v1AppGroup.GET("/port", v1.GetPort)
 			//检查端口
 			v1AppGroup.GET("/check/:port", v1.PortCheck)
-			//分类
+
 			v1AppGroup.GET("/category", v1.CategoryList)
-			//容器相关
+
 			v1AppGroup.GET("/terminal/:id", v1.DockerTerminal)
-			v1AppGroup.GET("/order", v1.GetAppOrder)
-			v1AppGroup.POST("/order", v1.PostAppOrder)
 			//app容器详情
 			v1AppGroup.GET("/info/:id", v1.ContainerInfo)
 			//app容器日志
@@ -118,7 +121,6 @@ func InitRouter() *gin.Engine {
 		v1SysGroup := v1Group.Group("/sys")
 		v1SysGroup.Use()
 		{
-			v1SysGroup.GET("/check", v1.GetSystemCheckVersion)
 			v1SysGroup.GET("/version/check", v1.GetSystemCheckVersion)
 			v1SysGroup.GET("/hardware/info", v1.GetSystemHardwareInfo)
 			v1SysGroup.POST("/update", v1.SystemUpdate)
@@ -138,7 +140,6 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.GET("/mem", v1.GetSystemMemInfo)
 			v1SysGroup.GET("/disk", v1.GetSystemDiskInfo)
 			v1SysGroup.GET("/network", v1.GetSystemNetInfo)
-
 		}
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()
@@ -159,7 +160,6 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.PUT("/update", v1.PutFileContent)
 			v1FileGroup.GET("/image", v1.GetFileImage)
 			v1FileGroup.DELETE("/operate/:id", v1.DeleteOperateFileOrDir)
-
 			//v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
 		}
 		v1DiskGroup := v1Group.Group("/disk")
@@ -173,10 +173,10 @@ func InitRouter() *gin.Engine {
 			v1DiskGroup.GET("/info", v1.GetDiskInfo)
 
 			//format storage
-			v1DiskGroup.POST("/format", v1.FormatDisk)
+			v1DiskGroup.POST("/format", v1.PostDiskFormat)
 
 			// add storage
-			v1DiskGroup.POST("/storage", v1.AddPartition)
+			v1DiskGroup.POST("/storage", v1.PostDiskAddPartition)
 
 			//mount SATA disk
 			v1DiskGroup.POST("/mount", v1.PostMountDisk)
@@ -192,24 +192,6 @@ func InitRouter() *gin.Engine {
 			v1DiskGroup.GET("/usb", v1.GetUSBList)
 
 		}
-		v1ShareGroup := v1Group.Group("/share")
-		v1ShareGroup.Use()
-		{
-			v1ShareGroup.POST("/add", v1.PostShareDirAdd)
-			v1ShareGroup.DELETE("/del/:id", v1.DeleteShareDirDel)
-			v1ShareGroup.GET("/list", v1.GetShareDirList)
-			v1ShareGroup.GET("/info/:id", v1.GetShareDirInfo)
-			v1ShareGroup.PUT("/update/:id", v1.PutShareDirEdit)
-		}
-		v1TaskGroup := v1Group.Group("/task")
-		v1TaskGroup.Use()
-		{
-			v1TaskGroup.GET("/list", v1.GetTaskList)
-			v1TaskGroup.PUT("/update", v1.PutTaskUpdate)
-			v1TaskGroup.POST("/add", v1.PostTaskAdd)
-			v1TaskGroup.PUT("/completion/:id", v1.PutTaskMarkerCompletion)
-		}
-
 		v1PersonGroup := v1Group.Group("/person")
 		v1PersonGroup.Use()
 		{
@@ -236,14 +218,7 @@ func InitRouter() *gin.Engine {
 			v1PersonGroup.GET("/image/thumbnail/:shareid", v1.GetPersonImageThumbnail)
 
 		}
-		v1AnalyseGroup := v1Group.Group("/analyse")
-		v1AnalyseGroup.Use()
-		{
-			v1AnalyseGroup.POST("/app", v1.PostAppAnalyse)
-		}
 		v1Group.GET("/sync/config", v1.GetSyncConfig)
-		v1Group.Any("/syncthing/*url", v1.SyncToSyncthing)
-
 	}
 	return r
 }

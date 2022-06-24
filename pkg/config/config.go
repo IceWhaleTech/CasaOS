@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-09-30 18:18:14
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-16 18:11:41
+ * @LastEditTime: 2022-06-21 11:09:30
  * @FilePath: /CasaOS/pkg/config/config.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -11,5 +11,5 @@
 package config
 
 const (
-	USERCONFIGURL = "conf/conf.json"
+	USERCONFIGURL = "/etc/casaos.conf"
 )

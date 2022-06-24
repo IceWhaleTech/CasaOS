@@ -198,11 +198,11 @@ func ProcessingContent(stream quic.Stream) {
 				if m.Data.(string) == "" || m.Data.(string) == "/" {
 					for _, v := range config.FileSettingInfo.ShareDir {
 						//tempList := MyService.ZiMa().GetDirPath(v)
-						temp := MyService.ZiMa().GetDirPathOne(v)
+						temp := MyService.System().GetDirPathOne(v)
 						list = append(list, temp)
 					}
 				} else {
-					list = MyService.ZiMa().GetDirPath(m.Data.(string))
+					list = MyService.System().GetDirPath(m.Data.(string))
 				}
 			} else {
 				list = []model.Path{}

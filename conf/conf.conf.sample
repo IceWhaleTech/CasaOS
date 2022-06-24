@@ -1,7 +1,7 @@
 [app]
 PAGE_SIZE = 10
 RuntimeRootPath = runtime/
-LogSavePath = /var/log/casaos/
+LogPath = /var/log/casaos/
 LogSaveName = log
 LogFileExt = log
 DateStrFormat = 20060102

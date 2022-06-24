@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-10-08 10:29:08
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-05-25 19:17:45
+ * @LastEditTime: 2022-06-21 15:10:03
  * @FilePath: /CasaOS/middleware/gin.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -14,7 +14,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func Cors() gin.HandlerFunc {
@@ -45,6 +47,12 @@ func Cors() gin.HandlerFunc {
 			}
 		}()
 
+		c.Next()
+	}
+}
+func WriteLog() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		loger.Info("request:", zap.Any("path", c.Request.URL.String()), zap.Any("param", c.Params), zap.Any("query", c.Request.URL.Query()), zap.Any("body", c.Request.Body), zap.Any("method", c.Request.Method))
 		c.Next()
 	}
 }

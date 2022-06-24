@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-27 15:55:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-10 12:17:59
+ * @LastEditTime: 2022-06-21 19:00:12
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -29,7 +29,7 @@ func SendNetINfoBySocket() {
 		for _, netCardName := range nets {
 			if n.Name == netCardName {
 				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
-				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))
+				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
 				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
 				break
@@ -163,7 +163,7 @@ func SendAllHardwareStatusBySocket() {
 		for _, netCardName := range nets {
 			if n.Name == netCardName {
 				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
-				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))
+				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
 				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
 				break
@@ -273,13 +273,7 @@ func SendAllHardwareStatusBySocket() {
 		}
 	}
 	memInfo := service.MyService.System().GetMemInfo()
-	memData := make(map[string]interface{})
-	memData["total"] = memInfo.Total
-	memData["available"] = memInfo.Available
-	memData["used"] = memInfo.Used
-	memData["free"] = memInfo.Free
-	memData["usedPercent"] = memInfo.UsedPercent
 
-	service.MyService.Notify().SendAllHardwareStatusBySocket(summary, usb, memData, cpuData, newNet)
+	service.MyService.Notify().SendAllHardwareStatusBySocket(summary, usb, memInfo, cpuData, newNet)
 
 }

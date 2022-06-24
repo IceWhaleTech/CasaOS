@@ -1,8 +1,17 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-06-17 14:01:25
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-06-23 19:15:26
+ * @FilePath: /CasaOS/pkg/utils/jwt/jwt_helper.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package jwt
 
 import (
 	"fmt"
-	"net/http"
 	"strconv"
 	"time"
 
@@ -12,7 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func JWT(swagHandler gin.HandlerFunc) gin.HandlerFunc {
+func JWT() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var code int
 		code = common_err.SUCCESS
@@ -23,23 +32,20 @@ func JWT(swagHandler gin.HandlerFunc) gin.HandlerFunc {
 		if token == "" {
 			code = common_err.INVALID_PARAMS
 		}
-		if swagHandler == nil {
-			claims, err := ParseToken(token)
-			//_, err := ParseToken(token)
-			if err != nil {
-				code = common_err.ERROR_AUTH_TOKEN
-			} else if claims.VerifyExpiresAt(time.Now(), true) || claims.VerifyIssuer("casaos", true) {
-				code = common_err.ERROR_AUTH_TOKEN
-			}
-			c.Header("user_id", strconv.Itoa(claims.Id))
-		}
 
+		claims, err := ParseToken(token)
+		//_, err := ParseToken(token)
+		if err != nil {
+			code = common_err.ERROR_AUTH_TOKEN
+		} else if !claims.VerifyExpiresAt(time.Now(), true) || !claims.VerifyIssuer("casaos", true) {
+			code = common_err.ERROR_AUTH_TOKEN
+		}
 		if code != common_err.SUCCESS {
-			c.JSON(http.StatusOK, model.Result{Success: code, Message: common_err.GetMsg(code)})
+			c.JSON(code, model.Result{Success: code, Message: common_err.GetMsg(code)})
 			c.Abort()
 			return
 		}
-
+		c.Request.Header.Add("user_id", strconv.Itoa(claims.Id))
 		c.Next()
 	}
 }
@@ -50,7 +56,7 @@ func GetAccessToken(username, pwd string, id int) string {
 	if err == nil {
 		return token
 	} else {
-		loger2.NewOLoger().Fatal(fmt.Sprintf("Get Token Fail: %V", err))
+		loger2.Error(fmt.Sprintf("Get Token Fail: %V", err))
 		return ""
 	}
 }
@@ -60,7 +66,7 @@ func GetRefreshToken(username, pwd string, id int) string {
 	if err == nil {
 		return token
 	} else {
-		loger2.NewOLoger().Fatal(fmt.Sprintf("Get Token Fail: %V", err))
+		loger2.Error(fmt.Sprintf("Get Token Fail: %V", err))
 		return ""
 	}
 }

@@ -233,7 +233,7 @@ func GetDownloadSingleFile(c *gin.Context) {
 // @Router /file/dirpath [get]
 func DirPath(c *gin.Context) {
 	path := c.DefaultQuery("path", "")
-	info := service.MyService.ZiMa().GetDirPath(path)
+	info := service.MyService.System().GetDirPath(path)
 	if path == "/DATA/AppData" {
 		list := service.MyService.Docker().DockerContainerList()
 		apps := make(map[string]string, len(list))
@@ -318,7 +318,7 @@ func RenamePath(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	success, err := service.MyService.ZiMa().RenameFile(op, np)
+	success, err := service.MyService.System().RenameFile(op, np)
 	c.JSON(http.StatusOK, model.Result{Success: success, Message: common_err.GetMsg(success), Data: err})
 }
 
@@ -344,7 +344,7 @@ func MkdirAll(c *gin.Context) {
 	// 	c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	// 	return
 	// }
-	code, _ = service.MyService.ZiMa().MkdirAll(path)
+	code, _ = service.MyService.System().MkdirAll(path)
 	c.JSON(http.StatusOK, model.Result{Success: code, Message: common_err.GetMsg(code)})
 }
 
@@ -370,7 +370,7 @@ func PostCreateFile(c *gin.Context) {
 	// 	c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	// 	return
 	// }
-	code, _ = service.MyService.ZiMa().CreateFile(path)
+	code, _ = service.MyService.System().CreateFile(path)
 	c.JSON(http.StatusOK, model.Result{Success: code, Message: common_err.GetMsg(code)})
 }
 

@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-15 11:30:47
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-15 17:25:48
+ * @LastEditTime: 2022-06-23 18:40:40
  * @FilePath: /CasaOS/model/system_model/verify_information.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -13,5 +13,5 @@ package system_model
 type VerifyInformation struct {
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
-	ExpiresAt    string `json:"expires_at"`
+	ExpiresAt    int64  `json:"expires_at"`
 }

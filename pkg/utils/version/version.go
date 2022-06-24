@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-16 20:08:21
+ * @LastEditTime: 2022-06-22 15:24:01
  * @FilePath: /CasaOS/pkg/utils/version/version.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -11,22 +11,14 @@
 package version
 
 import (
-	json2 "encoding/json"
 	"strconv"
 	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/IceWhaleTech/CasaOS/types"
-	"github.com/tidwall/gjson"
 )
 
-func IsNeedUpdate() (bool, model.Version) {
-	var version model.Version
-	v := httper.OasisGet(config.ServerInfo.ServerApi + "/v1/sys/version")
-	data := gjson.Get(v, "data")
-	json2.Unmarshal([]byte(data.String()), &version)
+func IsNeedUpdate(version model.Version) (bool, model.Version) {
 
 	v1 := strings.Split(version.Version, ".")
 

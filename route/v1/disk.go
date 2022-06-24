@@ -11,6 +11,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -201,13 +202,20 @@ func GetDiskInfo(c *gin.Context) {
 // @Param  volume formData string true "mount point"
 // @Success 200 {string} string "ok"
 // @Router /disk/format [post]
-func FormatDisk(c *gin.Context) {
-	path := c.PostForm("path")
+func PostDiskFormat(c *gin.Context) {
+	json := make(map[string]string)
+	c.BindJSON(&json)
+	path := json["path"]
 	t := "ext4"
-	pwd := c.PostForm("pwd")
-	volume := c.PostForm("volume")
-
-	if pwd != config.UserInfo.PWD {
+	pwd := json["pwd"]
+	volume := json["volume"]
+	id := c.GetHeader("user_id")
+	user := service.MyService.User().GetUserAllInfoById(id)
+	if user.Id == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
+	if encryption.GetMD5ByStr(pwd) != user.Password {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}
@@ -278,10 +286,13 @@ func RemovePartition(c *gin.Context) {
 // @Param  format formData bool true "need format(true)"
 // @Success 200 {string} string "ok"
 // @Router /disk/storage [post]
-func AddPartition(c *gin.Context) {
-	name := c.PostForm("name")
-	path := c.PostForm("path")
-	format, _ := strconv.ParseBool(c.PostForm("format"))
+func PostDiskAddPartition(c *gin.Context) {
+	json := make(map[string]string)
+	c.BindJSON(&json)
+
+	name := json["name"]
+	path := json["path"]
+	format, _ := strconv.ParseBool(json["format"])
 	if len(name) == 0 || len(path) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return

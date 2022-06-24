@@ -31,7 +31,6 @@ func InitFunction() {
 	CheckToken2_11()
 	ImportApplications()
 	ChangeAPIUrl()
-	InitSystemApplication()
 
 	MoveUserToDB()
 }
@@ -83,7 +82,7 @@ func installSyncthing(appId string) {
 		appInfo.Tip = env_helper.ReplaceStringDefaultENV(appInfo.Tip)
 	}
 
-	appInfo.MaxMemory = service.MyService.System().GetMemInfo().Total >> 20
+	appInfo.MaxMemory = service.MyService.System().GetMemInfo()["total"].(uint64) >> 20
 
 	id := uuid.NewV4().String()
 
@@ -239,7 +238,7 @@ func CheckToken2_11() {
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
 
-	if service.MyService.ZiMa().GetSysInfo().KernelArch == "aarch64" && config.ServerInfo.USBAutoMount != "True" && strings.Contains(service.MyService.ZiMa().GetDeviceTree(), "Raspberry Pi") {
+	if service.MyService.System().GetSysInfo().KernelArch == "aarch64" && config.ServerInfo.USBAutoMount != "True" && strings.Contains(service.MyService.System().GetDeviceTree(), "Raspberry Pi") {
 		service.MyService.System().UpdateUSBAutoMount("False")
 		service.MyService.System().ExecUSBAutoMountShell("False")
 	}
@@ -270,34 +269,13 @@ func ChangeAPIUrl() {
 
 }
 
-// 0.3.1
-func InitSystemApplication() {
-	list := service.MyService.App().GetApplicationList()
-	if len(list) != 2 {
-		application := model2.ApplicationModel{}
-		application.Name = "Files"
-		application.Icon = "/ui/img/Files.svg"
-		application.Type = "system"
-		application.Order = 0
-		service.MyService.App().CreateApplication(application)
-
-		application.Name = "CasaConnect"
-		application.Icon = "/ui/img/CasaConnect.svg"
-		application.Type = "system"
-		application.Order = 0
-
-		service.MyService.App().CreateApplication(application)
-	}
-}
-
 //0.3.3
 //Transferring user data to the database
 func MoveUserToDB() {
 
-	if service.MyService.User().GetUserInfoByUserName(config.UserInfo.UserName).Id == 0 {
+	if len(config.UserInfo.UserName) > 0 && service.MyService.User().GetUserInfoByUserName(config.UserInfo.UserName).Id == 0 {
 		user := model2.UserDBModel{}
 		user.UserName = config.UserInfo.UserName
-		user.Avatar = config.UserInfo.Avatar
 		user.Email = config.UserInfo.Email
 		user.NickName = config.UserInfo.NickName
 		user.Password = encryption.GetMD5ByStr(config.UserInfo.PWD)

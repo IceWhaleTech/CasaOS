@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"runtime"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -27,12 +26,7 @@ import (
 )
 
 type AppService interface {
-	CreateApplication(m model2.ApplicationModel) model2.ApplicationModel
-	GetApplicationList() (m []model2.ApplicationModel)
-	GetApplicationById(id string) (m model2.ApplicationModel)
-	UpdateApplicationOrderById(id string, order int)
 	GetMyList(index, size int, position bool) (*[]model2.MyAppList, *[]model2.MyAppList)
-	GetCasaOSCount() int
 	SaveContainer(m model2.AppListDBModel)
 	GetUninstallInfo(id string) model2.AppListDBModel
 	DeleteApp(id string)
@@ -52,24 +46,6 @@ type AppService interface {
 
 type appStruct struct {
 	db *gorm.DB
-}
-
-func (a *appStruct) GetApplicationById(id string) (m model2.ApplicationModel) {
-	a.db.Where("id = ?", id).First(&m)
-	return
-}
-
-func (a *appStruct) UpdateApplicationOrderById(id string, order int) {
-	a.db.Model(&model2.ApplicationModel{}).Where("id = ?", id).Update("order", order)
-}
-
-func (a *appStruct) CreateApplication(m model2.ApplicationModel) model2.ApplicationModel {
-	a.db.Create(&m)
-	return m
-}
-func (a *appStruct) GetApplicationList() (m []model2.ApplicationModel) {
-	a.db.Find(&m)
-	return
 }
 
 func (a *appStruct) CheckNewImage() {
@@ -155,28 +131,6 @@ func (a *appStruct) ImportApplications(casaApp bool) {
 	// 	}
 	// 	MyService.Docker().DockerContainerStart(container_id)
 	//}
-
-}
-
-func (a *appStruct) GetCasaOSCount() int {
-	cli, err := client2.NewClientWithOpts(client2.FromEnv, client2.WithTimeout(time.Second*5))
-	if err != nil {
-		loger.Error("Failed to init client", zap.Any("err", err))
-		return 0
-	}
-	defer cli.Close()
-	fts := filters.NewArgs()
-	fts.Add("label", "casaos=casaos")
-	//fts.Add("label", "casaos:casaos")
-
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{Filters: fts, Limit: 200})
-	if err != nil {
-		loger.Error("failed to get container_list", zap.Any("err", err))
-		return 0
-	}
-
-	systemApp := MyService.App().GetApplicationList()
-	return len(containers) + len(systemApp)
 }
 
 //获取我的应用列表
@@ -199,25 +153,6 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 	unTranslation := []model2.MyAppList{}
 
 	list := []model2.MyAppList{}
-
-	systemApp := MyService.App().GetApplicationList()
-	for _, v := range systemApp {
-		list = append(list, model2.MyAppList{
-			Name:     v.Name,
-			Icon:     v.Icon,
-			State:    strconv.Itoa(v.State),
-			Id:       strconv.Itoa(v.Id),
-			CustomId: strconv.Itoa(v.Id),
-			Port:     "",
-			//Order:      strconv.Itoa(v.Order),
-			Index:      "/",
-			Image:      "",
-			Type:       v.Type,
-			Host:       "",
-			Protocol:   "",
-			NewVersion: false,
-		})
-	}
 
 	for _, m := range containers {
 		if m.Labels["casaos"] == "casaos" {

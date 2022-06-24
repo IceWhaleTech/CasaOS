@@ -18,6 +18,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.3.3] -
+
+### Added
+
+### Changed
+
+- Cache app store index and category data
+
+
+### Removed
+
+- upnp
+- ddns
+- search
+- zerotier
+- task
+- file share
+
+### Security
+
+### Fixed
+
 ## [0.3.2.1] - 2022-06-16(UTC)
 
 ### Changed

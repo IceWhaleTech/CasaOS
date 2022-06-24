@@ -12,10 +12,8 @@ import (
 	"unsafe"
 
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/model/system_model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -33,7 +31,7 @@ import (
 // @Success 200 {string} string "ok"
 // @Router /sys/version/check [get]
 func GetSystemCheckVersion(c *gin.Context) {
-	need, version := version.IsNeedUpdate()
+	need, version := version.IsNeedUpdate(service.MyService.Casa().GetCasaosVersion())
 	if need {
 		installLog := model2.AppNotify{}
 		installLog.State = 0
@@ -44,7 +42,7 @@ func GetSystemCheckVersion(c *gin.Context) {
 		installLog.Name = "CasaOS System"
 		service.MyService.Notify().AddLog(installLog)
 	}
-	data := make(map[string]interface{}, 1)
+	data := make(map[string]interface{}, 3)
 	data["is_need"] = need
 	data["version"] = version
 	data["current_version"] = types.CURRENTVERSION
@@ -59,7 +57,7 @@ func GetSystemCheckVersion(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/update [post]
 func SystemUpdate(c *gin.Context) {
-	need, version := version.IsNeedUpdate()
+	need, version := version.IsNeedUpdate(service.MyService.Casa().GetCasaosVersion())
 	if need {
 		service.MyService.System().UpdateSystemVersion(version.Version)
 	}
@@ -108,8 +106,8 @@ func PostSetSystemConfig(c *gin.Context) {
 func GetSystemConfigDebug(c *gin.Context) {
 
 	array := service.MyService.System().GetSystemConfigDebug()
-	disk := service.MyService.ZiMa().GetDiskInfo()
-	sys := service.MyService.ZiMa().GetSysInfo()
+	disk := service.MyService.System().GetDiskInfo()
+	sys := service.MyService.System().GetSysInfo()
 	//todo 准备sync需要显示的数据(镜像,容器)
 	var systemAppStatus string
 	images := service.MyService.Docker().IsExistImage("linuxserver/syncthing")
@@ -224,20 +222,23 @@ func PutCasaOSPort(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/init/check [get]
-func GetGuideCheck(c *gin.Context) {
+func GetSystemInitCheck(c *gin.Context) {
 	data := make(map[string]interface{}, 2)
 
 	if service.MyService.User().GetUserCount() > 0 {
 		data["initialized"] = true
+		data["key"] = ""
 	} else {
-		data["key"] = uuid.NewV4().String()
+		key := uuid.NewV4().String()
+		service.UserRegisterHash[key] = key
+		data["key"] = key
 		data["initialized"] = false
 	}
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    true,
+			Data:    data,
 		})
 }
 
@@ -307,7 +308,7 @@ func GetSystemUSBAutoMount(c *gin.Context) {
 func GetSystemHardwareInfo(c *gin.Context) {
 
 	data := make(map[string]string, 1)
-	data["drive_model"] = service.MyService.ZiMa().GetDeviceTree()
+	data["drive_model"] = service.MyService.System().GetDeviceTree()
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: common_err.SUCCESS,
@@ -438,7 +439,7 @@ func GetSystemUtilization(c *gin.Context) {
 		for _, netCardName := range nets {
 			if n.Name == netCardName {
 				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
-				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))
+				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
 				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
 				break
@@ -506,7 +507,7 @@ func GetSystemMemInfo(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/disk [get]
 func GetSystemDiskInfo(c *gin.Context) {
-	disk := service.MyService.ZiMa().GetDiskInfo()
+	disk := service.MyService.System().GetDiskInfo()
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: disk})
 }
 
@@ -525,7 +526,7 @@ func GetSystemNetInfo(c *gin.Context) {
 		for _, netCardName := range service.MyService.System().GetNet(true) {
 			if n.Name == netCardName {
 				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
-				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))
+				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
 				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
 				break
@@ -534,32 +535,4 @@ func GetSystemNetInfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: newNet})
-}
-
-//refresh token
-func PostSystemRefreshToken(c *gin.Context) {
-	json := make(map[string]string)
-	c.BindJSON(&json)
-	refresh := json["refresh_token"]
-	claims, err := jwt.ParseToken(refresh)
-	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE), Data: err.Error()})
-		return
-	}
-	if claims.VerifyExpiresAt(time.Now(), true) || claims.VerifyIssuer("refresh", true) {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.VERIFICATION_FAILURE, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE)})
-		return
-	}
-	newToken := jwt.GetAccessToken(claims.UserName, claims.PassWord, claims.Id)
-	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
-		return
-	}
-	verifyInfo := system_model.VerifyInformation{}
-	verifyInfo.AccessToken = newToken
-	verifyInfo.RefreshToken = jwt.GetRefreshToken(claims.UserName, claims.PassWord, claims.Id)
-	verifyInfo.ExpiresAt = time.Now().Add(3 * time.Hour * time.Duration(1)).Format("2006-01-02 15:04:05")
-
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: verifyInfo})
-
 }

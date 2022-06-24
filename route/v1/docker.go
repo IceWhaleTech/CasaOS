@@ -2,7 +2,6 @@ package v1
 
 import (
 	"bytes"
-	"encoding/json"
 	json2 "encoding/json"
 	"net/http"
 	"path/filepath"
@@ -14,10 +13,8 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
-	upnp2 "github.com/IceWhaleTech/CasaOS/pkg/upnp"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	ip_helper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/random"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -224,7 +221,6 @@ func InstallApp(c *gin.Context) {
 				return
 			}
 		}
-
 	}
 	if m.Origin == "custom" {
 		for _, device := range m.Devices {
@@ -373,53 +369,6 @@ func InstallApp(c *gin.Context) {
 			// 	installLog.Message = "nearing completion"
 			// }
 			// service.MyService.Notify().UpdateLog(installLog)
-		}
-
-		if m.Origin != CUSTOM {
-			//step:enable upnp
-			if m.EnableUPNP {
-				upnp, err := upnp2.Gateway()
-				if err == nil {
-					for _, p := range m.Ports {
-						if p.Protocol == "udp" {
-							upnp.CtrlUrl = upnp2.GetCtrlUrl(upnp.GatewayHost, upnp.DeviceDescUrl)
-							upnp.LocalHost = ip_helper2.GetLoclIp()
-							tComment, _ := strconv.Atoi(p.CommendPort)
-							upnp.AddPortMapping(tComment, tComment, "UDP")
-							time.Sleep(time.Millisecond * 200)
-						} else if p.Protocol == "tcp" {
-							upnp.CtrlUrl = upnp2.GetCtrlUrl(upnp.GatewayHost, upnp.DeviceDescUrl)
-							upnp.LocalHost = ip_helper2.GetLoclIp()
-							tComment, _ := strconv.Atoi(p.CommendPort)
-							upnp.AddPortMapping(tComment, tComment, "TCP")
-							time.Sleep(time.Millisecond * 200)
-						} else if p.Protocol == "both" {
-
-							upnp.CtrlUrl = upnp2.GetCtrlUrl(upnp.GatewayHost, upnp.DeviceDescUrl)
-							upnp.LocalHost = ip_helper2.GetLoclIp()
-							tComment, _ := strconv.Atoi(p.CommendPort)
-							upnp.AddPortMapping(tComment, tComment, "UDP")
-							time.Sleep(time.Millisecond * 200)
-
-							upnp.AddPortMapping(tComment, tComment, "TCP")
-							time.Sleep(time.Millisecond * 200)
-						}
-
-					}
-
-				}
-				// if err != nil {
-				// 	//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":95}", 100)
-				// 	installLog.State = 0
-				// 	installLog.Type = types.NOTIFY_TYPE_ERROR
-				// 	installLog.Message = err.Error()
-				// 	service.MyService.Notify().UpdateLog(installLog)
-				// } else {
-				// 	//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"checking\",\"speed\":95}", 100)
-				// 	installLog.Message = "checking"
-				// 	service.MyService.Notify().UpdateLog(installLog)
-				// }
-			}
 		}
 
 		//step: 启动成功     检查容器状态确认启动成功
@@ -1042,38 +991,6 @@ func PutAppUpdate(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
-// @Summary get app index
-// @Produce  application/json
-// @Accept application/json
-// @Tags app
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /app/order [get]
-func GetAppOrder(c *gin.Context) {
-	id := c.GetHeader("user_id")
-	data := service.MyService.System().GetAppOrderFile(id)
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json.RawMessage(data)})
-}
-
-// @Summary update app index
-// @Produce  application/json
-// @Accept application/json
-// @Tags app
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /app/order [post]
-func PostAppOrder(c *gin.Context) {
-	data := c.PostForm("data")
-	id := c.GetHeader("user_id")
-	service.MyService.System().UpAppOrderFile(data, id)
-	c.JSON(http.StatusOK,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    json.RawMessage(data),
-		})
-}
-
 // @Summary 获取容器详情
 // @Produce  application/json
 // @Accept application/json
@@ -1087,7 +1004,7 @@ func ContainerInfo(c *gin.Context) {
 	appInfo := service.MyService.App().GetAppDBInfo(appId)
 	containerInfo, _ := service.MyService.Docker().DockerContainerStats(appId)
 	var cpuModel = "arm"
-	if cpu := service.MyService.ZiMa().GetCpuInfo(); len(cpu) > 0 {
+	if cpu := service.MyService.System().GetCpuInfo(); len(cpu) > 0 {
 		if strings.Count(strings.ToLower(strings.TrimSpace(cpu[0].ModelName)), "intel") > 0 {
 			cpuModel = "intel"
 		} else if strings.Count(strings.ToLower(strings.TrimSpace(cpu[0].ModelName)), "amd") > 0 {
@@ -1111,7 +1028,7 @@ func ContainerInfo(c *gin.Context) {
 	data := make(map[string]interface{}, 5)
 	data["app"] = appInfo
 	data["cpu"] = cpuModel
-	data["memory"] = service.MyService.System().GetMemInfo().Total
+	data["memory"] = service.MyService.System().GetMemInfo()["total"]
 	data["container"] = json2.RawMessage(containerInfo)
 	data["info"] = con
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
