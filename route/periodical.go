@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-27 15:55:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-29 15:01:29
+ * @LastEditTime: 2022-06-29 16:47:19
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -99,13 +99,13 @@ func SendDiskBySocket() {
 		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || (list[i].Tran == "ata" && list[i].Type == "disk") {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
-				continue
+				healthy = true
+			} else {
+				healthy = temp.SmartStatus.Passed
 			}
 
 			//list[i].Temperature = temp.Temperature.Current
-			if !temp.SmartStatus.Passed {
-				healthy = false
-			}
+
 			if len(list[i].Children) > 0 {
 				for _, v := range list[i].Children {
 					s, _ := strconv.ParseUint(v.FSSize, 10, 64)
@@ -222,12 +222,9 @@ func SendAllHardwareStatusBySocket() {
 		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || (list[i].Tran == "ata" && list[i].Type == "disk") {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
-				continue
-			}
-
-			//list[i].Temperature = temp.Temperature.Current
-			if !temp.SmartStatus.Passed {
-				healthy = false
+				healthy = true
+			} else {
+				healthy = temp.SmartStatus.Passed
 			}
 			if len(list[i].Children) > 0 {
 				for _, v := range list[i].Children {

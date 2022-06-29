@@ -3,7 +3,7 @@
  # @Author: LinkLeong link@icewhale.com
  # @Date: 2021-12-06 17:12:32
  # @LastEditors: LinkLeong
- # @LastEditTime: 2022-06-27 14:23:15
+ # @LastEditTime: 2022-06-29 16:37:38
  # @FilePath: /CasaOS/shell/tools.sh
  # @Description: 
  # @Website: https://www.casaos.io
@@ -27,6 +27,6 @@ run_external_script() {
 }
 
 update() {
-  curl -fsSL https://get.icewhale.io/casaos.sh | bash
+  curl -fsSL https://get.icewhale.io | bash
   run_external_script
 }

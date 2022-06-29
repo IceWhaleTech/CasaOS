@@ -14,6 +14,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -21,6 +22,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
+	"go.uber.org/zap"
 )
 
 // @Summary check version
@@ -344,6 +346,8 @@ func GetSystemUtilization(c *gin.Context) {
 							s, _ := strconv.ParseUint(v.FSSize, 10, 64)
 							a, _ := strconv.ParseUint(v.FSAvail, 10, 64)
 							u, _ := strconv.ParseUint(v.FSUsed, 10, 64)
+							loger.Info("disk info", zap.Any("/ total:", s))
+							loger.Info("disk path", zap.Any("path", v.Path))
 							summary.Size += s
 							summary.Avail += a
 							summary.Used += u
@@ -356,6 +360,8 @@ func GetSystemUtilization(c *gin.Context) {
 						s, _ := strconv.ParseUint(list[i].Children[j].FSSize, 10, 64)
 						a, _ := strconv.ParseUint(list[i].Children[j].FSAvail, 10, 64)
 						u, _ := strconv.ParseUint(list[i].Children[j].FSUsed, 10, 64)
+						loger.Info("disk info", zap.Any("/ total:", s))
+						loger.Info("disk path", zap.Any("path", list[i].Path))
 						summary.Size += s
 						summary.Avail += a
 						summary.Used += u
@@ -373,18 +379,17 @@ func GetSystemUtilization(c *gin.Context) {
 		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || (list[i].Tran == "ata" && list[i].Type == "disk") {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
-				continue
-			}
-
-			//list[i].Temperature = temp.Temperature.Current
-			if !temp.SmartStatus.Passed {
-				healthy = false
+				healthy = true
+			} else {
+				healthy = temp.SmartStatus.Passed
 			}
 			if len(list[i].Children) > 0 {
 				for _, v := range list[i].Children {
 					s, _ := strconv.ParseUint(v.FSSize, 10, 64)
 					a, _ := strconv.ParseUint(v.FSAvail, 10, 64)
 					u, _ := strconv.ParseUint(v.FSUsed, 10, 64)
+					loger.Info("disk info", zap.Any("/ total:", s))
+					loger.Info("disk path", zap.Any("path", list[i].Path))
 					summary.Size += s
 					summary.Avail += a
 					summary.Used += u
