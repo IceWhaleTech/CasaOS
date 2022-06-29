@@ -1,3 +1,13 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-05-13 18:15:46
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-06-21 16:01:26
+ * @FilePath: /CasaOS/pkg/config/init.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package config
 
 import (
@@ -42,6 +52,9 @@ func InitSetup(config string) {
 	if len(config) > 0 {
 		configDir = config
 	}
+	if runtime.GOOS == "darwin" {
+		configDir = "./conf/conf.conf"
+	}
 	var err error
 	//读取文件
 	Cfg, err = ini.Load(configDir)
@@ -57,6 +70,26 @@ func InitSetup(config string) {
 	mapTo("system", SystemConfigInfo)
 	mapTo("file", FileSettingInfo)
 	SystemConfigInfo.ConfigPath = configDir
+	if len(AppInfo.DBPath) == 0 {
+		AppInfo.DBPath = "/var/lib/casaos"
+		Cfg.SaveTo(configDir)
+	}
+	if len(AppInfo.LogPath) == 0 {
+		AppInfo.LogPath = "/var/log/casaos/"
+		Cfg.SaveTo(configDir)
+	}
+	if len(AppInfo.ShellPath) == 0 {
+		AppInfo.ShellPath = "/usr/share/casaos/shell"
+		Cfg.SaveTo(configDir)
+	}
+	if len(AppInfo.UserDataPath) == 0 {
+		AppInfo.UserDataPath = "/var/lib/casaos/conf"
+		Cfg.SaveTo(configDir)
+	}
+	if len(AppInfo.TempPath) == 0 {
+		AppInfo.TempPath = "/var/lib/casaos/temp"
+		Cfg.SaveTo(configDir)
+	}
 	//	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
 
 }

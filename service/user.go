@@ -1,3 +1,13 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-03-18 11:40:55
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-06-23 19:45:49
+ * @FilePath: /CasaOS/service/user.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package service
 
 import (
@@ -6,18 +16,75 @@ import (
 	"os"
 
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/service/model"
+	"gorm.io/gorm"
 )
 
 type UserService interface {
 	SetUser(username, pwd, token, email, desc, nickName string) error
 	UpLoadFile(file multipart.File, name string) error
+	CreateUser(m model.UserDBModel) model.UserDBModel
+	GetUserCount() (userCount int64)
+	UpdateUser(m model.UserDBModel)
+	UpdateUserPassword(m model.UserDBModel)
+	GetUserInfoById(id string) (m model.UserDBModel)
+	GetUserAllInfoById(id string) (m model.UserDBModel)
+	GetUserAllInfoByName(userName string) (m model.UserDBModel)
+	DeleteUserById(id string)
+	GetUserInfoByUserName(userName string) (m model.UserDBModel)
+	GetAllUserName() (list []model.UserDBModel)
 }
 
-type user struct {
+var UserRegisterHash = make(map[string]string)
+
+type userService struct {
+	db *gorm.DB
+}
+
+func (u *userService) DeleteUserById(id string) {
+	u.db.Where("id= ?", id).Delete(&model.UserDBModel{})
+}
+
+func (u *userService) GetAllUserName() (list []model.UserDBModel) {
+	u.db.Select("user_name").Find(&list)
+	return
+}
+func (u *userService) CreateUser(m model.UserDBModel) model.UserDBModel {
+	u.db.Create(&m)
+	return m
+}
+
+func (u *userService) GetUserCount() (userCount int64) {
+	u.db.Find(&model.UserDBModel{}).Count(&userCount)
+	return
+}
+
+func (u *userService) UpdateUser(m model.UserDBModel) {
+	u.db.Model(&m).Omit("password").Updates(&m)
+}
+func (u *userService) UpdateUserPassword(m model.UserDBModel) {
+	u.db.Model(&m).Update("password", m.Password)
+}
+func (u *userService) GetUserAllInfoById(id string) (m model.UserDBModel) {
+	u.db.Where("id= ?", id).First(&m)
+	return
+}
+func (u *userService) GetUserAllInfoByName(userName string) (m model.UserDBModel) {
+	u.db.Where("user_name= ?", userName).First(&m)
+	return
+}
+func (u *userService) GetUserInfoById(id string) (m model.UserDBModel) {
+	u.db.Select("user_name", "id", "role", "nick_name", "description", "avatar").Where("id= ?", id).First(&m)
+	return
+}
+
+func (u *userService) GetUserInfoByUserName(userName string) (m model.UserDBModel) {
+	u.db.Select("user_name", "id", "role", "nick_name", "description", "avatar").Where("user_name= ?", userName).First(&m)
+	return
 }
 
 //设置用户名密码
-func (c *user) SetUser(username, pwd, token, email, desc, nickName string) error {
+func (u *userService) SetUser(username, pwd, token, email, desc, nickName string) error {
 	if len(username) > 0 {
 		config.Cfg.Section("user").Key("UserName").SetValue(username)
 		config.UserInfo.UserName = username
@@ -45,7 +112,7 @@ func (c *user) SetUser(username, pwd, token, email, desc, nickName string) error
 }
 
 //上传文件
-func (c *user) UpLoadFile(file multipart.File, url string) error {
+func (c *userService) UpLoadFile(file multipart.File, url string) error {
 	out, _ := os.OpenFile(url, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0644)
 	defer out.Close()
 	io.Copy(out, file)
@@ -53,6 +120,6 @@ func (c *user) UpLoadFile(file multipart.File, url string) error {
 }
 
 //获取用户Service
-func NewUserService() UserService {
-	return &user{}
+func NewUserService(db *gorm.DB) UserService {
+	return &userService{db: db}
 }

@@ -10,8 +10,8 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/gin-gonic/gin"
@@ -111,7 +111,7 @@ func GetDiskList(c *gin.Context) {
 			continue
 		}
 
-		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" {
+		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || list[i].Tran == "ata" {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				temp.SmartStatus.Passed = true
@@ -154,7 +154,7 @@ func GetDiskList(c *gin.Context) {
 	data["storage"] = storage
 	data["avail"] = avail
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary get disk list
@@ -171,7 +171,7 @@ func GetPlugInDisks(c *gin.Context) {
 	for _, item := range list {
 		result = append(result, service.MyService.Disk().GetDiskInfoByPath(item.Path))
 	}
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: result})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: result})
 }
 
 // @Summary disk detail
@@ -185,10 +185,10 @@ func GetPlugInDisks(c *gin.Context) {
 func GetDiskInfo(c *gin.Context) {
 	path := c.Query("path")
 	if len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	}
 	m := service.MyService.Disk().GetDiskInfo(path)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: m})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: m})
 }
 
 // @Summary format storage
@@ -201,37 +201,37 @@ func GetDiskInfo(c *gin.Context) {
 // @Param  volume formData string true "mount point"
 // @Success 200 {string} string "ok"
 // @Router /disk/format [post]
-func FormatDisk(c *gin.Context) {
+func PostDiskFormat(c *gin.Context) {
 	path := c.PostForm("path")
 	t := "ext4"
 	pwd := c.PostForm("pwd")
 	volume := c.PostForm("volume")
 
 	if pwd != config.UserInfo.PWD {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.PWD_INVALID, Message: oasis_err.GetMsg(oasis_err.PWD_INVALID)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}
 
 	if len(path) == 0 || len(t) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if _, ok := diskMap[path]; ok {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.DISK_BUSYING, Message: oasis_err.GetMsg(oasis_err.DISK_BUSYING)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
 		return
 	}
 	diskMap[path] = "busying"
 	service.MyService.Disk().UmountPointAndRemoveDir(path)
 	format := service.MyService.Disk().FormatDisk(path, t)
 	if len(format) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.FORMAT_ERROR, Message: oasis_err.GetMsg(oasis_err.FORMAT_ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.FORMAT_ERROR, Message: common_err.GetMsg(common_err.FORMAT_ERROR)})
 		delete(diskMap, path)
 		return
 	}
 	service.MyService.Disk().MountDisk(path, volume)
 	service.MyService.Disk().RemoveLSBLKCache()
 	delete(diskMap, path)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary 获取支持的格式
@@ -243,7 +243,7 @@ func FormatDisk(c *gin.Context) {
 // @Router /disk/type [get]
 func FormatDiskType(c *gin.Context) {
 	var strArr = [4]string{"fat32", "ntfs", "ext4", "exfat"}
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: strArr})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: strArr})
 
 }
 
@@ -259,12 +259,12 @@ func RemovePartition(c *gin.Context) {
 	path := c.PostForm("path")
 
 	if len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	}
 	var p = path[:len(path)-1]
 	var n = path[len(path)-1:]
 	service.MyService.Disk().DelPartition(p, n)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary  add storage
@@ -278,28 +278,30 @@ func RemovePartition(c *gin.Context) {
 // @Param  format formData bool true "need format(true)"
 // @Success 200 {string} string "ok"
 // @Router /disk/storage [post]
-func AddPartition(c *gin.Context) {
+func PostDiskAddPartition(c *gin.Context) {
+
 	name := c.PostForm("name")
 	path := c.PostForm("path")
 	format, _ := strconv.ParseBool(c.PostForm("format"))
+
 	if len(name) == 0 || len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if _, ok := diskMap[path]; ok {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.DISK_BUSYING, Message: oasis_err.GetMsg(oasis_err.DISK_BUSYING)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
 		return
 	}
 	if !file.CheckNotExist("/DATA/" + name) {
 		// /mnt/name exist
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.NAME_NOT_AVAILABLE, Message: oasis_err.GetMsg(oasis_err.NAME_NOT_AVAILABLE)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.NAME_NOT_AVAILABLE, Message: common_err.GetMsg(common_err.NAME_NOT_AVAILABLE)})
 		return
 	}
 	diskMap[path] = "busying"
 	currentDisk := service.MyService.Disk().GetDiskInfo(path)
 	if !format {
 		if len(currentDisk.Children) != 1 || !(len(currentDisk.Children) > 0 && currentDisk.Children[0].FsType == "ext4") {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err.DISK_NEEDS_FORMAT, Message: oasis_err.GetMsg(oasis_err.DISK_NEEDS_FORMAT)})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
 			delete(diskMap, path)
 			return
 		}
@@ -319,7 +321,7 @@ func AddPartition(c *gin.Context) {
 	}
 	currentDisk = service.MyService.Disk().GetDiskInfo(path)
 	if len(currentDisk.Children) != 1 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.DISK_NEEDS_FORMAT, Message: oasis_err.GetMsg(oasis_err.DISK_NEEDS_FORMAT)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
 		return
 	}
 
@@ -338,7 +340,7 @@ func AddPartition(c *gin.Context) {
 	service.MyService.Disk().RemoveLSBLKCache()
 
 	delete(diskMap, path)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary add mount point
@@ -378,7 +380,7 @@ func PostMountDisk(c *gin.Context) {
 	m.UUID = serial
 	m.State = 0
 	//service.MyService.Disk().SaveMountPoint(m)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary remove mount point
@@ -398,16 +400,16 @@ func PostDiskUmount(c *gin.Context) {
 	pwd := c.PostForm("pwd")
 
 	if len(path) == 0 || len(mountPoint) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if pwd != config.UserInfo.PWD {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.PWD_INVALID, Message: oasis_err.GetMsg(oasis_err.PWD_INVALID)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}
 
 	if _, ok := diskMap[path]; ok {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.DISK_BUSYING, Message: oasis_err.GetMsg(oasis_err.DISK_BUSYING)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
 		return
 	}
 
@@ -415,7 +417,7 @@ func PostDiskUmount(c *gin.Context) {
 	//delete data
 	service.MyService.Disk().DeleteMountPoint(path, mountPoint)
 	service.MyService.Disk().RemoveLSBLKCache()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary confirm delete disk
@@ -429,7 +431,7 @@ func PostDiskUmount(c *gin.Context) {
 func DeleteDisk(c *gin.Context) {
 	id := c.Param("id")
 	service.MyService.Disk().DeleteMount(id)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary check mount point
@@ -453,12 +455,12 @@ func GetDiskCheck(c *gin.Context) {
 	for _, v := range dbList {
 		if _, ok := mapList[v.UUID]; !ok {
 			//disk undefind
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err.ERROR, Message: oasis_err.GetMsg(oasis_err.ERROR), Data: "disk undefind"})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: "disk undefind"})
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary check mount point
@@ -493,5 +495,5 @@ func GetUSBList(c *gin.Context) {
 			data = append(data, temp)
 		}
 	}
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }

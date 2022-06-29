@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-27 15:55:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-10 12:17:59
+ * @LastEditTime: 2022-06-24 17:18:46
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -29,7 +29,7 @@ func SendNetINfoBySocket() {
 		for _, netCardName := range nets {
 			if n.Name == netCardName {
 				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
-				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))
+				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
 				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
 				break
@@ -96,7 +96,7 @@ func SendDiskBySocket() {
 			findSystem += 1
 			continue
 		}
-		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" {
+		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || list[i].Tran == "ata" {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				continue
@@ -163,14 +163,13 @@ func SendAllHardwareStatusBySocket() {
 		for _, netCardName := range nets {
 			if n.Name == netCardName {
 				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
-				item.State = strings.TrimSpace(service.MyService.ZiMa().GetNetState(n.Name))
+				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
 				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
 				break
 			}
 		}
 	}
-
 	cpu := service.MyService.System().GetCpuPercent()
 	num := service.MyService.System().GetCpuCoreNum()
 	cpuData := make(map[string]interface{})
@@ -220,7 +219,7 @@ func SendAllHardwareStatusBySocket() {
 			findSystem += 1
 			continue
 		}
-		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" {
+		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || list[i].Tran == "ata" {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				continue
@@ -273,13 +272,7 @@ func SendAllHardwareStatusBySocket() {
 		}
 	}
 	memInfo := service.MyService.System().GetMemInfo()
-	memData := make(map[string]interface{})
-	memData["total"] = memInfo.Total
-	memData["available"] = memInfo.Available
-	memData["used"] = memInfo.Used
-	memData["free"] = memInfo.Free
-	memData["usedPercent"] = memInfo.UsedPercent
 
-	service.MyService.Notify().SendAllHardwareStatusBySocket(summary, usb, memData, cpuData, newNet)
+	service.MyService.Notify().SendAllHardwareStatusBySocket(summary, usb, memInfo, cpuData, newNet)
 
 }

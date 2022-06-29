@@ -1,4 +1,14 @@
 #!/bin/bash
+###
+ # @Author: LinkLeong link@icewhale.com
+ # @Date: 2022-02-17 18:53:29
+ # @LastEditors: LinkLeong
+ # @LastEditTime: 2022-06-27 14:14:26
+ # @FilePath: /CasaOS/shell/assist.sh
+ # @Description: 
+ # @Website: https://www.casaos.io
+ # Copyright (c) 2022 by icewhale, All Rights Reserved. 
+### 
 
 
 
@@ -28,6 +38,11 @@ install_depends() {
             $sudo_cmd zypper install $packagesNeeded
         fi
     fi
+}
+
+mvfoder() {
+   #移动脚本
+   
 }
 
 version_0_2_5

@@ -10,7 +10,9 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/random"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
 
@@ -23,6 +25,8 @@ var sqliteDB *gorm.DB
 var configFlag = flag.String("c", "", "config address")
 var dbFlag = flag.String("db", "", "db path")
 var showUserInfo = flag.Bool("show-user-info", false, "show user info")
+var resetUser = flag.Bool("ru", false, "reset user")
+var user = flag.String("user", "", "user name")
 
 func init() {
 	flag.Parse()
@@ -30,16 +34,14 @@ func init() {
 	config.UpdateSetup()
 	loger.LogInit()
 	if len(*dbFlag) == 0 {
-		*dbFlag = config.AppInfo.ProjectPath + "/db"
+		*dbFlag = config.AppInfo.DBPath + "/db"
 	}
 	sqliteDB = sqlite.GetDb(*dbFlag)
 	//gredis.GetRedisConn(config.RedisInfo),
 	service.MyService = service.NewService(sqliteDB)
 	service.Cache = cache.Init()
 
-	go service.UDPService()
-
-	fmt.Println("t", service.GetToken())
+	service.GetToken()
 	service.UDPAddressMap = make(map[string]string)
 	//go service.SocketConnect()
 	service.CancelList = make(map[string]string)
@@ -47,7 +49,6 @@ func init() {
 	service.NewVersionApp = make(map[string]string)
 	route.InitFunction()
 
-	go service.SendIPToServer()
 	// go service.LoopFriend()
 	// go service.MyService.App().CheckNewImage()
 
@@ -72,7 +73,30 @@ func main() {
 		fmt.Println("Password:" + config.UserInfo.PWD)
 		return
 	}
+	fmt.Println("Reset User", *resetUser)
+	if *resetUser {
 
+		if user == nil || len(*user) == 0 {
+			fmt.Println("user is empty")
+			return
+		}
+		userData := service.MyService.User().GetUserAllInfoByName(*user)
+		if userData.Id == 0 {
+			fmt.Println("user not exist")
+			return
+		}
+		password := random.RandomString(6, false)
+		userData.Password = encryption.GetMD5ByStr(password)
+		service.MyService.User().UpdateUserPassword(userData)
+		fmt.Println("User reset successful")
+		fmt.Println("UserName:" + userData.UserName)
+		fmt.Println("Password:" + password)
+		return
+	}
+	go func() {
+		service.UDPService()
+		service.SendIPToServer()
+	}()
 	go route.SocketInit(service.NotifyMsg)
 	go func() {
 		for i := 0; i < 1000; i++ {
@@ -102,11 +126,11 @@ func main() {
 	}
 	err = cron2.AddFunc("0/5 * * * * *", func() {
 		if service.ClientCount > 0 {
-			// route.SendNetINfoBySocket()
-			// route.SendCPUBySocket()
-			// route.SendMemBySocket()
+			//route.SendNetINfoBySocket()
+			//route.SendCPUBySocket()
+			//route.SendMemBySocket()
 			// route.SendDiskBySocket()
-			// route.SendUSBBySocket()
+			//route.SendUSBBySocket()
 			route.SendAllHardwareStatusBySocket()
 		}
 	})

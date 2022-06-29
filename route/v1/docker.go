@@ -2,7 +2,6 @@ package v1
 
 import (
 	"bytes"
-	"encoding/json"
 	json2 "encoding/json"
 	"net/http"
 	"path/filepath"
@@ -14,11 +13,8 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
-	upnp2 "github.com/IceWhaleTech/CasaOS/pkg/upnp"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	ip_helper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
-	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/random"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -45,14 +41,14 @@ func DockerTerminal(c *gin.Context) {
 	row := c.DefaultQuery("rows", "30")
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	defer conn.Close()
 	container := c.Param("id")
 	hr, err := service.Exec(container, row, col)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	// 关闭I/O流
@@ -118,7 +114,7 @@ func WsSsh(c *gin.Context) {
 func SpeedPush(c *gin.Context) {
 	//token := c.Query("token")
 	//if len(token) == 0 || token != config.UserInfo.Token {
-	//	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR_AUTH_TOKEN, Message: oasis_err2.GetMsg(oasis_err2.ERROR_AUTH_TOKEN)})
+	//	c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR_AUTH_TOKEN, Message: common_err.GetMsg(common_err.ERROR_AUTH_TOKEN)})
 	//	return
 	//}
 
@@ -170,7 +166,7 @@ func InstallApp(c *gin.Context) {
 		}
 	} else {
 		if _, err := service.MyService.Docker().DockerListByName(m.Label); err == nil {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR_APP_NAME_EXIST, Message: oasis_err2.GetMsg(oasis_err2.ERROR_APP_NAME_EXIST)})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR_APP_NAME_EXIST, Message: common_err.GetMsg(common_err.ERROR_APP_NAME_EXIST)})
 			return
 		}
 
@@ -178,10 +174,10 @@ func InstallApp(c *gin.Context) {
 
 	//check port
 	if len(m.PortMap) > 0 && m.PortMap != "0" {
-		//c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		//c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		portMap, _ := strconv.Atoi(m.PortMap)
 		if !port2.IsPortAvailable(portMap, "tcp") {
-			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + m.PortMap})
+			c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + m.PortMap})
 			return
 		}
 	}
@@ -203,34 +199,33 @@ func InstallApp(c *gin.Context) {
 		if u.Protocol == "udp" {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
-				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "tcp" {
 
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
-				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "both" {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
-				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
-				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		}
-
 	}
 	if m.Origin == "custom" {
 		for _, device := range m.Devices {
 			if file.CheckNotExist(device.Path) {
-				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.DEVICE_NOT_EXIST, Message: device.Path + "," + oasis_err2.GetMsg(oasis_err2.DEVICE_NOT_EXIST)})
+				c.JSON(http.StatusOK, model.Result{Success: common_err.DEVICE_NOT_EXIST, Message: device.Path + "," + common_err.GetMsg(common_err.DEVICE_NOT_EXIST)})
 				return
 			}
 
@@ -376,53 +371,6 @@ func InstallApp(c *gin.Context) {
 			// service.MyService.Notify().UpdateLog(installLog)
 		}
 
-		if m.Origin != CUSTOM {
-			//step:enable upnp
-			if m.EnableUPNP {
-				upnp, err := upnp2.Gateway()
-				if err == nil {
-					for _, p := range m.Ports {
-						if p.Protocol == "udp" {
-							upnp.CtrlUrl = upnp2.GetCtrlUrl(upnp.GatewayHost, upnp.DeviceDescUrl)
-							upnp.LocalHost = ip_helper2.GetLoclIp()
-							tComment, _ := strconv.Atoi(p.CommendPort)
-							upnp.AddPortMapping(tComment, tComment, "UDP")
-							time.Sleep(time.Millisecond * 200)
-						} else if p.Protocol == "tcp" {
-							upnp.CtrlUrl = upnp2.GetCtrlUrl(upnp.GatewayHost, upnp.DeviceDescUrl)
-							upnp.LocalHost = ip_helper2.GetLoclIp()
-							tComment, _ := strconv.Atoi(p.CommendPort)
-							upnp.AddPortMapping(tComment, tComment, "TCP")
-							time.Sleep(time.Millisecond * 200)
-						} else if p.Protocol == "both" {
-
-							upnp.CtrlUrl = upnp2.GetCtrlUrl(upnp.GatewayHost, upnp.DeviceDescUrl)
-							upnp.LocalHost = ip_helper2.GetLoclIp()
-							tComment, _ := strconv.Atoi(p.CommendPort)
-							upnp.AddPortMapping(tComment, tComment, "UDP")
-							time.Sleep(time.Millisecond * 200)
-
-							upnp.AddPortMapping(tComment, tComment, "TCP")
-							time.Sleep(time.Millisecond * 200)
-						}
-
-					}
-
-				}
-				// if err != nil {
-				// 	//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":95}", 100)
-				// 	installLog.State = 0
-				// 	installLog.Type = types.NOTIFY_TYPE_ERROR
-				// 	installLog.Message = err.Error()
-				// 	service.MyService.Notify().UpdateLog(installLog)
-				// } else {
-				// 	//service.MyService.Redis().Set(id, "{\"id\":\""+id+"\",\"state\":true,\"message\":\"checking\",\"speed\":95}", 100)
-				// 	installLog.Message = "checking"
-				// 	service.MyService.Notify().UpdateLog(installLog)
-				// }
-			}
-		}
-
 		//step: 启动成功     检查容器状态确认启动成功
 		container, err := service.MyService.Docker().DockerContainerInfo(m.Label)
 		if err != nil && container.ContainerJSONBase.State.Running {
@@ -457,7 +405,7 @@ func InstallApp(c *gin.Context) {
 
 	}()
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: m.Label})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: m.Label})
 
 }
 
@@ -481,7 +429,7 @@ func InstallApp(c *gin.Context) {
 //	c.BindJSON(&m)
 //	//检查端口
 //	if len(m.PortMap) == 0 || m.PortMap == "0" {
-//		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+//		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 //		return
 //	}
 //	if len(m.Port) == 0 || m.Port == "0" {
@@ -490,14 +438,14 @@ func InstallApp(c *gin.Context) {
 //
 //	portMap, _ := strconv.Atoi(m.PortMap)
 //	if !port2.IsPortAvailable(portMap, "tcp") {
-//		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + m.PortMap})
+//		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + m.PortMap})
 //		return
 //	}
 //
 //	for _, u := range m.Udp {
 //		t, _ := strconv.Atoi(u.CommendPort)
 //		if !port2.IsPortAvailable(t, "udp") {
-//			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
+//			c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
 //			return
 //		}
 //	}
@@ -505,7 +453,7 @@ func InstallApp(c *gin.Context) {
 //	for _, t := range m.Tcp {
 //		te, _ := strconv.Atoi(t.CommendPort)
 //		if !port2.IsPortAvailable(te, "tcp") {
-//			c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + t.CommendPort})
+//			c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + t.CommendPort})
 //			return
 //		}
 //	}
@@ -522,7 +470,7 @@ func InstallApp(c *gin.Context) {
 //
 //	err := service.MyService.Docker().DockerPullImage(m.Image)
 //	if err != nil {
-//		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.PULL_IMAGE_ERROR, Message: oasis_err2.GetMsg(oasis_err2.PULL_IMAGE_ERROR)})
+//		c.JSON(http.StatusOK, model.Result{Success: common_err.PULL_IMAGE_ERROR, Message: common_err.GetMsg(common_err.PULL_IMAGE_ERROR)})
 //	}
 //
 //	id := uuid.NewV4().String()
@@ -639,7 +587,7 @@ func InstallApp(c *gin.Context) {
 //
 //	}()
 //
-//	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: id})
+//	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: id})
 //
 //}
 
@@ -655,27 +603,27 @@ func UnInstallApp(c *gin.Context) {
 	appId := c.Param("id")
 
 	if len(appId) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	//info := service.MyService.App().GetUninstallInfo(appId)
 
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 
 	//step：停止容器
 	err = service.MyService.Docker().DockerContainerStop(appId)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.UNINSTALL_APP_ERROR, Message: oasis_err2.GetMsg(oasis_err2.UNINSTALL_APP_ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.UNINSTALL_APP_ERROR, Message: common_err.GetMsg(common_err.UNINSTALL_APP_ERROR), Data: err.Error()})
 		return
 	}
 
 	err = service.MyService.Docker().DockerContainerRemove(appId, false)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.UNINSTALL_APP_ERROR, Message: oasis_err2.GetMsg(oasis_err2.UNINSTALL_APP_ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.UNINSTALL_APP_ERROR, Message: common_err.GetMsg(common_err.UNINSTALL_APP_ERROR), Data: err.Error()})
 		return
 	}
 
@@ -740,7 +688,7 @@ func UnInstallApp(c *gin.Context) {
 	notify.Success = true
 	notify.Finished = true
 	service.MyService.Notify().SendUninstallAppBySocket(notify)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 
 }
 
@@ -766,15 +714,15 @@ func ChangAppState(c *gin.Context) {
 		err = service.MyService.Docker().DockerContainerStart(appId)
 	}
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
 	info, err := service.MyService.App().GetContainerInfo(appId)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: info.State})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info.State})
 }
 
 // @Summary 查看容器日志
@@ -788,7 +736,7 @@ func ChangAppState(c *gin.Context) {
 func ContainerLog(c *gin.Context) {
 	appId := c.Param("id")
 	log, _ := service.MyService.Docker().DockerContainerLog(appId)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: log})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: log})
 }
 
 // @Summary 获取容器状态
@@ -805,7 +753,7 @@ func GetContainerState(c *gin.Context) {
 	t := c.DefaultQuery("type", "0")
 	containerInfo, e := service.MyService.App().GetSimpleContainerInfo(id)
 	if e != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: e.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: e.Error()})
 		return
 	}
 
@@ -818,7 +766,7 @@ func GetContainerState(c *gin.Context) {
 		data["app"] = appInfo
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary 更新设置
@@ -841,7 +789,7 @@ func UpdateSetting(c *gin.Context) {
 	c.BindJSON(&m)
 
 	if len(id) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	//var cpd model.CustomizationPostData
@@ -853,7 +801,7 @@ func UpdateSetting(c *gin.Context) {
 
 	// //check app name is exist
 	// if _, err := service.MyService.Docker().DockerListByName(m.Label); err == nil {
-	// 	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR_APP_NAME_EXIST, Message: oasis_err2.GetMsg(oasis_err2.ERROR_APP_NAME_EXIST)})
+	// 	c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR_APP_NAME_EXIST, Message: common_err.GetMsg(common_err.ERROR_APP_NAME_EXIST)})
 	// 	return
 	// }
 
@@ -861,7 +809,7 @@ func UpdateSetting(c *gin.Context) {
 	portMap, _ := strconv.Atoi(m.PortMap)
 	if !port2.IsPortAvailable(portMap, "tcp") {
 		service.MyService.Docker().DockerContainerStart(id)
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + m.PortMap})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + m.PortMap})
 		return
 	}
 
@@ -871,28 +819,28 @@ func UpdateSetting(c *gin.Context) {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
 				service.MyService.Docker().DockerContainerStart(id)
-				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "tcp" {
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
 				service.MyService.Docker().DockerContainerStart(id)
-				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "both" {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
 				service.MyService.Docker().DockerContainerStart(id)
-				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
 				service.MyService.Docker().DockerContainerStart(id)
-				c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		}
@@ -905,7 +853,7 @@ func UpdateSetting(c *gin.Context) {
 	if err != nil {
 		service.MyService.Docker().DockerContainerUpdateName(m.Label, id)
 		service.MyService.Docker().DockerContainerStart(id)
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
 		return
 	}
 	//		echo -e "hellow\nworld" >>
@@ -914,7 +862,7 @@ func UpdateSetting(c *gin.Context) {
 	err = service.MyService.Docker().DockerContainerStart(containerId)
 
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
 		return
 	}
 	service.MyService.Docker().DockerContainerRemove(id, true)
@@ -985,7 +933,7 @@ func UpdateSetting(c *gin.Context) {
 
 	//service.MyService.App().UpdateApp(appInfo)
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary update app version
@@ -1000,20 +948,20 @@ func PutAppUpdate(c *gin.Context) {
 	id := c.Param("id")
 
 	if len(id) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.INVALID_PARAMS, Message: oasis_err2.GetMsg(oasis_err2.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 
 	inspect, err := service.MyService.Docker().DockerContainerInfo(id)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 
 	}
 	imageLatest := strings.Split(inspect.Config.Image, ":")[0] + ":latest"
 	err = service.MyService.Docker().DockerPullImage(imageLatest, "", "")
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 
 	}
@@ -1026,7 +974,7 @@ func PutAppUpdate(c *gin.Context) {
 	if err != nil {
 		service.MyService.Docker().DockerContainerUpdateName(inspect.Name, id)
 		service.MyService.Docker().DockerContainerStart(id)
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
 		return
 	}
 
@@ -1034,43 +982,13 @@ func PutAppUpdate(c *gin.Context) {
 	err = service.MyService.Docker().DockerContainerStart(containerId)
 
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.ERROR, Message: oasis_err2.GetMsg(oasis_err2.ERROR)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
 		return
 	}
 	service.MyService.Docker().DockerContainerRemove(id, true)
 	delete(service.NewVersionApp, id)
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS)})
-}
-
-// @Summary get app index
-// @Produce  application/json
-// @Accept application/json
-// @Tags app
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /app/order [get]
-func GetAppOrder(c *gin.Context) {
-	data := service.MyService.System().GetAppOrderFile()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: json.RawMessage(data)})
-}
-
-// @Summary update app index
-// @Produce  application/json
-// @Accept application/json
-// @Tags app
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /app/order [post]
-func PostAppOrder(c *gin.Context) {
-	data := c.PostForm("data")
-	service.MyService.System().UpAppOrderFile(data)
-	c.JSON(http.StatusOK,
-		model.Result{
-			Success: oasis_err.SUCCESS,
-			Message: oasis_err.GetMsg(oasis_err.SUCCESS),
-			Data:    json.RawMessage(data),
-		})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary 获取容器详情
@@ -1086,7 +1004,7 @@ func ContainerInfo(c *gin.Context) {
 	appInfo := service.MyService.App().GetAppDBInfo(appId)
 	containerInfo, _ := service.MyService.Docker().DockerContainerStats(appId)
 	var cpuModel = "arm"
-	if cpu := service.MyService.ZiMa().GetCpuInfo(); len(cpu) > 0 {
+	if cpu := service.MyService.System().GetCpuInfo(); len(cpu) > 0 {
 		if strings.Count(strings.ToLower(strings.TrimSpace(cpu[0].ModelName)), "intel") > 0 {
 			cpuModel = "intel"
 		} else if strings.Count(strings.ToLower(strings.TrimSpace(cpu[0].ModelName)), "amd") > 0 {
@@ -1097,7 +1015,7 @@ func ContainerInfo(c *gin.Context) {
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
 	if err != nil {
 		//todo 需要自定义错误
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: err.Error()})
 		return
 	}
 	con := struct {
@@ -1110,10 +1028,10 @@ func ContainerInfo(c *gin.Context) {
 	data := make(map[string]interface{}, 5)
 	data["app"] = appInfo
 	data["cpu"] = cpuModel
-	data["memory"] = service.MyService.System().GetMemInfo().Total
+	data["memory"] = service.MyService.System().GetMemInfo()["total"]
 	data["container"] = json2.RawMessage(containerInfo)
 	data["info"] = con
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary 获取安装所需要的数据
@@ -1134,7 +1052,7 @@ func GetDockerInstallConfig(c *gin.Context) {
 	}
 	data["networks"] = list
 	data["memory"] = service.MyService.System().GetMemInfo()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary 获取依赖数据
@@ -1148,7 +1066,7 @@ func GetDockerInstallConfig(c *gin.Context) {
 func ContainerRelyInfo(c *gin.Context) {
 	id := c.Param("id")
 	appInfo := service.MyService.Rely().GetInfo(id)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: appInfo})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: appInfo})
 }
 
 // @Summary 获取可更新数据
@@ -1165,7 +1083,7 @@ func ContainerUpdateInfo(c *gin.Context) {
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
 	if err != nil {
 
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: err.Error()})
 		return
 	}
 	var port model.PortArray
@@ -1269,7 +1187,7 @@ func ContainerUpdateInfo(c *gin.Context) {
 		m.Protocol = "http"
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: m})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: m})
 }
 
 ////准备安装(暂时不需要)
@@ -1320,5 +1238,5 @@ func ContainerUpdateInfo(c *gin.Context) {
 //		}
 //		data["udp"] = inarr
 //	}
-//	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: data})
+//	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 //}

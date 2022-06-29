@@ -18,6 +18,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.3.3-pre] -
+
+### Added
+
+- [System]Add interface call log
+- Adding Developing file ([#311](https://github.com/IceWhaleTech/CasaOS/pull/311))
+- [App] add new tips for app section.
+- [System] UI Configurable function modules: support turning off the search bar and recommended apps module in the settings.
+- [System] Custom wallpapers: two new preset wallpapers, support for custom uploads, support for setting images from Files as wallpapers, Also support right click on dashboard to change wallpaper.
+
+### Changed
+
+- [App] Cache app store index and category data
+- [System] casaos master program adapted to FHS standards
+- [App] Update casaos icons.
+- [System] Update translation.
+
+### Removed
+
+- [System] Remove upnp function module
+- [System] Remove ddns function module
+- [System] Remove search function module
+- [System] Remove zerotier function module
+- [System] Remove task function module
+- [System] Remove file share function module
+
+### Fixed
+
+- [Disk] Fixed hard drive won't hibernate problem ([#202](https://github.com/IceWhaleTech/CasaOS/issues/202))
+- [File] Fixed the backspace key that causes the folder to rewind ([#252](https://github.com/IceWhaleTech/CasaOS/issues/252))
+- [App] Fixed app logo is not loading when imported. ([#320](https://github.com/IceWhaleTech/CasaOS/issues/320))
+
 ## [0.3.2.1] - 2022-06-16(UTC)
 
 ### Changed

@@ -47,7 +47,7 @@ const (
 //日志初始化
 func LogSetupOld() {
 	var err error
-	filePath := fmt.Sprintf("%s", config.AppInfo.LogSavePath)
+	filePath := fmt.Sprintf("%s", config.AppInfo.LogPath)
 	fileName := fmt.Sprintf("%s.%s",
 		config.AppInfo.LogSaveName,
 		config.AppInfo.LogFileExt,
@@ -61,7 +61,7 @@ func LogSetupOld() {
 
 }
 func (o *oLog) Path() string {
-	filePath := fmt.Sprintf("%s", config.AppInfo.LogSavePath)
+	filePath := fmt.Sprintf("%s", config.AppInfo.LogPath)
 	fileName := fmt.Sprintf("%s.%s",
 		config.AppInfo.LogSaveName,
 		config.AppInfo.LogFileExt,

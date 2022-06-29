@@ -3,6 +3,7 @@ package route
 import (
 	"encoding/xml"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/model/system_app"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
@@ -29,8 +31,8 @@ func InitFunction() {
 	CheckToken2_11()
 	ImportApplications()
 	ChangeAPIUrl()
-	InitSystemApplication()
 
+	MoveUserToDB()
 }
 
 var syncIsExistence = false
@@ -80,7 +82,7 @@ func installSyncthing(appId string) {
 		appInfo.Tip = env_helper.ReplaceStringDefaultENV(appInfo.Tip)
 	}
 
-	appInfo.MaxMemory = service.MyService.System().GetMemInfo().Total >> 20
+	appInfo.MaxMemory = service.MyService.System().GetMemInfo()["total"].(uint64) >> 20
 
 	id := uuid.NewV4().String()
 
@@ -196,10 +198,10 @@ func CheckSerialDiskMount() {
 		}
 	}
 	service.MyService.Disk().RemoveLSBLKCache()
-	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/helper.sh ;AutoRemoveUnuseDir")
+	command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;AutoRemoveUnuseDir")
 }
 func Update2_3() {
-	command.OnlyExec("source " + config.AppInfo.ProjectPath + "/shell/assist.sh")
+	command.OnlyExec("source " + config.AppInfo.ShellPath + "/assist.sh")
 
 }
 func CheckToken2_11() {
@@ -209,16 +211,7 @@ func CheckToken2_11() {
 		config.Cfg.Section("server").Key("Token").SetValue(token())
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
-	if len(config.AppInfo.RootPath) == 0 {
-		config.Cfg.Section("app").Key("RootPath").SetValue("/casaOS")
-		config.AppInfo.RootPath = "/casaOS"
-		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-	}
-	// if len(config.ServerInfo.Handshake) == 0 {
-	// 	config.Cfg.Section("app").Key("RootPath").SetValue("/casaOS")
-	// 	config.AppInfo.RootPath = "/casaOS"
-	// 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-	// }
+
 	sysType := runtime.GOOS
 	if len(config.FileSettingInfo.DownloadDir) == 0 {
 		downloadPath := "/DATA/Downloads"
@@ -245,7 +238,7 @@ func CheckToken2_11() {
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
 
-	if service.MyService.ZiMa().GetSysInfo().KernelArch == "aarch64" && config.ServerInfo.USBAutoMount != "True" && strings.Contains(service.MyService.ZiMa().GetDeviceTree(), "Raspberry Pi") {
+	if service.MyService.System().GetSysInfo().KernelArch == "aarch64" && config.ServerInfo.USBAutoMount != "True" && strings.Contains(service.MyService.System().GetDeviceTree(), "Raspberry Pi") {
 		service.MyService.System().UpdateUSBAutoMount("False")
 		service.MyService.System().ExecUSBAutoMountShell("False")
 	}
@@ -276,22 +269,23 @@ func ChangeAPIUrl() {
 
 }
 
-// 0.3.1
-func InitSystemApplication() {
-	list := service.MyService.App().GetApplicationList()
-	if len(list) != 2 {
-		application := model2.ApplicationModel{}
-		application.Name = "Files"
-		application.Icon = "/ui/img/Files.svg"
-		application.Type = "system"
-		application.Order = 0
-		service.MyService.App().CreateApplication(application)
+//0.3.3
+//Transferring user data to the database
+func MoveUserToDB() {
 
-		application.Name = "CasaConnect"
-		application.Icon = "/ui/img/CasaConnect.svg"
-		application.Type = "system"
-		application.Order = 0
+	if len(config.UserInfo.UserName) > 0 && service.MyService.User().GetUserInfoByUserName(config.UserInfo.UserName).Id == 0 {
+		user := model2.UserDBModel{}
+		user.UserName = config.UserInfo.UserName
+		user.Email = config.UserInfo.Email
+		user.NickName = config.UserInfo.NickName
+		user.Password = encryption.GetMD5ByStr(config.UserInfo.PWD)
+		user.Role = "admin"
+		user = service.MyService.User().CreateUser(user)
+		if user.Id > 0 {
+			userPath := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id)
+			file.MkDir(userPath)
+			os.Rename("/casaOS/server/conf/app_order.json", userPath+"/app_order.json")
+		}
 
-		service.MyService.App().CreateApplication(application)
 	}
 }

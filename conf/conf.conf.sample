@@ -1,16 +1,17 @@
 [app]
 PAGE_SIZE = 10
 RuntimeRootPath = runtime/
-LogSavePath = /casaOS/logs/server/
+LogPath = /var/log/casaos/
 LogSaveName = log
 LogFileExt = log
 DateStrFormat = 20060102
 DateTimeFormat = 2006-01-02 15:04:05
 TimeFormat = 15:04:05
 DateFormat = 2006-01-02
-ProjectPath = /casaOS/server
-RootPath = /casaOS
-
+DBPath     = /var/lib/casaos
+ShellPath  = /usr/share/casaos/shell
+UserDataPath = /var/lib/casaos/conf
+TempPath    = /var/lib/casaos/temp
 
 [server]
 HttpPort = 8089
@@ -23,7 +24,6 @@ USBAutoMount =
 
 
 [system]
-ConfigStr = 
 WidgetList =
 
 

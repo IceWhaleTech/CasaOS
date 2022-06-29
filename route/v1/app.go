@@ -7,8 +7,9 @@ import (
 	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	oasis_err2 "github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
@@ -35,8 +36,11 @@ func AppList(c *gin.Context) {
 	t := c.DefaultQuery("type", "rank")
 	categoryId := c.DefaultQuery("category_id", "0")
 	key := c.DefaultQuery("key", "")
-	language := c.GetHeader("Language")
-	recommend, list, community := service.MyService.Casa().GetServerList(index, size, t, categoryId, key, language)
+	if len(index) == 0 || len(size) == 0 || len(t) == 0 || len(categoryId) == 0 {
+		c.JSON(http.StatusOK, &model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
+	}
+	collection := service.MyService.Casa().GetServerList(index, size, t, categoryId, key)
 	// for i := 0; i < len(recommend); i++ {
 	// 	ct, _ := service.MyService.Docker().DockerListByImage(recommend[i].Image, recommend[i].ImageVersion)
 	// 	if ct != nil {
@@ -56,11 +60,11 @@ func AppList(c *gin.Context) {
 	// 	}
 	// }
 	data := make(map[string]interface{}, 3)
-	data["recommend"] = recommend
-	data["list"] = list
-	data["community"] = community
+	data["recommend"] = collection.Recommend
+	data["list"] = collection.List
+	data["community"] = collection.Community
 
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary 获取一个可用端口
@@ -79,7 +83,7 @@ func GetPort(c *gin.Context) {
 		p, _ = port2.GetAvailablePort(t)
 		ok = !port2.IsPortAvailable(p, t)
 	}
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: p})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: p})
 }
 
 // @Summary 检查端口是否可用
@@ -94,7 +98,7 @@ func GetPort(c *gin.Context) {
 func PortCheck(c *gin.Context) {
 	p, _ := strconv.Atoi(c.Param("port"))
 	t := c.DefaultQuery("type", "tcp")
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: port2.IsPortAvailable(p, t)})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: port2.IsPortAvailable(p, t)})
 }
 
 // @Summary 我的应用列表
@@ -112,12 +116,11 @@ func MyAppList(c *gin.Context) {
 	size, _ := strconv.Atoi(c.DefaultQuery("size", "0"))
 	position, _ := strconv.ParseBool(c.DefaultQuery("position", "true"))
 	list, unTranslation := service.MyService.App().GetMyList(index, size, position)
-
 	data := make(map[string]interface{}, 2)
 	data["list"] = list
 	data["local"] = unTranslation
 
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary my app hardware usage list
@@ -129,7 +132,7 @@ func MyAppList(c *gin.Context) {
 // @Router /app/usage [get]
 func AppUsageList(c *gin.Context) {
 	list := service.MyService.App().GetHardwareUsage()
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary 应用详情
@@ -209,9 +212,9 @@ func AppInfo(c *gin.Context) {
 	// sort.VolSort(volOrder).Sort(info.Volumes.([]model.PathMap))
 	// sort.DevSort(devOrder).Sort(info.Devices)
 
-	info.MaxMemory = service.MyService.System().GetMemInfo().Total >> 20
+	info.MaxMemory = (service.MyService.System().GetMemInfo()["total"]).(uint64) >> 20
 
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: info})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info})
 }
 
 // @Summary 获取远程分类列表
@@ -228,10 +231,10 @@ func CategoryList(c *gin.Context) {
 		count += category.Count
 	}
 
-	rear := append([]model.ServerCategoryList{}, list[0:]...)
-	list = append(list[:0], model.ServerCategoryList{Count: count, Name: "All", Font: "apps"})
+	rear := append([]model.CategoryList{}, list[0:]...)
+	list = append(list[:0], model.CategoryList{Count: count, Name: "All", Font: "apps"})
 	list = append(list, rear...)
-	c.JSON(http.StatusOK, &model.Result{Success: oasis_err2.SUCCESS, Message: oasis_err2.GetMsg(oasis_err2.SUCCESS), Data: list})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary 分享该应用配置

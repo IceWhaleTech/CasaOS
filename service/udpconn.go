@@ -186,7 +186,7 @@ func ReadContent(stream quic.Stream) {
 			fmt.Println(err)
 			time.Sleep(time.Second * 1)
 			for k, v := range CancelList {
-				tempPath := config.AppInfo.RootPath + "/temp" + "/" + v
+				tempPath := config.AppInfo.TempPath + "/" + v
 				fmt.Println(file.RMDir(tempPath))
 				delete(CancelList, k)
 			}
@@ -445,7 +445,7 @@ func SaveFile(m model.MessageModel, stream quic.Stream) bool {
 		fmt.Println("hash不匹配", hash, dataModel.Hash)
 		return false
 	}
-	tempPath := config.AppInfo.RootPath + "/temp" + "/" + m.UUId
+	tempPath := config.AppInfo.TempPath + "/" + m.UUId
 	file.IsNotExistMkDir(tempPath)
 	filepath := tempPath + "/" + strconv.Itoa(dataModel.Index)
 	_, err = os.Stat(filepath)

@@ -1,4 +1,4 @@
-package oasis_err
+package common_err
 
 const (
 	SUCCESS          = 200
@@ -7,20 +7,25 @@ const (
 	ERROR_AUTH_TOKEN = 401
 
 	//user
-	PWD_INVALID  = 10001
-	PWD_IS_EMPTY = 10002
+	PWD_INVALID              = 10001
+	PWD_IS_EMPTY             = 10002
+	PWD_INVALID_OLD          = 10003
+	ACCOUNT_LOCK             = 10004
+	PWD_IS_TOO_SIMPLE        = 10005
+	USER_NOT_EXIST           = 10006
+	USER_EXIST               = 10007
+	KEY_NOT_EXIST            = 10008
+	NOT_IMAGE                = 10009
+	IMAGE_TOO_LARGE          = 10010
+	INSUFFICIENT_PERMISSIONS = 10011
 
-	PWD_INVALID_OLD = 10003
-	ACCOUNT_LOCK    = 10004
 	//system
 	DIR_ALREADY_EXISTS              = 20001
 	FILE_ALREADY_EXISTS             = 20002
 	FILE_OR_DIR_EXISTS              = 20003
 	PORT_IS_OCCUPIED                = 20004
 	COMMAND_ERROR_INVALID_OPERATION = 20005
-
-	//zerotier
-	GET_TOKEN_ERROR = 30001
+	VERIFICATION_FAILURE            = 20006
 
 	//disk
 	NAME_NOT_AVAILABLE       = 40001
@@ -61,19 +66,24 @@ var MsgFlags = map[int]string{
 	ERROR_AUTH_TOKEN: "Error auth token",
 
 	//user
-	PWD_INVALID:     "Invalid password",
-	PWD_IS_EMPTY:    "Password is empty",
-	PWD_INVALID_OLD: "Invalid old password",
-	ACCOUNT_LOCK:    "Account is locked",
+	PWD_INVALID:              "Invalid password",
+	PWD_IS_EMPTY:             "Password is empty",
+	PWD_INVALID_OLD:          "Invalid old password",
+	ACCOUNT_LOCK:             "Account is locked",
+	PWD_IS_TOO_SIMPLE:        "Password is too simple",
+	USER_NOT_EXIST:           "User does not exist",
+	USER_EXIST:               "User already exists",
+	KEY_NOT_EXIST:            "Key does not exist",
+	IMAGE_TOO_LARGE:          "Image is too large",
+	NOT_IMAGE:                "Not an image",
+	INSUFFICIENT_PERMISSIONS: "Insufficient permissions",
 
 	//system
-	DIR_ALREADY_EXISTS:  "Folder already exists",
-	FILE_ALREADY_EXISTS: "File already exists",
-	FILE_OR_DIR_EXISTS:  "File or folder already exists",
-	PORT_IS_OCCUPIED:    "Port is occupied",
-
-	//zerotier
-	GET_TOKEN_ERROR: "Get token error,Please log in to zerotier's official website to confirm whether the account is available",
+	DIR_ALREADY_EXISTS:   "Folder already exists",
+	FILE_ALREADY_EXISTS:  "File already exists",
+	FILE_OR_DIR_EXISTS:   "File or folder already exists",
+	PORT_IS_OCCUPIED:     "Port is occupied",
+	VERIFICATION_FAILURE: "Verification failure",
 
 	//app
 	UNINSTALL_APP_ERROR:  "Error uninstalling app",

@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-02 15:09:38
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-02 17:43:38
+ * @LastEditTime: 2022-06-27 15:47:49
  * @FilePath: /CasaOS/pkg/utils/loger/log.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -28,11 +28,11 @@ var loggers *zap.Logger
 func getFileLogWriter() (writeSyncer zapcore.WriteSyncer) {
 	// 使用 lumberjack 实现 log rotate
 	lumberJackLogger := &lumberjack.Logger{
-		Filename: filepath.Join(config.AppInfo.LogSavePath, fmt.Sprintf("%s.%s",
+		Filename: filepath.Join(config.AppInfo.LogPath, fmt.Sprintf("%s.%s",
 			config.AppInfo.LogSaveName,
 			config.AppInfo.LogFileExt,
 		)),
-		MaxSize:    100,
+		MaxSize:    10,
 		MaxBackups: 60,
 		MaxAge:     1,
 		Compress:   true,
@@ -47,8 +47,8 @@ func LogInit() {
 	encoder := zapcore.NewJSONEncoder(encoderConfig)
 	fileWriteSyncer := getFileLogWriter()
 	core := zapcore.NewTee(
-		zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zapcore.DebugLevel),
-		zapcore.NewCore(encoder, fileWriteSyncer, zapcore.DebugLevel),
+		zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zapcore.InfoLevel),
+		zapcore.NewCore(encoder, fileWriteSyncer, zapcore.InfoLevel),
 	)
 	loggers = zap.New(core)
 

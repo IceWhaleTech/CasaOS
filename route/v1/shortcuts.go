@@ -1,13 +1,24 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2021-09-30 18:18:14
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-06-15 14:30:05
+ * @FilePath: /CasaOS/route/v1/shortcuts.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package v1
 
 import (
+	"net/http"
+	"net/url"
+
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/oasis_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/gin-gonic/gin"
-	"net/http"
-	"net/url"
 )
 
 // @Summary 获取短链列表
@@ -21,7 +32,7 @@ import (
 // @Router /shortcuts/list [get]
 func GetShortcutsList(c *gin.Context) {
 	list := service.MyService.Shortcuts().GetList()
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: list})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary 添加shortcuts
@@ -38,17 +49,17 @@ func PostShortcutsAdd(c *gin.Context) {
 
 	c.BindJSON(&m)
 	if len(m.Url) == 0 || len(m.Title) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	u, err := url.Parse(m.Url)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.SHORTCUTS_URL_ERROR, Message: oasis_err.GetMsg(oasis_err.SHORTCUTS_URL_ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.SHORTCUTS_URL_ERROR, Message: common_err.GetMsg(common_err.SHORTCUTS_URL_ERROR), Data: err.Error()})
 		return
 	}
 	m.Icon = "https://api.faviconkit.com/" + u.Host + "/57"
 	service.MyService.Shortcuts().AddData(m)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 
 }
 
@@ -63,8 +74,8 @@ func DeleteShortcutsDelete(c *gin.Context) {
 	id := c.Param("id")
 	service.MyService.Shortcuts().DeleteData(id)
 	c.JSON(http.StatusOK, model.Result{
-		Success: oasis_err.SUCCESS,
-		Message: oasis_err.GetMsg(oasis_err.SUCCESS),
+		Success: common_err.SUCCESS,
+		Message: common_err.GetMsg(common_err.SUCCESS),
 		Data:    "",
 	})
 }
@@ -82,15 +93,15 @@ func PutShortcutsEdit(c *gin.Context) {
 	var m model2.ShortcutsDBModel
 	c.BindJSON(&m)
 	if len(m.Url) == 0 || len(m.Title) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	u, err := url.Parse(m.Url)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: oasis_err.SHORTCUTS_URL_ERROR, Message: oasis_err.GetMsg(oasis_err.SHORTCUTS_URL_ERROR), Data: err.Error()})
+		c.JSON(http.StatusOK, model.Result{Success: common_err.SHORTCUTS_URL_ERROR, Message: common_err.GetMsg(common_err.SHORTCUTS_URL_ERROR), Data: err.Error()})
 		return
 	}
 	m.Icon = "https://api.faviconkit.com/" + u.Host + "/57"
 	service.MyService.Shortcuts().EditData(m)
-	c.JSON(http.StatusOK, model.Result{Success: oasis_err.SUCCESS, Message: oasis_err.GetMsg(oasis_err.SUCCESS), Data: ""})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: ""})
 }
