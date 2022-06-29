@@ -711,7 +711,7 @@ func Set_Name_Pwd(c *gin.Context) {
 	}
 	user := model2.UserDBModel{}
 	user.UserName = username
-	user.Password = encryption.GetMD5ByStr(config.UserInfo.PWD)
+	user.Password = encryption.GetMD5ByStr(pwd)
 	user.Role = "admin"
 
 	user = service.MyService.User().CreateUser(user)
