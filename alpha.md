@@ -27,7 +27,9 @@ There is a risk of data loss in non-release versions, so please be careful to ba
 
 [Design drawings](https://www.figma.com/file/pvlGobvuWEvbCb3GLqXfim/CasaOS-V0.3.3)
 
-## 提交issue 需要打标签
+## Feedback questions
+
+Go [here]() to give feedback on your question, note that try to match the picture or video
 
 
 ## Retest after update

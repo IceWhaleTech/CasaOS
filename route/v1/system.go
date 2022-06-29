@@ -66,7 +66,7 @@ func SystemUpdate(c *gin.Context) {
 
 //Get system config
 func GetSystemConfig(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.ConfigStr)})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: ""})
 }
 
 // @Summary  get logs
@@ -370,7 +370,7 @@ func GetSystemUtilization(c *gin.Context) {
 			findSystem += 1
 			continue
 		}
-		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || list[i].Tran == "ata" {
+		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || (list[i].Tran == "ata" && list[i].Type == "disk") {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				continue
@@ -545,9 +545,9 @@ func GetSystemNetInfo(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /guide/check [get]
 func GetGuideCheck(c *gin.Context) {
-	initUser := false
-	if !config.UserInfo.Initialized {
-		initUser = true
+	initUser := true
+	if service.MyService.User().GetUserCount() > 0 {
+		initUser = false
 	}
 	data := make(map[string]interface{}, 1)
 	data["need_init_user"] = initUser
