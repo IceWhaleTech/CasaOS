@@ -32,22 +32,21 @@ func InitRouter() *gin.Engine {
 	//})
 
 	r.POST("/v1/user/register/:key", v1.PostUserRegister)
-	r.POST("/v1/user/login", v1.PostUserLogin)
+	r.POST("/v1/user/login", v1.PostUserLogin) //
 	r.GET("/v1/user/all/name", v1.GetUserAllUserName)
 
 	r.GET("/v1/sys/init/check", v1.GetSystemInitCheck)
-
+	r.GET("/v1/guide/check", v1.GetGuideCheck)
 	r.GET("/v1/debug", v1.GetSystemConfigDebug)
-
+	r.POST("/v1/user/setusernamepwd", v1.Set_Name_Pwd)
+	r.GET("/v1/user/info/:id", v1.GetUserInfo)
 	r.GET("/v1/user/avatar/:id", v1.GetUserAvatar)
 	r.GET("/v1/user/image", v1.GetUserImage)
 
 	//get user info
-
-	//get user info
 	r.GET("/v1/person/shareid", v1.GetPersonShareId)
 	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
-	r.POST("/v1/user/refresh/token", v1.PostUserRefreshToken)
+	//r.POST("/v1/user/refresh/token", v1.PostUserRefreshToken)
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT())
@@ -55,26 +54,32 @@ func InitRouter() *gin.Engine {
 		v1UserGroup := v1Group.Group("/user")
 		v1UserGroup.Use()
 		{
-			v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
-			v1UserGroup.GET("/avatar", v1.GetUserAvatar)
 
-			v1UserGroup.PUT("/name", v1.PutUserName)
+			//****************** New version needs to be modified start ******************
+			//chang user name
+			v1UserGroup.PUT("/username", v1.PutUserName)
 			v1UserGroup.PUT("/password", v1.PutUserPwd)
 			v1UserGroup.PUT("/nick", v1.PutUserNick)
 			v1UserGroup.PUT("/desc", v1.PutUserDesc)
-			v1UserGroup.GET("/info", v1.GetUserInfo)
+			v1UserGroup.GET("/info", v1.GetUserInfoByUserName)
+			v1UserGroup.GET("/custom/:id/:key", v1.GetUserCustomConf)
+			v1UserGroup.POST("/custom/:id/:key", v1.PostUserCustomConf)
+			v1UserGroup.DELETE("/custom/:id/:key", v1.DeleteUserCustomConf)
+			v1UserGroup.POST("/upload/image/:id/:key", v1.PostUserUploadImage)
+			v1UserGroup.POST("/file/image/:id/:key", v1.PostUserFileImage)
+			v1UserGroup.DELETE("/image/:id", v1.DeleteUserImage)
+			//****************** New version needs to be modified end ******************
 
+			//****************** soon to be removed start ******************
 			v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)
-
 			v1UserGroup.GET("/shareid", v1.GetUserShareID)
+			//****************** soon to be removed  end ******************
 
-			v1UserGroup.GET("/custom/:key", v1.GetUserCustomConf)
-			v1UserGroup.POST("/custom/:key", v1.PostUserCustomConf)
-			v1UserGroup.DELETE("/custom/:key", v1.DeleteUserCustomConf)
+			//v1UserGroup.GET("/info", v1.GetUserInfo)
+
+			v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
+			v1UserGroup.GET("/avatar", v1.GetUserAvatar)
 			v1UserGroup.DELETE("/delete/:id", v1.DeleteUser)
-			v1UserGroup.POST("/upload/image/:key", v1.PostUserUploadImage)
-			v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
-			v1UserGroup.DELETE("/image", v1.DeleteUserImage)
 
 		}
 		v1AppGroup := v1Group.Group("/app")
@@ -129,7 +134,7 @@ func InitRouter() *gin.Engine {
 			//v1SysGroup.POST("/config", v1.PostSetSystemConfig)
 			v1SysGroup.GET("/error/logs", v1.GetCasaOSErrorLogs)
 			v1SysGroup.GET("/widget/config", v1.GetWidgetConfig)
-			//v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)
+			v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)
 			v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
 			v1SysGroup.POST("/stop", v1.PostKillCasaOS)

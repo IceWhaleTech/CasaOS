@@ -75,7 +75,7 @@ var MsgFlags = map[int]string{
 	USER_EXIST:               "User already exists",
 	KEY_NOT_EXIST:            "Key does not exist",
 	IMAGE_TOO_LARGE:          "Image is too large",
-	NOT_IMAGE:                "Not a image",
+	NOT_IMAGE:                "Not an image",
 	INSUFFICIENT_PERMISSIONS: "Insufficient permissions",
 
 	//system

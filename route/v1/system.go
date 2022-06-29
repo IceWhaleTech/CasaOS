@@ -370,7 +370,7 @@ func GetSystemUtilization(c *gin.Context) {
 			findSystem += 1
 			continue
 		}
-		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" {
+		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || list[i].Tran == "ata" {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				continue
@@ -520,7 +520,6 @@ func GetSystemDiskInfo(c *gin.Context) {
 // @Router /sys/net [get]
 func GetSystemNetInfo(c *gin.Context) {
 	netList := service.MyService.System().GetNetInfo()
-
 	newNet := []model.IOCountersStat{}
 	for _, n := range netList {
 		for _, netCardName := range service.MyService.System().GetNet(true) {
@@ -535,4 +534,27 @@ func GetSystemNetInfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: newNet})
+}
+
+//********************************************* Soon to be removed ***********************************************
+// @Summary 检查是否进入引导状态
+// @Produce  application/json
+// @Accept application/json
+// @Tags sys
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /guide/check [get]
+func GetGuideCheck(c *gin.Context) {
+	initUser := false
+	if !config.UserInfo.Initialized {
+		initUser = true
+	}
+	data := make(map[string]interface{}, 1)
+	data["need_init_user"] = initUser
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
+			Data:    data,
+		})
 }

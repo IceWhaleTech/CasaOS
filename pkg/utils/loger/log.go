@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-02 15:09:38
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-21 15:08:34
+ * @LastEditTime: 2022-06-27 15:47:49
  * @FilePath: /CasaOS/pkg/utils/loger/log.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -32,7 +32,7 @@ func getFileLogWriter() (writeSyncer zapcore.WriteSyncer) {
 			config.AppInfo.LogSaveName,
 			config.AppInfo.LogFileExt,
 		)),
-		MaxSize:    100,
+		MaxSize:    10,
 		MaxBackups: 60,
 		MaxAge:     1,
 		Compress:   true,

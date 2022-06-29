@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/disintegration/imaging"
@@ -244,5 +245,17 @@ func GetImageExt(p string) (string, error) {
 		}
 	}
 
+	return "", errors.New("invalid image type")
+}
+
+func GetImageExtByName(p string) (string, error) {
+
+	extArr := ImageExtArray()
+	ext := filepath.Ext(p)
+	for i := 0; i < len(extArr); i++ {
+		if strings.Contains(ext, extArr[i]) {
+			return extArr[i], nil
+		}
+	}
 	return "", errors.New("invalid image type")
 }

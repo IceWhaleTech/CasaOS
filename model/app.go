@@ -9,7 +9,7 @@ import (
 type ServerAppListCollection struct {
 	List      []ServerAppList `json:"list"`
 	Recommend []ServerAppList `json:"recommend"`
-	Community []ServerAppList `json:"Community"`
+	Community []ServerAppList `json:"community"`
 	Version   string          `json:"version"`
 }
 

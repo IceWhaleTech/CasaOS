@@ -60,7 +60,7 @@ func AppList(c *gin.Context) {
 	// 	}
 	// }
 	data := make(map[string]interface{}, 3)
-	data["recommend"] = collection.Community
+	data["recommend"] = collection.Recommend
 	data["list"] = collection.List
 	data["community"] = collection.Community
 
@@ -116,7 +116,6 @@ func MyAppList(c *gin.Context) {
 	size, _ := strconv.Atoi(c.DefaultQuery("size", "0"))
 	position, _ := strconv.ParseBool(c.DefaultQuery("position", "true"))
 	list, unTranslation := service.MyService.App().GetMyList(index, size, position)
-
 	data := make(map[string]interface{}, 2)
 	data["list"] = list
 	data["local"] = unTranslation

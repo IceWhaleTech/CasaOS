@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"encoding/json"
+	json2 "encoding/json"
 	"io/ioutil"
 	"net/http"
 	url2 "net/url"
@@ -10,16 +10,15 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/model/system_model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/tidwall/gjson"
 
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -85,8 +84,8 @@ func PostUserLogin(c *gin.Context) {
 	json := make(map[string]string)
 	c.BindJSON(&json)
 
-	username := json["user_name"]
-	pwd := json["password"]
+	username := json["username"]
+	pwd := json["pwd"]
 	//check params is empty
 	if len(username) == 0 || len(pwd) == 0 {
 		c.JSON(http.StatusOK,
@@ -108,12 +107,16 @@ func PostUserLogin(c *gin.Context) {
 		return
 	}
 	user.Password = ""
-	token := system_model.VerifyInformation{}
-	token.AccessToken = jwt.GetAccessToken(user.UserName, user.Password, user.Id)
-	token.RefreshToken = jwt.GetRefreshToken(user.UserName, user.Password, user.Id)
-	token.ExpiresAt = time.Now().Add(3 * time.Hour * time.Duration(1)).Unix()
-	data := make(map[string]interface{}, 2)
-	data["token"] = token
+	// token := system_model.VerifyInformation{}
+	// token.AccessToken = jwt.GetAccessToken(user.UserName, user.Password, user.Id)
+	// token.RefreshToken = jwt.GetRefreshToken(user.UserName, user.Password, user.Id)
+	// token.ExpiresAt = time.Now().Add(3 * time.Hour * time.Duration(1)).Unix()
+	// data := make(map[string]interface{}, 2)
+	// data["token"] = token
+	// data["user"] = user
+	data := make(map[string]interface{}, 3)
+	data["token"] = jwt.GetToken(username, pwd)
+	data["version"] = types.CURRENTVERSION
 	data["user"] = user
 
 	c.JSON(http.StatusOK,
@@ -187,22 +190,24 @@ func GetUserAvatar(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /user/name/:id [put]
 func PutUserName(c *gin.Context) {
-	id := c.GetHeader("user_id")
+	//id := c.GetHeader("user_id")
 	json := make(map[string]string)
 	c.BindJSON(&json)
-	userName := json["user_name"]
-	if len(userName) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+	//userName := json["user_name"]
+	username := json["username"]
+	id := json["id"]
+	if len(username) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
 		return
 	}
-
 	user := service.MyService.User().GetUserInfoById(id)
+
 	if user.Id == 0 {
 		c.JSON(http.StatusOK,
 			model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
 		return
 	}
-	user.UserName = userName
+	user.UserName = username
 	service.MyService.User().UpdateUser(user)
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: user})
 }
@@ -215,11 +220,12 @@ func PutUserName(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /user/password/:id [put]
 func PutUserPwd(c *gin.Context) {
-	id := c.GetHeader("user_id")
+	//id := c.GetHeader("user_id")
 	json := make(map[string]string)
 	c.BindJSON(&json)
-	oldPwd := json["old_password"]
-	pwd := json["password"]
+	oldPwd := json["old_pwd"]
+	pwd := json["pwd"]
+	id := json["id"]
 	if len(oldPwd) == 0 || len(pwd) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
@@ -240,40 +246,6 @@ func PutUserPwd(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: user})
 }
 
-// // @Summary edit user info
-// // @Produce  application/json
-// // @Accept multipart/form-data
-// // @Tags user
-// // @Param user_name formData string false "User Name"
-// // @Param email formData string false "Email"
-// // @Param description formData string false "Description"
-// // @Param pwd formData string false "Password"
-// // @Param old_pwd  formData string false "Old password"
-// // @Param nick_name formData string false "nick name"
-// // @Security ApiKeyAuth
-// // @Success 200 {string} string "ok"
-// // @Router /user/info [post]
-// func PostUserChangeInfo(c *gin.Context) {
-// 	username := c.PostForm("user_name")
-// 	email := c.PostForm("email")
-// 	description := c.PostForm("description")
-// 	nickName := c.PostForm("nick_name")
-// 	oldpwd := c.PostForm("old_pwd")
-// 	pwd := c.PostForm("pwd")
-// 	if len(pwd) > 0 && config.UserInfo.PWD != oldpwd {
-// 		c.JSON(http.StatusOK, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
-// 		return
-// 	}
-// 	user_service.SetUser(username, pwd, "", email, description, nickName)
-// 	data := make(map[string]string, 4)
-
-// 	data["token"] = jwt2.GetToken(username, pwd)
-// 	data["user_name"] = username
-// 	data["head"] = config.UserInfo.Head
-// 	data["nick_name"] = config.UserInfo.NickName
-// 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
-// }
-
 // @Summary edit user nick
 // @Produce  application/json
 // @Accept application/json
@@ -284,16 +256,15 @@ func PutUserPwd(c *gin.Context) {
 // @Router /user/nick [put]
 func PutUserNick(c *gin.Context) {
 
-	id := c.GetHeader("user_id")
+	//id := c.GetHeader("user_id")
 	json := make(map[string]string)
 	c.BindJSON(&json)
 	nickName := json["nick_name"]
-
+	id := json["id"]
 	if len(nickName) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-
 	user := service.MyService.User().GetUserInfoById(id)
 	if user.Id == 0 {
 		c.JSON(http.StatusOK,
@@ -302,7 +273,7 @@ func PutUserNick(c *gin.Context) {
 	}
 	user.NickName = nickName
 	service.MyService.User().UpdateUser(user)
-
+	//TODO:person remove together
 	go service.MyService.Casa().PushUserInfo()
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: user})
 }
@@ -316,10 +287,10 @@ func PutUserNick(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /user/desc [put]
 func PutUserDesc(c *gin.Context) {
-	id := c.GetHeader("user_id")
+	//	id := c.GetHeader("user_id")
 	json := make(map[string]string)
 	c.BindJSON(&json)
-
+	id := json["id"]
 	desc := json["description"]
 	if len(desc) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
@@ -369,8 +340,50 @@ func PostUserPersonInfo(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /user/info/:id [get]
 func GetUserInfo(c *gin.Context) {
-	id := c.GetHeader("user_id")
+	//id := c.GetHeader("user_id")
+	id := c.Param("id")
 	user := service.MyService.User().GetUserInfoById(id)
+
+	//*****
+	var u = make(map[string]string, 5)
+	u["user_name"] = user.UserName
+	u["head"] = user.Avatar
+	u["email"] = user.Email
+	u["description"] = user.NickName
+	u["nick_name"] = user.NickName
+	u["id"] = strconv.Itoa(user.Id)
+
+	//**
+
+	c.JSON(http.StatusOK,
+		model.Result{
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
+			Data:    u,
+		})
+}
+
+// @Summary get user info
+// @Produce  application/json
+// @Accept  application/json
+// @Tags user
+// @Success 200 {string} string "ok"
+// @Router /user/info [get]
+func GetUserInfoByUserName(c *gin.Context) {
+	json := make(map[string]string)
+	c.BindJSON(&json)
+	userName := json["user_name"]
+	if len(userName) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
+	}
+	user := service.MyService.User().GetUserInfoByUserName(userName)
+	if user.Id == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
+	//**
+
 	c.JSON(http.StatusOK,
 		model.Result{
 			Success: common_err.SUCCESS,
@@ -421,14 +434,22 @@ func GetUserCustomConf(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	id := c.GetHeader("user_id")
+	//id := c.GetHeader("user_id")
+	id := c.Param("id")
+	user := service.MyService.User().GetUserInfoById(id)
+	//	user := service.MyService.User().GetUserInfoByUserName(userName)
+	if user.Id == 0 {
+		c.JSON(http.StatusOK,
+			model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
 	filePath := config.AppInfo.UserDataPath + "/" + id + "/" + name + ".json"
 	data := file.ReadFullFile(filePath)
 	if !gjson.ValidBytes(data) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: string(data)})
 		return
 	}
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json.RawMessage(string(data))})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json2.RawMessage(string(data))})
 }
 
 /**
@@ -443,11 +464,19 @@ func PostUserCustomConf(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	id := c.GetHeader("user_id")
+	//id := c.GetHeader("user_id")
+	id := c.Param("id")
+	user := service.MyService.User().GetUserInfoById(id)
+	if user.Id == 0 {
+		c.JSON(http.StatusOK,
+			model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
 	data, _ := ioutil.ReadAll(c.Request.Body)
-	filePath := config.AppInfo.UserDataPath + "/" + id
+	filePath := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id)
+
 	file.WriteToPath(data, filePath, name+".json")
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json.RawMessage(string(data))})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json2.RawMessage(string(data))})
 }
 
 /**
@@ -462,8 +491,15 @@ func DeleteUserCustomConf(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	id := c.GetHeader("user_id")
-	filePath := config.AppInfo.UserDataPath + "/" + id + "/" + name + ".json"
+	//id := c.GetHeader("user_id")
+	id := c.Param("id")
+	user := service.MyService.User().GetUserInfoById(id)
+	if user.Id == 0 {
+		c.JSON(http.StatusOK,
+			model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
+	filePath := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id) + "/" + name + ".json"
 	os.Remove(filePath)
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
@@ -486,9 +522,11 @@ func DeleteUser(c *gin.Context) {
  * @router:/user/file/image/:key
  */
 func PostUserFileImage(c *gin.Context) {
-	id := c.GetHeader("user_id")
+	//id := c.GetHeader("user_id")
+	id := c.Param("id")
 	json := make(map[string]string)
 	c.BindJSON(&json)
+
 	path := json["path"]
 	key := c.Param("key")
 	if len(path) == 0 || len(key) == 0 {
@@ -506,6 +544,7 @@ func PostUserFileImage(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.NOT_IMAGE, Message: common_err.GetMsg(common_err.NOT_IMAGE)})
 		return
 	}
+
 	user := service.MyService.User().GetUserInfoById(id)
 	if user.Id == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
@@ -517,7 +556,7 @@ func PostUserFileImage(c *gin.Context) {
 		return
 	}
 	ext := file.GetExt(path)
-	filePath := config.AppInfo.UserDataPath + "/" + id + "/" + key + ext
+	filePath := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id) + "/" + key + ext
 	file.CopySingleFile(path, filePath, "overwrite")
 
 	data := make(map[string]string, 3)
@@ -535,8 +574,9 @@ func PostUserFileImage(c *gin.Context) {
  * @router:/user/upload/image/:key
  */
 func PostUserUploadImage(c *gin.Context) {
-	id := c.GetHeader("user_id")
-	file, err := c.FormFile("file")
+	//id := c.GetHeader("user_id")
+	id := c.Param("id")
+	f, err := c.FormFile("file")
 	key := c.Param("key")
 	if len(key) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
@@ -546,14 +586,21 @@ func PostUserUploadImage(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
-	ext := filepath.Ext(file.Filename)
-	path := config.AppInfo.UserDataPath + "/" + id + "/" + key + ext
-	c.SaveUploadedFile(file, path)
+
+	_, err = file.GetImageExtByName(f.Filename)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.NOT_IMAGE, Message: common_err.GetMsg(common_err.NOT_IMAGE)})
+		return
+	}
+	ext := filepath.Ext(f.Filename)
 	user := service.MyService.User().GetUserInfoById(id)
+
 	if user.Id == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
 		return
 	}
+	path := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id) + "/" + key + ext
+	c.SaveUploadedFile(f, path)
 	data := make(map[string]string, 3)
 	data["path"] = path
 	data["file_name"] = key + ext
@@ -589,7 +636,8 @@ func GetUserImage(c *gin.Context) {
 	c.File(filePath)
 }
 func DeleteUserImage(c *gin.Context) {
-	id := c.GetHeader("user_id")
+	//	id := c.GetHeader("user_id")
+	id := c.Param("id")
 	path := c.Query("path")
 	if len(path) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
@@ -604,7 +652,7 @@ func DeleteUserImage(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.FILE_DOES_NOT_EXIST, Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST)})
 		return
 	}
-	if !strings.Contains(path, config.AppInfo.UserDataPath+"/"+id) {
+	if !strings.Contains(path, config.AppInfo.UserDataPath+"/"+strconv.Itoa(user.Id)) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INSUFFICIENT_PERMISSIONS, Message: common_err.GetMsg(common_err.INSUFFICIENT_PERMISSIONS)})
 		return
 	}
@@ -612,30 +660,67 @@ func DeleteUserImage(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
-//refresh token
-func PostUserRefreshToken(c *gin.Context) {
+////refresh token
+// func PostUserRefreshToken(c *gin.Context) {
+// 	json := make(map[string]string)
+// 	c.BindJSON(&json)
+// 	refresh := json["refresh_token"]
+// 	claims, err := jwt.ParseToken(refresh)
+// 	if err != nil {
+// 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE), Data: err.Error()})
+// 		return
+// 	}
+// 	if claims.VerifyExpiresAt(time.Now(), true) || claims.VerifyIssuer("refresh", true) {
+// 		c.JSON(http.StatusOK, model.Result{Success: common_err.VERIFICATION_FAILURE, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE)})
+// 		return
+// 	}
+// 	newToken := jwt.GetAccessToken(claims.UserName, claims.PassWord, claims.Id)
+// 	if err != nil {
+// 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+// 		return
+// 	}
+// 	verifyInfo := system_model.VerifyInformation{}
+// 	verifyInfo.AccessToken = newToken
+// 	verifyInfo.RefreshToken = jwt.GetRefreshToken(claims.UserName, claims.PassWord, claims.Id)
+// 	verifyInfo.ExpiresAt = time.Now().Add(3 * time.Hour * time.Duration(1)).Unix()
+
+// 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: verifyInfo})
+
+// }
+
+//******** soon to be removed ********
+
+// @Summary 设置用户名和密码
+// @Produce  application/json
+// @Accept multipart/form-data
+// @Tags user
+// @Param username formData string true "User name"
+// @Param pwd  formData string true "password"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /user/setusernamepwd [post]
+func Set_Name_Pwd(c *gin.Context) {
 	json := make(map[string]string)
 	c.BindJSON(&json)
-	refresh := json["refresh_token"]
-	claims, err := jwt.ParseToken(refresh)
-	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE), Data: err.Error()})
+	username := json["username"]
+	pwd := json["pwd"]
+	if service.MyService.User().GetUserCount() > 0 || len(username) == 0 || len(pwd) == 0 {
+		c.JSON(http.StatusOK,
+			model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	if claims.VerifyExpiresAt(time.Now(), true) || claims.VerifyIssuer("refresh", true) {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.VERIFICATION_FAILURE, Message: common_err.GetMsg(common_err.VERIFICATION_FAILURE)})
-		return
-	}
-	newToken := jwt.GetAccessToken(claims.UserName, claims.PassWord, claims.Id)
-	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
-		return
-	}
-	verifyInfo := system_model.VerifyInformation{}
-	verifyInfo.AccessToken = newToken
-	verifyInfo.RefreshToken = jwt.GetRefreshToken(claims.UserName, claims.PassWord, claims.Id)
-	verifyInfo.ExpiresAt = time.Now().Add(3 * time.Hour * time.Duration(1)).Unix()
+	user := model2.UserDBModel{}
+	user.UserName = username
+	user.Password = encryption.GetMD5ByStr(config.UserInfo.PWD)
+	user.Role = "admin"
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: verifyInfo})
+	user = service.MyService.User().CreateUser(user)
+	if user.Id == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
+		return
+	}
+	file.MkDir(config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id))
+
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: user})
 
 }
