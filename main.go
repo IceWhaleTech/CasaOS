@@ -27,7 +27,6 @@ var dbFlag = flag.String("db", "", "db path")
 var showUserInfo = flag.Bool("show-user-info", false, "show user info")
 var resetUser = flag.Bool("ru", false, "reset user")
 var user = flag.String("user", "", "user name")
-var version = flag.Bool("v", false, "version")
 
 func init() {
 	flag.Parse()
