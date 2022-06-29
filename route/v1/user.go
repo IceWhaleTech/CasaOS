@@ -195,7 +195,7 @@ func PutUserName(c *gin.Context) {
 	c.BindJSON(&json)
 	//userName := json["user_name"]
 	username := json["username"]
-	id := json["id"]
+	id := json["user_id"]
 	if len(username) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
 		return
@@ -225,7 +225,7 @@ func PutUserPwd(c *gin.Context) {
 	c.BindJSON(&json)
 	oldPwd := json["old_pwd"]
 	pwd := json["pwd"]
-	id := json["id"]
+	id := json["user_id"]
 	if len(oldPwd) == 0 || len(pwd) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
@@ -260,7 +260,7 @@ func PutUserNick(c *gin.Context) {
 	json := make(map[string]string)
 	c.BindJSON(&json)
 	nickName := json["nick_name"]
-	id := json["id"]
+	id := json["user_id"]
 	if len(nickName) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
@@ -290,7 +290,7 @@ func PutUserDesc(c *gin.Context) {
 	//	id := c.GetHeader("user_id")
 	json := make(map[string]string)
 	c.BindJSON(&json)
-	id := json["id"]
+	id := json["user_id"]
 	desc := json["description"]
 	if len(desc) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
@@ -319,18 +319,27 @@ func PutUserDesc(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /user/person/info [post]
 func PostUserPersonInfo(c *gin.Context) {
-	desc := c.PostForm("description")
-	nickName := c.PostForm("nick_name")
+	json := make(map[string]string)
+	c.BindJSON(&json)
+	desc := json["description"]
+	nickName := json["nick_name"]
+	id := json["user_id"]
 	if len(desc) == 0 || len(nickName) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
+	user := service.MyService.User().GetUserInfoById(id)
+	if user.Id == 0 {
+		c.JSON(http.StatusOK,
+			model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
 	//user_service.SetUser("", "", "", "", desc, nickName)
-	data := make(map[string]string, 2)
-	data["description"] = config.UserInfo.Description
-	data["nick_name"] = config.UserInfo.NickName
+	user.NickName = nickName
+	user.Description = desc
+	service.MyService.User().UpdateUser(user)
 	go service.MyService.Casa().PushUserInfo()
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: user})
 }
 
 // @Summary get user info

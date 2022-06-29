@@ -201,7 +201,7 @@ func CheckSerialDiskMount() {
 	command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;AutoRemoveUnuseDir")
 }
 func Update2_3() {
-	command.OnlyExec("source " + config.AppInfo.ShellPath + "/assist.sh")
+	command.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/assist.sh | bash")
 
 }
 func CheckToken2_11() {

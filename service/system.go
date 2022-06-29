@@ -208,9 +208,9 @@ func (c *systemService) GetNet(physics bool) []string {
 }
 
 func (s *systemService) UpdateSystemVersion(version string) {
-	//command2.OnlyExec("curl -fsSL https://get.casaos.io | bash")
+	command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | bash")
 	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
-	command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/tools.sh ;update " + version)
+	//command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/tools.sh ;update " + version)
 	//s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
 }
 func (s *systemService) UpdateAssist() {
