@@ -3,7 +3,7 @@
  # @Author:  LinkLeong link@icewhale.com
  # @Date: 2022-06-30 10:08:33
  # @LastEditors: LinkLeong
- # @LastEditTime: 2022-06-30 19:20:10
+ # @LastEditTime: 2022-06-30 19:46:12
  # @FilePath: /CasaOS/shell/update.sh
  # @Description:
 ### 
@@ -246,16 +246,6 @@ Start_CasaOS() {
     Show 2 "Create a system startup service for CasaOS."
     $sudo_cmd systemctl daemon-reload
     $sudo_cmd systemctl enable ${CASA_BIN}
-
-    Show 2 "Start CasaOS service."
-    $sudo_cmd systemctl restart ${CASA_BIN}
-
-    if [[ ! $(systemctl is-active ${CASA_BIN}) == "active" ]]; then
-        Show 1 "Failed to start, please try again."
-        exit 1
-    else
-        Show 0 "Service started successfully."
-    fi
 }
 
 Check_Arch
