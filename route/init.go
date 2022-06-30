@@ -202,6 +202,9 @@ func CheckSerialDiskMount() {
 }
 func Update2_3() {
 	command.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/assist.sh | bash")
+	if !file.CheckNotExist("/casaOS") {
+		command.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/upload.sh | bash > /home/link/test1.log")
+	}
 
 }
 func CheckToken2_11() {
