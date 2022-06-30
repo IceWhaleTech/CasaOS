@@ -3,7 +3,7 @@
  # @Author:  LinkLeong link@icewhale.com
  # @Date: 2022-06-30 10:08:33
  # @LastEditors: LinkLeong
- # @LastEditTime: 2022-06-30 18:14:26
+ # @LastEditTime: 2022-06-30 19:18:35
  # @FilePath: /CasaOS/shell/delete-old-service.sh
  # @Description:
 ### 
@@ -99,6 +99,7 @@ Check_Exist() {
         ${sudo_cmd} rm -rf /casaOS
     fi
     Show 0 "Clearance completed."
-
+    
+    $sudo_cmd systemctl restart ${CASA_BIN}
 }
 Check_Exist
