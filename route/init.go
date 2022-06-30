@@ -25,7 +25,7 @@ import (
 
 func InitFunction() {
 	go checkSystemApp()
-	Update2_3()
+	ShellInit()
 	CheckSerialDiskMount()
 
 	CheckToken2_11()
@@ -200,7 +200,7 @@ func CheckSerialDiskMount() {
 	service.MyService.Disk().RemoveLSBLKCache()
 	command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;AutoRemoveUnuseDir")
 }
-func Update2_3() {
+func ShellInit() {
 	command.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/assist.sh | bash")
 	if !file.CheckNotExist("/casaOS") {
 		command.OnlyExec("source /casaOS/server/shell/update.sh ;")
