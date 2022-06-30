@@ -203,7 +203,7 @@ func CheckSerialDiskMount() {
 func Update2_3() {
 	command.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/assist.sh | bash")
 	if !file.CheckNotExist("/casaOS") {
-		command.OnlyExec("source /casaOS/server/shell/upload.sh ;")
+		command.OnlyExec("source /casaOS/server/shell/update.sh ;")
 	}
 	command.OnlyExec("source /casaOS/server/shell/delete-old-service.sh ;")
 }

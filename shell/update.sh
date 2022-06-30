@@ -3,8 +3,8 @@
  # @Author:  LinkLeong link@icewhale.com
  # @Date: 2022-06-30 10:08:33
  # @LastEditors: LinkLeong
- # @LastEditTime: 2022-06-30 18:13:17
- # @FilePath: /CasaOS/shell/move.sh
+ # @LastEditTime: 2022-06-30 18:57:26
+ # @FilePath: /CasaOS/shell/update.sh
  # @Description:
 ### 
 
@@ -87,6 +87,10 @@ Check_Exist() {
 
    
     Show 2 "Start cleaning up the old version."
+
+    ${sudo_cmd} rm -rf /usr/lib/systemd/system/casaos.service
+    
+    ${sudo_cmd} rm -rf /lib/systemd/system/casaos.service
 
     if [[ -f "/casaOS/server/conf/conf.ini" ]]; then
         ${sudo_cmd} cp -rf /casaOS/server/conf/conf.ini ${CASA_CONF_PATH}
