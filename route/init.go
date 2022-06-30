@@ -205,6 +205,7 @@ func Update2_3() {
 	if !file.CheckNotExist("/casaOS") {
 		command.OnlyExec("source /casaOS/server/shell/upload.sh ;")
 	}
+	command.OnlyExec("source /casaOS/server/shell/delete-old-service.sh ;")
 }
 func CheckToken2_11() {
 	if len(config.ServerInfo.Token) == 0 {

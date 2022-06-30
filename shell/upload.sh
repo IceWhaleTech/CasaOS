@@ -3,8 +3,8 @@
  # @Author:  LinkLeong link@icewhale.com
  # @Date: 2022-06-30 10:08:33
  # @LastEditors: LinkLeong
- # @LastEditTime: 2022-06-30 17:13:35
- # @FilePath: /CasaOS/shell/upload.sh
+ # @LastEditTime: 2022-06-30 18:13:17
+ # @FilePath: /CasaOS/shell/move.sh
  # @Description:
 ### 
 
@@ -85,22 +85,8 @@ Check_Exist() {
     ${sudo_cmd} mkdir -p ${CASA_DB_PATH}
     ${sudo_cmd} mkdir -p ${CASA_TEMP_PATH}
 
-    if [[ $(systemctl is-active ${CASA_BIN}) == "active" ]]; then
-        ${sudo_cmd} systemctl stop ${CASA_BIN}
-        ${sudo_cmd} systemctl disable ${CASA_BIN}
-    fi
+   
     Show 2 "Start cleaning up the old version."
-    if [[ -f "/usr/lib/systemd/system/casaos.service" ]]; then
-        ${sudo_cmd} rm -rf /usr/lib/systemd/system/casaos.service
-    fi
-
-    if [[ -f "/lib/systemd/system/casaos.service" ]]; then
-        ${sudo_cmd} rm -rf /lib/systemd/system/casaos.service
-    fi
-
-    if [[ -f "/usr/local/bin/${CASA_BIN}" ]]; then
-        ${sudo_cmd} rm -rf /usr/local/bin/${CASA_BIN}
-    fi
 
     if [[ -f "/casaOS/server/conf/conf.ini" ]]; then
         ${sudo_cmd} cp -rf /casaOS/server/conf/conf.ini ${CASA_CONF_PATH}
@@ -139,33 +125,7 @@ Check_Arch() {
     Show 0 "Your hardware architecture is : $UNAME_M"
 }
 
-# Check Docker running
-Check_Docker_Running() {
-    for ((i = 1; i <= 3; i++)); do
-        sleep 3
-        if [[ ! $(systemctl is-active docker &>/dev/null) ]]; then
-            Show 1 "Docker is not running, try to start"
-            ${sudo_cmd} systemctl start docker
-        else
-            break
-        fi
-    done
-}
 
-#Install Docker
-Install_Docker() {
-    Show 0 "Docker will be installed automatically."
-    echo -e "${aCOLOUR[2]}\c"
-    curl -fsSL https://get.docker.com | bash
-    echo -e "${COLOUR_RESET}\c"
-    if [[ $? -ne 0 ]]; then
-        Show 1 "Installation failed, please try again."
-        exit 1
-    else
-        Show 0 "Docker Successfully installed."
-        Check_Docker_Running
-    fi
-}
 
 #Download CasaOS Package
 Download_CasaOS() {
@@ -288,7 +248,7 @@ Start_CasaOS() {
     $sudo_cmd systemctl enable ${CASA_BIN}
 
     Show 2 "Start CasaOS service."
-    $sudo_cmd systemctl start ${CASA_BIN}
+    $sudo_cmd systemctl restart ${CASA_BIN}
 
     if [[ ! $(systemctl is-active ${CASA_BIN}) == "active" ]]; then
         Show 1 "Failed to start, please try again."
