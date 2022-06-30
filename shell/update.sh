@@ -3,7 +3,7 @@
  # @Author:  LinkLeong link@icewhale.com
  # @Date: 2022-06-30 10:08:33
  # @LastEditors: LinkLeong
- # @LastEditTime: 2022-06-30 18:57:26
+ # @LastEditTime: 2022-06-30 19:20:10
  # @FilePath: /CasaOS/shell/update.sh
  # @Description:
 ### 
@@ -101,10 +101,6 @@ Check_Exist() {
         ${sudo_cmd} cp -rf /casaOS/server/db/* ${CASA_DB_PATH}
     fi
 
-    #Clean
-    if [[ -d "/casaOS" ]]; then
-        ${sudo_cmd} rm -rf /casaOS
-    fi
     Show 0 "Clearance completed."
 
 }
