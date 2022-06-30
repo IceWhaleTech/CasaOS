@@ -17,10 +17,12 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	uuid "github.com/satori/go.uuid"
+	"go.uber.org/zap"
 )
 
 func InitFunction() {
@@ -203,9 +205,9 @@ func CheckSerialDiskMount() {
 func Update2_3() {
 	command.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/assist.sh | bash")
 	if !file.CheckNotExist("/casaOS") {
-		command.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/upload.sh | bash > /home/link/test1.log")
+		loger.Info("upload.sh", zap.Any("msg", "upload.sh"))
+		command.OnlyExec("source " + config.AppInfo.ShellPath + "/upload.sh ;")
 	}
-
 }
 func CheckToken2_11() {
 	if len(config.ServerInfo.Token) == 0 {
