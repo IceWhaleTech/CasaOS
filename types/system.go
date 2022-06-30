@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-02-17 18:53:22
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-29 11:08:23
+ * @LastEditTime: 2022-06-30 15:21:33
  * @FilePath: /CasaOS/types/system.go
  * @Description:
  * @Website: https://www.casaos.io
