@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-22 15:24:01
+ * @LastEditTime: 2022-06-29 14:29:34
  * @FilePath: /CasaOS/pkg/utils/version/version.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -38,6 +38,9 @@ func IsNeedUpdate(version model.Version) (bool, model.Version) {
 		}
 		if a > b {
 			return true, version
+		}
+		if a < b {
+			return false, version
 		}
 	}
 	return false, version

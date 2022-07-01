@@ -111,7 +111,7 @@ func GetDiskList(c *gin.Context) {
 			continue
 		}
 
-		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || list[i].Tran == "ata" {
+		if list[i].Tran == "sata" || list[i].Tran == "nvme" || list[i].Tran == "spi" || list[i].Tran == "sas" || strings.Contains(list[i].SubSystems, "virtio") || (list[i].Tran == "ata" && list[i].Type == "disk") {
 			temp := service.MyService.Disk().SmartCTL(list[i].Path)
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				temp.SmartStatus.Passed = true
