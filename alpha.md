@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-27 11:37:26
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-30 14:16:31
+ * @LastEditTime: 2022-07-01 15:51:29
  * @FilePath: /CasaOS/alpha.md
  * @Description: 
  * @Website: https://www.casaos.io
@@ -17,7 +17,7 @@ There is a risk of data loss in non-release versions, so please be careful to ba
 
 ## Install/Update
 
-``` curl -fsSL https://get.casaos.io | bash -v v0.3.3-alpha ```
+``` curl -fsSL https://get.casaos.io | bash -s -- -v v0.3.3-alpha ```
 
 ## Check change log
 
