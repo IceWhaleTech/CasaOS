@@ -31,6 +31,7 @@ gen
 /docs/
 /web/
 /conf/conf.ini
+/conf/conf.conf
 /conf/conf.json
 __debug_bin
 main
