@@ -1,5 +1,15 @@
 /*
  * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-07-01 15:11:36
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-07-01 15:16:00
+ * @FilePath: /CasaOS/route/periodical.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
+/*
+ * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-27 15:55:36
  * @LastEditors: LinkLeong
  * @LastEditTime: 2022-06-29 16:47:19
