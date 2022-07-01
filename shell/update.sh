@@ -3,7 +3,7 @@
  # @Author:  LinkLeong link@icewhale.com
  # @Date: 2022-06-30 10:08:33
  # @LastEditors: LinkLeong
- # @LastEditTime: 2022-06-30 19:46:12
+ # @LastEditTime: 2022-07-01 11:18:07
  # @FilePath: /CasaOS/shell/update.sh
  # @Description:
 ### 
@@ -14,7 +14,7 @@
 readonly UNAME_M="$(uname -m)"
 
 # CasaOS PATHS
-readonly CASA_REPO=LinkLeong/casaos-alpha
+readonly CASA_REPO=IceWhaleTech/CasaOS
 readonly CASA_UNZIP_TEMP_FOLDER=/tmp/casaos
 readonly CASA_BIN=casaos
 readonly CASA_BIN_PATH=/usr/bin/casaos
