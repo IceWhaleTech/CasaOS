@@ -14,7 +14,7 @@ UserDataPath = /var/lib/casaos/conf
 TempPath    = /var/lib/casaos/temp
 
 [server]
-HttpPort = 8089
+HttpPort = 80
 UDPPort = 
 RunMode = release
 ServerApi = https://api.casaos.io/casaos-api

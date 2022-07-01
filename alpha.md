@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-27 11:37:26
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-27 16:57:38
+ * @LastEditTime: 2022-06-30 14:16:31
  * @FilePath: /CasaOS/alpha.md
  * @Description: 
  * @Website: https://www.casaos.io
@@ -17,7 +17,7 @@ There is a risk of data loss in non-release versions, so please be careful to ba
 
 ## Install/Update
 
-``` curl -fsSL https://get.casaos.io/casaos_new.sh | bash -v v0.3.3-alpha ```
+``` curl -fsSL https://get.casaos.io | bash -v v0.3.3-alpha ```
 
 ## Check change log
 
@@ -27,7 +27,9 @@ There is a risk of data loss in non-release versions, so please be careful to ba
 
 [Design drawings](https://www.figma.com/file/pvlGobvuWEvbCb3GLqXfim/CasaOS-V0.3.3)
 
-## 提交issue 需要打标签
+## Feedback questions
+
+Go [here]() to give feedback on your question, note that try to match the picture or video
 
 
 ## Retest after update
