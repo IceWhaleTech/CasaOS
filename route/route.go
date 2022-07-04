@@ -38,8 +38,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/v1/sys/init/check", v1.GetSystemInitCheck)
 	r.GET("/v1/guide/check", v1.GetGuideCheck)
 	r.GET("/v1/debug", v1.GetSystemConfigDebug)
-	r.POST("/v1/user/setusernamepwd", v1.Set_Name_Pwd)
-	r.GET("/v1/user/info/:id", v1.GetUserInfo)
+
 	r.GET("/v1/user/avatar/:id", v1.GetUserAvatar)
 	r.GET("/v1/user/image", v1.GetUserImage)
 
@@ -52,28 +51,18 @@ func InitRouter() *gin.Engine {
 		v1UserGroup := v1Group.Group("/user")
 		v1UserGroup.Use()
 		{
-
-			//****************** New version needs to be modified start ******************
-			//chang user name
+			v1UserGroup.GET("/info", v1.GetUserInfo)
 			v1UserGroup.PUT("/username", v1.PutUserName)
 			v1UserGroup.PUT("/password", v1.PutUserPwd)
 			v1UserGroup.PUT("/nick", v1.PutUserNick)
 			v1UserGroup.PUT("/desc", v1.PutUserDesc)
 			v1UserGroup.GET("/info", v1.GetUserInfoByUserName)
-			v1UserGroup.GET("/custom/:id/:key", v1.GetUserCustomConf)
-			v1UserGroup.POST("/custom/:id/:key", v1.PostUserCustomConf)
-			v1UserGroup.DELETE("/custom/:id/:key", v1.DeleteUserCustomConf)
-			v1UserGroup.POST("/upload/image/:id/:key", v1.PostUserUploadImage)
-			v1UserGroup.POST("/file/image/:id/:key", v1.PostUserFileImage)
-			v1UserGroup.DELETE("/image/:id", v1.DeleteUserImage)
-			//****************** New version needs to be modified end ******************
-
-			//****************** soon to be removed start ******************
-			v1UserGroup.POST("/person/info", v1.PostUserPersonInfo)
-			v1UserGroup.GET("/shareid", v1.GetUserShareID)
-			//****************** soon to be removed  end ******************
-
-			//v1UserGroup.GET("/info", v1.GetUserInfo)
+			v1UserGroup.GET("/custom/:key", v1.GetUserCustomConf)
+			v1UserGroup.POST("/custom/:key", v1.PostUserCustomConf)
+			v1UserGroup.DELETE("/custom/:key", v1.DeleteUserCustomConf)
+			v1UserGroup.POST("/upload/image/:key", v1.PostUserUploadImage)
+			v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
+			v1UserGroup.DELETE("/image", v1.DeleteUserImage)
 
 			v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
 			v1UserGroup.GET("/avatar", v1.GetUserAvatar)
