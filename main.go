@@ -42,10 +42,6 @@ func init() {
 	service.Cache = cache.Init()
 
 	service.GetToken()
-	service.UDPAddressMap = make(map[string]string)
-	//go service.SocketConnect()
-	service.CancelList = make(map[string]string)
-	service.InternalInspection = make(map[string][]string)
 	service.NewVersionApp = make(map[string]string)
 	route.InitFunction()
 
@@ -93,17 +89,7 @@ func main() {
 		fmt.Println("Password:" + password)
 		return
 	}
-	go func() {
-		service.UDPService()
-		service.SendIPToServer()
-	}()
 	go route.SocketInit(service.NotifyMsg)
-	go func() {
-		for i := 0; i < 1000; i++ {
-			time.Sleep(2 * time.Second)
-			//service.NotifyMsg <- strconv.Itoa(i)
-		}
-	}()
 
 	//model.Setup()
 	//gredis.Setup()
@@ -111,20 +97,8 @@ func main() {
 	//service.SyncTask(sqliteDB)
 	cron2 := cron.New()
 	//every day execution
-	err := cron2.AddFunc("0 0/5 * * * *", func() {
-		//service.PushIpInfo(*&config.ServerInfo.Token)
-		//service.UpdataDDNSList(mysqldb)
-		//service.SyncTask(sqliteDB)
 
-		service.SendIPToServer()
-
-		service.LoopFriend()
-		//service.MyService.App().CheckNewImage()
-	})
-	if err != nil {
-		fmt.Println(err)
-	}
-	err = cron2.AddFunc("0/5 * * * * *", func() {
+	err := cron2.AddFunc("0/5 * * * * *", func() {
 		if service.ClientCount > 0 {
 			//route.SendNetINfoBySocket()
 			//route.SendCPUBySocket()

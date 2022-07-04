@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-16 17:50:56
+ * @LastEditTime: 2022-07-04 14:39:23
  * @FilePath: /CasaOS/model/sys_common.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -39,7 +39,6 @@ type ServerModel struct {
 	LockAccount  bool
 	Handshake    string
 	Token        string
-	UDPPort      string
 	USBAutoMount string
 	SocketPort   string
 }

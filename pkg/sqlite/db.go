@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-22 18:50:44
+ * @LastEditTime: 2022-07-04 14:26:07
  * @FilePath: /CasaOS/pkg/sqlite/db.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -42,8 +42,11 @@ func GetDb(dbPath string) *gorm.DB {
 		return nil
 	}
 	gdb = db
-	err = db.AutoMigrate(&model2.AppNotify{}, &model2.AppListDBModel{}, &model2.SerialDisk{}, model2.PersonDownloadDBModel{}, model2.FriendModel{}, model2.PersonDownRecordDBModel{}, model2.UserDBModel{})
+	err = db.AutoMigrate(&model2.AppNotify{}, &model2.AppListDBModel{}, &model2.SerialDisk{}, model2.UserDBModel{})
 	db.Exec("DROP TABLE IF EXISTS o_application")
+	db.Exec("DROP TABLE IF EXISTS o_friend")
+	db.Exec("DROP TABLE IF EXISTS o_person_download")
+	db.Exec("DROP TABLE IF EXISTS o_person_down_record")
 	if err != nil {
 		loger.Error("check or create db error", zap.Any("error", err))
 	}

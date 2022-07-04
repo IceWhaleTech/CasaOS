@@ -24,67 +24,42 @@ type Repository interface {
 	Rely() RelyService
 	System() SystemService
 	Shortcuts() ShortcutsService
-	Person() PersonService
-	Friend() FriendService
-	Download() DownloadService
-	DownRecord() DownRecordService
 }
 
 func NewService(db *gorm.DB) Repository {
-
 	return &store{
-		app:        NewAppService(db),
-		user:       NewUserService(db),
-		docker:     NewDockerService(),
-		casa:       NewCasaService(),
-		disk:       NewDiskService(db),
-		notify:     NewNotifyService(db),
-		rely:       NewRelyService(db),
-		system:     NewSystemService(),
-		shortcuts:  NewShortcutsService(db),
-		person:     NewPersonService(db),
-		friend:     NewFriendService(db),
-		download:   NewDownloadService(db),
-		downrecord: NewDownRecordService(db),
+		app:       NewAppService(db),
+		user:      NewUserService(db),
+		docker:    NewDockerService(),
+		casa:      NewCasaService(),
+		disk:      NewDiskService(db),
+		notify:    NewNotifyService(db),
+		rely:      NewRelyService(db),
+		system:    NewSystemService(),
+		shortcuts: NewShortcutsService(db),
 	}
 }
 
 type store struct {
-	db         *gorm.DB
-	app        AppService
-	user       UserService
-	docker     DockerService
-	casa       CasaService
-	disk       DiskService
-	notify     NotifyServer
-	rely       RelyService
-	system     SystemService
-	shortcuts  ShortcutsService
-	person     PersonService
-	friend     FriendService
-	download   DownloadService
-	downrecord DownRecordService
+	db        *gorm.DB
+	app       AppService
+	user      UserService
+	docker    DockerService
+	casa      CasaService
+	disk      DiskService
+	notify    NotifyServer
+	rely      RelyService
+	system    SystemService
+	shortcuts ShortcutsService
 }
 
-func (c *store) DownRecord() DownRecordService {
-	return c.downrecord
-}
-
-func (c *store) Download() DownloadService {
-	return c.download
-}
-func (c *store) Friend() FriendService {
-	return c.friend
-}
 func (c *store) Rely() RelyService {
 	return c.rely
 }
 func (c *store) Shortcuts() ShortcutsService {
 	return c.shortcuts
 }
-func (c *store) Person() PersonService {
-	return c.person
-}
+
 func (c *store) System() SystemService {
 	return c.system
 }

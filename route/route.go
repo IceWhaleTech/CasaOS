@@ -43,8 +43,6 @@ func InitRouter() *gin.Engine {
 	r.GET("/v1/user/avatar/:id", v1.GetUserAvatar)
 	r.GET("/v1/user/image", v1.GetUserImage)
 
-	//get user info
-	r.GET("/v1/person/shareid", v1.GetPersonShareId)
 	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
 	//r.POST("/v1/user/refresh/token", v1.PostUserRefreshToken)
 	v1Group := r.Group("/v1")
@@ -195,32 +193,6 @@ func InitRouter() *gin.Engine {
 			//删除分区
 			v1DiskGroup.DELETE("/delpart", v1.RemovePartition)
 			v1DiskGroup.GET("/usb", v1.GetUSBList)
-
-		}
-		v1PersonGroup := v1Group.Group("/person")
-		v1PersonGroup.Use()
-		{
-			v1PersonGroup.GET("/detection", v1.GetPersonDetection)
-			v1PersonGroup.GET("/users", v1.GetPersonFriend)
-			v1PersonGroup.POST("/user/:shareids", v1.PostAddPersonFriend)
-			v1PersonGroup.DELETE("/user/:shareid", v1.DeletePersonFriend)
-			v1PersonGroup.GET("/directory", v1.GetPersonDirectory)
-			v1PersonGroup.GET("/file", v1.GetPersonFile)
-			v1PersonGroup.GET("/refile/:uuid", v1.GetPersonReFile)
-			v1PersonGroup.PUT("/remarks/:shareid", v1.PutPersonRemarks)
-			v1PersonGroup.GET("/list", v1.GetPersonDownloadList)
-			v1PersonGroup.DELETE("/file/:uuid", v1.DeletePersonDownloadFile)
-
-			v1PersonGroup.POST("/share", v1.PostPersonShare)
-			v1PersonGroup.POST("/file/:shareid", v1.PostPersonFile)
-			v1PersonGroup.GET("/share", v1.GetPersonShare)
-			v1PersonGroup.POST("/down/dir", v1.PostPersonDownDir)
-			v1PersonGroup.GET("/down/dir", v1.GetPersonDownDir)
-			v1PersonGroup.PUT("/block/:shareid", v1.PutPersonBlock)
-			v1PersonGroup.GET("/public", v1.GetPersonPublic)
-			v1PersonGroup.PUT("/friend/:shareid", v1.PutPersonAgreeFriend)
-			v1PersonGroup.PUT("/write/:shareid", v1.PutPersonWrite)
-			v1PersonGroup.GET("/image/thumbnail/:shareid", v1.GetPersonImageThumbnail)
 
 		}
 		v1Group.GET("/sync/config", v1.GetSyncConfig)

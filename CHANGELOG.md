@@ -18,7 +18,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-## [0.3.3-pre] - 2022-07-01(UTC)
+## [0.3.4-alpha]
+
+### Added
+
+### Changed
+
+
+### Removed
+
+- Removed connect
+
+### Security
+
+### Fixed
+
+## [0.3.3-alpha] - 2022-07-01(UTC)
 
 ### Added
 
