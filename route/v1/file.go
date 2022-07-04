@@ -518,7 +518,6 @@ func PostOperateFileOrDir(c *gin.Context) {
 	uid := uuid.NewV4().String()
 	service.FileQueue.Store(uid, list)
 	service.OpStrArr = append(service.OpStrArr, uid)
-
 	if len(service.OpStrArr) == 1 {
 		go service.ExecOpFile()
 		go service.CheckFileStatus()

@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-17 14:01:25
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-24 10:13:52
+ * @LastEditTime: 2022-07-04 16:26:22
  * @FilePath: /CasaOS/pkg/utils/jwt/jwt_helper.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -11,12 +11,10 @@
 package jwt
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
-	loger2 "github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -109,7 +107,7 @@ func GetToken(username, pwd string) string {
 	if err == nil {
 		return token
 	} else {
-		loger2.NewOLoger().Fatal(fmt.Sprintf("Get Token Fail: %V", err))
+		//loger2.NewOLoger().Fatal(fmt.Sprintf("Get Token Fail: %V", err))
 		return ""
 	}
 }

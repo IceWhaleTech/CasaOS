@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-12-20 14:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-16 16:47:46
+ * @LastEditTime: 2022-07-04 16:18:23
  * @FilePath: /CasaOS/service/file.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -101,11 +101,15 @@ func FileOperate(k string) {
 					os.RemoveAll(temp.To + "/" + lastPath)
 				}
 			}
-
 			err := os.Rename(v.From, temp.To+"/"+lastPath)
 			if err != nil {
-				loger.Debug("file move error", zap.Any("err", err))
-				continue
+				loger.Error("file move error", zap.Any("err", err))
+				err = file.MoveFile(v.From, temp.To+"/"+lastPath)
+				if err != nil {
+					loger.Error("MoveFile error", zap.Any("err", err))
+					continue
+				}
+
 			}
 		} else if temp.Type == "copy" {
 			err := file.CopyDir(v.From, temp.To, temp.Style)
