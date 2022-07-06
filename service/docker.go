@@ -540,6 +540,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 	config.Labels["show_env"] = strings.Join(showENV, ",")
 	config.Labels["protocol"] = m.Protocol
 	config.Labels["host"] = m.Host
+	config.Labels["name"] = m.Name
 	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(m.NetworkModel), Privileged: m.Privileged, CapAdd: m.CapAdd}
 	//if net != "host" {
 	config.ExposedPorts = ports

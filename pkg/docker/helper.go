@@ -15,7 +15,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-func NewSshClient(user, password string) (*ssh.Client, error) {
+func NewSshClient(user, password string, port string) (*ssh.Client, error) {
 
 	// connet to ssh
 	// addr = fmt.Sprintf("%s:%d", host, port)
@@ -32,7 +32,7 @@ func NewSshClient(user, password string) (*ssh.Client, error) {
 	//} else {
 	//	config.Auth = []ssh.AuthMethod{publicKeyAuthFunc(h.Key)}
 	//}
-	addr := fmt.Sprintf("%s:%d", "127.0.0.1", 22)
+	addr := fmt.Sprintf("%s:%d", "127.0.0.1", port)
 	c, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
 		return nil, err

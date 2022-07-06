@@ -1,30 +1,22 @@
 package route
 
 import (
-	"encoding/xml"
-	"fmt"
 	"os"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
-	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/model/system_app"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/env_helper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	uuid "github.com/satori/go.uuid"
 )
 
 func InitFunction() {
-	go checkSystemApp()
+
 	ShellInit()
 	CheckSerialDiskMount()
 
@@ -35,132 +27,6 @@ func InitFunction() {
 	MoveUserToDB()
 }
 
-var syncIsExistence = false
-
-func installSyncthing(appId string) {
-
-	var appInfo model.ServerAppList
-	m := model.CustomizationPostData{}
-	var dockerImage string
-	var dockerImageVersion string
-	appInfo = service.MyService.Casa().GetServerAppInfo(appId, "system", "us_en")
-	dockerImage = appInfo.Image
-	dockerImageVersion = appInfo.ImageVersion
-
-	if len(appInfo.ImageVersion) == 0 {
-		dockerImageVersion = "latest"
-	}
-
-	if appInfo.NetworkModel != "host" {
-		for i := 0; i < len(appInfo.Ports); i++ {
-			if p, _ := strconv.Atoi(appInfo.Ports[i].ContainerPort); port.IsPortAvailable(p, appInfo.Ports[i].Protocol) {
-				appInfo.Ports[i].CommendPort = strconv.Itoa(p)
-			} else {
-				if appInfo.Ports[i].Protocol == "tcp" {
-					if p, err := port.GetAvailablePort("tcp"); err == nil {
-						appInfo.Ports[i].CommendPort = strconv.Itoa(p)
-					}
-				} else if appInfo.Ports[i].Protocol == "upd" {
-					if p, err := port.GetAvailablePort("udp"); err == nil {
-						appInfo.Ports[i].CommendPort = strconv.Itoa(p)
-					}
-				}
-			}
-
-			if appInfo.Ports[i].Type == 0 {
-				appInfo.PortMap = appInfo.Ports[i].CommendPort
-			}
-		}
-	}
-
-	for i := 0; i < len(appInfo.Devices); i++ {
-		if !file.CheckNotExist(appInfo.Devices[i].ContainerPath) {
-			appInfo.Devices[i].Path = appInfo.Devices[i].ContainerPath
-		}
-	}
-	if len(appInfo.Tip) > 0 {
-		appInfo.Tip = env_helper.ReplaceStringDefaultENV(appInfo.Tip)
-	}
-
-	appInfo.MaxMemory = service.MyService.System().GetMemInfo()["total"].(uint64) >> 20
-
-	id := uuid.NewV4().String()
-
-	// step：下载镜像
-	err := service.MyService.Docker().DockerPullImage(dockerImage+":"+dockerImageVersion, "", "")
-	if err != nil {
-		//pull image error
-		fmt.Println("pull image error", err, dockerImage, dockerImageVersion)
-		return
-	}
-	for !service.MyService.Docker().IsExistImage(dockerImage + ":" + dockerImageVersion) {
-		time.Sleep(time.Second)
-	}
-
-	m.CpuShares = 50
-	m.Envs = appInfo.Envs
-	m.Memory = int64(appInfo.MaxMemory)
-	m.Origin = "system"
-	m.PortMap = appInfo.PortMap
-	m.Ports = appInfo.Ports
-	m.Restart = "always"
-	m.Volumes = appInfo.Volumes
-	m.NetworkModel = appInfo.NetworkModel
-	m.Label = id
-	m.CustomId = id
-	containerId, err := service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m)
-	if err != nil {
-		fmt.Println("container create error", err)
-		// create container error
-		return
-	}
-
-	//step：start container
-	err = service.MyService.Docker().DockerContainerStart(containerId)
-	if err != nil {
-		//start container error
-		return
-	}
-
-	checkSystemApp()
-}
-
-// check if the system application is installed
-func checkSystemApp() {
-	list := service.MyService.App().GetSystemAppList()
-	for _, v := range list {
-		info, err := service.MyService.Docker().DockerContainerInfo(v.ID)
-		if err != nil {
-			continue
-		}
-		if strings.Contains(info.Config.Image, "linuxserver/syncthing") {
-			if v.State != "running" {
-				//step：start container
-				service.MyService.Docker().DockerContainerStart(v.ID)
-			}
-			syncIsExistence = true
-			if config.SystemConfigInfo.SyncPort != v.Labels["web"] {
-				config.SystemConfigInfo.SyncPort = v.Labels["web"]
-			}
-
-			path := ""
-			for _, i := range info.Mounts {
-				if i.Destination == "/config" {
-					path = i.Source
-					break
-				}
-			}
-			content := file.ReadFullFile(filepath.Join(path, "config.xml"))
-			syncConfig := &system_app.SyncConfig{}
-			xml.Unmarshal(content, &syncConfig)
-			config.SystemConfigInfo.SyncKey = syncConfig.Key
-			break
-		}
-	}
-	if !syncIsExistence {
-		installSyncthing("74")
-	}
-}
 func CheckSerialDiskMount() {
 	// check mount point
 	dbList := service.MyService.Disk().GetSerialAll()

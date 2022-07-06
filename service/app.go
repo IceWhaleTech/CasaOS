@@ -156,12 +156,9 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 
 	for _, m := range containers {
 		if m.Labels["casaos"] == "casaos" {
-			if m.Labels["origin"] == "system" {
-				continue
-			}
 			_, newVersion := NewVersionApp[m.ID]
 			list = append(list, model2.MyAppList{
-				Name:     strings.ReplaceAll(m.Names[0], "/", ""),
+				Name:     m.Labels["name"],
 				Icon:     m.Labels["icon"],
 				State:    m.State,
 				CustomId: m.Labels["custom_id"],

@@ -65,12 +65,16 @@ func DockerTerminal(c *gin.Context) {
 
 //打开本机的ssh接口
 func WsSsh(c *gin.Context) {
+	j := make(map[string]string)
+	c.BindJSON(j)
+	userName := j["user_name"]
+	password := j["password"]
+	port := j["port"]
 	wsConn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
-
 	var logBuff = new(bytes.Buffer)
 	quitChan := make(chan bool, 3)
-	user := ""
-	password := ""
+	// user := ""
+	// password := ""
 	var login int = 1
 	cols, _ := strconv.Atoi(c.DefaultQuery("cols", "200"))
 	rows, _ := strconv.Atoi(c.DefaultQuery("rows", "32"))
@@ -79,13 +83,13 @@ func WsSsh(c *gin.Context) {
 
 		var err error
 
-		wsConn.WriteMessage(websocket.TextMessage, []byte("login:"))
-		user = docker.ReceiveWsMsgUser(wsConn, logBuff)
-		wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
-		wsConn.WriteMessage(websocket.TextMessage, []byte("password:"))
-		password = docker.ReceiveWsMsgPassword(wsConn, logBuff)
-		wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
-		client, err = docker.NewSshClient(user, password)
+		// wsConn.WriteMessage(websocket.TextMessage, []byte("login:"))
+		// user = docker.ReceiveWsMsgUser(wsConn, logBuff)
+		// wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
+		// wsConn.WriteMessage(websocket.TextMessage, []byte("password:"))
+		// password = docker.ReceiveWsMsgPassword(wsConn, logBuff)
+		// wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
+		client, err = docker.NewSshClient(userName, password, port)
 
 		if err != nil && client == nil {
 			wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
@@ -154,6 +158,7 @@ func InstallApp(c *gin.Context) {
 	if len(m.Protocol) == 0 {
 		m.Protocol = "http"
 	}
+	m.Label = strings.Replace(m.Name, " ", "_", -1)
 	if m.Origin != "custom" {
 		oldName := m.Label
 		for i := 0; true; i++ {
@@ -1181,6 +1186,7 @@ func ContainerUpdateInfo(c *gin.Context) {
 	m.Cmd = info.Config.Cmd
 	m.HostName = info.Config.Hostname
 	m.Privileged = info.HostConfig.Privileged
+	m.Name = info.Config.Labels["name"]
 
 	m.Protocol = info.Config.Labels["protocol"]
 	if m.Protocol == "" {
