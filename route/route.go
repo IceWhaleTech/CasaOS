@@ -114,21 +114,34 @@ func InitRouter() *gin.Engine {
 		v1AppGroup := v1Group.Group("/app")
 		v1AppGroup.Use()
 		{
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/apps?installed=true
 			//获取我的已安装的列表
 			v1AppGroup.GET("/my/list", v1.MyAppList)
-			//
+
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/apps/usage
 			v1AppGroup.GET("/usage", v1.AppUsageList)
+
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/app/:id
 			//app详情
 			v1AppGroup.GET("/appinfo/:id", v1.AppInfo)
+
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/apps?installed=false
 			//获取未安装的列表
 			v1AppGroup.GET("/list", v1.AppList)
+
+			// @tiger - 这个信息和应用无关，应该挪到 /v1/sys/port/avaiable
 			//获取端口
 			v1AppGroup.GET("/port", v1.GetPort)
+
+			// @tiger - RESTFul 路径中尽量不要有动词，同时这个信息和应用无关，应该挪到 /v1/sys/port/:port
 			//检查端口
 			v1AppGroup.GET("/check/:port", v1.PortCheck)
 
+			// @tiger - 应用分类和应用不是一类资源，应该挪到 GET /v1/app_categories
 			v1AppGroup.GET("/category", v1.CategoryList)
 
+			// @tiger - Docker Terminal 和应用不是一类资源，应该挪到 GET /v1/container/:id/terminal
+			//          另外这个返回的不是一个 HTTP 响应，应该返回一个 wss:// 协议的 URL给前端，由前端另行处理
 			v1AppGroup.GET("/terminal/:id", v1.DockerTerminal)
 			//app容器详情
 			v1AppGroup.GET("/info/:id", v1.ContainerInfo)

@@ -83,6 +83,7 @@ func GetPort(c *gin.Context) {
 		p, _ = port2.GetAvailablePort(t)
 		ok = !port2.IsPortAvailable(p, t)
 	}
+	// @tiger 这里最好封装成 {'port': ...} 的形式，来体现出参的上下文
 	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: p})
 }
 
@@ -117,8 +118,8 @@ func MyAppList(c *gin.Context) {
 	position, _ := strconv.ParseBool(c.DefaultQuery("position", "true"))
 	list, unTranslation := service.MyService.App().GetMyList(index, size, position)
 	data := make(map[string]interface{}, 2)
-	data["list"] = list
-	data["local"] = unTranslation
+	data["list"] = list           // @tiger - list 不清楚是什么意思，可以提高一下描述性
+	data["local"] = unTranslation // @tiger - local 不清楚是什么意思，可以提高一下描述性
 
 	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
@@ -131,6 +132,7 @@ func MyAppList(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /app/usage [get]
 func AppUsageList(c *gin.Context) {
+	// @tiger - 关于出参的问题，见 GetHardwareUsageSteam（） - 另外 steam 是不是应该为 stream?
 	list := service.MyService.App().GetHardwareUsage()
 	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
