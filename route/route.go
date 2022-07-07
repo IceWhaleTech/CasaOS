@@ -75,22 +75,39 @@ func InitRouter() *gin.Engine {
 			v1UserGroup.GET("/info", v1.GetUserInfo)
 
 			// @tiger - RESTful 规范下所有对 user 的写操作，都应该 POST /v1/user/:id
+			//        - 不需要每个更改的属性建一个 API
 			v1UserGroup.PUT("/username", v1.PutUserName)
 			v1UserGroup.PUT("/password", v1.PutUserPwd)
 			v1UserGroup.PUT("/nick", v1.PutUserNick) // 改成 /nickname
 			v1UserGroup.PUT("/desc", v1.PutUserDesc) // 改成 /description
 
-			// @tiger - RESTful 规范下应该是 GET /v1/users/?username=xxxx
+			// @tiger - RESTful 规范建议是 GET /v1/users/?username=xxxx
+			// 	        这是一个查询 API，返回一个 users 数组（即使 username 是唯一的）
+			//			之所以不用 /v1/user/:username 是因为和 /v1/user/:id 路由冲突
+			//
+			//			当前这个设计的问题是：GET 不应该同时接收 request body。
+			//                            GET 方法应该只接收 URL 参数
 			v1UserGroup.GET("/info", v1.GetUserInfoByUserName)
+
+			// @tiger - 改成 /user/current/custom/... 和上面的 current 对应
+			//          如果未来想获得其它用户的 custom 数据，可以用 /v1/user/:id/custom/... 来保持统一
 			v1UserGroup.GET("/custom/:key", v1.GetUserCustomConf)
 			v1UserGroup.POST("/custom/:key", v1.PostUserCustomConf)
 			v1UserGroup.DELETE("/custom/:key", v1.DeleteUserCustomConf)
+
+			// @tiger - 下面这两个 API 从感知上很难区分。
+			//          如果前者是负责上传，后者负责指定的话，那么
+			//          前者应该用一个统一的和目的无关的用户文件上传 API，而不是针对 image file 的
 			v1UserGroup.POST("/upload/image/:key", v1.PostUserUploadImage)
 			v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
 			v1UserGroup.DELETE("/image", v1.DeleteUserImage)
 
+			// @tiger - 应该用上面提到的统一的文件上传 API 先上传头像文件，然后
+			//          用类似上面第二个 API 的方式指定头像文件。这样整体 API 体验更加统一。
 			v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
 			v1UserGroup.GET("/avatar", v1.GetUserAvatar)
+
+			// @tiger - 删除用户直接用 DELETE /v1/user/:id，不需要在路径中用谓语
 			v1UserGroup.DELETE("/delete/:id", v1.DeleteUser)
 
 		}

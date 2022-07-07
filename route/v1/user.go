@@ -36,12 +36,6 @@ func PostUserRegister(c *gin.Context) {
 	username := json["user_name"]
 	pwd := json["password"]
 
-	// @tiger - POST 方法尽量统一用 JSON 本体来传参。用 query string 来传参的话，
-	// 1 - 有可能会被路由记录，形成不必要的泄露（这里假设 key 是关键信息）
-	// 2 - 开发者不需要处理两种入参方式
-	//
-	// query string 更加适合 GET 读操作，或者运维层面的需求，比如跟踪码，回调地址等
-
 	key := c.Param("key")
 	if _, ok := service.UserRegisterHash[key]; !ok {
 		c.JSON(http.StatusOK,
@@ -353,6 +347,9 @@ func GetUserInfo(c *gin.Context) {
 // @Router /user/info [get]
 func GetUserInfoByUserName(c *gin.Context) {
 	json := make(map[string]string)
+
+	// @tiger 当前这个设计的问题是：GET 不应该同时接收 request body。
+	//        GET 方法应该只接收 URL 参数
 	c.BindJSON(&json)
 	userName := json["user_name"]
 	if len(userName) == 0 {
@@ -415,6 +412,7 @@ func GetUserCustomConf(c *gin.Context) {
 		return
 	}
 	filePath := config.AppInfo.UserDataPath + "/" + id + "/" + name + ".json"
+
 	data := file.ReadFullFile(filePath)
 	if !gjson.ValidBytes(data) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: string(data)})
@@ -469,7 +467,7 @@ func DeleteUserCustomConf(c *gin.Context) {
 		return
 	}
 	filePath := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id) + "/" + name + ".json"
-	os.Remove(filePath)
+	os.Remove(filePath) // @tiger - 这里万一无法实际删除，后面仍然有可能返回成功
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
