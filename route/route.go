@@ -73,10 +73,14 @@ func InitRouter() *gin.Engine {
 		{
 			// @tiger - info 一词名没有指定性，容易产生困扰。改成 /current
 			v1UserGroup.GET("/info", v1.GetUserInfo)
+
+			// @tiger - RESTful 规范下所有对 user 的写操作，都应该 POST /v1/user/:id
 			v1UserGroup.PUT("/username", v1.PutUserName)
 			v1UserGroup.PUT("/password", v1.PutUserPwd)
-			v1UserGroup.PUT("/nick", v1.PutUserNick)
-			v1UserGroup.PUT("/desc", v1.PutUserDesc)
+			v1UserGroup.PUT("/nick", v1.PutUserNick) // 改成 /nickname
+			v1UserGroup.PUT("/desc", v1.PutUserDesc) // 改成 /description
+
+			// @tiger - RESTful 规范下应该是 GET /v1/users/?username=xxxx
 			v1UserGroup.GET("/info", v1.GetUserInfoByUserName)
 			v1UserGroup.GET("/custom/:key", v1.GetUserCustomConf)
 			v1UserGroup.POST("/custom/:key", v1.PostUserCustomConf)
