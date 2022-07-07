@@ -188,6 +188,8 @@ func GetUserAvatar(c *gin.Context) {
 	if user.Id > 0 {
 		path = user.Avatar
 	}
+
+	// @tiger - RESTful 规范下不应该返回文件本身内容，而是返回文件的静态URL，由前端去解析
 	c.File(path)
 }
 
@@ -324,13 +326,14 @@ func GetUserInfo(c *gin.Context) {
 	user := service.MyService.User().GetUserInfoById(id)
 
 	//*****
+	// @tiger - 应该和 PostUserLogin 中的 user 对象一致。而不是重构一系列字段。
 	var u = make(map[string]string, 5)
-	u["user_name"] = user.UserName
-	u["head"] = user.Avatar
+	u["user_name"] = user.UserName // 改成 username
+	u["head"] = user.Avatar        // 应该和 /v1/user/avatar/:id 一致，改成 avatar
 	u["email"] = user.Email
 	u["description"] = user.NickName
-	u["nick_name"] = user.NickName
-	u["id"] = strconv.Itoa(user.Id)
+	u["nick_name"] = user.NickName  // 改成 nickname
+	u["id"] = strconv.Itoa(user.Id) // (nice-to-have) 最佳实践是用随机字符来代表 ID。顺序数字有可预测性
 
 	//**
 
@@ -596,6 +599,8 @@ func GetUserImage(c *gin.Context) {
 	defer fileTmp.Close()
 
 	fileName := path.Base(filePath)
+
+	// @tiger - RESTful 规范下不应该返回文件本身内容，而是返回文件的静态URL，由前端去解析
 	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
 	c.File(filePath)
 }

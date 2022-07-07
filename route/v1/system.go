@@ -470,7 +470,7 @@ func GetSystemSocketPort(c *gin.Context) {
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    config.ServerInfo.SocketPort,
+			Data:    config.ServerInfo.SocketPort, // @tiger 这里最好封装成 {'port': ...} 的形式，来增加出参的上下文
 		})
 }
 

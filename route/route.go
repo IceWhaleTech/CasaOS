@@ -43,15 +43,27 @@ func InitRouter() *gin.Engine {
 	//          不正规的方式是 改成 /v1/users/names，假定 name 也是资源
 	r.GET("/v1/user/all/name", v1.GetUserAllUserName)
 
-	r.GET("/v1/sys/init/check", v1.GetSystemInitCheck)
-	r.GET("/v1/guide/check", v1.GetGuideCheck)
-	r.GET("/v1/debug", v1.GetSystemConfigDebug)
+	// @tiger - 1）不要把同一个词汇按单词来分割。2）同领域的 API 应该放在同路径下。
+	r.GET("/v1/sys/init/check", v1.GetSystemInitCheck) // 这里改成 /v1/sys/init_check
+	r.GET("/v1/guide/check", v1.GetGuideCheck)         // 这里改成 /v1/sys/guide_check
+	r.GET("/v1/debug", v1.GetSystemConfigDebug)        // 这里改成 /v1/sys/debug
 
+	// @tiger - 如果遵循 RESTful avatar 本身并不是资源，而是属性；资源是 user
+	//          所以正规的方法是 改成 /v1/user/:id 然后返回 user 对象，具体 avatar 由前端自行抽取
+	//          不正规的方式是 改成 /v1/user/:id/avatar，假定 avatar 也是资源
 	r.GET("/v1/user/avatar/:id", v1.GetUserAvatar)
+
+	// @tiger - 如果遵循 RESTful image 本身并不是资源，而是属性；资源是 user
+	//          所以正规的方法是 改成 /v1/user/:id 然后返回 user 对象，具体 image 由前端自行抽取
+	//          不正规的方式是 改成 /v1/user/:id/image，假定 image 也是资源
 	r.GET("/v1/user/image", v1.GetUserImage)
 
+	// @tiger - 不要把同一个词汇按单词来分割，改成 /v1/sys/socket_port
 	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
+
+	// @tiger - （nice-to-have）开源项目应该删除所有注释代码，增加代码整洁性。或者增加注释说明
 	//r.POST("/v1/user/refresh/token", v1.PostUserRefreshToken)
+
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT())
@@ -59,6 +71,7 @@ func InitRouter() *gin.Engine {
 		v1UserGroup := v1Group.Group("/user")
 		v1UserGroup.Use()
 		{
+			// @tiger - info 一词名没有指定性，容易产生困扰。改成 /current
 			v1UserGroup.GET("/info", v1.GetUserInfo)
 			v1UserGroup.PUT("/username", v1.PutUserName)
 			v1UserGroup.PUT("/password", v1.PutUserPwd)
