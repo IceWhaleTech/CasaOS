@@ -35,6 +35,8 @@ func (r *relyService) Create(rely model2.RelyDBModel) {
 func (r *relyService) GetInfo(id string) model2.RelyDBModel {
 	var m model2.RelyDBModel
 	r.db.Where("custom_id = ?", id).First(&m)
+
+	// @tiger - 作为出参不应该直接返回数据库内的格式（见类似问题的注释）
 	return m
 }
 

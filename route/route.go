@@ -141,14 +141,16 @@ func InitRouter() *gin.Engine {
 			v1AppGroup.GET("/category", v1.CategoryList)
 
 			// @tiger - Docker Terminal 和应用不是一类资源，应该挪到 GET /v1/container/:id/terminal
-			//          另外这个返回的不是一个 HTTP 响应，应该返回一个 wss:// 协议的 URL给前端，由前端另行处理
+			//          另外这个返回的不是一个 HTTP 响应，应该返回一个 wss://... 的 URL给前端，由前端另行处理
 			v1AppGroup.GET("/terminal/:id", v1.DockerTerminal)
+
+			// @tiger - 所有跟 Docker 有关的 API，应该挪到 /v1/container 下
 			//app容器详情
-			v1AppGroup.GET("/info/:id", v1.ContainerInfo)
+			v1AppGroup.GET("/info/:id", v1.ContainerInfo) // 改成 GET /v1/container/:id
 			//app容器日志
-			v1AppGroup.GET("/logs/:id", v1.ContainerLog)
+			v1AppGroup.GET("/logs/:id", v1.ContainerLog) // 改成 GET /v1/container/:id/log
 			//暂停或启动容器
-			v1AppGroup.PUT("/state/:id", v1.ChangAppState)
+			v1AppGroup.PUT("/state/:id", v1.ChangAppState) // 改成 PUT /v1/container/:id/state
 			//安装app
 			v1AppGroup.POST("/install", v1.InstallApp)
 			//卸载app
@@ -159,8 +161,13 @@ func InitRouter() *gin.Engine {
 			v1AppGroup.PUT("/update/:id/setting", v1.UpdateSetting)
 			//获取可能新数据
 			v1AppGroup.GET("/update/:id/info", v1.ContainerUpdateInfo)
+
+			// @tiger - rely -> dependency - 依赖是什么意思？
 			v1AppGroup.GET("/rely/:id/info", v1.ContainerRelyInfo)
+
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/container/:id/config
 			v1AppGroup.GET("/install/config", v1.GetDockerInstallConfig)
+
 			v1AppGroup.PUT("/update/:id", v1.PutAppUpdate)
 			v1AppGroup.POST("/share", v1.ShareAppFile)
 		}
