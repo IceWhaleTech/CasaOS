@@ -25,6 +25,8 @@ func InitRouter() *gin.Engine {
 	r.Use(middleware.WriteLog())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	gin.SetMode(config.ServerInfo.RunMode)
+
+	// @tiger - 为了方便未来的模块化迭代，前端输出需要独立端口，不要和 API 端口公用。
 	r.StaticFS("/ui", http.FS(web.Static))
 	r.GET("/", WebUIHome)
 	// r.StaticFS("/assets", http.Dir("./static/assets"))
