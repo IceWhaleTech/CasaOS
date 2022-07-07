@@ -141,7 +141,7 @@ func InitRouter() *gin.Engine {
 			v1AppGroup.GET("/category", v1.CategoryList)
 
 			// @tiger - Docker Terminal 和应用不是一类资源，应该挪到 GET /v1/container/:id/terminal
-			//          另外这个返回的不是一个 HTTP 响应，应该返回一个 wss://... 的 URL给前端，由前端另行处理
+			//          另外这个返回的不是一个 HTTP 响应，应该返回一个 wss:// 协议的 URL给前端，由前端另行处理
 			v1AppGroup.GET("/terminal/:id", v1.DockerTerminal)
 
 			// @tiger - 所有跟 Docker 有关的 API，应该挪到 /v1/container 下
