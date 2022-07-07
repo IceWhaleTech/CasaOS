@@ -36,12 +36,6 @@ func PostUserRegister(c *gin.Context) {
 	username := json["user_name"]
 	pwd := json["password"]
 
-	// @tiger - POST 方法尽量统一用 JSON 本体来传参。用 query string 来传参的话，
-	// 1 - 有可能会被路由记录，形成不必要的泄露（这里假设 key 是关键信息）
-	// 2 - 开发者不需要处理两种入参方式
-	//
-	// query string 更加适合 GET 读操作，或者运维层面的需求，比如跟踪码，回调地址等
-
 	key := c.Param("key")
 	if _, ok := service.UserRegisterHash[key]; !ok {
 		c.JSON(http.StatusOK,

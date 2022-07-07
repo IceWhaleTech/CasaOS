@@ -75,12 +75,18 @@ func InitRouter() *gin.Engine {
 			v1UserGroup.GET("/info", v1.GetUserInfo)
 
 			// @tiger - RESTful 规范下所有对 user 的写操作，都应该 POST /v1/user/:id
+			//        - 不需要每个更改的属性建一个 API
 			v1UserGroup.PUT("/username", v1.PutUserName)
 			v1UserGroup.PUT("/password", v1.PutUserPwd)
 			v1UserGroup.PUT("/nick", v1.PutUserNick) // 改成 /nickname
 			v1UserGroup.PUT("/desc", v1.PutUserDesc) // 改成 /description
 
-			// @tiger - RESTful 规范下应该是 GET /v1/users/?username=xxxx
+			// @tiger - RESTful 规范建议是 GET /v1/users/?username=xxxx
+			// 	        这是一个查询 API，返回一个 users 数组（即使 username 是唯一的）
+			//			之所以不用 /v1/user/:username 是因为和 /v1/user/:id 路由冲突
+			//
+			//			当前这个设计的问题是：GET 不应该同时接收 request body。
+			//                            GET 方法应该只接收 URL 参数
 			v1UserGroup.GET("/info", v1.GetUserInfoByUserName)
 
 			// @tiger - 改成 /user/current/custom/... 和上面的 current 对应
