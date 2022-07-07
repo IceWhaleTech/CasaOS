@@ -37,6 +37,10 @@ func InitRouter() *gin.Engine {
 
 	r.POST("/v1/user/register/:key", v1.PostUserRegister)
 	r.POST("/v1/user/login", v1.PostUserLogin) //
+
+	// @tiger - 如果遵循 RESTful 规范，name 本身并不是资源，而是属性；资源是 user
+	//          所以正规的方法是 改成 /v1/users 然后返回所有的 user 对象，具体 name 由前端自行抽取
+	//          不正规的方式是 改成 /v1/users/names，假定 name 也是资源
 	r.GET("/v1/user/all/name", v1.GetUserAllUserName)
 
 	r.GET("/v1/sys/init/check", v1.GetSystemInitCheck)

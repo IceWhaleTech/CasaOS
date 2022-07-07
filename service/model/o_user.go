@@ -15,11 +15,11 @@ import "time"
 //Soon to be removed
 type UserDBModel struct {
 	Id          int       `gorm:"column:id;primary_key" json:"id"`
-	UserName    string    `json:"user_name"`
+	UserName    string    `json:"user_name"` // @tiger - user_name 改 username
 	Password    string    `json:"password,omitempty"`
 	Role        string    `json:"role"`
 	Email       string    `json:"email"`
-	NickName    string    `json:"nick_name"`
+	NickName    string    `json:"nick_name"` // @tiger - nick_name 改 nickname
 	Avatar      string    `json:"avatar"`
 	Description string    `json:"description"`
 	CreatedAt   time.Time `gorm:"<-:create;autoCreateTime" json:"created_at,omitempty"`

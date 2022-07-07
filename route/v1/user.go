@@ -95,6 +95,8 @@ func PostUserLogin(c *gin.Context) {
 	c.BindJSON(&json)
 
 	username := json["username"]
+
+	// @tiger - 字段命名要一直，在注册的时候如果用 password，这里也要用 password
 	pwd := json["pwd"]
 	//check params is empty
 	if len(username) == 0 || len(pwd) == 0 {
@@ -123,6 +125,8 @@ func PostUserLogin(c *gin.Context) {
 	data := make(map[string]interface{}, 2)
 	user.Password = ""
 	data["token"] = token
+
+	// @tiger - 不建议直接透传数据库对象，而是适配到用于 API 输出的 model 对象
 	data["user"] = user
 
 	c.JSON(http.StatusOK,
@@ -368,7 +372,7 @@ func GetUserInfoByUserName(c *gin.Context) {
 }
 
 /**
- * @description: get all user name
+ * @description: get all usernames
  * @method:GET
  * @router:/user/all/name
  */
