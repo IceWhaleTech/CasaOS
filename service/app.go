@@ -438,6 +438,8 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				dockerStats.Icon = v.Labels["icon"]
 				dockerStats.Title = strings.ReplaceAll(v.Names[0], "/", "")
 
+				// @tiger - 不建议直接把依赖的数据结构封装返回。
+				//          如果依赖的数据结构有变化，应该在这里适配或者保存，这样更加对客户端负责
 				temp.Store(v.ID, dockerStats)
 				if i == 99 {
 					stats.Body.Close()

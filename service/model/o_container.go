@@ -67,13 +67,13 @@ type MyAppList struct {
 	Index    string `json:"index"`
 	//Order    string `json:"order"`
 	Port   string `json:"port"`
-	UpTime string `json:"up_time"`
+	UpTime string `json:"up_time"` // @tiger - 如果是安装时间，应该写 installed_at。
 	Slogan string `json:"slogan"`
 	Type   string `json:"type"`
 	//Rely       model.MapStrings `json:"rely"` //[{"mysql":"id"},{"mysql":"id"}]
 	Image      string `json:"image"`
 	Volumes    string `json:"volumes"`
-	NewVersion bool   `json:"new_version"`
+	NewVersion bool   `json:"new_version"` // @tiger - 无法从词面理解含义，感觉可以更加有描述性
 	Host       string `json:"host"`
 	Protocol   string `json:"protocol"`
 }

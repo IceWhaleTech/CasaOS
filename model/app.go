@@ -13,6 +13,15 @@ type ServerAppListCollection struct {
 	Version   string          `json:"version"`
 }
 
+// @tiger - 对于用于出参的数据结构，静态信息（例如 title）和
+//          动态信息（例如 state、query_count）应该划分到不同的数据结构中
+//
+//          这样的好处是
+//          1 - 多次获取动态信息时可以减少出参复杂度，因为静态信息只获取一次就好
+//          2 - 在未来的迭代中，可以降低维护成本（所有字段都展开放在一个层级维护成本略高）
+//
+//          另外，一些针对性字段，例如 Docker 相关的，可以用 map 来保存。
+//          这样在未来增加多态 App，例如 Snap，不需要维护多个结构，或者一个结构保存不必要的字段
 type ServerAppList struct {
 	Id             uint      `gorm:"column:id;primary_key" json:"id"`
 	Title          string    `json:"title"`

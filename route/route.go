@@ -1,3 +1,5 @@
+// 这是一个用来反馈 API 设计的 PR，不要 merge
+
 package route
 
 import (
@@ -23,6 +25,8 @@ func InitRouter() *gin.Engine {
 	r.Use(middleware.WriteLog())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	gin.SetMode(config.ServerInfo.RunMode)
+
+	// @tiger - 为了方便未来的模块化迭代，前端输出需要独立端口，不要和 API 端口公用。
 	r.StaticFS("/ui", http.FS(web.Static))
 	r.GET("/", WebUIHome)
 	// r.StaticFS("/assets", http.Dir("./static/assets"))
@@ -33,17 +37,33 @@ func InitRouter() *gin.Engine {
 
 	r.POST("/v1/user/register/:key", v1.PostUserRegister)
 	r.POST("/v1/user/login", v1.PostUserLogin) //
+
+	// @tiger - 如果遵循 RESTful 规范，name 本身并不是资源，而是属性；资源是 user
+	//          所以正规的方法是 改成 /v1/users 然后返回所有的 user 对象，具体 name 由前端自行抽取
+	//          不正规的方式是 改成 /v1/users/names，假定 name 也是资源
 	r.GET("/v1/user/all/name", v1.GetUserAllUserName)
 
-	r.GET("/v1/sys/init/check", v1.GetSystemInitCheck)
-	r.GET("/v1/guide/check", v1.GetGuideCheck)
-	r.GET("/v1/debug", v1.GetSystemConfigDebug)
+	// @tiger - 1）不要把同一个词汇按单词来分割。2）同领域的 API 应该放在同路径下。
+	r.GET("/v1/sys/init/check", v1.GetSystemInitCheck) // 这里改成 /v1/sys/init_check
+	r.GET("/v1/guide/check", v1.GetGuideCheck)         // 这里改成 /v1/sys/guide_check
+	r.GET("/v1/debug", v1.GetSystemConfigDebug)        // 这里改成 /v1/sys/debug
 
+	// @tiger - 如果遵循 RESTful avatar 本身并不是资源，而是属性；资源是 user
+	//          所以正规的方法是 改成 /v1/user/:id 然后返回 user 对象，具体 avatar 由前端自行抽取
+	//          不正规的方式是 改成 /v1/user/:id/avatar，假定 avatar 也是资源
 	r.GET("/v1/user/avatar/:id", v1.GetUserAvatar)
+
+	// @tiger - 如果遵循 RESTful image 本身并不是资源，而是属性；资源是 user
+	//          所以正规的方法是 改成 /v1/user/:id 然后返回 user 对象，具体 image 由前端自行抽取
+	//          不正规的方式是 改成 /v1/user/:id/image，假定 image 也是资源
 	r.GET("/v1/user/image", v1.GetUserImage)
 
+	// @tiger - 不要把同一个词汇按单词来分割，改成 /v1/sys/socket_port
 	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
+
+	// @tiger - （nice-to-have）开源项目应该删除所有注释代码，增加代码整洁性。或者增加注释说明
 	//r.POST("/v1/user/refresh/token", v1.PostUserRefreshToken)
+
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT())
@@ -51,49 +71,86 @@ func InitRouter() *gin.Engine {
 		v1UserGroup := v1Group.Group("/user")
 		v1UserGroup.Use()
 		{
+			// @tiger - info 一词名没有指定性，容易产生困扰。改成 /current
 			v1UserGroup.GET("/info", v1.GetUserInfo)
+
+			// @tiger - RESTful 规范下所有对 user 的写操作，都应该 POST /v1/user/:id
+			//        - 不需要每个更改的属性建一个 API
 			v1UserGroup.PUT("/username", v1.PutUserName)
 			v1UserGroup.PUT("/password", v1.PutUserPwd)
-			v1UserGroup.PUT("/nick", v1.PutUserNick)
-			v1UserGroup.PUT("/desc", v1.PutUserDesc)
+			v1UserGroup.PUT("/nick", v1.PutUserNick) // 改成 /nickname
+			v1UserGroup.PUT("/desc", v1.PutUserDesc) // 改成 /description
+
+			// @tiger - RESTful 规范建议是 GET /v1/users/?username=xxxx
+			// 	        这是一个查询 API，返回一个 users 数组（即使 username 是唯一的）
+			//			之所以不用 /v1/user/:username 是因为和 /v1/user/:id 路由冲突
+			//
+			//			当前这个设计的问题是：GET 不应该同时接收 request body。
+			//                            GET 方法应该只接收 URL 参数
 			v1UserGroup.GET("/info", v1.GetUserInfoByUserName)
+
+			// @tiger - 改成 /user/current/custom/... 和上面的 current 对应
+			//          如果未来想获得其它用户的 custom 数据，可以用 /v1/user/:id/custom/... 来保持统一
 			v1UserGroup.GET("/custom/:key", v1.GetUserCustomConf)
 			v1UserGroup.POST("/custom/:key", v1.PostUserCustomConf)
 			v1UserGroup.DELETE("/custom/:key", v1.DeleteUserCustomConf)
+
+			// @tiger - 下面这两个 API 从感知上很难区分。
+			//          如果前者是负责上传，后者负责指定的话，那么
+			//          前者应该用一个统一的和目的无关的用户文件上传 API，而不是针对 image file 的
 			v1UserGroup.POST("/upload/image/:key", v1.PostUserUploadImage)
 			v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
 			v1UserGroup.DELETE("/image", v1.DeleteUserImage)
 
+			// @tiger - 应该用上面提到的统一的文件上传 API 先上传头像文件，然后
+			//          用类似上面第二个 API 的方式指定头像文件。这样整体 API 体验更加统一。
 			v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
 			v1UserGroup.GET("/avatar", v1.GetUserAvatar)
+
+			// @tiger - 删除用户直接用 DELETE /v1/user/:id，不需要在路径中用谓语
 			v1UserGroup.DELETE("/delete/:id", v1.DeleteUser)
 
 		}
 		v1AppGroup := v1Group.Group("/app")
 		v1AppGroup.Use()
 		{
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/apps?installed=true
 			//获取我的已安装的列表
 			v1AppGroup.GET("/my/list", v1.MyAppList)
-			//
+
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/apps/usage
 			v1AppGroup.GET("/usage", v1.AppUsageList)
+
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/app/:id
 			//app详情
 			v1AppGroup.GET("/appinfo/:id", v1.AppInfo)
+
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/apps?installed=false
 			//获取未安装的列表
 			v1AppGroup.GET("/list", v1.AppList)
+
+			// @tiger - 这个信息和应用无关，应该挪到 /v1/sys/port/avaiable
 			//获取端口
 			v1AppGroup.GET("/port", v1.GetPort)
+
+			// @tiger - RESTFul 路径中尽量不要有动词，同时这个信息和应用无关，应该挪到 /v1/sys/port/:port
 			//检查端口
 			v1AppGroup.GET("/check/:port", v1.PortCheck)
 
+			// @tiger - 应用分类和应用不是一类资源，应该挪到 GET /v1/app_categories
 			v1AppGroup.GET("/category", v1.CategoryList)
 
+			// @tiger - Docker Terminal 和应用不是一类资源，应该挪到 GET /v1/container/:id/terminal
+			//          另外这个返回的不是一个 HTTP 响应，应该返回一个 wss://... 的 URL给前端，由前端另行处理
 			v1AppGroup.GET("/terminal/:id", v1.DockerTerminal)
+
+			// @tiger - 所有跟 Docker 有关的 API，应该挪到 /v1/container 下
 			//app容器详情
-			v1AppGroup.GET("/info/:id", v1.ContainerInfo)
+			v1AppGroup.GET("/info/:id", v1.ContainerInfo) // 改成 GET /v1/container/:id
 			//app容器日志
-			v1AppGroup.GET("/logs/:id", v1.ContainerLog)
+			v1AppGroup.GET("/logs/:id", v1.ContainerLog) // 改成 GET /v1/container/:id/log
 			//暂停或启动容器
-			v1AppGroup.PUT("/state/:id", v1.ChangAppState)
+			v1AppGroup.PUT("/state/:id", v1.ChangAppState) // 改成 PUT /v1/container/:id/state
 			//安装app
 			v1AppGroup.POST("/install", v1.InstallApp)
 			//卸载app
@@ -104,8 +161,13 @@ func InitRouter() *gin.Engine {
 			v1AppGroup.PUT("/update/:id/setting", v1.UpdateSetting)
 			//获取可能新数据
 			v1AppGroup.GET("/update/:id/info", v1.ContainerUpdateInfo)
+
+			// @tiger - rely -> dependency - 依赖是什么意思？
 			v1AppGroup.GET("/rely/:id/info", v1.ContainerRelyInfo)
+
+			// @tiger - 按照 RESTFul 规范，改成 GET /v1/container/:id/config
 			v1AppGroup.GET("/install/config", v1.GetDockerInstallConfig)
+
 			v1AppGroup.PUT("/update/:id", v1.PutAppUpdate)
 			v1AppGroup.POST("/share", v1.ShareAppFile)
 		}

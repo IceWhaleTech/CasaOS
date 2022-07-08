@@ -31,8 +31,11 @@ import (
 func PostUserRegister(c *gin.Context) {
 	json := make(map[string]string)
 	c.BindJSON(&json)
+
+	// @tiger - user_name 改成 username
 	username := json["user_name"]
 	pwd := json["password"]
+
 	key := c.Param("key")
 	if _, ok := service.UserRegisterHash[key]; !ok {
 		c.JSON(http.StatusOK,
@@ -86,6 +89,8 @@ func PostUserLogin(c *gin.Context) {
 	c.BindJSON(&json)
 
 	username := json["username"]
+
+	// @tiger - 字段命名要一直，在注册的时候如果用 password，这里也要用 password
 	pwd := json["pwd"]
 	//check params is empty
 	if len(username) == 0 || len(pwd) == 0 {
@@ -114,6 +119,8 @@ func PostUserLogin(c *gin.Context) {
 	data := make(map[string]interface{}, 2)
 	user.Password = ""
 	data["token"] = token
+
+	// @tiger - 不建议直接透传数据库对象，而是适配到用于 API 输出的 model 对象
 	data["user"] = user
 
 	c.JSON(http.StatusOK,
@@ -175,6 +182,8 @@ func GetUserAvatar(c *gin.Context) {
 	if user.Id > 0 {
 		path = user.Avatar
 	}
+
+	// @tiger - RESTful 规范下不应该返回文件本身内容，而是返回文件的静态URL，由前端去解析
 	c.File(path)
 }
 
@@ -311,13 +320,14 @@ func GetUserInfo(c *gin.Context) {
 	user := service.MyService.User().GetUserInfoById(id)
 
 	//*****
+	// @tiger - 应该和 PostUserLogin 中的 user 对象一致。而不是重构一系列字段。
 	var u = make(map[string]string, 5)
-	u["user_name"] = user.UserName
-	u["head"] = user.Avatar
+	u["user_name"] = user.UserName // 改成 username
+	u["head"] = user.Avatar        // 应该和 /v1/user/avatar/:id 一致，改成 avatar
 	u["email"] = user.Email
 	u["description"] = user.NickName
-	u["nick_name"] = user.NickName
-	u["id"] = strconv.Itoa(user.Id)
+	u["nick_name"] = user.NickName  // 改成 nickname
+	u["id"] = strconv.Itoa(user.Id) // (nice-to-have) 最佳实践是用随机字符来代表 ID。顺序数字有可预测性
 
 	//**
 
@@ -337,6 +347,9 @@ func GetUserInfo(c *gin.Context) {
 // @Router /user/info [get]
 func GetUserInfoByUserName(c *gin.Context) {
 	json := make(map[string]string)
+
+	// @tiger 当前这个设计的问题是：GET 不应该同时接收 request body。
+	//        GET 方法应该只接收 URL 参数
 	c.BindJSON(&json)
 	userName := json["user_name"]
 	if len(userName) == 0 {
@@ -359,7 +372,7 @@ func GetUserInfoByUserName(c *gin.Context) {
 }
 
 /**
- * @description: get all user name
+ * @description: get all usernames
  * @method:GET
  * @router:/user/all/name
  */
@@ -399,6 +412,7 @@ func GetUserCustomConf(c *gin.Context) {
 		return
 	}
 	filePath := config.AppInfo.UserDataPath + "/" + id + "/" + name + ".json"
+
 	data := file.ReadFullFile(filePath)
 	if !gjson.ValidBytes(data) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: string(data)})
@@ -453,7 +467,7 @@ func DeleteUserCustomConf(c *gin.Context) {
 		return
 	}
 	filePath := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id) + "/" + name + ".json"
-	os.Remove(filePath)
+	os.Remove(filePath) // @tiger - 这里万一无法实际删除，后面仍然有可能返回成功
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
@@ -583,6 +597,8 @@ func GetUserImage(c *gin.Context) {
 	defer fileTmp.Close()
 
 	fileName := path.Base(filePath)
+
+	// @tiger - RESTful 规范下不应该返回文件本身内容，而是返回文件的静态URL，由前端去解析
 	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
 	c.File(filePath)
 }

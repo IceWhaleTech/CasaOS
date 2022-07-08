@@ -14,5 +14,5 @@ type DockerStatsModel struct {
 	Icon  string      `json:"icon"`
 	Title string      `json:"title"`
 	Data  interface{} `json:"data"`
-	Pre   interface{} `json:"pre"`
+	Pre   interface{} `json:"pre"` // @tiger - pre 不知道什么意思，可以提高一下描述性
 }

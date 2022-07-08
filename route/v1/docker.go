@@ -708,7 +708,7 @@ func UnInstallApp(c *gin.Context) {
 // @Router /app/state/{id} [put]
 func ChangAppState(c *gin.Context) {
 	appId := c.Param("id")
-	state := c.DefaultPostForm("state", "stop")
+	state := c.DefaultPostForm("state", "stop") // @tiger - 应该用 JSON 形式
 	var err error
 	if state == "stop" {
 		err = service.MyService.Docker().DockerContainerStop(appId)
@@ -727,6 +727,8 @@ func ChangAppState(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
 	}
+
+	// @tiger - 用 {'state': ...} 来体现出参上下文
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info.State})
 }
 
@@ -1006,6 +1008,8 @@ func PutAppUpdate(c *gin.Context) {
 // @Router /app/info/{id} [get]
 func ContainerInfo(c *gin.Context) {
 	appId := c.Param("id")
+
+	// @tiger - 作为最佳实践，不应该直接把数据库的信息返回，来避免未来数据库结构上的迭代带来的新字段
 	appInfo := service.MyService.App().GetAppDBInfo(appId)
 	containerInfo, _ := service.MyService.Docker().DockerContainerStats(appId)
 	var cpuModel = "arm"
@@ -1027,13 +1031,13 @@ func ContainerInfo(c *gin.Context) {
 		Status    string `json:"status"`
 		StartedAt string `json:"started_at"`
 		CPUShares int64  `json:"cpu_shares"`
-		Memory    int64  `json:"memory"`
-		Restart   string `json:"restart"`
+		Memory    int64  `json:"memory"`  // @tiger - 改成 total_memory，方便以后增加 free_memory 之类的字段
+		Restart   string `json:"restart"` // @tiger - 改成 restart_policy?
 	}{Status: info.State.Status, StartedAt: info.State.StartedAt, CPUShares: info.HostConfig.CPUShares, Memory: info.HostConfig.Memory >> 20, Restart: info.HostConfig.RestartPolicy.Name}
 	data := make(map[string]interface{}, 5)
-	data["app"] = appInfo
-	data["cpu"] = cpuModel
-	data["memory"] = service.MyService.System().GetMemInfo()["total"]
+	data["app"] = appInfo                                             // @tiget - 最佳实践是，返回 appid，然后具体的 app 信息由前端另行获取
+	data["cpu"] = cpuModel                                            // @tiger - 改成 arch
+	data["memory"] = service.MyService.System().GetMemInfo()["total"] // @tiger - 改成 total_memory，方便以后增加 free_memory 之类的字段
 	data["container"] = json2.RawMessage(containerInfo)
 	data["info"] = con
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
