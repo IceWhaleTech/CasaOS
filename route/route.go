@@ -38,20 +38,14 @@ func InitRouter() *gin.Engine {
 	r.POST("/v1/user/register/:key", v1.PostUserRegister)
 	r.POST("/v1/user/login", v1.PostUserLogin) //
 
-	// @tiger - 如果遵循 RESTful 规范，name 本身并不是资源，而是属性；资源是 user
-	//          所以正规的方法是 改成 /v1/users 然后返回所有的 user 对象，具体 name 由前端自行抽取
-	//          不正规的方式是 改成 /v1/users/names，假定 name 也是资源
-	r.GET("/v1/user/all/name", v1.GetUserAllUserName)
+	r.GET("/v1/users/names", v1.GetUserAllUserName) //all/name
 
 	// @tiger - 1）不要把同一个词汇按单词来分割。2）同领域的 API 应该放在同路径下。
-	r.GET("/v1/sys/init/check", v1.GetSystemInitCheck) // 这里改成 /v1/sys/init_check
-	r.GET("/v1/guide/check", v1.GetGuideCheck)         // 这里改成 /v1/sys/guide_check
-	r.GET("/v1/debug", v1.GetSystemConfigDebug)        // 这里改成 /v1/sys/debug
+	r.GET("/v1/sys/init_check", v1.GetSystemInitCheck) // 这里改成 /v1/sys/init_check  //init/check
+	//r.GET("/v1/guide/check", v1.GetGuideCheck)         // 这里改成 /v1/sys/guide_check
+	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // 这里改成 /v1/sys/debug  //debug
 
-	// @tiger - 如果遵循 RESTful avatar 本身并不是资源，而是属性；资源是 user
-	//          所以正规的方法是 改成 /v1/user/:id 然后返回 user 对象，具体 avatar 由前端自行抽取
-	//          不正规的方式是 改成 /v1/user/:id/avatar，假定 avatar 也是资源
-	r.GET("/v1/user/avatar/:id", v1.GetUserAvatar)
+	r.GET("/v1/user/:id/avatar/", v1.GetUserAvatar)
 
 	// @tiger - 如果遵循 RESTful image 本身并不是资源，而是属性；资源是 user
 	//          所以正规的方法是 改成 /v1/user/:id 然后返回 user 对象，具体 image 由前端自行抽取
@@ -59,7 +53,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/v1/user/image", v1.GetUserImage)
 
 	// @tiger - 不要把同一个词汇按单词来分割，改成 /v1/sys/socket_port
-	r.GET("/v1/sys/socket/port", v1.GetSystemSocketPort)
+	r.GET("/v1/sys/socket_port", v1.GetSystemSocketPort) //sys/socket_port
 
 	// @tiger - （nice-to-have）开源项目应该删除所有注释代码，增加代码整洁性。或者增加注释说明
 	//r.POST("/v1/user/refresh/token", v1.PostUserRefreshToken)
@@ -71,15 +65,16 @@ func InitRouter() *gin.Engine {
 		v1UserGroup := v1Group.Group("/user")
 		v1UserGroup.Use()
 		{
-			// @tiger - info 一词名没有指定性，容易产生困扰。改成 /current
-			v1UserGroup.GET("/info", v1.GetUserInfo)
+
+			v1UserGroup.GET("/current", v1.GetUserInfo)
 
 			// @tiger - RESTful 规范下所有对 user 的写操作，都应该 POST /v1/user/:id
 			//        - 不需要每个更改的属性建一个 API
-			v1UserGroup.PUT("/username", v1.PutUserName)
-			v1UserGroup.PUT("/password", v1.PutUserPwd)
-			v1UserGroup.PUT("/nick", v1.PutUserNick) // 改成 /nickname
-			v1UserGroup.PUT("/desc", v1.PutUserDesc) // 改成 /description
+			// id不用传,是否直接用/代替
+			v1UserGroup.PUT("/", v1.PutUserName)
+			//v1UserGroup.PUT("/password", v1.PutUserPwd)
+			//v1UserGroup.PUT("/nick", v1.PutUserNick) // 改成 /nickname
+			//v1UserGroup.PUT("/desc", v1.PutUserDesc) // 改成 /description
 
 			// @tiger - RESTful 规范建议是 GET /v1/users/?username=xxxx
 			// 	        这是一个查询 API，返回一个 users 数组（即使 username 是唯一的）
@@ -111,6 +106,12 @@ func InitRouter() *gin.Engine {
 			v1UserGroup.DELETE("/delete/:id", v1.DeleteUser)
 
 		}
+		v1UsersGroup := v1Group.Group("/users")
+		v1UsersGroup.Use()
+		{
+
+		}
+
 		v1AppGroup := v1Group.Group("/app")
 		v1AppGroup.Use()
 		{
