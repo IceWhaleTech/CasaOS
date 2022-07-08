@@ -1,3 +1,13 @@
+<!--
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-05-13 18:15:56
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-07-08 14:10:58
+ * @FilePath: /CasaOS/README.md
+ * @Description: 
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved. 
+-->
 # CasaOS - A simple, easy-to-use, elegant open-source Home Cloud system.
 
 ![CasaOS](https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_aldeyjarfoss.png)
@@ -26,19 +36,27 @@ IceWhale team believes that through community-driven collaborative innovation an
 Fresh install a system from the list below and run the this command:
 
 ```sh
-wget -qO- https://get.icewhale.io/casaos.sh | bash
+wget -qO- https://get.casaos.io | bash
 ```
 
 or
 
 ```sh
-curl -fsSL https://get.icewhale.io/casaos.sh | bash
+curl -fsSL https://get.casaos.io | bash
 ```
 
 ### Uninstall CasaOS
 
+Before v0.3.3
+
 ```sh
 curl -fsSL https://get.icewhale.io/casaos-uninstall.sh | bash
+```
+
+After v0.3.3 and v0.3.3
+
+```
+casaos-uninstall
 ```
 
 ### System Compatibility
