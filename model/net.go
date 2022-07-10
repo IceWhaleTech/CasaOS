@@ -1,6 +1,7 @@
 package model
 
 type IOCountersStat struct {
+	// @tiger - 应该统一用 snake_case，不是 snakeCase
 	Name        string `json:"name"`        // interface name
 	BytesSent   uint64 `json:"bytesSent"`   // number of bytes sent
 	BytesRecv   uint64 `json:"bytesRecv"`   // number of bytes received

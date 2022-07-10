@@ -180,7 +180,7 @@ func (c *systemService) GetMemInfo() map[string]interface{} {
 	memData["available"] = memInfo.Available
 	memData["used"] = memInfo.Used
 	memData["free"] = memInfo.Free
-	memData["usedPercent"] = memInfo.UsedPercent
+	memData["usedPercent"] = memInfo.UsedPercent // @tiger - 改成 used_percent - 如果统一用 snake_case 就不要用 camelCase
 	return memData
 }
 

@@ -67,7 +67,7 @@ func DockerTerminal(c *gin.Context) {
 func WsSsh(c *gin.Context) {
 	j := make(map[string]string)
 	c.BindJSON(j)
-	userName := j["user_name"]
+	userName := j["user_name"] // @tiger - 改成 username
 	password := j["password"]
 	port := j["port"]
 	wsConn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)

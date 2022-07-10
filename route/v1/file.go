@@ -319,6 +319,8 @@ func RenamePath(c *gin.Context) {
 		return
 	}
 	success, err := service.MyService.System().RenameFile(op, np)
+
+	// @tiger - err 应该放到 Message 里
 	c.JSON(http.StatusOK, model.Result{Success: success, Message: common_err.GetMsg(success), Data: err})
 }
 

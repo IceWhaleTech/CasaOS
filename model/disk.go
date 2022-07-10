@@ -51,17 +51,17 @@ type Drive struct {
 type DriveUSB struct {
 	Name  string `json:"name"`
 	Size  uint64 `json:"size"`
-	Used  uint64 `json:"use"`
+	Used  uint64 `json:"use"` // @tiger - 改成 used_space
 	Model string `json:"model"`
 	Mount bool   `json:"mount"` //是否完全挂载
-	Avail uint64 `json:"avail"` //可用空间
+	Avail uint64 `json:"avail"` //可用空间 // @tiger - 改成 available_space
 }
 
 type Storage struct {
 	Name       string `json:"name"`
 	MountPoint string `json:"mountpoint"`
 	Size       string `json:"size"`
-	Avail      string `json:"avail"` //可用空间
+	Avail      string `json:"avail"` //可用空间 // @tiger - 改成 available_space
 	Type       string `json:"type"`
 	CreatedAt  int64  `json:"create_at"`
 	Path       string `json:"path"`
@@ -70,7 +70,7 @@ type Storage struct {
 
 type Summary struct {
 	Size   uint64 `json:"size"`
-	Avail  uint64 `json:"avail"` //可用空间
+	Avail  uint64 `json:"avail"` //可用空间 	// @tiger - 改成 available_space
 	Health bool   `json:"health"`
-	Used   uint64 `json:"used"`
+	Used   uint64 `json:"used"` // @tiger - 改成 used_space
 }

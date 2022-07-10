@@ -434,7 +434,7 @@ func GetSystemUtilization(c *gin.Context) {
 	cpuData["percent"] = cpu
 	cpuData["num"] = num
 	data["cpu"] = cpuData
-	data["mem"] = service.MyService.System().GetMemInfo()
+	data["mem"] = service.MyService.System().GetMemInfo() // @tiger - 改成 memory
 
 	//拼装网络信息
 	netList := service.MyService.System().GetNetInfo()

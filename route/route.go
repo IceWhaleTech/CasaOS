@@ -175,21 +175,44 @@ func InitRouter() *gin.Engine {
 		v1SysGroup := v1Group.Group("/sys")
 		v1SysGroup.Use()
 		{
+			// @tiger - 这里改成 GET /v1/sys/update，和下面的 POST /v1/sys/update 对齐
 			v1SysGroup.GET("/version/check", v1.GetSystemCheckVersion)
+
+			// @tiger - 这里改成 /v1/sys/hardware_info
 			v1SysGroup.GET("/hardware/info", v1.GetSystemHardwareInfo)
+
 			v1SysGroup.POST("/update", v1.SystemUpdate)
+
+			// @tiger - 应该直接提供一个 wss://... 的地址给客户端，而不是和 API 混在一起
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
+
+			// @tiger - 这个永远返回空值 - 可以删了？
 			v1SysGroup.GET("/config", v1.GetSystemConfig)
+
 			//v1SysGroup.POST("/config", v1.PostSetSystemConfig)
+
+			// @tiger - 这里改成 /v1/sys/error_log
 			v1SysGroup.GET("/error/logs", v1.GetCasaOSErrorLogs)
+
+			// @tiger - 这里改成 /v1/sys/widget_config
 			v1SysGroup.GET("/widget/config", v1.GetWidgetConfig)
 			v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)
+
+			// @tiger - port 是 server_info 的属性，应该有一个 /v1/sys/server_info 的 API，
+			//          然后这个 port 信息是包含在 server_info 中的
 			v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
+
+			// @tiger - 不应该有这个 API
 			v1SysGroup.POST("/stop", v1.PostKillCasaOS)
+
 			v1SysGroup.GET("/utilization", v1.GetSystemUtilization)
+
+			// @tiger - 下面两个统一用 /v1/sys/usb_automount，然后 status 封装到入参和出参里
 			v1SysGroup.PUT("/usb/:status", v1.PutSystemUSBAutoMount)
 			v1SysGroup.GET("/usb/status", v1.GetSystemUSBAutoMount)
+
+			// @tiger - 下面四个和 /utilization 重复了，应该去重。
 			v1SysGroup.GET("/cpu", v1.GetSystemCupInfo)
 			v1SysGroup.GET("/mem", v1.GetSystemMemInfo)
 			v1SysGroup.GET("/disk", v1.GetSystemDiskInfo)
