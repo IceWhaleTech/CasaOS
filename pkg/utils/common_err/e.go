@@ -7,48 +7,48 @@ const (
 	ERROR_AUTH_TOKEN = 401
 
 	//user
-	PWD_INVALID              = 10001
-	PWD_IS_EMPTY             = 10002
-	PWD_INVALID_OLD          = 10003
-	ACCOUNT_LOCK             = 10004
-	PWD_IS_TOO_SIMPLE        = 10005
-	USER_NOT_EXIST           = 10006
-	USER_EXIST               = 10007
-	KEY_NOT_EXIST            = 10008
-	NOT_IMAGE                = 10009
-	IMAGE_TOO_LARGE          = 10010
-	INSUFFICIENT_PERMISSIONS = 10011
+	PWD_INVALID              = 10001 // 401
+	PWD_IS_EMPTY             = 10002 // 400
+	PWD_INVALID_OLD          = 10003 // 401
+	ACCOUNT_LOCK             = 10004 // 如果是客户端的问题就 400，如果是服务端的问题就 500
+	PWD_IS_TOO_SIMPLE        = 10005 // 400
+	USER_NOT_EXIST           = 10006 // 400
+	USER_EXIST               = 10007 // 这是错误么？
+	KEY_NOT_EXIST            = 10008 // 如果是客户端的问题就 400，如果是服务端的问题就 500
+	NOT_IMAGE                = 10009 // 如果是客户端的问题就 400，如果是服务端的问题就 500
+	IMAGE_TOO_LARGE          = 10010 // 400
+	INSUFFICIENT_PERMISSIONS = 10011 // 401
 
 	//system
-	DIR_ALREADY_EXISTS              = 20001
-	FILE_ALREADY_EXISTS             = 20002
-	FILE_OR_DIR_EXISTS              = 20003
-	PORT_IS_OCCUPIED                = 20004
-	COMMAND_ERROR_INVALID_OPERATION = 20005
-	VERIFICATION_FAILURE            = 20006
+	DIR_ALREADY_EXISTS              = 20001 // 400
+	FILE_ALREADY_EXISTS             = 20002 // 400
+	FILE_OR_DIR_EXISTS              = 20003 // 400
+	PORT_IS_OCCUPIED                = 20004 // 400
+	COMMAND_ERROR_INVALID_OPERATION = 20005 // 如果是客户端的问题就 400，如果是服务端的问题就 500
+	VERIFICATION_FAILURE            = 20006 // 如果是客户端的问题就 400，如果是服务端的问题就 500
 
 	//disk
-	NAME_NOT_AVAILABLE       = 40001
-	DISK_NEEDS_FORMAT        = 40002
-	DISK_BUSYING             = 40003
-	REMOVE_MOUNT_POINT_ERROR = 40004
-	FORMAT_ERROR             = 40005
+	NAME_NOT_AVAILABLE       = 40001 // 如果是客户端的问题就 400，如果是服务端的问题就 500
+	DISK_NEEDS_FORMAT        = 40002 // 如果是客户端的问题就 400，如果是服务端的问题就 500
+	DISK_BUSYING             = 40003 // 500
+	REMOVE_MOUNT_POINT_ERROR = 40004 // 500
+	FORMAT_ERROR             = 40005 // 500
 
 	//app
-	UNINSTALL_APP_ERROR  = 50001
-	PULL_IMAGE_ERROR     = 50002
-	DEVICE_NOT_EXIST     = 50003
-	ERROR_APP_NAME_EXIST = 50004
+	UNINSTALL_APP_ERROR  = 50001 // 500
+	PULL_IMAGE_ERROR     = 50002 // 500
+	DEVICE_NOT_EXIST     = 50003 // 500
+	ERROR_APP_NAME_EXIST = 50004 // 如果是客户端的问题就 400，如果是服务端的问题就 500
 
 	//file
-	FILE_DOES_NOT_EXIST = 60001
-	FILE_READ_ERROR     = 60002
-	FILE_DELETE_ERROR   = 60003
-	DIR_NOT_EXISTS      = 60004
-	SOURCE_DES_SAME     = 60005
+	FILE_DOES_NOT_EXIST = 60001 // 如果是客户端的问题就 400，如果是服务端的问题就 500
+	FILE_READ_ERROR     = 60002 // 500
+	FILE_DELETE_ERROR   = 60003 // 500
+	DIR_NOT_EXISTS      = 60004 // 如果是客户端的问题就 400，如果是服务端的问题就 500
+	SOURCE_DES_SAME     = 60005 // 400
 
 	//shortcuts
-	SHORTCUTS_URL_ERROR = 70001
+	SHORTCUTS_URL_ERROR = 70001 // 如果是客户端的问题就 400，如果是服务端的问题就 500
 )
 
 var MsgFlags = map[int]string{
