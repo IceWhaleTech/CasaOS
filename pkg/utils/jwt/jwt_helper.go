@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-17 14:01:25
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-04 18:14:28
+ * @LastEditTime: 2022-07-11 18:21:40
  * @FilePath: /CasaOS/pkg/utils/jwt/jwt_helper.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -62,7 +62,7 @@ func GetAccessToken(username, pwd string, id int) string {
 }
 
 func GetRefreshToken(username, pwd string, id int) string {
-	token, err := GenerateToken(username, pwd, id, "fresh", 7*24*time.Hour*time.Duration(1))
+	token, err := GenerateToken(username, pwd, id, "refresh", 7*24*time.Hour*time.Duration(1))
 	if err == nil {
 		return token
 	} else {

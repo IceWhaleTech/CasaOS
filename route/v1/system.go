@@ -21,7 +21,6 @@ import (
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
-	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 )
 
@@ -64,11 +63,6 @@ func SystemUpdate(c *gin.Context) {
 		service.MyService.System().UpdateSystemVersion(version.Version)
 	}
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
-}
-
-//Get system config
-func GetSystemConfig(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: ""})
 }
 
 // @Summary  get logs
@@ -217,33 +211,6 @@ func PutCasaOSPort(c *gin.Context) {
 		})
 }
 
-// @Summary 检查是否进入引导状态
-// @Produce  application/json
-// @Accept application/json
-// @Tags sys
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /sys/init/check [get]
-func GetSystemInitCheck(c *gin.Context) {
-	data := make(map[string]interface{}, 2)
-
-	if service.MyService.User().GetUserCount() > 0 {
-		data["initialized"] = true
-		data["key"] = ""
-	} else {
-		key := uuid.NewV4().String()
-		service.UserRegisterHash[key] = key
-		data["key"] = key
-		data["initialized"] = false
-	}
-	c.JSON(http.StatusOK,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    data,
-		})
-}
-
 // @Summary active killing casaos
 // @Produce  application/json
 // @Accept application/json
@@ -263,7 +230,7 @@ func PostKillCasaOS(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/usb/off [put]
 func PutSystemUSBAutoMount(c *gin.Context) {
-	status := c.Param("status")
+	status := c.Param("state")
 	if status == "on" {
 		service.MyService.System().UpdateUSBAutoMount("True")
 		service.MyService.System().ExecUSBAutoMountShell("True")
@@ -539,27 +506,4 @@ func GetSystemNetInfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: newNet})
-}
-
-//********************************************* Soon to be removed ***********************************************
-// @Summary 检查是否进入引导状态
-// @Produce  application/json
-// @Accept application/json
-// @Tags sys
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /guide/check [get]
-func GetGuideCheck(c *gin.Context) {
-	initUser := true
-	if service.MyService.User().GetUserCount() > 0 {
-		initUser = false
-	}
-	data := make(map[string]interface{}, 1)
-	data["need_init_user"] = initUser
-	c.JSON(http.StatusOK,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    data,
-		})
 }

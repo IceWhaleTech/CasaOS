@@ -24,7 +24,6 @@ var sqliteDB *gorm.DB
 
 var configFlag = flag.String("c", "", "config address")
 var dbFlag = flag.String("db", "", "db path")
-var showUserInfo = flag.Bool("show-user-info", false, "show user info")
 var resetUser = flag.Bool("ru", false, "reset user")
 var user = flag.String("user", "", "user name")
 
@@ -63,13 +62,6 @@ func init() {
 // @BasePath /v1
 func main() {
 	service.NotifyMsg = make(chan notify.Message, 10)
-	if *showUserInfo {
-		fmt.Println("CasaOS User Info")
-		fmt.Println("UserName:" + config.UserInfo.UserName)
-		fmt.Println("Password:" + config.UserInfo.PWD)
-		return
-	}
-	fmt.Println("Reset User", *resetUser)
 	if *resetUser {
 
 		if user == nil || len(*user) == 0 {
@@ -85,7 +77,7 @@ func main() {
 		userData.Password = encryption.GetMD5ByStr(password)
 		service.MyService.User().UpdateUserPassword(userData)
 		fmt.Println("User reset successful")
-		fmt.Println("UserName:" + userData.UserName)
+		fmt.Println("UserName:" + userData.Username)
 		fmt.Println("Password:" + password)
 		return
 	}

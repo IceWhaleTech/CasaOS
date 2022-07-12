@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-04 14:26:07
+ * @LastEditTime: 2022-07-11 18:10:53
  * @FilePath: /CasaOS/pkg/sqlite/db.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -42,6 +42,17 @@ func GetDb(dbPath string) *gorm.DB {
 		return nil
 	}
 	gdb = db
+
+	db.Exec(`alter table o_user rename to old_user;
+
+	create table o_users ( id integer primary key,username text,password text,role text,email text,nickname text,avatar text,description text,created_at datetime,updated_at datetime);
+	
+	insert into o_users select id,user_name,password,role,email,nick_name,avatar,description,created_at,updated_at from old_user;
+	
+	drop table old_user;
+	drop table o_user;	
+	`)
+
 	err = db.AutoMigrate(&model2.AppNotify{}, &model2.AppListDBModel{}, &model2.SerialDisk{}, model2.UserDBModel{})
 	db.Exec("DROP TABLE IF EXISTS o_application")
 	db.Exec("DROP TABLE IF EXISTS o_friend")

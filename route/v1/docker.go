@@ -159,7 +159,7 @@ func InstallApp(c *gin.Context) {
 		m.Protocol = "http"
 	}
 	m.Label = strings.Replace(m.Name, " ", "_", -1)
-	if m.Origin != "custom" {
+	if m.Origin != CUSTOM {
 		oldName := m.Label
 		for i := 0; true; i++ {
 			if i != 0 {
@@ -227,7 +227,7 @@ func InstallApp(c *gin.Context) {
 			}
 		}
 	}
-	if m.Origin == "custom" {
+	if m.Origin == CUSTOM {
 		for _, device := range m.Devices {
 			if file.CheckNotExist(device.Path) {
 				c.JSON(http.StatusOK, model.Result{Success: common_err.DEVICE_NOT_EXIST, Message: device.Path + "," + common_err.GetMsg(common_err.DEVICE_NOT_EXIST)})
@@ -268,7 +268,7 @@ func InstallApp(c *gin.Context) {
 		// installLog.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
 		// installLog.Id = uuid.NewV4().String()
 		// service.MyService.Notify().AddLog(installLog)
-		if m.Origin != "custom" {
+		if m.Origin != CUSTOM {
 			for _, plugin := range appInfo.Plugins {
 				if plugin == "mysql" {
 					mid := uuid.NewV4().String()
@@ -708,16 +708,23 @@ func UnInstallApp(c *gin.Context) {
 // @Router /app/state/{id} [put]
 func ChangAppState(c *gin.Context) {
 	appId := c.Param("id")
-	state := c.DefaultPostForm("state", "stop") // @tiger - 应该用 JSON 形式
+	js := make(map[string]string)
+	c.BindJSON(&js)
+	state := js["state"]
+	if len(appId) == 0 || len(state) == 0 {
+		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
+	}
 	var err error
-	if state == "stop" {
-		err = service.MyService.Docker().DockerContainerStop(appId)
-	} else if state == "start" {
+	if state == "start" {
 		err = service.MyService.Docker().DockerContainerStart(appId)
 	} else if state == "restart" {
 		service.MyService.Docker().DockerContainerStop(appId)
 		err = service.MyService.Docker().DockerContainerStart(appId)
+	} else {
+		err = service.MyService.Docker().DockerContainerStop(appId)
 	}
+
 	if err != nil {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
 		return
@@ -1031,8 +1038,8 @@ func ContainerInfo(c *gin.Context) {
 		Status    string `json:"status"`
 		StartedAt string `json:"started_at"`
 		CPUShares int64  `json:"cpu_shares"`
-		Memory    int64  `json:"memory"`  // @tiger - 改成 total_memory，方便以后增加 free_memory 之类的字段
-		Restart   string `json:"restart"` // @tiger - 改成 restart_policy?
+		Memory    int64  `json:"total_memory"`   // @tiger - 改成 total_memory，方便以后增加 free_memory 之类的字段
+		Restart   string `json:"restart_policy"` // @tiger - 改成 restart_policy?
 	}{Status: info.State.Status, StartedAt: info.State.StartedAt, CPUShares: info.HostConfig.CPUShares, Memory: info.HostConfig.Memory >> 20, Restart: info.HostConfig.RestartPolicy.Name}
 	data := make(map[string]interface{}, 5)
 	data["app"] = appInfo                                             // @tiget - 最佳实践是，返回 appid，然后具体的 app 信息由前端另行获取
@@ -1043,25 +1050,15 @@ func ContainerInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
-// @Summary 获取安装所需要的数据
-// @Produce  application/json
-// @Accept application/json
-// @Tags app
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /app/install/config [get]
-func GetDockerInstallConfig(c *gin.Context) {
+func GetDockerNetworks(c *gin.Context) {
 	networks := service.MyService.Docker().DockerNetworkModelList()
-	data := make(map[string]interface{}, 2)
 	list := []map[string]string{}
 	for _, network := range networks {
 		if network.Driver != "null" {
 			list = append(list, map[string]string{"name": network.Name, "driver": network.Driver, "id": network.ID})
 		}
 	}
-	data["networks"] = list
-	data["memory"] = service.MyService.System().GetMemInfo()
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary 获取依赖数据
@@ -1078,7 +1075,6 @@ func ContainerRelyInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: appInfo})
 }
 
-// @Summary 获取可更新数据
 // @Produce  application/json
 // @Accept application/json
 // @Tags app

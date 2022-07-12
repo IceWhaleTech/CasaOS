@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-09-30 18:18:14
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-04 18:15:09
+ * @LastEditTime: 2022-07-11 17:41:22
  * @FilePath: /CasaOS/pkg/utils/jwt/jwt.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -17,7 +17,7 @@ import (
 )
 
 type Claims struct {
-	UserName string `json:"username"`
+	Username string `json:"username"`
 	PassWord string `json:"password"`
 	Id       int    `json:"id"`
 	jwt.RegisteredClaims

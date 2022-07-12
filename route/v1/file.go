@@ -1,9 +1,6 @@
 package v1
 
 import (
-	"bufio"
-	"encoding/csv"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -25,32 +22,6 @@ import (
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 )
-
-func downloadReadFile(c *gin.Context) {
-	//http下载地址 csv
-	csvFileUrl := c.PostForm("file_name")
-	res, err := http.Get(csvFileUrl)
-	if err != nil {
-		c.String(400, err.Error())
-		return
-	}
-	defer res.Body.Close()
-	//读取csv
-	reader := csv.NewReader(bufio.NewReader(res.Body))
-	for {
-		line, err := reader.Read()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			c.String(400, err.Error())
-			return
-		}
-		//line 就是每一行的内容
-		fmt.Println(line)
-		//line[0] 就是第几列
-		fmt.Println(line[0])
-	}
-}
 
 // @Summary 读取文件
 // @Produce  application/json
@@ -312,8 +283,8 @@ func DirPath(c *gin.Context) {
 func RenamePath(c *gin.Context) {
 	json := make(map[string]string)
 	c.BindJSON(&json)
-	op := json["oldpath"]
-	np := json["newpath"]
+	op := json["old_path"]
+	np := json["new_path"]
 	if len(op) == 0 || len(np) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return

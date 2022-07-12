@@ -145,9 +145,9 @@ func MoveUserToDB() {
 
 	if len(config.UserInfo.UserName) > 0 && service.MyService.User().GetUserInfoByUserName(config.UserInfo.UserName).Id == 0 {
 		user := model2.UserDBModel{}
-		user.UserName = config.UserInfo.UserName
+		user.Username = config.UserInfo.UserName
 		user.Email = config.UserInfo.Email
-		user.NickName = config.UserInfo.NickName
+		user.Nickname = config.UserInfo.NickName
 		user.Password = encryption.GetMD5ByStr(config.UserInfo.PWD)
 		user.Role = "admin"
 		user = service.MyService.User().CreateUser(user)

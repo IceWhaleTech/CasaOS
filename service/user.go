@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-03-18 11:40:55
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-23 19:45:49
+ * @LastEditTime: 2022-07-11 18:36:43
  * @FilePath: /CasaOS/service/user.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -15,13 +15,11 @@ import (
 	"mime/multipart"
 	"os"
 
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/service/model"
 	"gorm.io/gorm"
 )
 
 type UserService interface {
-	SetUser(username, pwd, token, email, desc, nickName string) error
 	UpLoadFile(file multipart.File, name string) error
 	CreateUser(m model.UserDBModel) model.UserDBModel
 	GetUserCount() (userCount int64)
@@ -31,6 +29,7 @@ type UserService interface {
 	GetUserAllInfoById(id string) (m model.UserDBModel)
 	GetUserAllInfoByName(userName string) (m model.UserDBModel)
 	DeleteUserById(id string)
+	DeleteAllUser()
 	GetUserInfoByUserName(userName string) (m model.UserDBModel)
 	GetAllUserName() (list []model.UserDBModel)
 }
@@ -41,12 +40,15 @@ type userService struct {
 	db *gorm.DB
 }
 
+func (u *userService) DeleteAllUser() {
+	u.db.Where("1=1").Delete(&model.UserDBModel{})
+}
 func (u *userService) DeleteUserById(id string) {
 	u.db.Where("id= ?", id).Delete(&model.UserDBModel{})
 }
 
 func (u *userService) GetAllUserName() (list []model.UserDBModel) {
-	u.db.Select("user_name").Find(&list)
+	u.db.Select("username").Find(&list)
 	return
 }
 func (u *userService) CreateUser(m model.UserDBModel) model.UserDBModel {
@@ -70,45 +72,17 @@ func (u *userService) GetUserAllInfoById(id string) (m model.UserDBModel) {
 	return
 }
 func (u *userService) GetUserAllInfoByName(userName string) (m model.UserDBModel) {
-	u.db.Where("user_name= ?", userName).First(&m)
+	u.db.Where("username= ?", userName).First(&m)
 	return
 }
 func (u *userService) GetUserInfoById(id string) (m model.UserDBModel) {
-	u.db.Select("user_name", "id", "role", "nick_name", "description", "avatar").Where("id= ?", id).First(&m)
+	u.db.Select("username", "id", "role", "nickname", "description", "avatar").Where("id= ?", id).First(&m)
 	return
 }
 
 func (u *userService) GetUserInfoByUserName(userName string) (m model.UserDBModel) {
-	u.db.Select("user_name", "id", "role", "nick_name", "description", "avatar").Where("user_name= ?", userName).First(&m)
+	u.db.Select("username", "id", "role", "nickname", "description", "avatar").Where("username= ?", userName).First(&m)
 	return
-}
-
-//设置用户名密码
-func (u *userService) SetUser(username, pwd, token, email, desc, nickName string) error {
-	if len(username) > 0 {
-		config.Cfg.Section("user").Key("UserName").SetValue(username)
-		config.UserInfo.UserName = username
-		config.Cfg.Section("user").Key("Initialized").SetValue("true")
-		config.UserInfo.Initialized = true
-	}
-	if len(pwd) > 0 {
-		config.Cfg.Section("user").Key("PWD").SetValue(pwd)
-		config.UserInfo.PWD = pwd
-	}
-	if len(email) > 0 {
-		config.Cfg.Section("user").Key("Email").SetValue(email)
-		config.UserInfo.Email = email
-	}
-	if len(desc) > 0 {
-		config.Cfg.Section("user").Key("Description").SetValue(desc)
-		config.UserInfo.Description = desc
-	}
-	if len(nickName) > 0 {
-		config.Cfg.Section("user").Key("NickName").SetValue(nickName)
-		config.UserInfo.NickName = nickName
-	}
-	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-	return nil
 }
 
 //上传文件

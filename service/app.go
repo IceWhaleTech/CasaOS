@@ -36,7 +36,7 @@ type AppService interface {
 	GetSimpleContainerInfo(name string) (types.Container, error)
 	DelAppConfigDir(path string)
 	GetSystemAppList() []types.Container
-	GetHardwareUsageSteam()
+	GetHardwareUsageStream()
 	GetHardwareUsage() []model.DockerStatsModel
 	GetAppStats(id string) string
 	GetAllDBApps() []model2.AppListDBModel
@@ -363,12 +363,12 @@ func (a *appStruct) GetAppStats(id string) string {
 
 func (a *appStruct) GetHardwareUsage() []model.DockerStatsModel {
 
-	steam := true
+	stream := true
 	for !isFinish {
-		if steam {
-			steam = false
+		if stream {
+			stream = false
 			go func() {
-				a.GetHardwareUsageSteam()
+				a.GetHardwareUsageStream()
 			}()
 		}
 		runtime.Gosched()
@@ -383,7 +383,7 @@ func (a *appStruct) GetHardwareUsage() []model.DockerStatsModel {
 
 }
 
-func (a *appStruct) GetHardwareUsageSteam() {
+func (a *appStruct) GetHardwareUsageStream() {
 
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
