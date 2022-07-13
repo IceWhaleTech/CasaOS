@@ -92,13 +92,13 @@ func GetLocalFile(c *gin.Context) {
 // @Accept application/json
 // @Tags file
 // @Security ApiKeyAuth
-// @Param t query string false "Compression format" Enums(zip,tar,targz)
+// @Param format query string false "Compression format" Enums(zip,tar,targz)
 // @Param files query string true "file list eg: filename1,filename2,filename3 "
 // @Success 200 {string} string "ok"
 // @Router /file/download [get]
 func GetDownloadFile(c *gin.Context) {
 
-	t := c.Query("t")
+	t := c.Query("format")
 
 	files := c.Query("files")
 
@@ -184,8 +184,22 @@ func GetDownloadFile(c *gin.Context) {
 }
 
 func GetDownloadSingleFile(c *gin.Context) {
-	filePath := c.Param("path")
-	fileTmp, _ := os.Open(filePath)
+	filePath := c.Query("path")
+	if len(filePath) == 0 {
+		c.JSON(http.StatusOK, model.Result{
+			Success: common_err.INVALID_PARAMS,
+			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
+		})
+		return
+	}
+	fileTmp, err := os.Open(filePath)
+	if err != nil {
+		c.JSON(http.StatusOK, model.Result{
+			Success: common_err.FILE_DOES_NOT_EXIST,
+			Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
+		})
+		return
+	}
 	defer fileTmp.Close()
 
 	fileName := path.Base(filePath)

@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-03-18 11:40:55
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-11 18:36:43
+ * @LastEditTime: 2022-07-12 10:05:37
  * @FilePath: /CasaOS/service/user.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -76,12 +76,12 @@ func (u *userService) GetUserAllInfoByName(userName string) (m model.UserDBModel
 	return
 }
 func (u *userService) GetUserInfoById(id string) (m model.UserDBModel) {
-	u.db.Select("username", "id", "role", "nickname", "description", "avatar").Where("id= ?", id).First(&m)
+	u.db.Select("username", "id", "role", "nickname", "description", "avatar", "email").Where("id= ?", id).First(&m)
 	return
 }
 
 func (u *userService) GetUserInfoByUserName(userName string) (m model.UserDBModel) {
-	u.db.Select("username", "id", "role", "nickname", "description", "avatar").Where("username= ?", userName).First(&m)
+	u.db.Select("username", "id", "role", "nickname", "description", "avatar", "email").Where("username= ?", userName).First(&m)
 	return
 }
 

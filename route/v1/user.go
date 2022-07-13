@@ -197,6 +197,9 @@ func PutUserInfo(c *gin.Context) {
 		user.Password = encryption.GetMD5ByStr(json.Password)
 		service.MyService.User().UpdateUserPassword(user)
 	}
+	if len(json.Email) == 0 {
+		json.Email = user.Email
+	}
 	if len(json.Avatar) == 0 {
 		json.Avatar = user.Avatar
 	}
@@ -206,7 +209,7 @@ func PutUserInfo(c *gin.Context) {
 	if len(json.Description) == 0 {
 		json.Description = user.Description
 	}
-	if len(user.Nickname) == 0 {
+	if len(json.Nickname) == 0 {
 		json.Nickname = user.Nickname
 	}
 	service.MyService.User().UpdateUser(json)
@@ -333,12 +336,12 @@ func GetUserInfo(c *gin.Context) {
  * @router:
  */
 func GetUserInfoByUsername(c *gin.Context) {
-	Username := c.Param("Username")
-	if len(Username) == 0 {
+	username := c.Param("username")
+	if len(username) == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	user := service.MyService.User().GetUserInfoByUserName(Username)
+	user := service.MyService.User().GetUserInfoByUserName(username)
 	if user.Id == 0 {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
 		return
@@ -550,10 +553,11 @@ func PostUserUploadImage(c *gin.Context) {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
 		return
 	}
-	path := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id) + "/" + key + ext
 	if t == "avatar" {
-		path = config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id) + "/avatar" + ext
+		key = "avatar"
 	}
+	path := config.AppInfo.UserDataPath + "/" + strconv.Itoa(user.Id) + "/" + key + ext
+
 	c.SaveUploadedFile(f, path)
 	data := make(map[string]string, 3)
 	data["path"] = path

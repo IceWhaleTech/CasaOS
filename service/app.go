@@ -30,10 +30,10 @@ type AppService interface {
 	SaveContainer(m model2.AppListDBModel)
 	GetUninstallInfo(id string) model2.AppListDBModel
 	DeleteApp(id string)
-	GetContainerInfo(name string) (types.Container, error)
+	GetContainerInfo(id string) (types.Container, error)
 	GetAppDBInfo(id string) model2.AppListDBModel
 	UpdateApp(m model2.AppListDBModel)
-	GetSimpleContainerInfo(name string) (types.Container, error)
+	GetSimpleContainerInfo(id string) (types.Container, error)
 	DelAppConfigDir(path string)
 	GetSystemAppList() []types.Container
 	GetHardwareUsageStream()
@@ -271,14 +271,14 @@ func (a *appStruct) GetAllDBApps() []model2.AppListDBModel {
 }
 
 //获取我的应用列表
-func (a *appStruct) GetContainerInfo(name string) (types.Container, error) {
+func (a *appStruct) GetContainerInfo(id string) (types.Container, error) {
 	//获取docker应用
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
 		loger.Error("Failed to init client", zap.Any("err", err))
 	}
 	filters := filters.NewArgs()
-	filters.Add("name", name)
+	filters.Add("id", id)
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filters})
 	if err != nil {
 		loger.Error("Failed to get container_list", zap.Any("err", err))
@@ -291,7 +291,7 @@ func (a *appStruct) GetContainerInfo(name string) (types.Container, error) {
 
 }
 
-func (a *appStruct) GetSimpleContainerInfo(name string) (types.Container, error) {
+func (a *appStruct) GetSimpleContainerInfo(id string) (types.Container, error) {
 	//获取docker应用
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -299,7 +299,7 @@ func (a *appStruct) GetSimpleContainerInfo(name string) (types.Container, error)
 	}
 	defer cli.Close()
 	filters := filters.NewArgs()
-	filters.Add("name", name)
+	filters.Add("id", id)
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filters})
 	if err != nil {
 		return types.Container{}, err

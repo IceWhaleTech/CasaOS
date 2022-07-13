@@ -28,9 +28,7 @@ var diskMap = make(map[string]string)
 // @Success 200 {string} string "ok"
 // @Router /disk/list [get]
 func GetDiskList(c *gin.Context) {
-	js := make(map[string]string)
-	c.BindJSON(&js)
-	t := js["type"]
+	t := c.DefaultQuery("type", "")
 	list := service.MyService.Disk().LSBLK(false)
 	if t == "usb" {
 		data := []model.DriveUSB{}

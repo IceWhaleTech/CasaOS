@@ -86,29 +86,26 @@ func InitRouter() *gin.Engine {
 		v1AppsGroup.Use()
 		{
 			v1AppsGroup.GET("/", v1.AppList) //list
-
-			v1AppsGroup.GET("/usage", v1.AppUsageList)
 		}
 		v1ContainerGroup := v1Group.Group("/container")
 		v1ContainerGroup.Use()
 		{
-			v1ContainerGroup.GET("/", v1.MyAppList)          ///my/list
-			v1ContainerGroup.POST("/", v1.InstallApp)        //app/install
-			v1ContainerGroup.DELETE("/:id", v1.UnInstallApp) //app/uninstall/:id
-
-			//v1ContainerGroup.GET("/:id", v1.ContainerInfo) // /app/info/:id
-			v1ContainerGroup.GET("/:id", v1.ContainerUpdateInfo) ///update/:id/info
-			v1ContainerGroup.PUT("/:id", v1.UpdateSetting)       ///update/:id/setting
-
-			v1ContainerGroup.GET("/:id/logs", v1.ContainerLog) // /app/logs/:id
-			// there are problems, temporarily do not deal with
-			v1ContainerGroup.GET("/:id/terminal", v1.DockerTerminal) //app/terminal/:id
-			v1ContainerGroup.PUT("/:id/state", v1.ChangAppState)     // /app/state/:id
-
+			v1ContainerGroup.GET("/", v1.MyAppList) ///my/list
+			v1ContainerGroup.GET("/usage", v1.AppUsageList)
+			v1ContainerGroup.GET("/:id", v1.ContainerUpdateInfo)    ///update/:id/info
+			v1ContainerGroup.GET("/:id/logs", v1.ContainerLog)      // /app/logs/:id
 			v1ContainerGroup.GET("/networks", v1.GetDockerNetworks) //app/install/config
 
 			v1ContainerGroup.GET("/:id/state", v1.GetContainerState) //app/state/:id ?state=install_progress
+			// there are problems, temporarily do not deal with
+			v1ContainerGroup.GET("/:id/terminal", v1.DockerTerminal) //app/terminal/:id
+			v1ContainerGroup.POST("/", v1.InstallApp)                //app/install
+			//v1ContainerGroup.GET("/:id", v1.ContainerInfo) // /app/info/:id
 
+			v1ContainerGroup.PUT("/:id", v1.UpdateSetting) ///update/:id/setting
+
+			v1ContainerGroup.PUT("/:id/state", v1.ChangAppState) // /app/state/:id
+			v1ContainerGroup.DELETE("/:id", v1.UnInstallApp)     //app/uninstall/:id
 			//Not used
 			v1ContainerGroup.PUT("/:id/latest", v1.PutAppUpdate)
 			//Not used
@@ -162,8 +159,8 @@ func InitRouter() *gin.Engine {
 			v1FileGroup.GET("/", v1.GetDownloadSingleFile) //download/:path
 			v1FileGroup.POST("/", v1.PostCreateFile)
 			v1FileGroup.PUT("/", v1.PutFileContent)
-
-			v1FileGroup.PUT("/name", v1.RenamePath)         //file/rename
+			v1FileGroup.PUT("/name", v1.RenamePath)
+			//file/rename
 			v1FileGroup.GET("/content", v1.GetFilerContent) //file/read
 
 			//File uploads need to be handled separately, and will not be modified here
@@ -174,12 +171,14 @@ func InitRouter() *gin.Engine {
 		v1FolderGroup := v1Group.Group("/folder")
 		v1FolderGroup.Use()
 		{
+			v1FolderGroup.PUT("/name", v1.RenamePath)
 			v1FolderGroup.GET("/", v1.DirPath)   ///file/dirpath
 			v1FolderGroup.POST("/", v1.MkdirAll) ///file/mkdir
 		}
 		v1BatchGroup := v1Group.Group("/batch")
 		v1BatchGroup.Use()
 		{
+
 			v1BatchGroup.DELETE("/", v1.DeleteFile) //file/delete
 			v1BatchGroup.DELETE("/:id/task", v1.DeleteOperateFileOrDir)
 			v1BatchGroup.POST("/task", v1.PostOperateFileOrDir) //file/operate

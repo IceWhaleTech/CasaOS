@@ -230,7 +230,7 @@ func PostKillCasaOS(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/usb/off [put]
 func PutSystemUSBAutoMount(c *gin.Context) {
-	status := c.Param("state")
+	status := c.Query("state")
 	if status == "on" {
 		service.MyService.System().UpdateUSBAutoMount("True")
 		service.MyService.System().ExecUSBAutoMountShell("True")

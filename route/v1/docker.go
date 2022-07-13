@@ -114,25 +114,6 @@ func WsSsh(c *gin.Context) {
 
 }
 
-//安装进度推送
-func SpeedPush(c *gin.Context) {
-	//token := c.Query("token")
-	//if len(token) == 0 || token != config.UserInfo.Token {
-	//	c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR_AUTH_TOKEN, Message: common_err.GetMsg(common_err.ERROR_AUTH_TOKEN)})
-	//	return
-	//}
-
-	//ws, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
-	//defer ws.Close()
-	//
-	//for {
-	//	select {
-	//	case msg := <-WSMSG:
-	//		ws.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintln(msg)))
-	//	}
-	//}
-}
-
 // @Summary 安装app(该接口需要post json数据)
 // @Produce  application/json
 // @Accept application/json
@@ -764,7 +745,7 @@ func ContainerLog(c *gin.Context) {
 // @Router /app/state/{id} [get]
 func GetContainerState(c *gin.Context) {
 	id := c.Param("id")
-	t := c.DefaultQuery("type", "0")
+	//t := c.DefaultQuery("type", "0")
 	containerInfo, e := service.MyService.App().GetSimpleContainerInfo(id)
 	if e != nil {
 		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: e.Error()})
@@ -775,10 +756,10 @@ func GetContainerState(c *gin.Context) {
 
 	data["state"] = containerInfo.State
 
-	if t == "1" {
-		appInfo := service.MyService.App().GetAppDBInfo(id)
-		data["app"] = appInfo
-	}
+	// if t == "1" {
+	// 	appInfo := service.MyService.App().GetAppDBInfo(id)
+	// 	data["app"] = appInfo
+	// }
 
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
