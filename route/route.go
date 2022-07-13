@@ -85,12 +85,12 @@ func InitRouter() *gin.Engine {
 		v1AppsGroup := v1Group.Group("/apps")
 		v1AppsGroup.Use()
 		{
-			v1AppsGroup.GET("/", v1.AppList) //list
+			v1AppsGroup.GET("", v1.AppList) //list
 		}
 		v1ContainerGroup := v1Group.Group("/container")
 		v1ContainerGroup.Use()
 		{
-			v1ContainerGroup.GET("/", v1.MyAppList) ///my/list
+			v1ContainerGroup.GET("", v1.MyAppList) ///my/list
 			v1ContainerGroup.GET("/usage", v1.AppUsageList)
 			v1ContainerGroup.GET("/:id", v1.ContainerUpdateInfo)    ///update/:id/info
 			v1ContainerGroup.GET("/:id/logs", v1.ContainerLog)      // /app/logs/:id
@@ -99,7 +99,7 @@ func InitRouter() *gin.Engine {
 			v1ContainerGroup.GET("/:id/state", v1.GetContainerState) //app/state/:id ?state=install_progress
 			// there are problems, temporarily do not deal with
 			v1ContainerGroup.GET("/:id/terminal", v1.DockerTerminal) //app/terminal/:id
-			v1ContainerGroup.POST("/", v1.InstallApp)                //app/install
+			v1ContainerGroup.POST("", v1.InstallApp)                 //app/install
 			//v1ContainerGroup.GET("/:id", v1.ContainerInfo) // /app/info/:id
 
 			v1ContainerGroup.PUT("/:id", v1.UpdateSetting) ///update/:id/setting
@@ -115,7 +115,7 @@ func InitRouter() *gin.Engine {
 		v1AppCategoriesGroup := v1Group.Group("/app-categories")
 		v1AppCategoriesGroup.Use()
 		{
-			v1AppCategoriesGroup.GET("/", v1.CategoryList)
+			v1AppCategoriesGroup.GET("", v1.CategoryList)
 		}
 
 		v1SysGroup := v1Group.Group("/sys")
