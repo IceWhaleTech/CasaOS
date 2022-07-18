@@ -73,7 +73,6 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/3358477?v=4",
       "profile": "https://JohnGuan.Cn",
       "contributions": [
-        "bug",
         "blog",
         "content",
         "doc",
@@ -81,9 +80,7 @@
         "eventOrganizing",
         "mentoring",
         "question",
-        "translation",
-        "review",
-        "video"
+        "review"
       ]
     },
     {
