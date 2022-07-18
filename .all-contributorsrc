@@ -3,6 +3,7 @@
     "README.md"
   ],
   "imageSize": 100,
+  "badgeTemplate": "<a href=\"#credits\"><img alt=\"All Contributors\" src=\"https://img.shields.io/static/v1?label=All%20Contributors&message=<%= contributors.length %>&color=162453&style=flat-square&logo=Handshake&logoColor=fff\" /></a>",
   "commit": false,
   "contributors": [
     {
