@@ -1,0 +1,31 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "jerrykuku",
+      "name": "老竭力",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9485680?v=4",
+      "profile": "https://github.com/jerrykuku",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "infra",
+        "maintenance",
+        "platform",
+        "question",
+        "review"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "CasaOS",
+  "projectOwner": "IceWhaleTech",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
