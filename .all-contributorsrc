@@ -85,6 +85,17 @@
         "review",
         "video"
       ]
+    },
+    {
+      "login": "dtaivpp",
+      "name": "David Tippett",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17506770?v=4",
+      "profile": "https://blog.tippybits.com",
+      "contributions": [
+        "doc",
+        "ideas",
+        "question"
+      ]
     }
   ],
   "contributorsPerLine": 7,
