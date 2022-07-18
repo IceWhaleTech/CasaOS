@@ -6,7 +6,7 @@
 <p align="center">
     <!-- CasaOS Banner -->
     <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_bannner_dark_night_800px.png">
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_dark_night_800px.png">
         <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_twilight_blue_800px.png">
         <img alt="CasaOS" src="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_twilight_blue_800px.png">
     </picture>
@@ -49,10 +49,10 @@
     <br/>
     <br/>
     <!-- CasaOS Snapshots -->
-    <picture style="filter: drop-shadow(0px 2px 4px black);">
+    <picture>
         <source media="(prefers-color-scheme: dark)" srcset="snapshot-dark.jpg">
         <source media="(prefers-color-scheme: light)" srcset="snapshot-light.jpg">
-        <img alt="CasaOS Snapshot" src="snapshot-light.jpg">
+        <img style="border-radius: 8px; filter: drop-shadow(0px 2px 4px black);" alt="CasaOS Snapshot" src="snapshot-light.jpg">
     </picture>
 </p>
 
