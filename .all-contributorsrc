@@ -96,6 +96,18 @@
         "ideas",
         "question"
       ]
+    },
+    {
+      "login": "zarevskaya",
+      "name": "Skaya",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60230221?v=4",
+      "profile": "https://github.com/zarevskaya",
+      "contributions": [
+        "mentoring",
+        "question",
+        "tutorial",
+        "translation"
+      ]
     }
   ],
   "contributorsPerLine": 7,
