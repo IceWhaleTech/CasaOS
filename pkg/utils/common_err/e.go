@@ -2,10 +2,11 @@ package common_err
 
 const (
 	SUCCESS          = 200
-	ERROR            = 500
-	INVALID_PARAMS   = 400
+	SERVICE_ERROR    = 500
+	CLIENT_ERROR     = 400
 	ERROR_AUTH_TOKEN = 401
 
+	INVALID_PARAMS = 4000
 	//user
 	PWD_INVALID              = 10001
 	PWD_IS_EMPTY             = 10002
@@ -53,7 +54,8 @@ const (
 
 var MsgFlags = map[int]string{
 	SUCCESS:          "ok",
-	ERROR:            "fail",
+	SERVICE_ERROR:    "Fail",
+	CLIENT_ERROR:     "Fail",
 	INVALID_PARAMS:   "Parameters Error",
 	ERROR_AUTH_TOKEN: "Error auth token",
 
@@ -109,5 +111,5 @@ func GetMsg(code int) string {
 	if ok {
 		return msg
 	}
-	return MsgFlags[ERROR]
+	return MsgFlags[SERVICE_ERROR]
 }

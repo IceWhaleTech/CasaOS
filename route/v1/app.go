@@ -3,7 +3,6 @@ package v1
 import (
 	"encoding/json"
 	"io/ioutil"
-	"net/http"
 	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -37,10 +36,14 @@ func AppList(c *gin.Context) {
 	categoryId := c.DefaultQuery("category_id", "0")
 	key := c.DefaultQuery("key", "")
 	if len(index) == 0 || len(size) == 0 || len(t) == 0 || len(categoryId) == 0 {
-		c.JSON(http.StatusOK, &model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, &model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	collection := service.MyService.Casa().GetServerList(index, size, t, categoryId, key)
+	collection, err := service.MyService.Casa().GetServerList(index, size, t, categoryId, key)
+	if err != nil {
+		c.JSON(common_err.SERVICE_ERROR, &model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return
+	}
 	// for i := 0; i < len(recommend); i++ {
 	// 	ct, _ := service.MyService.Docker().DockerListByImage(recommend[i].Image, recommend[i].ImageVersion)
 	// 	if ct != nil {
@@ -64,7 +67,7 @@ func AppList(c *gin.Context) {
 	data["list"] = collection.List
 	data["community"] = collection.Community
 
-	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary 获取一个可用端口
@@ -84,7 +87,7 @@ func GetPort(c *gin.Context) {
 		ok = !port2.IsPortAvailable(p, t)
 	}
 	// @tiger 这里最好封装成 {'port': ...} 的形式，来体现出参的上下文
-	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: p})
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: p})
 }
 
 // @Summary 检查端口是否可用
@@ -99,7 +102,7 @@ func GetPort(c *gin.Context) {
 func PortCheck(c *gin.Context) {
 	p, _ := strconv.Atoi(c.Param("port"))
 	t := c.DefaultQuery("type", "tcp")
-	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: port2.IsPortAvailable(p, t)})
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: port2.IsPortAvailable(p, t)})
 }
 
 // @Summary 我的应用列表
@@ -118,10 +121,10 @@ func MyAppList(c *gin.Context) {
 	position, _ := strconv.ParseBool(c.DefaultQuery("position", "true"))
 	list, unTranslation := service.MyService.App().GetMyList(index, size, position)
 	data := make(map[string]interface{}, 2)
-	data["casaos-apps"] = list
-	data["local-apps"] = unTranslation
+	data["casaos_apps"] = list
+	data["local_apps"] = unTranslation
 
-	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary my app hardware usage list
@@ -133,7 +136,7 @@ func MyAppList(c *gin.Context) {
 // @Router /app/usage [get]
 func AppUsageList(c *gin.Context) {
 	list := service.MyService.App().GetHardwareUsage()
-	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary 应用详情
@@ -148,7 +151,11 @@ func AppInfo(c *gin.Context) {
 
 	id := c.Param("id")
 	language := c.GetHeader("Language")
-	info := service.MyService.Casa().GetServerAppInfo(id, "", language)
+	info, err := service.MyService.Casa().GetServerAppInfo(id, "", language)
+	if err != nil {
+		c.JSON(common_err.SERVICE_ERROR, &model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return
+	}
 	if info.NetworkModel != "host" {
 		for i := 0; i < len(info.Ports); i++ {
 			if p, _ := strconv.Atoi(info.Ports[i].ContainerPort); port2.IsPortAvailable(p, info.Ports[i].Protocol) {
@@ -215,7 +222,7 @@ func AppInfo(c *gin.Context) {
 
 	info.MaxMemory = (service.MyService.System().GetMemInfo()["total"]).(uint64) >> 20
 
-	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info})
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info})
 }
 
 // @Summary 获取远程分类列表
@@ -226,7 +233,11 @@ func AppInfo(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /app/category [get]
 func CategoryList(c *gin.Context) {
-	list := service.MyService.Casa().GetServerCategoryList()
+	list, err := service.MyService.Casa().GetServerCategoryList()
+	if err != nil {
+		c.JSON(common_err.SERVICE_ERROR, &model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return
+	}
 	var count uint = 0
 	for _, category := range list {
 		count += category.Count
@@ -235,7 +246,7 @@ func CategoryList(c *gin.Context) {
 	rear := append([]model.CategoryList{}, list[0:]...)
 	list = append(list[:0], model.CategoryList{Count: count, Name: "All", Font: "apps"})
 	list = append(list, rear...)
-	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary 分享该应用配置
@@ -248,5 +259,5 @@ func CategoryList(c *gin.Context) {
 func ShareAppFile(c *gin.Context) {
 	str, _ := ioutil.ReadAll(c.Request.Body)
 	content := service.MyService.Casa().ShareAppFile(str)
-	c.JSON(http.StatusOK, json.RawMessage(content))
+	c.JSON(common_err.SUCCESS, json.RawMessage(content))
 }

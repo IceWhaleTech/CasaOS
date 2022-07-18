@@ -63,7 +63,6 @@ func init() {
 func main() {
 	service.NotifyMsg = make(chan notify.Message, 10)
 	if *resetUser {
-
 		if user == nil || len(*user) == 0 {
 			fmt.Println("user is empty")
 			return

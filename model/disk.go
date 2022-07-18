@@ -1,3 +1,13 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-07-13 10:43:45
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-07-13 11:00:04
+ * @FilePath: /CasaOS/model/disk.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package model
 
 type LSBLKModel struct {
@@ -53,8 +63,8 @@ type DriveUSB struct {
 	Size  uint64 `json:"size"`
 	Used  uint64 `json:"use"`
 	Model string `json:"model"`
-	Mount bool   `json:"mount"` //是否完全挂载
-	Avail uint64 `json:"avail"` //可用空间
+	Mount bool   `json:"mount"`
+	Avail uint64 `json:"avail"`
 }
 
 type Storage struct {

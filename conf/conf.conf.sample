@@ -21,11 +21,4 @@ Handshake = socket.casaos.io
 Token = 
 USBAutoMount =
 
-
 [system]
-WidgetList =
-
-
-[file]
-ShareDir =
-DownloadDir =

@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-09-30 18:18:14
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-11 17:41:22
+ * @LastEditTime: 2022-07-18 17:30:38
  * @FilePath: /CasaOS/pkg/utils/jwt/jwt.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -46,13 +46,17 @@ func GenerateToken(username, password string, id int, issuer string, t time.Dura
 }
 
 //解析token
-func ParseToken(token string) (*Claims, error) {
+func ParseToken(token string, valid bool) (*Claims, error) {
 	tokenClaims, err := jwt.ParseWithClaims(token, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
 	})
 	if tokenClaims != nil {
-		if clims, ok := tokenClaims.Claims.(*Claims); ok && tokenClaims.Valid {
-			return clims, nil
+		if clims, ok := tokenClaims.Claims.(*Claims); ok {
+			if valid && tokenClaims.Valid {
+				return clims, nil
+			} else if !valid {
+				return clims, nil
+			}
 		}
 	}
 	return nil, err

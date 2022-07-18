@@ -1,3 +1,13 @@
+/*
+ * @Author: LinkLeong link@icewhale.com
+ * @Date: 2022-07-12 09:48:56
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-07-15 10:58:54
+ * @FilePath: /CasaOS/service/service.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package service
 
 import (
@@ -23,41 +33,35 @@ type Repository interface {
 	Notify() NotifyServer
 	Rely() RelyService
 	System() SystemService
-	Shortcuts() ShortcutsService
 }
 
 func NewService(db *gorm.DB) Repository {
 	return &store{
-		app:       NewAppService(db),
-		user:      NewUserService(db),
-		docker:    NewDockerService(),
-		casa:      NewCasaService(),
-		disk:      NewDiskService(db),
-		notify:    NewNotifyService(db),
-		rely:      NewRelyService(db),
-		system:    NewSystemService(),
-		shortcuts: NewShortcutsService(db),
+		app:    NewAppService(db),
+		user:   NewUserService(db),
+		docker: NewDockerService(),
+		casa:   NewCasaService(),
+		disk:   NewDiskService(db),
+		notify: NewNotifyService(db),
+		rely:   NewRelyService(db),
+		system: NewSystemService(),
 	}
 }
 
 type store struct {
-	db        *gorm.DB
-	app       AppService
-	user      UserService
-	docker    DockerService
-	casa      CasaService
-	disk      DiskService
-	notify    NotifyServer
-	rely      RelyService
-	system    SystemService
-	shortcuts ShortcutsService
+	db     *gorm.DB
+	app    AppService
+	user   UserService
+	docker DockerService
+	casa   CasaService
+	disk   DiskService
+	notify NotifyServer
+	rely   RelyService
+	system SystemService
 }
 
 func (c *store) Rely() RelyService {
 	return c.rely
-}
-func (c *store) Shortcuts() ShortcutsService {
-	return c.shortcuts
 }
 
 func (c *store) System() SystemService {

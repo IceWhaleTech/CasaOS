@@ -22,16 +22,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- SSH adds port-side options and prompts for connection status. ((#286)[https://github.com/IceWhaleTech/CasaOS/issues/286])
+
 ### Changed
+
+- Normalize all routes
+- Application names now support spaces ((#211)[https://github.com/IceWhaleTech/CasaOS/issues/211])
 
 
 ### Removed
 
-- Removed connect
+- Removed  casaos connect
 
 ### Security
 
+- Adjustment of authentication method
+
 ### Fixed
+
+- Fixed storage format and remove password error issues ((#344)[https://github.com/IceWhaleTech/CasaOS/issues/344] (#357)[https://github.com/IceWhaleTech/CasaOS/issues/357])
 
 ## [0.3.3-alpha] - 2022-07-01(UTC)
 

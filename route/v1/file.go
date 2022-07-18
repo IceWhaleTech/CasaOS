@@ -34,14 +34,14 @@ import (
 func GetFilerContent(c *gin.Context) {
 	filePath := c.Query("path")
 	if len(filePath) == 0 {
-		c.JSON(http.StatusOK, model.Result{
+		c.JSON(common_err.CLIENT_ERROR, model.Result{
 			Success: common_err.INVALID_PARAMS,
 			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
 		return
 	}
 	if !file.Exists(filePath) {
-		c.JSON(http.StatusOK, model.Result{
+		c.JSON(common_err.SERVICE_ERROR, model.Result{
 			Success: common_err.FILE_DOES_NOT_EXIST,
 			Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
 		})
@@ -50,7 +50,7 @@ func GetFilerContent(c *gin.Context) {
 	//文件读取任务是将文件内容读取到内存中。
 	info, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{
+		c.JSON(common_err.SERVICE_ERROR, model.Result{
 			Success: common_err.FILE_READ_ERROR,
 			Message: common_err.GetMsg(common_err.FILE_READ_ERROR),
 			Data:    err.Error(),
@@ -59,8 +59,7 @@ func GetFilerContent(c *gin.Context) {
 	}
 	result := string(info)
 
-	//返回结果
-	c.JSON(http.StatusOK, model.Result{
+	c.JSON(common_err.SUCCESS, model.Result{
 		Success: common_err.SUCCESS,
 		Message: common_err.GetMsg(common_err.SUCCESS),
 		Data:    result,
@@ -103,7 +102,7 @@ func GetDownloadFile(c *gin.Context) {
 	files := c.Query("files")
 
 	if len(files) == 0 {
-		c.JSON(http.StatusOK, model.Result{
+		c.JSON(common_err.CLIENT_ERROR, model.Result{
 			Success: common_err.INVALID_PARAMS,
 			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
@@ -112,7 +111,7 @@ func GetDownloadFile(c *gin.Context) {
 	list := strings.Split(files, ",")
 	for _, v := range list {
 		if !file.Exists(v) {
-			c.JSON(http.StatusOK, model.Result{
+			c.JSON(common_err.SERVICE_ERROR, model.Result{
 				Success: common_err.FILE_DOES_NOT_EXIST,
 				Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
 			})
@@ -150,7 +149,7 @@ func GetDownloadFile(c *gin.Context) {
 
 	extension, ar, err := file.GetCompressionAlgorithm(t)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{
+		c.JSON(common_err.CLIENT_ERROR, model.Result{
 			Success: common_err.INVALID_PARAMS,
 			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
@@ -159,9 +158,9 @@ func GetDownloadFile(c *gin.Context) {
 
 	err = ar.Create(c.Writer)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{
-			Success: common_err.ERROR,
-			Message: common_err.GetMsg(common_err.ERROR),
+		c.JSON(common_err.SERVICE_ERROR, model.Result{
+			Success: common_err.SERVICE_ERROR,
+			Message: common_err.GetMsg(common_err.SERVICE_ERROR),
 			Data:    err.Error(),
 		})
 		return
@@ -186,7 +185,7 @@ func GetDownloadFile(c *gin.Context) {
 func GetDownloadSingleFile(c *gin.Context) {
 	filePath := c.Query("path")
 	if len(filePath) == 0 {
-		c.JSON(http.StatusOK, model.Result{
+		c.JSON(service.ClientCount, model.Result{
 			Success: common_err.INVALID_PARAMS,
 			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
@@ -194,7 +193,7 @@ func GetDownloadSingleFile(c *gin.Context) {
 	}
 	fileTmp, err := os.Open(filePath)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{
+		c.JSON(common_err.SERVICE_ERROR, model.Result{
 			Success: common_err.FILE_DOES_NOT_EXIST,
 			Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
 		})
@@ -282,7 +281,7 @@ func DirPath(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: pathList})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: pathList})
 }
 
 // @Summary rename file or dir
@@ -296,15 +295,15 @@ func DirPath(c *gin.Context) {
 // @Router /file/rename [put]
 func RenamePath(c *gin.Context) {
 	json := make(map[string]string)
-	c.BindJSON(&json)
+	c.ShouldBind(&json)
 	op := json["old_path"]
 	np := json["new_path"]
 	if len(op) == 0 || len(np) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	success, err := service.MyService.System().RenameFile(op, np)
-	c.JSON(http.StatusOK, model.Result{Success: success, Message: common_err.GetMsg(success), Data: err})
+	c.JSON(common_err.SUCCESS, model.Result{Success: success, Message: common_err.GetMsg(success), Data: err})
 }
 
 // @Summary create folder
@@ -317,11 +316,11 @@ func RenamePath(c *gin.Context) {
 // @Router /file/mkdir [post]
 func MkdirAll(c *gin.Context) {
 	json := make(map[string]string)
-	c.BindJSON(&json)
+	c.ShouldBind(&json)
 	path := json["path"]
 	var code int
 	if len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	// decodedPath, err := url.QueryUnescape(path)
@@ -330,7 +329,7 @@ func MkdirAll(c *gin.Context) {
 	// 	return
 	// }
 	code, _ = service.MyService.System().MkdirAll(path)
-	c.JSON(http.StatusOK, model.Result{Success: code, Message: common_err.GetMsg(code)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: code, Message: common_err.GetMsg(code)})
 }
 
 // @Summary create file
@@ -343,11 +342,11 @@ func MkdirAll(c *gin.Context) {
 // @Router /file/create [post]
 func PostCreateFile(c *gin.Context) {
 	json := make(map[string]string)
-	c.BindJSON(&json)
+	c.ShouldBind(&json)
 	path := json["path"]
 	var code int
 	if len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	// decodedPath, err := url.QueryUnescape(path)
@@ -356,7 +355,7 @@ func PostCreateFile(c *gin.Context) {
 	// 	return
 	// }
 	code, _ = service.MyService.System().CreateFile(path)
-	c.JSON(http.StatusOK, model.Result{Success: code, Message: common_err.GetMsg(code)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: code, Message: common_err.GetMsg(code)})
 }
 
 // @Summary upload file
@@ -437,7 +436,7 @@ func PostFileUpload(c *gin.Context) {
 		defer out.Close()
 		_, err := io.Copy(out, f)
 		if err != nil {
-			c.JSON(common_err.ERROR, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 			return
 		}
 	} else {
@@ -445,7 +444,7 @@ func PostFileUpload(c *gin.Context) {
 		defer out.Close()
 		_, err := io.Copy(out, f)
 		if err != nil {
-			c.JSON(common_err.ERROR, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
@@ -453,7 +452,7 @@ func PostFileUpload(c *gin.Context) {
 	}
 	fileNum, err := ioutil.ReadDir(tempDir)
 	if err != nil {
-		c.JSON(common_err.ERROR, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 	if totalChunks == len(fileNum) {
@@ -461,7 +460,7 @@ func PostFileUpload(c *gin.Context) {
 		file.RMDir(tempDir)
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary copy or move file
@@ -475,14 +474,14 @@ func PostFileUpload(c *gin.Context) {
 func PostOperateFileOrDir(c *gin.Context) {
 
 	list := model.FileOperate{}
-	c.BindJSON(&list)
+	c.ShouldBind(&list)
 
 	if len(list.Item) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if list.To == list.Item[0].From[:strings.LastIndex(list.Item[0].From, "/")] {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.SOURCE_DES_SAME, Message: common_err.GetMsg(common_err.SOURCE_DES_SAME)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SOURCE_DES_SAME, Message: common_err.GetMsg(common_err.SOURCE_DES_SAME)})
 		return
 	}
 
@@ -512,7 +511,7 @@ func PostOperateFileOrDir(c *gin.Context) {
 
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary delete file
@@ -526,9 +525,9 @@ func PostOperateFileOrDir(c *gin.Context) {
 func DeleteFile(c *gin.Context) {
 
 	paths := []string{}
-	c.BindJSON(&paths)
+	c.ShouldBind(&paths)
 	if len(paths) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	//	path := c.Query("path")
@@ -538,12 +537,12 @@ func DeleteFile(c *gin.Context) {
 	for _, v := range paths {
 		err := os.RemoveAll(v)
 		if err != nil {
-			c.JSON(http.StatusOK, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR), Data: err})
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR), Data: err})
 			return
 		}
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary update file
@@ -558,26 +557,26 @@ func DeleteFile(c *gin.Context) {
 func PutFileContent(c *gin.Context) {
 
 	fi := model.FileUpdate{}
-	c.BindJSON(&fi)
+	c.ShouldBind(&fi)
 
 	// path := c.PostForm("path")
 	// content := c.PostForm("content")
 	if !file.Exists(fi.FilePath) {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 		return
 	}
 	//err := os.Remove(path)
 	err := os.RemoveAll(fi.FilePath)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR), Data: err})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR), Data: err})
 		return
 	}
 	err = file.CreateFileAndWriteContent(fi.FilePath, fi.FileContent)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary image thumbnail/original image
@@ -593,13 +592,13 @@ func GetFileImage(c *gin.Context) {
 	t := c.Query("type")
 	path := c.Query("path")
 	if !file.Exists(path) {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 		return
 	}
 	if t == "thumbnail" {
 		f, err := file.GetImage(path, 100, 0)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 			return
 		}
 		c.Writer.WriteString(string(f))
@@ -607,13 +606,13 @@ func GetFileImage(c *gin.Context) {
 	}
 	f, err := os.Open(path)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 	defer f.Close()
 	data, err := ioutil.ReadAll(f)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 	c.Writer.WriteString(string(data))
@@ -638,5 +637,5 @@ func DeleteOperateFileOrDir(c *gin.Context) {
 	}
 
 	go service.MyService.Notify().SendFileOperateNotify(true)
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }

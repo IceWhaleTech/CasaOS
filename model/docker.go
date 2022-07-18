@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-12-08 18:10:25
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-14 17:20:36
+ * @LastEditTime: 2022-07-13 10:49:16
  * @FilePath: /CasaOS/model/docker.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -11,8 +11,8 @@
 package model
 
 type DockerStatsModel struct {
-	Icon  string      `json:"icon"`
-	Title string      `json:"title"`
-	Data  interface{} `json:"data"`
-	Pre   interface{} `json:"pre"` // @tiger - pre 不知道什么意思，可以提高一下描述性
+	Icon     string      `json:"icon"`
+	Title    string      `json:"title"`
+	Data     interface{} `json:"data"`
+	Previous interface{} `json:"previous"`
 }

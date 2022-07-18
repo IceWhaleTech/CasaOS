@@ -156,19 +156,32 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 
 	for _, m := range containers {
 		if m.Labels["casaos"] == "casaos" {
+
 			_, newVersion := NewVersionApp[m.ID]
+			name := strings.ReplaceAll(m.Names[0], "/", "")
+			icon := m.Labels["icon"]
+			if len(m.Labels["name"]) > 0 {
+				name = m.Labels["name"]
+			}
+			if m.Labels["origin"] == "system" {
+				name = strings.Split(m.Image, ":")[0]
+				if len(strings.Split(name, "/")) > 1 {
+					icon = "https://icon.casaos.io/main/all/" + strings.Split(name, "/")[1] + ".png"
+				}
+			}
+
 			list = append(list, model2.MyAppList{
-				Name:     m.Labels["name"],
-				Icon:     m.Labels["icon"],
+				Name:     name,
+				Icon:     icon,
 				State:    m.State,
 				CustomId: m.Labels["custom_id"],
 				Id:       m.ID,
 				Port:     m.Labels["web"],
 				Index:    m.Labels["index"],
 				//Order:      m.Labels["order"],
-				Image:      m.Image,
-				NewVersion: newVersion,
-				Type:       m.Labels["origin"],
+				Image:  m.Image,
+				Latest: newVersion,
+				//Type:   m.Labels["origin"],
 				//Slogan: m.Slogan,
 				//Rely:     m.Rely,
 				Host:     m.Labels["host"],
@@ -176,16 +189,16 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 			})
 		} else {
 			unTranslation = append(unTranslation, model2.MyAppList{
-				Name:       strings.ReplaceAll(m.Names[0], "/", ""),
-				Icon:       "",
-				State:      m.State,
-				CustomId:   m.ID,
-				Id:         m.ID,
-				Port:       "",
-				NewVersion: false,
-				Host:       "",
-				Protocol:   "",
-				Image:      m.Image,
+				Name:     strings.ReplaceAll(m.Names[0], "/", ""),
+				Icon:     "",
+				State:    m.State,
+				CustomId: m.ID,
+				Id:       m.ID,
+				Port:     "",
+				Latest:   false,
+				Host:     "",
+				Protocol: "",
+				Image:    m.Image,
 			})
 		}
 	}
@@ -397,20 +410,26 @@ func (a *appStruct) GetHardwareUsageStream() {
 	fts := filters.NewArgs()
 	fts.Add("label", "casaos=casaos")
 	//fts.Add("status", "running")
-
+	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
+	if err != nil {
+		loger.Error("Failed to get container_list", zap.Any("err", err))
+	}
 	for i := 0; i < 100; i++ {
+		if i%10 == 0 {
+			containers, err = cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
+			if err != nil {
+				loger.Error("Failed to get container_list", zap.Any("err", err))
+				continue
+			}
+		}
 		if config.CasaOSGlobalVariables.AppChange {
 			config.CasaOSGlobalVariables.AppChange = false
-
 			dataStats.Range(func(key, value interface{}) bool {
 				dataStats.Delete(key)
 				return true
 			})
 		}
-		containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
-		if err != nil {
-			loger.Error("Failed to get container_list", zap.Any("err", err))
-		}
+
 		var temp sync.Map
 		var wg sync.WaitGroup
 		for _, v := range containers {
@@ -432,7 +451,7 @@ func (a *appStruct) GetHardwareUsageStream() {
 				m, _ := dataStats.Load(v.ID)
 				dockerStats := model.DockerStatsModel{}
 				if m != nil {
-					dockerStats.Pre = m.(model.DockerStatsModel).Data
+					dockerStats.Previous = m.(model.DockerStatsModel).Data
 				}
 				dockerStats.Data = data
 				dockerStats.Icon = v.Labels["icon"]

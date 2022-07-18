@@ -1,5 +1,3 @@
-// 这是一个用来反馈 API 设计的 PR，不要 merge
-
 package route
 
 import (
@@ -34,14 +32,14 @@ func InitRouter() *gin.Engine {
 	//	c.Redirect(http.StatusMovedPermanently, "ui/")
 	//})
 
-	r.POST("/v1/user/register", v1.PostUserRegister)
-	r.POST("/v1/user/login", v1.PostUserLogin)
+	r.POST("/v1/users/register", v1.PostUserRegister)
+	r.POST("/v1/users/login", v1.PostUserLogin)
 	r.GET("/v1/users/name", v1.GetUserAllUsername) //all/name
 	r.POST("/v1/user/refresh", v1.PostUserRefreshToken)
 	// No short-term modifications
-	r.GET("/v1/user/image", v1.GetUserImage)
+	r.GET("/v1/users/image", v1.GetUserImage)
 
-	r.GET("/v1/user/status", v1.GetUserStatus) //init/check
+	r.GET("/v1/users/status", v1.GetUserStatus) //init/check
 	//r.GET("/v1/guide/check", v1.GetGuideCheck)         // /v1/sys/guide_check
 	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
 
@@ -51,41 +49,33 @@ func InitRouter() *gin.Engine {
 
 	v1Group.Use(jwt2.JWT())
 	{
-		v1UserGroup := v1Group.Group("/user")
-		v1UserGroup.Use()
-		{
-
-			v1UserGroup.GET("/current", v1.GetUserInfo)
-			v1UserGroup.PUT("/current", v1.PutUserInfo)
-
-			v1UserGroup.GET("/current/custom/:key", v1.GetUserCustomConf)
-			v1UserGroup.POST("/current/custom/:key", v1.PostUserCustomConf)
-			v1UserGroup.DELETE("/current/custom/:key", v1.DeleteUserCustomConf)
-
-			v1UserGroup.POST("/current/image/:key", v1.PostUserUploadImage)
-			//v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
-			v1UserGroup.DELETE("/current/image", v1.DeleteUserImage)
-
-			//v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
-			//v1UserGroup.GET("/avatar", v1.GetUserAvatar)
-			v1UserGroup.DELETE("/:id", v1.DeleteUser)
-			v1UserGroup.GET("/:username", v1.GetUserInfoByUsername)
-
-		}
 		v1UsersGroup := v1Group.Group("/users")
 		v1UsersGroup.Use()
 		{
+			v1UsersGroup.GET("/current", v1.GetUserInfo)
+			v1UsersGroup.PUT("/current", v1.PutUserInfo)
+			v1UsersGroup.PUT("/current/password", v1.PutUserPassword)
+
+			v1UsersGroup.GET("/current/custom/:key", v1.GetUserCustomConf)
+			v1UsersGroup.POST("/current/custom/:key", v1.PostUserCustomConf)
+			v1UsersGroup.DELETE("/current/custom/:key", v1.DeleteUserCustomConf)
+
+			v1UsersGroup.POST("/current/image/:key", v1.PostUserUploadImage)
+			//v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
+			v1UsersGroup.DELETE("/current/image", v1.DeleteUserImage)
+
+			//v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
+			//v1UserGroup.GET("/avatar", v1.GetUserAvatar)
+			v1UsersGroup.DELETE("/:id", v1.DeleteUser)
+			v1UsersGroup.GET("/:username", v1.GetUserInfoByUsername)
 			v1UsersGroup.DELETE("", v1.DeleteUserAll)
 		}
-		v1AppGroup := v1Group.Group("/app")
-		v1AppGroup.Use()
-		{
-			v1AppGroup.GET("/:id", v1.AppInfo)
-		}
+
 		v1AppsGroup := v1Group.Group("/apps")
 		v1AppsGroup.Use()
 		{
 			v1AppsGroup.GET("", v1.AppList) //list
+			v1AppsGroup.GET("/:id", v1.AppInfo)
 		}
 		v1ContainerGroup := v1Group.Group("/container")
 		v1ContainerGroup.Use()
@@ -127,6 +117,7 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.GET("/hardware", v1.GetSystemHardwareInfo) //hardware/info
 
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
+			v1SysGroup.POST("/ssh-login", v1.PostSshLogin)
 			//v1SysGroup.GET("/config", v1.GetSystemConfig) //delete
 			//v1SysGroup.POST("/config", v1.PostSetSystemConfig)
 			v1SysGroup.GET("/logs", v1.GetCasaOSErrorLogs) //error/logs
@@ -134,15 +125,19 @@ func InitRouter() *gin.Engine {
 			//v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)//delete
 
 			v1SysGroup.POST("/stop", v1.PostKillCasaOS)
-			v1SysGroup.GET("/utilization", v1.GetSystemUtilization)
 
-			v1SysGroup.GET("/cpu", v1.GetSystemCupInfo)
-			v1SysGroup.GET("/mem", v1.GetSystemMemInfo)
-			v1SysGroup.GET("/disk", v1.GetSystemDiskInfo)
-			v1SysGroup.GET("/network", v1.GetSystemNetInfo)
+			v1SysGroup.GET("/utilization", v1.GetSystemUtilization)
+			// v1SysGroup.GET("/cpu", v1.GetSystemCupInfo)
+			// v1SysGroup.GET("/mem", v1.GetSystemMemInfo)
+			// v1SysGroup.GET("/disk", v1.GetSystemDiskInfo)
+			// v1SysGroup.GET("/network", v1.GetSystemNetInfo)
+
 			v1SysGroup.PUT("/usb-auto-mount", v1.PutSystemUSBAutoMount) ///sys/usb/:status
 			v1SysGroup.GET("/usb-auto-mount", v1.GetSystemUSBAutoMount) ///sys/usb/status
 
+			v1SysGroup.GET("/server-info", nil)
+			v1SysGroup.PUT("/server-info", nil)
+			v1SysGroup.GET("/apps-state", v1.GetSystemAppsStatus)
 			v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
 		}
@@ -156,9 +151,9 @@ func InitRouter() *gin.Engine {
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()
 		{
-			v1FileGroup.GET("/", v1.GetDownloadSingleFile) //download/:path
-			v1FileGroup.POST("/", v1.PostCreateFile)
-			v1FileGroup.PUT("/", v1.PutFileContent)
+			v1FileGroup.GET("", v1.GetDownloadSingleFile) //download/:path
+			v1FileGroup.POST("", v1.PostCreateFile)
+			v1FileGroup.PUT("", v1.PutFileContent)
 			v1FileGroup.PUT("/name", v1.RenamePath)
 			//file/rename
 			v1FileGroup.GET("/content", v1.GetFilerContent) //file/read
@@ -172,32 +167,32 @@ func InitRouter() *gin.Engine {
 		v1FolderGroup.Use()
 		{
 			v1FolderGroup.PUT("/name", v1.RenamePath)
-			v1FolderGroup.GET("/", v1.DirPath)   ///file/dirpath
-			v1FolderGroup.POST("/", v1.MkdirAll) ///file/mkdir
+			v1FolderGroup.GET("", v1.DirPath)   ///file/dirpath
+			v1FolderGroup.POST("", v1.MkdirAll) ///file/mkdir
 		}
 		v1BatchGroup := v1Group.Group("/batch")
 		v1BatchGroup.Use()
 		{
 
-			v1BatchGroup.DELETE("/", v1.DeleteFile) //file/delete
+			v1BatchGroup.DELETE("", v1.DeleteFile) //file/delete
 			v1BatchGroup.DELETE("/:id/task", v1.DeleteOperateFileOrDir)
 			v1BatchGroup.POST("/task", v1.PostOperateFileOrDir) //file/operate
-			v1BatchGroup.GET("/", v1.GetDownloadFile)
+			v1BatchGroup.GET("", v1.GetDownloadFile)
 		}
 		v1ImageGroup := v1Group.Group("/image")
 		v1ImageGroup.Use()
 		{
-			v1ImageGroup.GET("/", v1.GetFileImage)
+			v1ImageGroup.GET("", v1.GetFileImage)
 		}
 
-		v1DiskGroup := v1Group.Group("/disk")
-		v1DiskGroup.Use()
+		v1DisksGroup := v1Group.Group("/disks")
+		v1DisksGroup.Use()
 		{
 			//v1DiskGroup.GET("/check", v1.GetDiskCheck) //delete
-			v1DiskGroup.GET("/", v1.GetDiskInfo)
+			//v1DisksGroup.GET("", v1.GetDiskInfo)
 
-			v1DiskGroup.POST("/", v1.PostMountDisk)
-
+			//v1DisksGroup.POST("", v1.PostMountDisk)
+			v1DisksGroup.GET("", v1.GetDiskList)
 			// //format storage
 			// v1DiskGroup.POST("/format", v1.PostDiskFormat)
 
@@ -209,24 +204,18 @@ func InitRouter() *gin.Engine {
 
 			//v1DiskGroup.GET("/type", v1.FormatDiskType)//delete
 
-			v1DiskGroup.DELETE("/part", v1.RemovePartition) //disk/delpart
+			v1DisksGroup.DELETE("/part", v1.RemovePartition) //disk/delpart
 		}
 
 		v1StorageGroup := v1Group.Group("/storage")
 		v1StorageGroup.Use()
 		{
-			v1StorageGroup.POST("/", v1.PostDiskAddPartition)
-			//v1StorageGroup.GET("/", v1.GetStorageList)
-		}
+			v1StorageGroup.POST("", v1.PostDiskAddPartition)
 
-		v1DisksGroup := v1Group.Group("/disks")
-		v1DisksGroup.Use()
-		{
-			//v1UsbGroup.GET("/", v1.GetUSBList)
-			v1DisksGroup.GET("/", v1.GetDiskList)
-		}
+			v1StorageGroup.PUT("", v1.PostDiskFormat)
 
-		v1Group.GET("/sync/config", v1.GetSyncConfig)
+			v1StorageGroup.DELETE("", v1.PostDiskUmount)
+		}
 	}
 	return r
 }

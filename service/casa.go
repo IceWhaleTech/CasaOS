@@ -14,18 +14,19 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 )
 
 type CasaService interface {
-	GetServerList(index, size, tp, categoryId, key string) model.ServerAppListCollection
-	GetServerCategoryList() []model.CategoryList
-	GetServerAppInfo(id, t string, language string) model.ServerAppList
+	GetServerList(index, size, tp, categoryId, key string) (model.ServerAppListCollection, error)
+	GetServerCategoryList() (list []model.CategoryList, err error)
+	GetServerAppInfo(id, t string, language string) (model.ServerAppList, error)
 	ShareAppFile(body []byte) string
 	GetCasaosVersion() model.Version
-	AsyncGetServerList() (collection model.ServerAppListCollection)
-	AsyncGetServerCategoryList() []model.CategoryList
+	AsyncGetServerList() (collection model.ServerAppListCollection, err error)
+	AsyncGetServerCategoryList() ([]model.CategoryList, error)
 }
 
 type casaService struct {
@@ -40,7 +41,7 @@ func (o *casaService) ShareAppFile(body []byte) string {
 	return content
 }
 
-func (o *casaService) GetServerList(index, size, tp, categoryId, key string) model.ServerAppListCollection {
+func (o *casaService) GetServerList(index, size, tp, categoryId, key string) (model.ServerAppListCollection, error) {
 
 	keyName := fmt.Sprintf("list_%s_%s_%s_%s_%s", index, size, tp, categoryId, "en")
 	collection := model.ServerAppListCollection{}
@@ -48,7 +49,7 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key string) mod
 		res, ok := result.(string)
 		if ok {
 			json2.Unmarshal([]byte(res), &collection)
-			return collection
+			return collection, nil
 		}
 	}
 
@@ -57,7 +58,10 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key string) mod
 	err := json2.Unmarshal(collectionStr, &collection)
 	if err != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(collectionStr)))
-		collection = o.AsyncGetServerList()
+		collection, err = o.AsyncGetServerList()
+		if err != nil {
+			return collection, err
+		}
 	}
 
 	go o.AsyncGetServerList()
@@ -116,20 +120,20 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key string) mod
 		Cache.Set(keyName, string(by), time.Minute*10)
 	}
 
-	return collection
+	return collection, nil
 
 }
 
-func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollection) {
+func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollection, err error) {
 
 	results := file.ReadFullFile(config.AppInfo.DBPath + "/app_list.json")
-	err := json2.Unmarshal(results, &collection)
+	err = json2.Unmarshal(results, &collection)
 	if err != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
 	}
 
 	if collection.Version == o.GetCasaosVersion().Version {
-		return collection
+		return collection, err
 	}
 
 	head := make(map[string]string)
@@ -181,33 +185,36 @@ func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollec
 // 	return list
 // }
 
-func (o *casaService) GetServerCategoryList() (list []model.CategoryList) {
+func (o *casaService) GetServerCategoryList() (list []model.CategoryList, err error) {
 	category := model.ServerCategoryList{}
 	results := file.ReadFullFile(config.AppInfo.DBPath + "/app_category.json")
-	err := json2.Unmarshal(results, &category)
+	err = json2.Unmarshal(results, &category)
 	if err != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
 		return o.AsyncGetServerCategoryList()
 	}
 	go o.AsyncGetServerCategoryList()
-	return category.Item
+	return category.Item, err
 }
 
-func (o *casaService) AsyncGetServerCategoryList() []model.CategoryList {
+func (o *casaService) AsyncGetServerCategoryList() ([]model.CategoryList, error) {
 	list := model.ServerCategoryList{}
 	results := file.ReadFullFile(config.AppInfo.DBPath + "/app_category.json")
 	err := json2.Unmarshal(results, &list)
 	if err != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
-	}
-
-	if list.Version == o.GetCasaosVersion().Version {
-		return nil
+	} else {
+		if list.Version == o.GetCasaosVersion().Version {
+			return list.Item, nil
+		}
 	}
 	item := []model.CategoryList{}
 	head := make(map[string]string)
 	head["Authorization"] = GetToken()
 	listS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/category", head)
+	if len(listS) == 0 {
+		return item, errors.New("server error")
+	}
 	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &item)
 	if len(item) > 0 {
 		list.Version = o.GetCasaosVersion().Version
@@ -218,10 +225,10 @@ func (o *casaService) AsyncGetServerCategoryList() []model.CategoryList {
 		}
 		file.WriteToPath(by, config.AppInfo.DBPath, "app_category.json")
 	}
-	return item
+	return item, nil
 }
 
-func (o *casaService) GetServerAppInfo(id, t string, language string) model.ServerAppList {
+func (o *casaService) GetServerAppInfo(id, t string, language string) (model.ServerAppList, error) {
 
 	head := make(map[string]string)
 
@@ -229,9 +236,12 @@ func (o *casaService) GetServerAppInfo(id, t string, language string) model.Serv
 	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/info/"+id+"?t="+t+"&language="+language, head)
 
 	info := model.ServerAppList{}
+	if infoS == "" {
+		return info, errors.New("server error")
+	}
 	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
 
-	return info
+	return info, nil
 }
 func GetToken() string {
 	t := make(chan string)
