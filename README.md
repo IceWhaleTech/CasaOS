@@ -43,7 +43,7 @@
         <img alt="CasaOS GitHub Discussions" src="https://img.shields.io/github/discussions/IceWhaleTech/CasaOS?color=162453&style=flat-square&label=Discussions&logo=github" />
     </a>
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#credits"><img alt="All Contributors" src="https://img.shields.io/static/v1?label=All%20Contributors&message=1&color=162453&style=flat-square&logo=Handshake&logoColor=fff" /></a>
+<a href="#credits"><img alt="All Contributors" src="https://img.shields.io/static/v1?label=All%20Contributors&message=2&color=162453&style=flat-square&logo=Handshake&logoColor=fff" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
     <br/>
     <!-- CasaOS Links -->
@@ -207,11 +207,13 @@ Everyone's contribution is greatly appreciated. ([Emoji Key](https://allcontribu
 <table>
   <tr>
     <td align="center"><a href="https://github.com/jerrykuku"><img src="https://avatars.githubusercontent.com/u/9485680?v=4?s=100" width="100px;" alt=""/><br /><sub><b>老竭力</b></sub></a><br /><a href="https://github.com/IceWhaleTech/CasaOS/commits?author=jerrykuku" title="Code">💻</a> <a href="https://github.com/IceWhaleTech/CasaOS/commits?author=jerrykuku" title="Documentation">📖</a> <a href="#ideas-jerrykuku" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-jerrykuku" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-jerrykuku" title="Maintenance">🚧</a> <a href="#platform-jerrykuku" title="Packaging/porting to new platform">📦</a> <a href="#question-jerrykuku" title="Answering Questions">💬</a> <a href="https://github.com/IceWhaleTech/CasaOS/pulls?q=is%3Apr+reviewed-by%3Ajerrykuku" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/LinkLeong"><img src="https://avatars.githubusercontent.com/u/13556972?v=4?s=100" width="100px;" alt=""/><br /><sub><b>link</b></sub></a><br /><a href="https://github.com/IceWhaleTech/CasaOS/commits?author=LinkLeong" title="Code">💻</a> <a href="https://github.com/IceWhaleTech/CasaOS/commits?author=LinkLeong" title="Documentation">📖</a> <a href="#ideas-LinkLeong" title="Ideas, Planning, & Feedback">🤔</a> <a href="#infra-LinkLeong" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="#maintenance-LinkLeong" title="Maintenance">🚧</a> <a href="#question-LinkLeong" title="Answering Questions">💬</a> <a href="https://github.com/IceWhaleTech/CasaOS/pulls?q=is%3Apr+reviewed-by%3ALinkLeong" title="Reviewed Pull Requests">👀</a></td>
   </tr>
 </table>
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
