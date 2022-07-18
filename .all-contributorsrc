@@ -66,6 +66,25 @@
         "question",
         "test"
       ]
+    },
+    {
+      "login": "JohnGuan",
+      "name": "John Guan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3358477?v=4",
+      "profile": "https://JohnGuan.Cn",
+      "contributions": [
+        "bug",
+        "blog",
+        "content",
+        "doc",
+        "ideas",
+        "eventOrganizing",
+        "mentoring",
+        "question",
+        "translation",
+        "review",
+        "video"
+      ]
     }
   ],
   "contributorsPerLine": 7,
