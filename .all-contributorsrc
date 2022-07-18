@@ -21,6 +21,21 @@
         "question",
         "review"
       ]
+    },
+    {
+      "login": "LinkLeong",
+      "name": "link",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13556972?v=4",
+      "profile": "https://github.com/LinkLeong",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "infra",
+        "maintenance",
+        "question",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
