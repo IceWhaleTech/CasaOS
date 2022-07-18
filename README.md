@@ -49,11 +49,13 @@
     <br/>
     <br/>
     <!-- CasaOS Snapshots -->
-    <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="snapshot-dark.jpg">
-        <source media="(prefers-color-scheme: light)" srcset="snapshot-light.jpg">
-        <img style="border-radius: 8px; filter: drop-shadow(0px 2px 4px black);" alt="CasaOS Snapshot" src="snapshot-light.jpg">
-    </picture>
+    <kbd>
+      <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="snapshot-dark.jpg">
+          <source media="(prefers-color-scheme: light)" srcset="snapshot-light.jpg">
+          <img alt="CasaOS Snapshot" src="snapshot-light.jpg">
+      </picture>
+    </kbd>
 </p>
 
 ## Why do we need Home Cloud?
@@ -68,6 +70,8 @@ Think about it seriously. Is control of our data, smart devices and digital asse
 It sounds ridiculous, doesn't it? We are losing control of our own data!
 
 Our ideal home cloud is one where you can manage all your data, devices and data assets very easily. In your own home, you have absolute control.
+
+> If you think what we are doing is valuable. Please **give us a star ⭐** and **fork it 🤞**!
 
 ## Features
 
