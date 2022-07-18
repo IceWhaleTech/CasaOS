@@ -108,6 +108,18 @@
         "tutorial",
         "translation"
       ]
+    },
+    {
+      "login": "AuthorShin",
+      "name": "AuthorShin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4959043?v=4",
+      "profile": "https://github.com/AuthorShin",
+      "contributions": [
+        "test",
+        "bug",
+        "question",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
