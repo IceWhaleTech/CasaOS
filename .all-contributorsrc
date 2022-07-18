@@ -36,6 +36,23 @@
         "question",
         "review"
       ]
+    },
+    {
+      "login": "tigerinus",
+      "name": "Tiger Wang (王豫)",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7172560?v=4",
+      "profile": "https://github.com/tigerinus",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "infra",
+        "maintenance",
+        "mentoring",
+        "security",
+        "question",
+        "review"
+      ]
     }
   ],
   "contributorsPerLine": 7,
