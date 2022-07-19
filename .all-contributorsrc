@@ -164,6 +164,17 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "Protektor-Desura",
+      "name": "Protektor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1195496?v=4",
+      "profile": "https://github.com/Protektor-Desura",
+      "contributions": [
+        "bug",
+        "ideas",
+        "question"
+      ]
     }
   ],
   "contributorsPerLine": 7,
