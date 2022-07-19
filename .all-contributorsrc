@@ -175,6 +175,17 @@
         "ideas",
         "question"
       ]
+    },
+    {
+      "login": "llwaini",
+      "name": "llwaini",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59589857?v=4",
+      "profile": "https://github.com/llwaini",
+      "contributions": [
+        "projectManagement",
+        "test",
+        "tutorial"
+      ]
     }
   ],
   "contributorsPerLine": 7,
