@@ -146,6 +146,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "sio",
+      "name": "Vitaly Potyarkin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/334908?v=4",
+      "profile": "https://potyarkin.ml",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
