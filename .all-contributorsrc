@@ -137,6 +137,15 @@
         "ideas",
         "question"
       ]
+    },
+    {
+      "login": "Joooost",
+      "name": "Joooost",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12090673?v=4",
+      "profile": "https://github.com/Joooost",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
