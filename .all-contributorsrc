@@ -126,6 +126,17 @@
       "contributions": [
         "translation"
       ]
+    },
+    {
+      "login": "DrMxrcy",
+      "name": "DrMxrcy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/58747968?v=4",
+      "profile": "https://github.com/DrMxrcy",
+      "contributions": [
+        "test",
+        "ideas",
+        "question"
+      ]
     }
   ],
   "contributorsPerLine": 7,
