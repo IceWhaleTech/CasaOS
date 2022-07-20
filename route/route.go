@@ -61,6 +61,7 @@ func InitRouter() *gin.Engine {
 			v1UsersGroup.DELETE("/current/custom/:key", v1.DeleteUserCustomConf)
 
 			v1UsersGroup.POST("/current/image/:key", v1.PostUserUploadImage)
+			v1UsersGroup.PUT("/current/image/:key", v1.PutUserImage)
 			//v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
 			v1UsersGroup.DELETE("/current/image", v1.DeleteUserImage)
 

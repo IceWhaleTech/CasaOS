@@ -275,11 +275,11 @@ func RemovePartition(c *gin.Context) {
 // @Router /disk/storage [post]
 func PostDiskAddPartition(c *gin.Context) {
 
-	js := make(map[string]string)
+	js := make(map[string]interface{})
 	c.ShouldBind(&js)
-	path := js["path"]
-	name := js["name"]
-	format, _ := strconv.ParseBool(js["format"])
+	path := js["path"].(string)
+	name := js["name"].(string)
+	format := js["format"].(bool)
 
 	if len(name) == 0 || len(path) == 0 {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
@@ -303,6 +303,12 @@ func PostDiskAddPartition(c *gin.Context) {
 			return
 		}
 	} else {
+		// format := service.MyService.Disk().FormatDisk(path+"1", "ext4")
+		// if len(format) == 0 {
+		// 	delete(diskMap, path)
+		// 	c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FORMAT_ERROR, Message: common_err.GetMsg(common_err.FORMAT_ERROR)})
+		// 	return
+		// }
 		service.MyService.Disk().AddPartition(path)
 	}
 
@@ -385,13 +391,13 @@ func PostDiskFormat(c *gin.Context) {
 	format := service.MyService.Disk().FormatDisk(path, t)
 	if len(format) == 0 {
 		delete(diskMap, path)
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FORMAT_ERROR, Message: common_err.GetMsg(common_err.FORMAT_ERROR), Data: "22222"})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FORMAT_ERROR, Message: common_err.GetMsg(common_err.FORMAT_ERROR)})
 		return
 	}
 	service.MyService.Disk().MountDisk(path, volume)
 	service.MyService.Disk().RemoveLSBLKCache()
 	delete(diskMap, path)
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: "1111"})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary remove mount point

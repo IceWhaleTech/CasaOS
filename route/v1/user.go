@@ -471,9 +471,9 @@ func DeleteUser(c *gin.Context) {
 /**
  * @description:update user image
  * @method:POST
- * @router:/user/file/image/:key
+ * @router:/user/current/image/:key
  */
-func PostUserFileImage(c *gin.Context) {
+func PutUserImage(c *gin.Context) {
 	id := c.GetHeader("user_id")
 	json := make(map[string]string)
 	c.ShouldBind(&json)
@@ -513,7 +513,7 @@ func PostUserFileImage(c *gin.Context) {
 	data := make(map[string]string, 3)
 	data["path"] = filePath
 	data["file_name"] = key + ext
-	data["online_path"] = "/v1/user/image?path=" + filePath
+	data["online_path"] = "/v1/users/image?path=" + filePath
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
@@ -562,7 +562,7 @@ func PostUserUploadImage(c *gin.Context) {
 	data := make(map[string]string, 3)
 	data["path"] = path
 	data["file_name"] = key + ext
-	data["online_path"] = "/v1/user/image?path=" + path
+	data["online_path"] = "/v1/users/image?path=" + path
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
