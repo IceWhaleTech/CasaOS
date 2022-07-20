@@ -17,18 +17,9 @@ body:
       placeholder: Tell us what you see!
     validations:
       required: true
-  - type: dropdown
-    id: browsers
+  - type: textarea
+    id: screenshots
     attributes:
-      label: What browsers are you seeing the problem on?
-      multiple: true
-      options:
-        - Firefox
-        - Chrome
-        - Safari
-        - Microsoft Edge
-  - type: markdown
-    attributes:
-      value: |
-        ## Screenshots
-        If applicable, please add a screenshot to the comments to help explain your question.
+      label: Screenshots
+      description: If applicable, add screenshots to help explain your problem.
+
