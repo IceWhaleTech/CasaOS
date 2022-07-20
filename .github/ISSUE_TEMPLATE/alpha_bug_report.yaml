@@ -22,4 +22,5 @@ body:
     attributes:
       label: Screenshots
       description: If applicable, add screenshots to help explain your problem.
+      placeholder: Screenshots would be very helpful!
 
