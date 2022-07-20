@@ -1,5 +1,5 @@
 name: [Alpha] Bug Report
-description: CasaOS Alpha Testing specific bug report form
+description: CasaOS Alpha Testing specific bug report form.
 title: "[Alpha][Bug]: "
 labels: ["alpha", "bug"]
 body:
@@ -17,13 +17,6 @@ body:
       placeholder: Tell us what you see!
     validations:
       required: true
-  # - type: textarea
-  #   id: how-to-reproduce
-  #   attributes:
-  #     label: How to Reproduce
-  #     description: Detailed steps to reproduce the behavior.
-  #   validations:
-  #     required: true
   - type: dropdown
     id: browsers
     attributes:
