@@ -19,6 +19,7 @@ jobs:
           private_key: ${{ secrets.ALPHA_BOT_PEM }}
 
       - name: Add Issue To GitHub Projects Beta
+        uses: actions/add-to-project@v0.1.0
         with:
           project-url: https://github.com/orgs/IceWhaleTech/projects/5
           github-token: ${{ steps.generate_token.outputs.token }}
