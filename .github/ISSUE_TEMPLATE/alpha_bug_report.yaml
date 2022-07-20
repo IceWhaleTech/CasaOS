@@ -1,4 +1,4 @@
-name: "[Alpha] Bug Report"
+name: "[Alpha Only] Bug Report"
 description: CasaOS Alpha Testing specific bug report form.
 title: "[Alpha][Bug]: "
 labels: ["alpha", "bug"]
