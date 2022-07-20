@@ -1,0 +1,41 @@
+name: [Alpha] Bug Report
+description: CasaOS Alpha Testing specific bug report form
+title: "[Alpha][Bug]: "
+labels: ["alpha", "bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+        > If you haven't joined CasaOS Alpha Team yet.
+        > Please join first on [Discord](https://discord.gg/knqAbbBbeX) to be updated on the Alpha test plan and test scope.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Also tell us, what did you expect to happen?
+      placeholder: Tell us what you see!
+    validations:
+      required: true
+  # - type: textarea
+  #   id: how-to-reproduce
+  #   attributes:
+  #     label: How to Reproduce
+  #     description: Detailed steps to reproduce the behavior.
+  #   validations:
+  #     required: true
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: What browsers are you seeing the problem on?
+      multiple: true
+      options:
+        - Firefox
+        - Chrome
+        - Safari
+        - Microsoft Edge
+  - type: markdown
+    attributes:
+      value: |
+        ## Screenshots
+        If applicable, please add a screenshot to the comments to help explain your question.
