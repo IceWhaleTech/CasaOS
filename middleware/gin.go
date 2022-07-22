@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-10-08 10:29:08
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-13 11:26:12
+ * @LastEditTime: 2022-07-22 11:06:07
  * @FilePath: /CasaOS/middleware/gin.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -13,6 +13,7 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/gin-gonic/gin"
@@ -52,7 +53,10 @@ func Cors() gin.HandlerFunc {
 }
 func WriteLog() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		loger.Info("request:", zap.Any("path", c.Request.URL.String()), zap.Any("param", c.Params), zap.Any("query", c.Request.URL.Query()), zap.Any("body", c.Request.Body), zap.Any("method", c.Request.Method))
-		c.Next()
+		if !strings.Contains(c.Request.URL.String(), "password") {
+			loger.Info("request:", zap.Any("path", c.Request.URL.String()), zap.Any("param", c.Params), zap.Any("query", c.Request.URL.Query()), zap.Any("method", c.Request.Method))
+			c.Next()
+		}
+
 	}
 }
