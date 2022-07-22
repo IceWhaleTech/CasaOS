@@ -1,0 +1,197 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "badgeTemplate": "<a href=\"#credits\"><img alt=\"All Contributors\" src=\"https://img.shields.io/static/v1?label=All%20Contributors&message=<%= contributors.length %>&color=162453&style=flat-square&logo=Handshake&logoColor=fff\" /></a>",
+  "commit": false,
+  "contributors": [
+    {
+      "login": "jerrykuku",
+      "name": "老竭力",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9485680?v=4",
+      "profile": "https://github.com/jerrykuku",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "infra",
+        "maintenance",
+        "platform",
+        "question",
+        "review"
+      ]
+    },
+    {
+      "login": "LinkLeong",
+      "name": "link",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13556972?v=4",
+      "profile": "https://github.com/LinkLeong",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "infra",
+        "maintenance",
+        "question",
+        "review"
+      ]
+    },
+    {
+      "login": "tigerinus",
+      "name": "Tiger Wang (王豫)",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7172560?v=4",
+      "profile": "https://github.com/tigerinus",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas",
+        "infra",
+        "maintenance",
+        "mentoring",
+        "security",
+        "question",
+        "review"
+      ]
+    },
+    {
+      "login": "Lauren-ED209",
+      "name": "Lauren",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8243355?v=4",
+      "profile": "https://github.com/Lauren-ED209",
+      "contributions": [
+        "ideas",
+        "fundingFinding",
+        "projectManagement",
+        "question",
+        "test"
+      ]
+    },
+    {
+      "login": "JohnGuan",
+      "name": "John Guan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3358477?v=4",
+      "profile": "https://JohnGuan.Cn",
+      "contributions": [
+        "blog",
+        "content",
+        "doc",
+        "ideas",
+        "eventOrganizing",
+        "mentoring",
+        "question",
+        "review"
+      ]
+    },
+    {
+      "login": "dtaivpp",
+      "name": "David Tippett",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17506770?v=4",
+      "profile": "https://blog.tippybits.com",
+      "contributions": [
+        "doc",
+        "ideas",
+        "question"
+      ]
+    },
+    {
+      "login": "zarevskaya",
+      "name": "Skaya",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60230221?v=4",
+      "profile": "https://github.com/zarevskaya",
+      "contributions": [
+        "mentoring",
+        "question",
+        "tutorial",
+        "translation"
+      ]
+    },
+    {
+      "login": "AuthorShin",
+      "name": "AuthorShin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4959043?v=4",
+      "profile": "https://github.com/AuthorShin",
+      "contributions": [
+        "test",
+        "bug",
+        "question",
+        "ideas"
+      ]
+    },
+    {
+      "login": "baptiste313",
+      "name": "baptiste313",
+      "avatar_url": "https://avatars.githubusercontent.com/u/93325157?v=4",
+      "profile": "https://github.com/baptiste313",
+      "contributions": [
+        "translation"
+      ]
+    },
+    {
+      "login": "DrMxrcy",
+      "name": "DrMxrcy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/58747968?v=4",
+      "profile": "https://github.com/DrMxrcy",
+      "contributions": [
+        "test",
+        "ideas",
+        "question"
+      ]
+    },
+    {
+      "login": "Joooost",
+      "name": "Joooost",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12090673?v=4",
+      "profile": "https://github.com/Joooost",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "sio",
+      "name": "Vitaly Potyarkin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/334908?v=4",
+      "profile": "https://potyarkin.ml",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "bearfrieze",
+      "name": "Bjørn Friese",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1023813?v=4",
+      "profile": "https://github.com/bearfrieze",
+      "contributions": [
+        "ideas"
+      ]
+    },
+    {
+      "login": "Protektor-Desura",
+      "name": "Protektor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1195496?v=4",
+      "profile": "https://github.com/Protektor-Desura",
+      "contributions": [
+        "bug",
+        "ideas",
+        "question"
+      ]
+    },
+    {
+      "login": "llwaini",
+      "name": "llwaini",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59589857?v=4",
+      "profile": "https://github.com/llwaini",
+      "contributions": [
+        "projectManagement",
+        "test",
+        "tutorial"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "CasaOS",
+  "projectOwner": "IceWhaleTech",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
