@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-05-30 17:33:21
+ * @LastEditTime: 2022-07-13 10:56:34
  * @FilePath: /CasaOS/service/model/o_container.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -67,13 +67,12 @@ type MyAppList struct {
 	Index    string `json:"index"`
 	//Order    string `json:"order"`
 	Port   string `json:"port"`
-	UpTime string `json:"up_time"`
 	Slogan string `json:"slogan"`
 	Type   string `json:"type"`
 	//Rely       model.MapStrings `json:"rely"` //[{"mysql":"id"},{"mysql":"id"}]
-	Image      string `json:"image"`
-	Volumes    string `json:"volumes"`
-	NewVersion bool   `json:"new_version"`
-	Host       string `json:"host"`
-	Protocol   string `json:"protocol"`
+	Image    string `json:"image"`
+	Volumes  string `json:"volumes"`
+	Latest   bool   `json:"latest"`
+	Host     string `json:"host"`
+	Protocol string `json:"protocol"`
 }

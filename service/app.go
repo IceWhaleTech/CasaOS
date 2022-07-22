@@ -30,13 +30,13 @@ type AppService interface {
 	SaveContainer(m model2.AppListDBModel)
 	GetUninstallInfo(id string) model2.AppListDBModel
 	DeleteApp(id string)
-	GetContainerInfo(name string) (types.Container, error)
+	GetContainerInfo(id string) (types.Container, error)
 	GetAppDBInfo(id string) model2.AppListDBModel
 	UpdateApp(m model2.AppListDBModel)
-	GetSimpleContainerInfo(name string) (types.Container, error)
+	GetSimpleContainerInfo(id string) (types.Container, error)
 	DelAppConfigDir(path string)
 	GetSystemAppList() []types.Container
-	GetHardwareUsageSteam()
+	GetHardwareUsageStream()
 	GetHardwareUsage() []model.DockerStatsModel
 	GetAppStats(id string) string
 	GetAllDBApps() []model2.AppListDBModel
@@ -156,22 +156,32 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 
 	for _, m := range containers {
 		if m.Labels["casaos"] == "casaos" {
-			if m.Labels["origin"] == "system" {
-				continue
-			}
+
 			_, newVersion := NewVersionApp[m.ID]
+			name := strings.ReplaceAll(m.Names[0], "/", "")
+			icon := m.Labels["icon"]
+			if len(m.Labels["name"]) > 0 {
+				name = m.Labels["name"]
+			}
+			if m.Labels["origin"] == "system" {
+				name = strings.Split(m.Image, ":")[0]
+				if len(strings.Split(name, "/")) > 1 {
+					icon = "https://icon.casaos.io/main/all/" + strings.Split(name, "/")[1] + ".png"
+				}
+			}
+
 			list = append(list, model2.MyAppList{
-				Name:     strings.ReplaceAll(m.Names[0], "/", ""),
-				Icon:     m.Labels["icon"],
+				Name:     name,
+				Icon:     icon,
 				State:    m.State,
 				CustomId: m.Labels["custom_id"],
 				Id:       m.ID,
 				Port:     m.Labels["web"],
 				Index:    m.Labels["index"],
 				//Order:      m.Labels["order"],
-				Image:      m.Image,
-				NewVersion: newVersion,
-				Type:       m.Labels["origin"],
+				Image:  m.Image,
+				Latest: newVersion,
+				//Type:   m.Labels["origin"],
 				//Slogan: m.Slogan,
 				//Rely:     m.Rely,
 				Host:     m.Labels["host"],
@@ -179,16 +189,16 @@ func (a *appStruct) GetMyList(index, size int, position bool) (*[]model2.MyAppLi
 			})
 		} else {
 			unTranslation = append(unTranslation, model2.MyAppList{
-				Name:       strings.ReplaceAll(m.Names[0], "/", ""),
-				Icon:       "",
-				State:      m.State,
-				CustomId:   m.ID,
-				Id:         m.ID,
-				Port:       "",
-				NewVersion: false,
-				Host:       "",
-				Protocol:   "",
-				Image:      m.Image,
+				Name:     strings.ReplaceAll(m.Names[0], "/", ""),
+				Icon:     "",
+				State:    m.State,
+				CustomId: m.ID,
+				Id:       m.ID,
+				Port:     "",
+				Latest:   false,
+				Host:     "",
+				Protocol: "",
+				Image:    m.Image,
 			})
 		}
 	}
@@ -274,14 +284,14 @@ func (a *appStruct) GetAllDBApps() []model2.AppListDBModel {
 }
 
 //获取我的应用列表
-func (a *appStruct) GetContainerInfo(name string) (types.Container, error) {
+func (a *appStruct) GetContainerInfo(id string) (types.Container, error) {
 	//获取docker应用
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
 		loger.Error("Failed to init client", zap.Any("err", err))
 	}
 	filters := filters.NewArgs()
-	filters.Add("name", name)
+	filters.Add("id", id)
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filters})
 	if err != nil {
 		loger.Error("Failed to get container_list", zap.Any("err", err))
@@ -294,7 +304,7 @@ func (a *appStruct) GetContainerInfo(name string) (types.Container, error) {
 
 }
 
-func (a *appStruct) GetSimpleContainerInfo(name string) (types.Container, error) {
+func (a *appStruct) GetSimpleContainerInfo(id string) (types.Container, error) {
 	//获取docker应用
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -302,7 +312,7 @@ func (a *appStruct) GetSimpleContainerInfo(name string) (types.Container, error)
 	}
 	defer cli.Close()
 	filters := filters.NewArgs()
-	filters.Add("name", name)
+	filters.Add("id", id)
 	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: filters})
 	if err != nil {
 		return types.Container{}, err
@@ -366,12 +376,12 @@ func (a *appStruct) GetAppStats(id string) string {
 
 func (a *appStruct) GetHardwareUsage() []model.DockerStatsModel {
 
-	steam := true
+	stream := true
 	for !isFinish {
-		if steam {
-			steam = false
+		if stream {
+			stream = false
 			go func() {
-				a.GetHardwareUsageSteam()
+				a.GetHardwareUsageStream()
 			}()
 		}
 		runtime.Gosched()
@@ -386,7 +396,7 @@ func (a *appStruct) GetHardwareUsage() []model.DockerStatsModel {
 
 }
 
-func (a *appStruct) GetHardwareUsageSteam() {
+func (a *appStruct) GetHardwareUsageStream() {
 
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -400,20 +410,26 @@ func (a *appStruct) GetHardwareUsageSteam() {
 	fts := filters.NewArgs()
 	fts.Add("label", "casaos=casaos")
 	//fts.Add("status", "running")
-
+	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
+	if err != nil {
+		loger.Error("Failed to get container_list", zap.Any("err", err))
+	}
 	for i := 0; i < 100; i++ {
+		if i%10 == 0 {
+			containers, err = cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
+			if err != nil {
+				loger.Error("Failed to get container_list", zap.Any("err", err))
+				continue
+			}
+		}
 		if config.CasaOSGlobalVariables.AppChange {
 			config.CasaOSGlobalVariables.AppChange = false
-
 			dataStats.Range(func(key, value interface{}) bool {
 				dataStats.Delete(key)
 				return true
 			})
 		}
-		containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Filters: fts})
-		if err != nil {
-			loger.Error("Failed to get container_list", zap.Any("err", err))
-		}
+
 		var temp sync.Map
 		var wg sync.WaitGroup
 		for _, v := range containers {
@@ -435,12 +451,14 @@ func (a *appStruct) GetHardwareUsageSteam() {
 				m, _ := dataStats.Load(v.ID)
 				dockerStats := model.DockerStatsModel{}
 				if m != nil {
-					dockerStats.Pre = m.(model.DockerStatsModel).Data
+					dockerStats.Previous = m.(model.DockerStatsModel).Data
 				}
 				dockerStats.Data = data
 				dockerStats.Icon = v.Labels["icon"]
 				dockerStats.Title = strings.ReplaceAll(v.Names[0], "/", "")
 
+				// @tiger - 不建议直接把依赖的数据结构封装返回。
+				//          如果依赖的数据结构有变化，应该在这里适配或者保存，这样更加对客户端负责
 				temp.Store(v.ID, dockerStats)
 				if i == 99 {
 					stats.Body.Close()

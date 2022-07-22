@@ -4,6 +4,7 @@ import (
 	"bytes"
 	json2 "encoding/json"
 	"net/http"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/docker"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/random"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -25,6 +27,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/jinzhu/copier"
 	uuid "github.com/satori/go.uuid"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -41,14 +44,14 @@ func DockerTerminal(c *gin.Context) {
 	row := c.DefaultQuery("rows", "30")
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 	defer conn.Close()
 	container := c.Param("id")
 	hr, err := service.Exec(container, row, col)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 	// 关闭I/O流
@@ -63,14 +66,41 @@ func DockerTerminal(c *gin.Context) {
 	docker.WsReaderCopy(conn, hr.Conn)
 }
 
-//打开本机的ssh接口
-func WsSsh(c *gin.Context) {
-	wsConn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
+func PostSshLogin(c *gin.Context) {
+	j := make(map[string]string)
+	c.ShouldBind(&j)
+	userName := j["username"]
+	password := j["password"]
+	port := j["port"]
+	if userName == "" || password == "" || port == "" {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: "Username or password or port is empty"})
+		return
+	}
+	_, err := docker.NewSshClient(userName, password, port)
+	if err != nil {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: "Please check if the username and port are correct, and make sure that ssh server is installed."})
+		loger.Error("connect ssh error", zap.Any("error", err))
+		return
+	}
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+}
 
+func WsSsh(c *gin.Context) {
+	_, e := exec.LookPath("ssh")
+	if e != nil {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: "ssh server not found"})
+		return
+	}
+
+	userName := c.Query("username")
+	password := c.Query("password")
+	port := c.Query("port")
+	wsConn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
 	var logBuff = new(bytes.Buffer)
+
 	quitChan := make(chan bool, 3)
-	user := ""
-	password := ""
+	// user := ""
+	// password := ""
 	var login int = 1
 	cols, _ := strconv.Atoi(c.DefaultQuery("cols", "200"))
 	rows, _ := strconv.Atoi(c.DefaultQuery("rows", "32"))
@@ -78,14 +108,16 @@ func WsSsh(c *gin.Context) {
 	for login != 0 {
 
 		var err error
-
-		wsConn.WriteMessage(websocket.TextMessage, []byte("login:"))
-		user = docker.ReceiveWsMsgUser(wsConn, logBuff)
-		wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
-		wsConn.WriteMessage(websocket.TextMessage, []byte("password:"))
-		password = docker.ReceiveWsMsgPassword(wsConn, logBuff)
-		wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
-		client, err = docker.NewSshClient(user, password)
+		if userName == "" || password == "" || port == "" {
+			wsConn.WriteMessage(websocket.TextMessage, []byte("username or password or port is empty"))
+		}
+		// wsConn.WriteMessage(websocket.TextMessage, []byte("login:"))
+		// user = docker.ReceiveWsMsgUser(wsConn, logBuff)
+		// wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
+		// wsConn.WriteMessage(websocket.TextMessage, []byte("password:"))
+		// password = docker.ReceiveWsMsgPassword(wsConn, logBuff)
+		// wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
+		client, err = docker.NewSshClient(userName, password, port)
 
 		if err != nil && client == nil {
 			wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
@@ -110,25 +142,6 @@ func WsSsh(c *gin.Context) {
 
 }
 
-//安装进度推送
-func SpeedPush(c *gin.Context) {
-	//token := c.Query("token")
-	//if len(token) == 0 || token != config.UserInfo.Token {
-	//	c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR_AUTH_TOKEN, Message: common_err.GetMsg(common_err.ERROR_AUTH_TOKEN)})
-	//	return
-	//}
-
-	//ws, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
-	//defer ws.Close()
-	//
-	//for {
-	//	select {
-	//	case msg := <-WSMSG:
-	//		ws.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintln(msg)))
-	//	}
-	//}
-}
-
 // @Summary 安装app(该接口需要post json数据)
 // @Produce  application/json
 // @Accept application/json
@@ -144,7 +157,7 @@ func SpeedPush(c *gin.Context) {
 func InstallApp(c *gin.Context) {
 	var appInfo model.ServerAppList
 	m := model.CustomizationPostData{}
-	c.BindJSON(&m)
+	c.ShouldBind(&m)
 
 	const CUSTOM = "custom"
 	var dockerImage string
@@ -154,19 +167,22 @@ func InstallApp(c *gin.Context) {
 	if len(m.Protocol) == 0 {
 		m.Protocol = "http"
 	}
-	if m.Origin != "custom" {
-		oldName := m.Label
+	m.ContainerName = strings.Replace(m.Label, " ", "_", -1)
+	if m.Origin != CUSTOM {
+		oldName := m.ContainerName
+		oldLabel := m.Label
 		for i := 0; true; i++ {
 			if i != 0 {
-				m.Label = oldName + "-" + strconv.Itoa(i)
+				m.ContainerName = oldName + "-" + strconv.Itoa(i)
+				m.Label = oldLabel + "-" + strconv.Itoa(i)
 			}
-			if _, err := service.MyService.Docker().DockerListByName(m.Label); err != nil {
+			if _, err := service.MyService.Docker().DockerListByName(m.ContainerName); err != nil {
 				break
 			}
 		}
 	} else {
-		if _, err := service.MyService.Docker().DockerListByName(m.Label); err == nil {
-			c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR_APP_NAME_EXIST, Message: common_err.GetMsg(common_err.ERROR_APP_NAME_EXIST)})
+		if _, err := service.MyService.Docker().DockerListByName(m.ContainerName); err == nil {
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.ERROR_APP_NAME_EXIST, Message: common_err.GetMsg(common_err.ERROR_APP_NAME_EXIST)})
 			return
 		}
 
@@ -177,7 +193,7 @@ func InstallApp(c *gin.Context) {
 		//c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		portMap, _ := strconv.Atoi(m.PortMap)
 		if !port2.IsPortAvailable(portMap, "tcp") {
-			c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + m.PortMap})
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + m.PortMap})
 			return
 		}
 	}
@@ -199,33 +215,33 @@ func InstallApp(c *gin.Context) {
 		if u.Protocol == "udp" {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
-				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "tcp" {
 
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
-				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "both" {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
-				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
-				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		}
 	}
-	if m.Origin == "custom" {
+	if m.Origin == CUSTOM {
 		for _, device := range m.Devices {
 			if file.CheckNotExist(device.Path) {
-				c.JSON(http.StatusOK, model.Result{Success: common_err.DEVICE_NOT_EXIST, Message: device.Path + "," + common_err.GetMsg(common_err.DEVICE_NOT_EXIST)})
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DEVICE_NOT_EXIST, Message: device.Path + "," + common_err.GetMsg(common_err.DEVICE_NOT_EXIST)})
 				return
 			}
 
@@ -263,7 +279,7 @@ func InstallApp(c *gin.Context) {
 		// installLog.UpdatedAt = strconv.FormatInt(time.Now().Unix(), 10)
 		// installLog.Id = uuid.NewV4().String()
 		// service.MyService.Notify().AddLog(installLog)
-		if m.Origin != "custom" {
+		if m.Origin != CUSTOM {
 			for _, plugin := range appInfo.Plugins {
 				if plugin == "mysql" {
 					mid := uuid.NewV4().String()
@@ -349,7 +365,7 @@ func InstallApp(c *gin.Context) {
 		//		echo -e "hellow\nworld" >>
 
 		//step：启动容器
-		err = service.MyService.Docker().DockerContainerStart(m.Label)
+		err = service.MyService.Docker().DockerContainerStart(m.ContainerName)
 		if err != nil {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":90}", 100)
 			notify := notify.Application{}
@@ -372,7 +388,7 @@ func InstallApp(c *gin.Context) {
 		}
 
 		//step: 启动成功     检查容器状态确认启动成功
-		container, err := service.MyService.Docker().DockerContainerInfo(m.Label)
+		container, err := service.MyService.Docker().DockerContainerInfo(m.ContainerName)
 		if err != nil && container.ContainerJSONBase.State.Running {
 			notify := notify.Application{}
 			notify.Icon = m.Icon
@@ -405,7 +421,7 @@ func InstallApp(c *gin.Context) {
 
 	}()
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: m.Label})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: m.Label})
 
 }
 
@@ -426,7 +442,7 @@ func InstallApp(c *gin.Context) {
 //	//	appInfo := service.MyService.App().GetServerAppInfo(appId)
 //
 //	m := model.CustomizationPostData{}
-//	c.BindJSON(&m)
+//	c.ShouldBind(&m)
 //	//检查端口
 //	if len(m.PortMap) == 0 || m.PortMap == "0" {
 //		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
@@ -603,27 +619,27 @@ func UnInstallApp(c *gin.Context) {
 	appId := c.Param("id")
 
 	if len(appId) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	//info := service.MyService.App().GetUninstallInfo(appId)
 
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 
 	//step：停止容器
 	err = service.MyService.Docker().DockerContainerStop(appId)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.UNINSTALL_APP_ERROR, Message: common_err.GetMsg(common_err.UNINSTALL_APP_ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.UNINSTALL_APP_ERROR, Message: common_err.GetMsg(common_err.UNINSTALL_APP_ERROR), Data: err.Error()})
 		return
 	}
 
 	err = service.MyService.Docker().DockerContainerRemove(appId, false)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.UNINSTALL_APP_ERROR, Message: common_err.GetMsg(common_err.UNINSTALL_APP_ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.UNINSTALL_APP_ERROR, Message: common_err.GetMsg(common_err.UNINSTALL_APP_ERROR), Data: err.Error()})
 		return
 	}
 
@@ -688,7 +704,7 @@ func UnInstallApp(c *gin.Context) {
 	notify.Success = true
 	notify.Finished = true
 	service.MyService.Notify().SendUninstallAppBySocket(notify)
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 
 }
 
@@ -703,26 +719,35 @@ func UnInstallApp(c *gin.Context) {
 // @Router /app/state/{id} [put]
 func ChangAppState(c *gin.Context) {
 	appId := c.Param("id")
-	state := c.DefaultPostForm("state", "stop")
+	js := make(map[string]string)
+	c.ShouldBind(&js)
+	state := js["state"]
+	if len(appId) == 0 || len(state) == 0 {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
+	}
 	var err error
-	if state == "stop" {
-		err = service.MyService.Docker().DockerContainerStop(appId)
-	} else if state == "start" {
+	if state == "start" {
 		err = service.MyService.Docker().DockerContainerStart(appId)
 	} else if state == "restart" {
 		service.MyService.Docker().DockerContainerStop(appId)
 		err = service.MyService.Docker().DockerContainerStart(appId)
+	} else {
+		err = service.MyService.Docker().DockerContainerStop(appId)
 	}
+
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 	info, err := service.MyService.App().GetContainerInfo(appId)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info.State})
+
+	// @tiger - 用 {'state': ...} 来体现出参上下文
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info.State})
 }
 
 // @Summary 查看容器日志
@@ -736,7 +761,7 @@ func ChangAppState(c *gin.Context) {
 func ContainerLog(c *gin.Context) {
 	appId := c.Param("id")
 	log, _ := service.MyService.Docker().DockerContainerLog(appId)
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: log})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: log})
 }
 
 // @Summary 获取容器状态
@@ -750,10 +775,10 @@ func ContainerLog(c *gin.Context) {
 // @Router /app/state/{id} [get]
 func GetContainerState(c *gin.Context) {
 	id := c.Param("id")
-	t := c.DefaultQuery("type", "0")
+	//t := c.DefaultQuery("type", "0")
 	containerInfo, e := service.MyService.App().GetSimpleContainerInfo(id)
 	if e != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: e.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: e.Error()})
 		return
 	}
 
@@ -761,12 +786,12 @@ func GetContainerState(c *gin.Context) {
 
 	data["state"] = containerInfo.State
 
-	if t == "1" {
-		appInfo := service.MyService.App().GetAppDBInfo(id)
-		data["app"] = appInfo
-	}
+	// if t == "1" {
+	// 	appInfo := service.MyService.App().GetAppDBInfo(id)
+	// 	data["app"] = appInfo
+	// }
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary 更新设置
@@ -786,10 +811,10 @@ func UpdateSetting(c *gin.Context) {
 	id := c.Param("id")
 	const CUSTOM = "custom"
 	m := model.CustomizationPostData{}
-	c.BindJSON(&m)
+	c.ShouldBind(&m)
 
 	if len(id) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	//var cpd model.CustomizationPostData
@@ -809,7 +834,7 @@ func UpdateSetting(c *gin.Context) {
 	portMap, _ := strconv.Atoi(m.PortMap)
 	if !port2.IsPortAvailable(portMap, "tcp") {
 		service.MyService.Docker().DockerContainerStart(id)
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + m.PortMap})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + m.PortMap})
 		return
 	}
 
@@ -819,28 +844,28 @@ func UpdateSetting(c *gin.Context) {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
 				service.MyService.Docker().DockerContainerStart(id)
-				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "tcp" {
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
 				service.MyService.Docker().DockerContainerStart(id)
-				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		} else if u.Protocol == "both" {
 			t, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(t, "udp") {
 				service.MyService.Docker().DockerContainerStart(id)
-				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 
 			te, _ := strconv.Atoi(u.CommendPort)
 			if !port2.IsPortAvailable(te, "tcp") {
 				service.MyService.Docker().DockerContainerStart(id)
-				c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: "Duplicate port:" + u.CommendPort})
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: "Duplicate port:" + u.CommendPort})
 				return
 			}
 		}
@@ -851,9 +876,9 @@ func UpdateSetting(c *gin.Context) {
 
 	containerId, err := service.MyService.Docker().DockerContainerCreate(m.Image, m)
 	if err != nil {
-		service.MyService.Docker().DockerContainerUpdateName(m.Label, id)
+		service.MyService.Docker().DockerContainerUpdateName(m.ContainerName, id)
 		service.MyService.Docker().DockerContainerStart(id)
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
 		return
 	}
 	//		echo -e "hellow\nworld" >>
@@ -862,7 +887,7 @@ func UpdateSetting(c *gin.Context) {
 	err = service.MyService.Docker().DockerContainerStart(containerId)
 
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
 		return
 	}
 	service.MyService.Docker().DockerContainerRemove(id, true)
@@ -933,7 +958,7 @@ func UpdateSetting(c *gin.Context) {
 
 	//service.MyService.App().UpdateApp(appInfo)
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary update app version
@@ -948,20 +973,20 @@ func PutAppUpdate(c *gin.Context) {
 	id := c.Param("id")
 
 	if len(id) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 
 	inspect, err := service.MyService.Docker().DockerContainerInfo(id)
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 
 	}
 	imageLatest := strings.Split(inspect.Config.Image, ":")[0] + ":latest"
 	err = service.MyService.Docker().DockerPullImage(imageLatest, "", "")
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 
 	}
@@ -974,7 +999,7 @@ func PutAppUpdate(c *gin.Context) {
 	if err != nil {
 		service.MyService.Docker().DockerContainerUpdateName(inspect.Name, id)
 		service.MyService.Docker().DockerContainerStart(id)
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
 		return
 	}
 
@@ -982,13 +1007,13 @@ func PutAppUpdate(c *gin.Context) {
 	err = service.MyService.Docker().DockerContainerStart(containerId)
 
 	if err != nil {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
 		return
 	}
 	service.MyService.Docker().DockerContainerRemove(id, true)
 	delete(service.NewVersionApp, id)
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary 获取容器详情
@@ -1001,6 +1026,8 @@ func PutAppUpdate(c *gin.Context) {
 // @Router /app/info/{id} [get]
 func ContainerInfo(c *gin.Context) {
 	appId := c.Param("id")
+
+	// @tiger - 作为最佳实践，不应该直接把数据库的信息返回，来避免未来数据库结构上的迭代带来的新字段
 	appInfo := service.MyService.App().GetAppDBInfo(appId)
 	containerInfo, _ := service.MyService.Docker().DockerContainerStats(appId)
 	var cpuModel = "arm"
@@ -1015,44 +1042,34 @@ func ContainerInfo(c *gin.Context) {
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
 	if err != nil {
 		//todo 需要自定义错误
-		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 	con := struct {
 		Status    string `json:"status"`
 		StartedAt string `json:"started_at"`
 		CPUShares int64  `json:"cpu_shares"`
-		Memory    int64  `json:"memory"`
-		Restart   string `json:"restart"`
+		Memory    int64  `json:"total_memory"`   // @tiger - 改成 total_memory，方便以后增加 free_memory 之类的字段
+		Restart   string `json:"restart_policy"` // @tiger - 改成 restart_policy?
 	}{Status: info.State.Status, StartedAt: info.State.StartedAt, CPUShares: info.HostConfig.CPUShares, Memory: info.HostConfig.Memory >> 20, Restart: info.HostConfig.RestartPolicy.Name}
 	data := make(map[string]interface{}, 5)
-	data["app"] = appInfo
-	data["cpu"] = cpuModel
-	data["memory"] = service.MyService.System().GetMemInfo()["total"]
+	data["app"] = appInfo                                             // @tiget - 最佳实践是，返回 appid，然后具体的 app 信息由前端另行获取
+	data["cpu"] = cpuModel                                            // @tiger - 改成 arch
+	data["memory"] = service.MyService.System().GetMemInfo()["total"] // @tiger - 改成 total_memory，方便以后增加 free_memory 之类的字段
 	data["container"] = json2.RawMessage(containerInfo)
 	data["info"] = con
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
-// @Summary 获取安装所需要的数据
-// @Produce  application/json
-// @Accept application/json
-// @Tags app
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /app/install/config [get]
-func GetDockerInstallConfig(c *gin.Context) {
+func GetDockerNetworks(c *gin.Context) {
 	networks := service.MyService.Docker().DockerNetworkModelList()
-	data := make(map[string]interface{}, 2)
 	list := []map[string]string{}
 	for _, network := range networks {
 		if network.Driver != "null" {
 			list = append(list, map[string]string{"name": network.Name, "driver": network.Driver, "id": network.ID})
 		}
 	}
-	data["networks"] = list
-	data["memory"] = service.MyService.System().GetMemInfo()
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 // @Summary 获取依赖数据
@@ -1069,7 +1086,6 @@ func ContainerRelyInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: appInfo})
 }
 
-// @Summary 获取可更新数据
 // @Produce  application/json
 // @Accept application/json
 // @Tags app
@@ -1083,7 +1099,7 @@ func ContainerUpdateInfo(c *gin.Context) {
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
 	if err != nil {
 
-		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: err.Error()})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: err.Error()})
 		return
 	}
 	var port model.PortArray
@@ -1161,7 +1177,7 @@ func ContainerUpdateInfo(c *gin.Context) {
 	}
 	m.NetworkModel = string(info.HostConfig.NetworkMode)
 	m.Description = info.Config.Labels["desc"]
-	m.Label = strings.ReplaceAll(info.Name, "/", "")
+	m.ContainerName = strings.ReplaceAll(info.Name, "/", "")
 	m.PortMap = info.Config.Labels["web"]
 	m.Devices = driver
 	m.Envs = envs
@@ -1181,6 +1197,11 @@ func ContainerUpdateInfo(c *gin.Context) {
 	m.Cmd = info.Config.Cmd
 	m.HostName = info.Config.Hostname
 	m.Privileged = info.HostConfig.Privileged
+	name := info.Config.Labels["name"]
+	if len(name) == 0 {
+		name = strings.ReplaceAll(info.Name, "/", "")
+	}
+	m.Label = name
 
 	m.Protocol = info.Config.Labels["protocol"]
 	if m.Protocol == "" {

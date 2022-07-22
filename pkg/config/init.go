@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-21 16:01:26
+ * @LastEditTime: 2022-07-14 10:58:45
  * @FilePath: /CasaOS/pkg/config/init.go
  * @Description:
  * @Website: https://www.casaos.io

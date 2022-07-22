@@ -104,16 +104,17 @@ func (p *PathArray) Scan(input interface{}) error {
 //}
 
 type CustomizationPostData struct {
-	CustomId     string    `json:"custom_id"`
-	Origin       string    `json:"origin"`
-	NetworkModel string    `json:"network_model"`
-	Index        string    `json:"index"`
-	Icon         string    `json:"icon"`
-	Image        string    `json:"image"`
-	Envs         EnvArray  `json:"envs"`
-	Ports        PortArray `json:"ports"`
-	Volumes      PathArray `json:"volumes"`
-	Devices      PathArray `json:"devices"`
+	ContainerName string    `json:"container_name"`
+	CustomId      string    `json:"custom_id"`
+	Origin        string    `json:"origin"`
+	NetworkModel  string    `json:"network_model"`
+	Index         string    `json:"index"`
+	Icon          string    `json:"icon"`
+	Image         string    `json:"image"`
+	Envs          EnvArray  `json:"envs"`
+	Ports         PortArray `json:"ports"`
+	Volumes       PathArray `json:"volumes"`
+	Devices       PathArray `json:"devices"`
 	//Port         string    `json:"port,omitempty"`
 	PortMap     string   `json:"port_map"`
 	CpuShares   int64    `json:"cpu_shares"`

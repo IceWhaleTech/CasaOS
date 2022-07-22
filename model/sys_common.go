@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-16 17:50:56
+ * @LastEditTime: 2022-07-14 11:02:06
  * @FilePath: /CasaOS/model/sys_common.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -37,9 +37,7 @@ type ServerModel struct {
 	RunMode      string
 	ServerApi    string
 	LockAccount  bool
-	Handshake    string
 	Token        string
-	UDPPort      string
 	USBAutoMount string
 	SocketPort   string
 }
@@ -76,12 +74,7 @@ type RedisModel struct {
 }
 
 type SystemConfig struct {
-	ConfigStr  string `json:"config_str"`
-	WidgetList string `json:"widget_list"`
 	ConfigPath string `json:"config_path"`
-	SyncPort   string `json:"sync_port"`
-	SyncKey    string `json:"sync_key"`
-	Analyse    string `json:"analyse"`
 }
 
 type CasaOSGlobalVariables struct {

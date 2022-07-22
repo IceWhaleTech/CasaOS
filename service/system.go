@@ -24,7 +24,6 @@ import (
 )
 
 type SystemService interface {
-	UpSystemConfig(str string, widget string)
 	UpdateSystemVersion(version string)
 	GetSystemConfigDebug() []string
 	GetCasaOSLogs(lineNumber int) string
@@ -54,6 +53,12 @@ type SystemService interface {
 type systemService struct {
 }
 
+func (s *systemService) UpdateUSBAutoMount(state string) {
+	config.ServerInfo.USBAutoMount = state
+	config.Cfg.Section("server").Key("USBAutoMount").SetValue(state)
+	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+}
+
 func (c *systemService) MkdirAll(path string) (int, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -66,7 +71,7 @@ func (c *systemService) MkdirAll(path string) (int, error) {
 			return common_err.FILE_OR_DIR_EXISTS, err
 		}
 	}
-	return common_err.ERROR, err
+	return common_err.SERVICE_ERROR, err
 }
 func (c *systemService) RenameFile(oldF, newF string) (int, error) {
 
@@ -77,12 +82,12 @@ func (c *systemService) RenameFile(oldF, newF string) (int, error) {
 		if os.IsNotExist(err) {
 			err := os.Rename(oldF, newF)
 			if err != nil {
-				return common_err.ERROR, err
+				return common_err.SERVICE_ERROR, err
 			}
 			return common_err.SUCCESS, nil
 		}
 	}
-	return common_err.ERROR, err
+	return common_err.SERVICE_ERROR, err
 }
 func (c *systemService) CreateFile(path string) (int, error) {
 	_, err := os.Stat(path)
@@ -94,7 +99,7 @@ func (c *systemService) CreateFile(path string) (int, error) {
 			return common_err.SUCCESS, nil
 		}
 	}
-	return common_err.ERROR, err
+	return common_err.SERVICE_ERROR, err
 }
 func (c *systemService) GetDeviceTree() string {
 	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDeviceTree")
@@ -232,27 +237,12 @@ func (s *systemService) ExecUSBAutoMountShell(state string) {
 func (s *systemService) GetSystemConfigDebug() []string {
 	return command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetSysInfo")
 }
-func (s *systemService) UpSystemConfig(str string, widget string) {
-	if len(str) > 0 && str != config.SystemConfigInfo.ConfigStr {
-		config.Cfg.Section("system").Key("ConfigStr").SetValue(str)
-		config.SystemConfigInfo.ConfigStr = str
-	}
-	if len(widget) > 0 && widget != config.SystemConfigInfo.WidgetList {
-		config.Cfg.Section("system").Key("WidgetList").SetValue(widget)
-		config.SystemConfigInfo.WidgetList = widget
-	}
-	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-}
+
 func (s *systemService) UpAppOrderFile(str, id string) {
 	file.WriteToPath([]byte(str), config.AppInfo.DBPath+"/"+id, "app_order.json")
 }
 func (s *systemService) GetAppOrderFile(id string) []byte {
 	return file.ReadFullFile(config.AppInfo.UserDataPath + "/" + id + "/app_order.json")
-}
-func (s *systemService) UpdateUSBAutoMount(state string) {
-	config.ServerInfo.USBAutoMount = state
-	config.Cfg.Section("server").Key("USBAutoMount").SetValue(state)
-	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
 func (s *systemService) UpSystemPort(port string) {
 	if len(port) > 0 && port != config.ServerInfo.HttpPort {

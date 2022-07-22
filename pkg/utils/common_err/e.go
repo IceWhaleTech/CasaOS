@@ -2,10 +2,11 @@ package common_err
 
 const (
 	SUCCESS          = 200
-	ERROR            = 500
-	INVALID_PARAMS   = 400
+	SERVICE_ERROR    = 500
+	CLIENT_ERROR     = 400
 	ERROR_AUTH_TOKEN = 401
 
+	INVALID_PARAMS = 4000
 	//user
 	PWD_INVALID              = 10001
 	PWD_IS_EMPTY             = 10002
@@ -49,19 +50,12 @@ const (
 
 	//shortcuts
 	SHORTCUTS_URL_ERROR = 70001
-
-	//person
-	PERSON_REMOTE_ERROR   = 80001
-	PERSON_DOWN_NOT_EXIST = 80002
-	PERSON_EXIST_DOWNLOAD = 80003
-	PERSON_NOT_EXIST_USER = 80004
-	PERSON_EXIST_FRIEND   = 80005
-	PERSON_MYSELF         = 80006
 )
 
 var MsgFlags = map[int]string{
 	SUCCESS:          "ok",
-	ERROR:            "fail",
+	SERVICE_ERROR:    "Fail",
+	CLIENT_ERROR:     "Fail",
 	INVALID_PARAMS:   "Parameters Error",
 	ERROR_AUTH_TOKEN: "Error auth token",
 
@@ -108,12 +102,6 @@ var MsgFlags = map[int]string{
 	FILE_DELETE_ERROR:   "Delete error",
 	SHORTCUTS_URL_ERROR: "URL error",
 
-	PERSON_REMOTE_ERROR:             "Remote connection error",
-	PERSON_DOWN_NOT_EXIST:           "Download record does not exist",
-	PERSON_EXIST_DOWNLOAD:           "The same download task exists",
-	PERSON_EXIST_FRIEND:             "Friend already exist",
-	PERSON_NOT_EXIST_USER:           "User does not exist",
-	PERSON_MYSELF:                   "You can not add yourself",
 	COMMAND_ERROR_INVALID_OPERATION: "invalid operation",
 }
 
@@ -123,5 +111,5 @@ func GetMsg(code int) string {
 	if ok {
 		return msg
 	}
-	return MsgFlags[ERROR]
+	return MsgFlags[SERVICE_ERROR]
 }

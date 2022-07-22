@@ -15,18 +15,10 @@ TempPath    = /var/lib/casaos/temp
 
 [server]
 HttpPort = 80
-UDPPort = 
 RunMode = release
 ServerApi = https://api.casaos.io/casaos-api
 Handshake = socket.casaos.io
 Token = 
 USBAutoMount =
 
-
 [system]
-WidgetList =
-
-
-[file]
-ShareDir =
-DownloadDir =

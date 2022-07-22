@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -28,7 +29,42 @@ var diskMap = make(map[string]string)
 // @Success 200 {string} string "ok"
 // @Router /disk/list [get]
 func GetDiskList(c *gin.Context) {
+	path := c.Query("path")
+	if len(path) > 0 {
+		m := service.MyService.Disk().GetDiskInfo(path)
+		c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: m})
+		return
+	}
+	t := c.DefaultQuery("type", "")
 	list := service.MyService.Disk().LSBLK(false)
+	if t == "usb" {
+		data := []model.DriveUSB{}
+		for _, v := range list {
+			if v.Tran == "usb" {
+				temp := model.DriveUSB{}
+				temp.Model = v.Model
+				temp.Name = v.Name
+				temp.Size = v.Size
+				mountTemp := true
+				if len(v.Children) == 0 {
+					mountTemp = false
+				}
+				for _, child := range v.Children {
+					if len(child.MountPoint) > 0 {
+						avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
+						temp.Avail += avail
+					} else {
+						mountTemp = false
+					}
+				}
+				temp.Mount = mountTemp
+				data = append(data, temp)
+			}
+		}
+		c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+		return
+	}
+
 	dbList := service.MyService.Disk().GetSerialAll()
 	part := make(map[string]int64, len(dbList))
 	for _, v := range dbList {
@@ -154,7 +190,7 @@ func GetDiskList(c *gin.Context) {
 	data["storage"] = storage
 	data["avail"] = avail
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary get disk list
@@ -191,49 +227,6 @@ func GetDiskInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: m})
 }
 
-// @Summary format storage
-// @Produce  application/json
-// @Accept multipart/form-data
-// @Tags disk
-// @Security ApiKeyAuth
-// @Param  path formData string true "e.g. /dev/sda1"
-// @Param  pwd formData string true "user password"
-// @Param  volume formData string true "mount point"
-// @Success 200 {string} string "ok"
-// @Router /disk/format [post]
-func PostDiskFormat(c *gin.Context) {
-	path := c.PostForm("path")
-	t := "ext4"
-	pwd := c.PostForm("pwd")
-	volume := c.PostForm("volume")
-
-	if pwd != config.UserInfo.PWD {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
-		return
-	}
-
-	if len(path) == 0 || len(t) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
-		return
-	}
-	if _, ok := diskMap[path]; ok {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
-		return
-	}
-	diskMap[path] = "busying"
-	service.MyService.Disk().UmountPointAndRemoveDir(path)
-	format := service.MyService.Disk().FormatDisk(path, t)
-	if len(format) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.FORMAT_ERROR, Message: common_err.GetMsg(common_err.FORMAT_ERROR)})
-		delete(diskMap, path)
-		return
-	}
-	service.MyService.Disk().MountDisk(path, volume)
-	service.MyService.Disk().RemoveLSBLKCache()
-	delete(diskMap, path)
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
-}
-
 // @Summary 获取支持的格式
 // @Produce  application/json
 // @Accept application/json
@@ -256,15 +249,17 @@ func FormatDiskType(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /disk/delpart [delete]
 func RemovePartition(c *gin.Context) {
-	path := c.PostForm("path")
+	js := make(map[string]string)
+	c.ShouldBind(&js)
+	path := js["path"]
 
 	if len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	}
 	var p = path[:len(path)-1]
 	var n = path[len(path)-1:]
 	service.MyService.Disk().DelPartition(p, n)
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary  add storage
@@ -280,32 +275,40 @@ func RemovePartition(c *gin.Context) {
 // @Router /disk/storage [post]
 func PostDiskAddPartition(c *gin.Context) {
 
-	name := c.PostForm("name")
-	path := c.PostForm("path")
-	format, _ := strconv.ParseBool(c.PostForm("format"))
+	js := make(map[string]interface{})
+	c.ShouldBind(&js)
+	path := js["path"].(string)
+	name := js["name"].(string)
+	format := js["format"].(bool)
 
 	if len(name) == 0 || len(path) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	if _, ok := diskMap[path]; ok {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
 		return
 	}
 	if !file.CheckNotExist("/DATA/" + name) {
 		// /mnt/name exist
-		c.JSON(http.StatusOK, model.Result{Success: common_err.NAME_NOT_AVAILABLE, Message: common_err.GetMsg(common_err.NAME_NOT_AVAILABLE)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.NAME_NOT_AVAILABLE, Message: common_err.GetMsg(common_err.NAME_NOT_AVAILABLE)})
 		return
 	}
 	diskMap[path] = "busying"
 	currentDisk := service.MyService.Disk().GetDiskInfo(path)
 	if !format {
 		if len(currentDisk.Children) != 1 || !(len(currentDisk.Children) > 0 && currentDisk.Children[0].FsType == "ext4") {
-			c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
 			delete(diskMap, path)
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
 			return
 		}
 	} else {
+		// format := service.MyService.Disk().FormatDisk(path+"1", "ext4")
+		// if len(format) == 0 {
+		// 	delete(diskMap, path)
+		// 	c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FORMAT_ERROR, Message: common_err.GetMsg(common_err.FORMAT_ERROR)})
+		// 	return
+		// }
 		service.MyService.Disk().AddPartition(path)
 	}
 
@@ -321,7 +324,7 @@ func PostDiskAddPartition(c *gin.Context) {
 	}
 	currentDisk = service.MyService.Disk().GetDiskInfo(path)
 	if len(currentDisk.Children) != 1 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
 		return
 	}
 
@@ -340,47 +343,61 @@ func PostDiskAddPartition(c *gin.Context) {
 	service.MyService.Disk().RemoveLSBLKCache()
 
 	delete(diskMap, path)
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+
+	//send notify to client
+	msg := notify.StorageMessage{}
+	msg.Action = "ADDED"
+	msg.Path = currentDisk.Children[0].Path
+	msg.Volume = mountPath
+	msg.Size = currentDisk.Children[0].Size
+	msg.Type = currentDisk.Children[0].Tran
+	service.MyService.Notify().SendStorageBySocket(msg)
+
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
-// @Summary add mount point
-// @Produce  application/json
-// @Accept multipart/form-data
-// @Tags disk
-// @Security ApiKeyAuth
-// @Param  path formData string true "for example: /dev/sda1"
-// @Param  serial formData string true "disk id"
+// @Param  pwd formData string true "user password"
+// @Param  volume formData string true "mount point"
 // @Success 200 {string} string "ok"
-// @Router /disk/mount [post]
-func PostMountDisk(c *gin.Context) {
-	// for example: path=/dev/sda1
-	path := c.PostForm("path")
-	serial := c.PostForm("serial")
-
-	mountPath := "/DATA/volume"
-	var list = service.MyService.Disk().GetSerialAll()
-	var pathMapList = make(map[string]string, len(list))
-	for _, v := range list {
-		pathMapList[v.MountPoint] = "1"
+// @Router /disk/format [post]
+func PostDiskFormat(c *gin.Context) {
+	id := c.GetHeader("user_id")
+	js := make(map[string]string)
+	c.ShouldBind(&js)
+	path := js["path"]
+	t := "ext4"
+	pwd := js["password"]
+	volume := js["volume"]
+	user := service.MyService.User().GetUserAllInfoById(id)
+	if user.Id == 0 {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
+	if encryption.GetMD5ByStr(pwd) != user.Password {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
+		return
 	}
 
-	for i := 0; i < len(list)+1; i++ {
-		if _, ok := pathMapList[mountPath+strconv.Itoa(i)]; !ok {
-			mountPath = mountPath + strconv.Itoa(i)
-			break
-		}
+	if len(path) == 0 || len(t) == 0 {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
 	}
-
-	//mount dir
-	service.MyService.Disk().MountDisk(path, mountPath)
-
-	m := model2.SerialDisk{}
-	m.MountPoint = mountPath
-	m.Path = path
-	m.UUID = serial
-	m.State = 0
-	//service.MyService.Disk().SaveMountPoint(m)
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	if _, ok := diskMap[path]; ok {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
+		return
+	}
+	diskMap[path] = "busying"
+	service.MyService.Disk().UmountPointAndRemoveDir(path)
+	format := service.MyService.Disk().FormatDisk(path, t)
+	if len(format) == 0 {
+		delete(diskMap, path)
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FORMAT_ERROR, Message: common_err.GetMsg(common_err.FORMAT_ERROR)})
+		return
+	}
+	service.MyService.Disk().MountDisk(path, volume)
+	service.MyService.Disk().RemoveLSBLKCache()
+	delete(diskMap, path)
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary remove mount point
@@ -394,22 +411,30 @@ func PostMountDisk(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /disk/umount [post]
 func PostDiskUmount(c *gin.Context) {
+	id := c.GetHeader("user_id")
+	js := make(map[string]string)
+	c.ShouldBind(&js)
 
-	path := c.PostForm("path")
-	mountPoint := c.PostForm("volume")
-	pwd := c.PostForm("pwd")
+	path := js["path"]
+	mountPoint := js["volume"]
+	pwd := js["password"]
 
 	if len(path) == 0 || len(mountPoint) == 0 {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	if pwd != config.UserInfo.PWD {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
+	user := service.MyService.User().GetUserAllInfoById(id)
+	if user.Id == 0 {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
+	if encryption.GetMD5ByStr(pwd) != user.Password {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}
 
 	if _, ok := diskMap[path]; ok {
-		c.JSON(http.StatusOK, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
 		return
 	}
 
@@ -417,7 +442,16 @@ func PostDiskUmount(c *gin.Context) {
 	//delete data
 	service.MyService.Disk().DeleteMountPoint(path, mountPoint)
 	service.MyService.Disk().RemoveLSBLKCache()
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+
+	//send notify to client
+	msg := notify.StorageMessage{}
+	msg.Action = "REMOVED"
+	msg.Path = path
+	msg.Volume = mountPoint
+	msg.Size = 0
+	msg.Type = ""
+	service.MyService.Notify().SendStorageBySocket(msg)
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary confirm delete disk
@@ -455,45 +489,10 @@ func GetDiskCheck(c *gin.Context) {
 	for _, v := range dbList {
 		if _, ok := mapList[v.UUID]; !ok {
 			//disk undefind
-			c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR, Message: common_err.GetMsg(common_err.ERROR), Data: "disk undefind"})
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: "disk undefind"})
 			return
 		}
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
-}
-
-// @Summary check mount point
-// @Produce  application/json
-// @Accept application/json
-// @Tags disk
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /disk/usb [get]
-func GetUSBList(c *gin.Context) {
-	list := service.MyService.Disk().LSBLK(false)
-	data := []model.DriveUSB{}
-	for _, v := range list {
-		if v.Tran == "usb" {
-			temp := model.DriveUSB{}
-			temp.Model = v.Model
-			temp.Name = v.Name
-			temp.Size = v.Size
-			mountTemp := true
-			if len(v.Children) == 0 {
-				mountTemp = false
-			}
-			for _, child := range v.Children {
-				if len(child.MountPoint) > 0 {
-					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
-					temp.Avail += avail
-				} else {
-					mountTemp = false
-				}
-			}
-			temp.Mount = mountTemp
-			data = append(data, temp)
-		}
-	}
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }

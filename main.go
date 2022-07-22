@@ -24,7 +24,6 @@ var sqliteDB *gorm.DB
 
 var configFlag = flag.String("c", "", "config address")
 var dbFlag = flag.String("db", "", "db path")
-var showUserInfo = flag.Bool("show-user-info", false, "show user info")
 var resetUser = flag.Bool("ru", false, "reset user")
 var user = flag.String("user", "", "user name")
 
@@ -42,10 +41,6 @@ func init() {
 	service.Cache = cache.Init()
 
 	service.GetToken()
-	service.UDPAddressMap = make(map[string]string)
-	//go service.SocketConnect()
-	service.CancelList = make(map[string]string)
-	service.InternalInspection = make(map[string][]string)
 	service.NewVersionApp = make(map[string]string)
 	route.InitFunction()
 
@@ -67,15 +62,7 @@ func init() {
 // @BasePath /v1
 func main() {
 	service.NotifyMsg = make(chan notify.Message, 10)
-	if *showUserInfo {
-		fmt.Println("CasaOS User Info")
-		fmt.Println("UserName:" + config.UserInfo.UserName)
-		fmt.Println("Password:" + config.UserInfo.PWD)
-		return
-	}
-	fmt.Println("Reset User", *resetUser)
 	if *resetUser {
-
 		if user == nil || len(*user) == 0 {
 			fmt.Println("user is empty")
 			return
@@ -89,21 +76,11 @@ func main() {
 		userData.Password = encryption.GetMD5ByStr(password)
 		service.MyService.User().UpdateUserPassword(userData)
 		fmt.Println("User reset successful")
-		fmt.Println("UserName:" + userData.UserName)
+		fmt.Println("UserName:" + userData.Username)
 		fmt.Println("Password:" + password)
 		return
 	}
-	go func() {
-		service.UDPService()
-		service.SendIPToServer()
-	}()
 	go route.SocketInit(service.NotifyMsg)
-	go func() {
-		for i := 0; i < 1000; i++ {
-			time.Sleep(2 * time.Second)
-			//service.NotifyMsg <- strconv.Itoa(i)
-		}
-	}()
 
 	//model.Setup()
 	//gredis.Setup()
@@ -111,20 +88,8 @@ func main() {
 	//service.SyncTask(sqliteDB)
 	cron2 := cron.New()
 	//every day execution
-	err := cron2.AddFunc("0 0/5 * * * *", func() {
-		//service.PushIpInfo(*&config.ServerInfo.Token)
-		//service.UpdataDDNSList(mysqldb)
-		//service.SyncTask(sqliteDB)
 
-		service.SendIPToServer()
-
-		service.LoopFriend()
-		//service.MyService.App().CheckNewImage()
-	})
-	if err != nil {
-		fmt.Println(err)
-	}
-	err = cron2.AddFunc("0/5 * * * * *", func() {
+	err := cron2.AddFunc("0/5 * * * * *", func() {
 		if service.ClientCount > 0 {
 			//route.SendNetINfoBySocket()
 			//route.SendCPUBySocket()

@@ -14,24 +14,19 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	httper2 "github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/pkg/errors"
 	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 )
 
 type CasaService interface {
-	GetServerList(index, size, tp, categoryId, key string) model.ServerAppListCollection
-	GetServerCategoryList() []model.CategoryList
-	GetServerAppInfo(id, t string, language string) model.ServerAppList
+	GetServerList(index, size, tp, categoryId, key string) (model.ServerAppListCollection, error)
+	GetServerCategoryList() (list []model.CategoryList, err error)
+	GetServerAppInfo(id, t string, language string) (model.ServerAppList, error)
 	ShareAppFile(body []byte) string
-	PushHeart(id, t string, language string)
-
-	PushConnectionStatus(uuid, err string, from, to, event string)
-	PushUserInfo()
-	GetUserInfoByShareId(shareId string) model.UserInfo
-	GetPersonPublic() (list []model.FriendsModel)
 	GetCasaosVersion() model.Version
-	AsyncGetServerList() (collection model.ServerAppListCollection)
-	AsyncGetServerCategoryList() []model.CategoryList
+	AsyncGetServerList() (collection model.ServerAppListCollection, err error)
+	AsyncGetServerCategoryList() ([]model.CategoryList, error)
 }
 
 type casaService struct {
@@ -46,7 +41,7 @@ func (o *casaService) ShareAppFile(body []byte) string {
 	return content
 }
 
-func (o *casaService) GetServerList(index, size, tp, categoryId, key string) model.ServerAppListCollection {
+func (o *casaService) GetServerList(index, size, tp, categoryId, key string) (model.ServerAppListCollection, error) {
 
 	keyName := fmt.Sprintf("list_%s_%s_%s_%s_%s", index, size, tp, categoryId, "en")
 	collection := model.ServerAppListCollection{}
@@ -54,7 +49,7 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key string) mod
 		res, ok := result.(string)
 		if ok {
 			json2.Unmarshal([]byte(res), &collection)
-			return collection
+			return collection, nil
 		}
 	}
 
@@ -63,7 +58,10 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key string) mod
 	err := json2.Unmarshal(collectionStr, &collection)
 	if err != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(collectionStr)))
-		collection = o.AsyncGetServerList()
+		collection, err = o.AsyncGetServerList()
+		if err != nil {
+			return collection, err
+		}
 	}
 
 	go o.AsyncGetServerList()
@@ -122,20 +120,20 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key string) mod
 		Cache.Set(keyName, string(by), time.Minute*10)
 	}
 
-	return collection
+	return collection, nil
 
 }
 
-func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollection) {
+func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollection, err error) {
 
 	results := file.ReadFullFile(config.AppInfo.DBPath + "/app_list.json")
-	err := json2.Unmarshal(results, &collection)
+	err = json2.Unmarshal(results, &collection)
 	if err != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
 	}
 
 	if collection.Version == o.GetCasaosVersion().Version {
-		return collection
+		return collection, err
 	}
 
 	head := make(map[string]string)
@@ -187,33 +185,36 @@ func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollec
 // 	return list
 // }
 
-func (o *casaService) GetServerCategoryList() (list []model.CategoryList) {
+func (o *casaService) GetServerCategoryList() (list []model.CategoryList, err error) {
 	category := model.ServerCategoryList{}
 	results := file.ReadFullFile(config.AppInfo.DBPath + "/app_category.json")
-	err := json2.Unmarshal(results, &category)
+	err = json2.Unmarshal(results, &category)
 	if err != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
 		return o.AsyncGetServerCategoryList()
 	}
 	go o.AsyncGetServerCategoryList()
-	return category.Item
+	return category.Item, err
 }
 
-func (o *casaService) AsyncGetServerCategoryList() []model.CategoryList {
+func (o *casaService) AsyncGetServerCategoryList() ([]model.CategoryList, error) {
 	list := model.ServerCategoryList{}
 	results := file.ReadFullFile(config.AppInfo.DBPath + "/app_category.json")
 	err := json2.Unmarshal(results, &list)
 	if err != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
-	}
-
-	if list.Version == o.GetCasaosVersion().Version {
-		return nil
+	} else {
+		if list.Version == o.GetCasaosVersion().Version {
+			return list.Item, nil
+		}
 	}
 	item := []model.CategoryList{}
 	head := make(map[string]string)
 	head["Authorization"] = GetToken()
 	listS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/category", head)
+	if len(listS) == 0 {
+		return item, errors.New("server error")
+	}
 	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &item)
 	if len(item) > 0 {
 		list.Version = o.GetCasaosVersion().Version
@@ -224,10 +225,10 @@ func (o *casaService) AsyncGetServerCategoryList() []model.CategoryList {
 		}
 		file.WriteToPath(by, config.AppInfo.DBPath, "app_category.json")
 	}
-	return item
+	return item, nil
 }
 
-func (o *casaService) GetServerAppInfo(id, t string, language string) model.ServerAppList {
+func (o *casaService) GetServerAppInfo(id, t string, language string) (model.ServerAppList, error) {
 
 	head := make(map[string]string)
 
@@ -235,9 +236,12 @@ func (o *casaService) GetServerAppInfo(id, t string, language string) model.Serv
 	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v2/app/info/"+id+"?t="+t+"&language="+language, head)
 
 	info := model.ServerAppList{}
+	if infoS == "" {
+		return info, errors.New("server error")
+	}
 	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
 
-	return info
+	return info, nil
 }
 func GetToken() string {
 	t := make(chan string)
@@ -289,86 +293,6 @@ func (o *casaService) GetCasaosVersion() model.Version {
 	return version
 }
 
-func (o *casaService) PushHeart(id, t string, language string) {
-
-	m := model.CasaOSHeart{}
-	m.UuId = id
-	m.Type = t
-	b, _ := json.Marshal(m)
-
-	head := make(map[string]string)
-
-	head["Authorization"] = GetToken()
-
-	infoS := httper2.Post(config.ServerInfo.ServerApi+"/v1/analyse/heart", b, "application/json", head)
-
-	info := model.ServerAppList{}
-	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
-
-}
-
-func (o *casaService) PushConnectionStatus(uuid, err string, from, to, event string) {
-
-	m := model.ConnectionStatus{}
-	m.UUId = uuid
-	m.Error = err
-	m.From = from
-	m.To = to
-	m.Event = event
-	b, _ := json.Marshal(m)
-
-	head := make(map[string]string)
-
-	head["Authorization"] = GetToken()
-
-	infoS := httper2.Post(config.ServerInfo.ServerApi+"/v1/analyse/connect", b, "application/json", head)
-
-	info := model.ServerAppList{}
-	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
-
-}
-func (o *casaService) PushUserInfo() {
-	m := model.UserInfo{}
-	m.Desc = config.UserInfo.Description
-	m.Avatar = config.UserInfo.Avatar
-	m.NickName = config.UserInfo.NickName
-	m.ShareId = config.ServerInfo.Token
-	b, _ := json.Marshal(m)
-
-	head := make(map[string]string)
-
-	head["Authorization"] = GetToken()
-
-	infoS := httper2.Post(config.ServerInfo.ServerApi+"/v1/user/info", b, "application/json", head)
-
-	info := model.ServerAppList{}
-	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
-
-}
-
-func (o *casaService) GetUserInfoByShareId(shareId string) model.UserInfo {
-
-	head := make(map[string]string)
-
-	head["Authorization"] = GetToken()
-
-	infoS := httper2.Get(config.ServerInfo.ServerApi+"/v1/user/info/"+shareId, head)
-
-	info := model.UserInfo{}
-	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
-	return info
-}
-func (o *casaService) GetPersonPublic() (list []model.FriendsModel) {
-	head := make(map[string]string)
-
-	head["Authorization"] = GetToken()
-
-	listS := httper2.Get(config.ServerInfo.ServerApi+"/v1/person/public", head)
-
-	json2.Unmarshal([]byte(gjson.Get(listS, "data").String()), &list)
-
-	return list
-}
 func NewCasaService() CasaService {
 	return &casaService{}
 }

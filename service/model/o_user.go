@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-23 15:43:07
+ * @LastEditTime: 2022-07-11 17:57:00
  * @FilePath: /CasaOS/service/model/o_user.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -15,11 +15,11 @@ import "time"
 //Soon to be removed
 type UserDBModel struct {
 	Id          int       `gorm:"column:id;primary_key" json:"id"`
-	UserName    string    `json:"user_name"`
+	Username    string    `json:"username"`
 	Password    string    `json:"password,omitempty"`
 	Role        string    `json:"role"`
 	Email       string    `json:"email"`
-	NickName    string    `json:"nick_name"`
+	Nickname    string    `json:"nickname"`
 	Avatar      string    `json:"avatar"`
 	Description string    `json:"description"`
 	CreatedAt   time.Time `gorm:"<-:create;autoCreateTime" json:"created_at,omitempty"`
@@ -27,5 +27,5 @@ type UserDBModel struct {
 }
 
 func (p *UserDBModel) TableName() string {
-	return "o_user"
+	return "o_users"
 }

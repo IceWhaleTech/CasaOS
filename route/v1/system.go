@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -21,7 +20,6 @@ import (
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
-	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 )
 
@@ -45,10 +43,10 @@ func GetSystemCheckVersion(c *gin.Context) {
 		service.MyService.Notify().AddLog(installLog)
 	}
 	data := make(map[string]interface{}, 3)
-	data["is_need"] = need
+	data["need_update"] = need
 	data["version"] = version
 	data["current_version"] = types.CURRENTVERSION
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary 系统信息
@@ -63,12 +61,7 @@ func SystemUpdate(c *gin.Context) {
 	if need {
 		service.MyService.System().UpdateSystemVersion(version.Version)
 	}
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
-}
-
-//Get system config
-func GetSystemConfig(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: ""})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary  get logs
@@ -80,86 +73,29 @@ func GetSystemConfig(c *gin.Context) {
 // @Router /sys/error/logs [get]
 func GetCasaOSErrorLogs(c *gin.Context) {
 	line, _ := strconv.Atoi(c.DefaultQuery("line", "100"))
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: service.MyService.System().GetCasaOSLogs(line)})
-}
-
-// @Summary 修改配置文件
-// @Produce  application/json
-// @Accept multipart/form-data
-// @Tags sys
-// @Param config formData string true "config json string"
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /sys/changhead [post]
-func PostSetSystemConfig(c *gin.Context) {
-	buf := make([]byte, 1024)
-	n, _ := c.Request.Body.Read(buf)
-
-	service.MyService.System().UpSystemConfig(string(buf[0:n]), "")
-	c.JSON(http.StatusOK,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    json.RawMessage(config.SystemConfigInfo.ConfigStr),
-		})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: service.MyService.System().GetCasaOSLogs(line)})
 }
 
 //系统配置
 func GetSystemConfigDebug(c *gin.Context) {
-
 	array := service.MyService.System().GetSystemConfigDebug()
 	disk := service.MyService.System().GetDiskInfo()
 	sys := service.MyService.System().GetSysInfo()
-	//todo 准备sync需要显示的数据(镜像,容器)
-	var systemAppStatus string
-	images := service.MyService.Docker().IsExistImage("linuxserver/syncthing")
-	systemAppStatus += "Sync img: " + strconv.FormatBool(images) + "\n\t"
-
-	list := service.MyService.App().GetSystemAppList()
-	for _, v := range list {
-		systemAppStatus += v.Image + ",\n\t"
-	}
-
-	systemAppStatus += "Sync Key length: " + strconv.Itoa(len(config.SystemConfigInfo.SyncKey))
-
+	version := service.MyService.Casa().GetCasaosVersion()
 	var bugContent string = fmt.Sprintf(`
 	 - OS: %s
 	 - CasaOS Version: %s
 	 - Disk Total: %v 
 	 - Disk Used: %v 
-	 - Sync State: %s
 	 - System Info: %s
+	 - Remote Version: %s
 	 - Browser: $Browser$ 
 	 - Version: $Version$
-`, sys.OS, types.CURRENTVERSION, disk.Total>>20, disk.Used>>20, systemAppStatus, array)
+`, sys.OS, types.CURRENTVERSION, disk.Total>>20, disk.Used>>20, array, version.Version)
 
 	//	array = append(array, fmt.Sprintf("disk,total:%v,used:%v,UsedPercent:%v", disk.Total>>20, disk.Used>>20, disk.UsedPercent))
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: bugContent})
-}
-
-//widget配置
-func GetWidgetConfig(c *gin.Context) {
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: json.RawMessage(config.SystemConfigInfo.WidgetList)})
-}
-
-// @Summary 修改组件配置文件
-// @Produce  application/json
-// @Accept application/json
-// @Tags sys
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /sys/widget/config [post]
-func PostSetWidgetConfig(c *gin.Context) {
-	buf := make([]byte, 1024)
-	n, _ := c.Request.Body.Read(buf)
-	service.MyService.System().UpSystemConfig("", string(buf[0:n]))
-	c.JSON(http.StatusOK,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    json.RawMessage(config.SystemConfigInfo.WidgetList),
-		})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: bugContent})
 }
 
 // @Summary get casaos server port
@@ -170,7 +106,7 @@ func PostSetWidgetConfig(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/port [get]
 func GetCasaOSPort(c *gin.Context) {
-	c.JSON(http.StatusOK,
+	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
@@ -188,13 +124,13 @@ func GetCasaOSPort(c *gin.Context) {
 // @Router /sys/port [put]
 func PutCasaOSPort(c *gin.Context) {
 	json := make(map[string]string)
-	c.BindJSON(&json)
+	c.ShouldBind(&json)
 	portStr := json["port"]
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
-		c.JSON(http.StatusOK,
+		c.JSON(common_err.SERVICE_ERROR,
 			model.Result{
-				Success: common_err.ERROR,
+				Success: common_err.SERVICE_ERROR,
 				Message: err.Error(),
 			})
 		return
@@ -202,7 +138,7 @@ func PutCasaOSPort(c *gin.Context) {
 
 	isAvailable := port2.IsPortAvailable(port, "tcp")
 	if !isAvailable {
-		c.JSON(http.StatusOK,
+		c.JSON(common_err.SERVICE_ERROR,
 			model.Result{
 				Success: common_err.PORT_IS_OCCUPIED,
 				Message: common_err.GetMsg(common_err.PORT_IS_OCCUPIED),
@@ -210,37 +146,10 @@ func PutCasaOSPort(c *gin.Context) {
 		return
 	}
 	service.MyService.System().UpSystemPort(strconv.Itoa(port))
-	c.JSON(http.StatusOK,
+	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
-		})
-}
-
-// @Summary 检查是否进入引导状态
-// @Produce  application/json
-// @Accept application/json
-// @Tags sys
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /sys/init/check [get]
-func GetSystemInitCheck(c *gin.Context) {
-	data := make(map[string]interface{}, 2)
-
-	if service.MyService.User().GetUserCount() > 0 {
-		data["initialized"] = true
-		data["key"] = ""
-	} else {
-		key := uuid.NewV4().String()
-		service.UserRegisterHash[key] = key
-		data["key"] = key
-		data["initialized"] = false
-	}
-	c.JSON(http.StatusOK,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    data,
 		})
 }
 
@@ -263,7 +172,9 @@ func PostKillCasaOS(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/usb/off [put]
 func PutSystemUSBAutoMount(c *gin.Context) {
-	status := c.Param("status")
+	js := make(map[string]string)
+	c.ShouldBind(&js)
+	status := js["status"]
 	if status == "on" {
 		service.MyService.System().UpdateUSBAutoMount("True")
 		service.MyService.System().ExecUSBAutoMountShell("True")
@@ -272,7 +183,7 @@ func PutSystemUSBAutoMount(c *gin.Context) {
 		service.MyService.System().ExecUSBAutoMountShell("False")
 	}
 
-	c.JSON(http.StatusOK,
+	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
@@ -292,11 +203,45 @@ func GetSystemUSBAutoMount(c *gin.Context) {
 		state = "False"
 	}
 
-	c.JSON(http.StatusOK,
+	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
 			Data:    state,
+		})
+}
+
+func GetSystemAppsStatus(c *gin.Context) {
+	systemAppList := service.MyService.App().GetSystemAppList()
+	appList := []model2.MyAppList{}
+	for _, v := range systemAppList {
+		name := strings.ReplaceAll(v.Names[0], "/", "")
+		if len(v.Labels["name"]) > 0 {
+			name = v.Labels["name"]
+		}
+		appList = append(appList, model2.MyAppList{
+			Name:     name,
+			Icon:     v.Labels["icon"],
+			State:    v.State,
+			CustomId: v.Labels["custom_id"],
+			Id:       v.ID,
+			Port:     v.Labels["web"],
+			Index:    v.Labels["index"],
+			//Order:      m.Labels["order"],
+			Image:  v.Image,
+			Latest: false,
+			//Type:   m.Labels["origin"],
+			//Slogan: m.Slogan,
+			//Rely:     m.Rely,
+			Host:     v.Labels["host"],
+			Protocol: v.Labels["protocol"],
+		})
+	}
+	c.JSON(common_err.SUCCESS,
+		model.Result{
+			Success: common_err.SUCCESS,
+			Message: common_err.GetMsg(common_err.SUCCESS),
+			Data:    appList,
 		})
 }
 
@@ -311,7 +256,7 @@ func GetSystemHardwareInfo(c *gin.Context) {
 
 	data := make(map[string]string, 1)
 	data["drive_model"] = service.MyService.System().GetDeviceTree()
-	c.JSON(http.StatusOK,
+	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
@@ -454,7 +399,7 @@ func GetSystemUtilization(c *gin.Context) {
 
 	data["net"] = newNet
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary Get notification port
@@ -466,11 +411,11 @@ func GetSystemUtilization(c *gin.Context) {
 // @Router /sys/socket/port [get]
 func GetSystemSocketPort(c *gin.Context) {
 
-	c.JSON(http.StatusOK,
+	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    config.ServerInfo.SocketPort,
+			Data:    config.ServerInfo.SocketPort, // @tiger 这里最好封装成 {'port': ...} 的形式，来体现出参的上下文
 		})
 }
 
@@ -539,27 +484,4 @@ func GetSystemNetInfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: newNet})
-}
-
-//********************************************* Soon to be removed ***********************************************
-// @Summary 检查是否进入引导状态
-// @Produce  application/json
-// @Accept application/json
-// @Tags sys
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /guide/check [get]
-func GetGuideCheck(c *gin.Context) {
-	initUser := true
-	if service.MyService.User().GetUserCount() > 0 {
-		initUser = false
-	}
-	data := make(map[string]interface{}, 1)
-	data["need_init_user"] = initUser
-	c.JSON(http.StatusOK,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    data,
-		})
 }

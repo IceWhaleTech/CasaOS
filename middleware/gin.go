@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2021-10-08 10:29:08
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-06-21 15:10:03
+ * @LastEditTime: 2022-07-13 11:26:12
  * @FilePath: /CasaOS/middleware/gin.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -26,14 +26,14 @@ func Cors() gin.HandlerFunc {
 		c.Header("Access-Control-Allow-Origin", "*")
 		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE,UPDATE")
 		//允许跨域设置可以返回其他子段，可以自定义字段
-		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, X-CSRF-Token, Token,session,Language")
+		c.Header("Access-Control-Allow-Headers", "Authorization, Content-Length, X-CSRF-Token, Token,session,Language,Content-Type,Access-Control-Allow-Origin,Access-Control-Allow-Headers,Access-Control-Allow-Methods,Connection,Host,Origin,Referer,User-Agent,X-Requested-With")
 		// 允许浏览器（客户端）可以解析的头部 （重要）
 		c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers")
 		//c.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, Content-Length, X-CSRF-Token, Token, session, Origin, Host, Connection, Accept-Encoding, Accept-Language, X-Requested-With")
 		//设置缓存时间
 		c.Header("Access-Control-Max-Age", "172800")
 		c.Header("Access-Control-Allow-Credentials", "true")
-		c.Set("content-type", "application/json")
+		c.Set("Content-Type", "application/json")
 		//}
 
 		//允许类型校验

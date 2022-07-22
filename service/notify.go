@@ -33,16 +33,31 @@ type NotifyServer interface {
 	SendMemInfoBySocket(mem map[string]interface{})
 	SendUSBInfoBySocket(list []model2.DriveUSB)
 	SendDiskInfoBySocket(disk model2.Summary)
-	SendPersonStatusBySocket(status notify.Person)
 	SendFileOperateNotify(nowSend bool)
 	SendInstallAppBySocket(app notify.Application)
 	SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat)
+	SendStorageBySocket(message notify.StorageMessage)
 }
 
 type notifyServer struct {
 	db *gorm.DB
 }
 
+func (i *notifyServer) SendStorageBySocket(message notify.StorageMessage) {
+	body := make(map[string]interface{})
+	body["data"] = message
+
+	msg := gosf.Message{}
+	msg.Body = body
+	msg.Success = true
+	msg.Text = "storage_status"
+
+	notify := notify.Message{}
+	notify.Path = "storage_status"
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+}
 func (i *notifyServer) SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat) {
 
 	body := make(map[string]interface{})
@@ -222,22 +237,6 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 		}
 	}
 
-}
-
-func (i *notifyServer) SendPersonStatusBySocket(status notify.Person) {
-	body := make(map[string]interface{})
-	body["data"] = status
-
-	msg := gosf.Message{}
-	msg.Body = body
-	msg.Success = true
-	msg.Text = "person_status"
-
-	notify := notify.Message{}
-	notify.Path = "person_status"
-	notify.Msg = msg
-
-	NotifyMsg <- notify
 }
 
 func (i *notifyServer) SendDiskInfoBySocket(disk model2.Summary) {
