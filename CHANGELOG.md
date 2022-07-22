@@ -29,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Normalize all routes
 - Application names now support spaces ([#211](https://github.com/IceWhaleTech/CasaOS/issues/211))
 
-
 ### Removed
 
 - Removed  casaos connect
