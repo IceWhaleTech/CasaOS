@@ -127,13 +127,13 @@ func (o *casaService) GetServerList(index, size, tp, categoryId, key string) (mo
 func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollection, err error) {
 
 	results := file.ReadFullFile(config.AppInfo.DBPath + "/app_list.json")
-	err = json2.Unmarshal(results, &collection)
-	if err != nil {
+	errr := json2.Unmarshal(results, &collection)
+	if errr != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
-	}
-
-	if collection.Version == o.GetCasaosVersion().Version {
-		return collection, err
+	} else {
+		if collection.Version == o.GetCasaosVersion().Version {
+			return collection, err
+		}
 	}
 
 	head := make(map[string]string)
@@ -153,7 +153,8 @@ func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollec
 		collection.List = listModel
 		collection.Recommend = recommendModel
 		collection.Version = o.GetCasaosVersion().Version
-		by, err := json.Marshal(collection)
+		var by []byte
+		by, err = json.Marshal(collection)
 		if err != nil {
 			loger.Error("marshal error", zap.Any("err", err))
 		}
