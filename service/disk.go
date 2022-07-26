@@ -59,6 +59,7 @@ func (d *diskService) SmartCTL(path string) model.SmartctlA {
 	str := command2.ExecSmartCTLByPath(path)
 	if str == nil {
 		loger.Error("failed to  exec shell ", zap.Any("err", "smartctl exec error"))
+		Cache.Add(key, m, time.Minute*10)
 		return m
 	}
 

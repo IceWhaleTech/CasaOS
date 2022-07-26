@@ -346,3 +346,21 @@ USB_Remove_File() {
 GetDeviceTree(){  
   cat /proc/device-tree/model
 }
+
+# restart samba service
+RestartSMBD(){
+  $sudo_cmd systemctl restart smbd
+}
+
+# edit user password $1:username
+EditSmabaUserPassword(){
+  $sudo_cmd smbpasswd $1
+}
+
+AddSmabaUser(){
+  $sudo_cmd useradd $1
+  $sudo_cmd smbpasswd -a $1 <<EOF
+    $2
+    $2
+EOF
+}

@@ -240,7 +240,11 @@ func (o *casaService) GetServerAppInfo(id, t string, language string) (model.Ser
 	if infoS == "" {
 		return info, errors.New("server error")
 	}
-	json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
+	err := json2.Unmarshal([]byte(gjson.Get(infoS, "data").String()), &info)
+	if err != nil {
+		fmt.Println(infoS)
+		return info, err
+	}
 
 	return info, nil
 }

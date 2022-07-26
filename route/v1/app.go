@@ -137,6 +137,7 @@ func MyAppList(c *gin.Context) {
 func AppUsageList(c *gin.Context) {
 	list := service.MyService.App().GetHardwareUsage()
 	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
+	//c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: nil})
 }
 
 // @Summary 应用详情
