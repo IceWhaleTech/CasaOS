@@ -45,7 +45,7 @@ type ServerAppList struct {
 	Index          string    `json:"index"`
 	CreatedAt      time.Time `json:"created_at"`
 	UpdatedAt      time.Time `json:"updated_at"`
-	State          string    `json:"state"`
+	State          int       `json:"state"`
 	Author         string    `json:"author"`
 	MinMemory      int       `json:"min_memory"`
 	MinDisk        int       `json:"min_disk"`
