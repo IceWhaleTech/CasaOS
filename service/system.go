@@ -213,7 +213,12 @@ func (c *systemService) GetNet(physics bool) []string {
 }
 
 func (s *systemService) UpdateSystemVersion(version string) {
-	command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | bash")
+	if file.Exists(config.AppInfo.LogPath + "/upgrade.log") {
+		os.Remove(config.AppInfo.LogPath + "/upgrade.log")
+	}
+	file.CreateFile(config.AppInfo.LogPath + "/upgrade.log")
+	//go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/update.sh | bash")
+	go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | bash")
 	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
 	//s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
 }
@@ -231,7 +236,6 @@ func (s *systemService) ExecUSBAutoMountShell(state string) {
 	} else {
 		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Move_File")
 	}
-
 }
 
 func (s *systemService) GetSystemConfigDebug() []string {
