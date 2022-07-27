@@ -217,6 +217,24 @@ func InitRouter() *gin.Engine {
 
 			v1StorageGroup.DELETE("", v1.PostDiskUmount)
 		}
+		v1SambaGroup := v1Group.Group("/samba")
+		v1SambaGroup.Use()
+		{
+			v1ConnectionsGroup := v1SambaGroup.Group("/connections")
+			v1ConnectionsGroup.Use()
+			{
+				v1ConnectionsGroup.GET("", v1.GetSambaConnectionsList)
+				v1ConnectionsGroup.POST("", v1.PostSambaConnectionsCreate)
+				v1ConnectionsGroup.DELETE("/:id", v1.DeleteSambaConnections)
+			}
+			v1SharesGroup := v1SambaGroup.Group("/shares")
+			v1SharesGroup.Use()
+			{
+				v1SharesGroup.GET("", v1.GetSambaSharesList)
+				v1SharesGroup.POST("", v1.PostSambaSharesCreate)
+				v1SharesGroup.DELETE("/:id", v1.DeleteSambaShares)
+			}
+		}
 	}
 	return r
 }

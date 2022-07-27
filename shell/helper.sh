@@ -364,3 +364,8 @@ AddSmabaUser(){
     $2
 EOF
 }
+
+# $1:username $2:host $3:share $4:port $5:mountpoint $6:password 
+MountCIFS(){
+ $sudo_cmd mount -t cifs -o username=$1,password=$6,port=$4 //$2/$3 $5
+}

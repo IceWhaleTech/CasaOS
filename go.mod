@@ -33,6 +33,7 @@ require (
 	github.com/googollee/go-socket.io v1.6.2
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.4.2
+	github.com/hirochachacha/go-smb2 v1.1.0
 	github.com/jinzhu/copier v0.3.2
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
