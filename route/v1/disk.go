@@ -87,14 +87,13 @@ func GetDiskList(c *gin.Context) {
 		disk.Size = list[i].Size
 		disk.Path = list[i].Path
 		disk.Model = list[i].Model
-
+		disk.ChildrenNumber = len(list[i].Children)
 		if len(list[i].Children) > 0 && findSystem == 0 {
 			for j := 0; j < len(list[i].Children); j++ {
 				if len(list[i].Children[j].Children) > 0 {
 					for _, v := range list[i].Children[j].Children {
 						if v.MountPoint == "/" {
 							stor := model.Storage{}
-							stor.Name = "System"
 							stor.MountPoint = v.MountPoint
 							stor.Size = v.FSSize
 							stor.Avail = v.FSAvail
@@ -118,7 +117,6 @@ func GetDiskList(c *gin.Context) {
 				} else {
 					if list[i].Children[j].MountPoint == "/" {
 						stor := model.Storage{}
-						stor.Name = "System"
 						stor.MountPoint = list[i].Children[j].MountPoint
 						stor.Size = list[i].Children[j].FSSize
 						stor.Avail = list[i].Children[j].FSAvail
@@ -152,31 +150,29 @@ func GetDiskList(c *gin.Context) {
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				temp.SmartStatus.Passed = true
 			}
-			if len(list[i].Children) == 1 && len(list[i].Children[0].MountPoint) > 0 {
-				stor := model.Storage{}
-				stor.MountPoint = list[i].Children[0].MountPoint
-				stor.Size = list[i].Children[0].FSSize
-				stor.Avail = list[i].Children[0].FSAvail
-				stor.Path = list[i].Children[0].Path
-				stor.Type = list[i].Children[0].FsType
-				stor.DriveName = list[i].Name
-				pathArr := strings.Split(list[i].Children[0].MountPoint, "/")
-				if len(pathArr) == 3 {
-					stor.Name = pathArr[2]
+			isAvail := true
+			for _, v := range list[i].Children {
+				if v.MountPoint != "" {
+					stor := model.Storage{}
+					stor.MountPoint = v.MountPoint
+					stor.Size = v.FSSize
+					stor.Avail = v.FSAvail
+					stor.Path = v.Path
+					stor.Type = v.FsType
+					stor.DriveName = list[i].Name
+					storage = append(storage, stor)
+					isAvail = false
 				}
-				if t, ok := part[list[i].Children[0].MountPoint]; ok {
-					stor.CreatedAt = t
-				}
-				storage = append(storage, stor)
-			} else {
-				//todo   长度有问题
-				if len(list[i].Children) == 1 && list[i].Children[0].FsType == "ext4" {
-					disk.NeedFormat = false
-					avail = append(avail, disk)
-				} else {
-					disk.NeedFormat = true
-					avail = append(avail, disk)
-				}
+			}
+
+			if isAvail {
+				//if len(list[i].Children) == 1 && list[i].Children[0].FsType == "ext4" {
+				disk.NeedFormat = false
+				avail = append(avail, disk)
+				// } else {
+				// 	disk.NeedFormat = true
+				// 	avail = append(avail, disk)
+				// }
 			}
 
 			disk.Temperature = temp.Temperature.Current
@@ -296,13 +292,7 @@ func PostDiskAddPartition(c *gin.Context) {
 	}
 	diskMap[path] = "busying"
 	currentDisk := service.MyService.Disk().GetDiskInfo(path)
-	if !format {
-		if len(currentDisk.Children) != 1 || !(len(currentDisk.Children) > 0 && currentDisk.Children[0].FsType == "ext4") {
-			delete(diskMap, path)
-			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
-			return
-		}
-	} else {
+	if format {
 		// format := service.MyService.Disk().FormatDisk(path+"1", "ext4")
 		// if len(format) == 0 {
 		// 	delete(diskMap, path)
@@ -323,22 +313,23 @@ func PostDiskAddPartition(c *gin.Context) {
 		time.Sleep(time.Second)
 	}
 	currentDisk = service.MyService.Disk().GetDiskInfo(path)
-	if len(currentDisk.Children) != 1 {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
-		return
+	// if len(currentDisk.Children) != 1 {
+	// 	c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
+	// 	return
+	// }
+	for i := 0; i < len(currentDisk.Children); i++ {
+		mountPath := "/DATA/" + name
+		m := model2.SerialDisk{}
+		m.MountPoint = mountPath + strconv.Itoa(i)
+		m.Path = currentDisk.Children[i].Path
+		m.UUID = currentDisk.Children[i].UUID
+		m.State = 0
+		m.CreatedAt = time.Now().Unix()
+		service.MyService.Disk().SaveMountPoint(m)
+
+		//mount dir
+		service.MyService.Disk().MountDisk(currentDisk.Children[i].Path, mountPath+strconv.Itoa(i))
 	}
-
-	mountPath := "/DATA/" + name
-	m := model2.SerialDisk{}
-	m.MountPoint = mountPath
-	m.Path = currentDisk.Children[0].Path
-	m.UUID = currentDisk.Children[0].UUID
-	m.State = 0
-	m.CreatedAt = time.Now().Unix()
-	service.MyService.Disk().SaveMountPoint(m)
-
-	//mount dir
-	service.MyService.Disk().MountDisk(currentDisk.Children[0].Path, mountPath)
 
 	service.MyService.Disk().RemoveLSBLKCache()
 
@@ -348,7 +339,7 @@ func PostDiskAddPartition(c *gin.Context) {
 	msg := notify.StorageMessage{}
 	msg.Action = "ADDED"
 	msg.Path = currentDisk.Children[0].Path
-	msg.Volume = mountPath
+	msg.Volume = "/DATA/" + name
 	msg.Size = currentDisk.Children[0].Size
 	msg.Type = currentDisk.Children[0].Tran
 	service.MyService.Notify().SendStorageBySocket(msg)

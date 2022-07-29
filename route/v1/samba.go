@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-26 11:08:48
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-27 15:30:08
+ * @LastEditTime: 2022-07-28 11:51:03
  * @FilePath: /CasaOS/route/v1/samba.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -13,6 +13,7 @@ package v1
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
@@ -24,6 +25,25 @@ import (
 )
 
 // service
+
+func GetSambaStatus(c *gin.Context) {
+	status := service.MyService.System().IsServiceRunning("smbd")
+
+	if !status {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_NOT_RUNNING, Message: common_err.GetMsg(common_err.SERVICE_NOT_RUNNING)})
+		return
+	}
+	needInit := true
+	if file.Exists("/etc/samba/smb.conf") {
+		str := file.ReadLine(1, "/etc/samba/smb.conf")
+		if strings.Contains(str, "# Copyright (c) 2021-2022 CasaOS Inc. All rights reserved.") {
+			needInit = false
+		}
+	}
+	data := make(map[string]string, 1)
+	data["need_init"] = fmt.Sprintf("%v", needInit)
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+}
 
 func GetSambaSharesList(c *gin.Context) {
 	shares := service.MyService.Shares().GetSharesList()
@@ -58,7 +78,6 @@ func PostSambaSharesCreate(c *gin.Context) {
 			c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.SHARE_NAME_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.SHARE_NAME_ALREADY_EXISTS)})
 			return
 		}
-
 	}
 	for _, v := range shares {
 		shareDBModel := model2.SharesDBModel{}

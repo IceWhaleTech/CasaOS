@@ -243,6 +243,7 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 }
 
 func (d *diskService) MountDisk(path, volume string) {
+	fmt.Println("source " + config.AppInfo.ShellPath + "/helper.sh ;do_mount " + path + " " + volume)
 	r := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;do_mount " + path + " " + volume)
 	fmt.Print(r)
 }

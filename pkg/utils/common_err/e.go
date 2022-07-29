@@ -29,6 +29,7 @@ const (
 	VERIFICATION_FAILURE            = 20006
 	Record_NOT_EXIST                = 20007
 	Record_ALREADY_EXIST            = 20008
+	SERVICE_NOT_RUNNING             = 20009
 
 	//disk
 	NAME_NOT_AVAILABLE       = 40001
@@ -83,6 +84,7 @@ var MsgFlags = map[int]string{
 	VERIFICATION_FAILURE: "Verification failure",
 	Record_ALREADY_EXIST: "Record already exists",
 	Record_NOT_EXIST:     "Record does not exist",
+	SERVICE_NOT_RUNNING:  "Service is not running",
 
 	//app
 	UNINSTALL_APP_ERROR:  "Error uninstalling app",

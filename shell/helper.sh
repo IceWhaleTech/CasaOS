@@ -369,3 +369,19 @@ EOF
 MountCIFS(){
  $sudo_cmd mount -t cifs -o username=$1,password=$6,port=$4 //$2/$3 $5
 }
+
+# $1:service name
+CheckServiceStatus(){
+  rs="`systemctl status  $1 |grep -E  'Active|PID'`"
+#echo "$rs"
+  run="`echo "$rs" |grep -B 2 'running'`"
+  fai="`echo "$rs" |grep  -E -B 2 'failed|inactive|dead'`"
+  if [  "$run" == "" ]
+   then
+	    echo "failed" 
+   else
+      echo "running"
+   fi
+}
+
+

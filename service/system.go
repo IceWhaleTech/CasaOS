@@ -49,6 +49,7 @@ type SystemService interface {
 	CreateFile(path string) (int, error)
 	RenameFile(oldF, newF string) (int, error)
 	MkdirAll(path string) (int, error)
+	IsServiceRunning(name string) bool
 }
 type systemService struct {
 }
@@ -286,6 +287,12 @@ func GetDeviceAllIP() []string {
 		}
 	}
 	return address
+}
+
+func (s *systemService) IsServiceRunning(name string) bool {
+	status := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CheckServiceStatus smbd")
+	return strings.TrimSpace(status) == "running"
+
 }
 func NewSystemService() SystemService {
 	return &systemService{}
