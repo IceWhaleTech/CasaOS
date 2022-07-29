@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-06-17 14:01:25
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-29 16:14:33
+ * @LastEditTime: 2022-07-29 16:22:25
  * @FilePath: /CasaOS/pkg/utils/jwt/jwt_helper.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -38,7 +38,7 @@ func JWT() gin.HandlerFunc {
 		//_, err := ParseToken(token)
 		if err != nil {
 			code = common_err.ERROR_AUTH_TOKEN
-		} else if (c.Request.URL.Path == "/v1/file" || c.Request.URL.Path == "/v1/sys/version/check" || c.Request.URL.Path == "/v1/image" || c.Request.URL.Path == "/v1/file/upload" || c.Request.URL.Path == "/v1/batch") && claims.VerifyIssuer("casaos", true) {
+		} else if (c.Request.URL.Path == "/v1/file" || c.Request.URL.Path == "/v1/image" || c.Request.URL.Path == "/v1/file/upload" || c.Request.URL.Path == "/v1/batch") && claims.VerifyIssuer("casaos", true) {
 			//Special treatment
 		} else if !claims.VerifyExpiresAt(time.Now(), true) || !claims.VerifyIssuer("casaos", true) {
 			code = common_err.ERROR_AUTH_TOKEN
