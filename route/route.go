@@ -44,6 +44,7 @@ func InitRouter() *gin.Engine {
 	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
 
 	r.GET("/v1/sys/socket-port", v1.GetSystemSocketPort) //sys/socket_port
+	r.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
 
 	v1Group := r.Group("/v1")
 
@@ -113,6 +114,7 @@ func InitRouter() *gin.Engine {
 		v1SysGroup.Use()
 		{
 			v1SysGroup.GET("/version", v1.GetSystemCheckVersion) //version/check
+
 			v1SysGroup.POST("/update", v1.SystemUpdate)
 
 			v1SysGroup.GET("/hardware", v1.GetSystemHardwareInfo) //hardware/info
