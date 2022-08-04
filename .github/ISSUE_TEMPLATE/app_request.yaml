@@ -21,8 +21,8 @@ body:
         - Short Description:  <!- eg. Personal cloud and file sharing solution -!>
         - Official Website:  <!- If available. eg. https://nextcloud.com -!>
         - GitHub Repository:  <!- If available. eg. https://github.com/nextcloud/server -!>
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     id: why
