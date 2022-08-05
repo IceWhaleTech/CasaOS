@@ -1,6 +1,6 @@
-name: "App Request (Testing)"
+name: "App Request"
 description: "Request to add an app to the app store."
-title: "[App Request]: "
+title: "[App Request]: AppName"
 labels: ["App Request"]
 body:
   - type: markdown
