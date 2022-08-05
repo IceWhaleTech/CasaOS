@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        ❤ Thanks for taking the time to fill out this app request!
+        ### ❤ Thanks for taking the time to fill out this app request!
         > Before proceeding, please make sure that this app is not in App Store and no one has [requested](https://github.com/IceWhaleTech/CasaOS/labels/App%20Request) the same app before.
         > If you have already requested the app, please ask your friends to help add a 👍 to this issue. Then be patient and wait for the developers to work on it.
         > If you have any questions, please ask them on [Discord](https://discord.gg/knqAbbBbeX) or [Github Discussions](https://github.com/IceWhaleTech/CasaOS/discussions).
@@ -21,6 +21,7 @@ body:
         - Short Description:  <!- eg. Personal cloud and file sharing solution -!>
         - Official Website:  <!- If available. eg. https://nextcloud.com -!>
         - GitHub Repository:  <!- If available. eg. https://github.com/nextcloud/server -!>
+        - Docker Image:  <!- If available. eg. nextcloud/server:latest, ghcr.io/nextcloud/server:latest -!>
     validations:
       required: true
 
