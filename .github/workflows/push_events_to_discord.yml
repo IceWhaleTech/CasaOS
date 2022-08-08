@@ -4,13 +4,25 @@ on:
   issues:
     types:
       - opened
+  issue_comment:
+    types:
+      - created
 
 jobs:
   push-events:
+  
     runs-on: ubuntu-latest
+    
     steps:
-      - name: App Request Events
+    
+      - name: App Request Issues
         if: ${{ github.event_name == 'issues' && github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'App Request')}}
+        uses: joseph-montanez/forward-event-action@v3.0.0
+        with:
+          webhook: ${{ secrets.Discord_CasaOS_App_Request_Webhook }}
+          
+      - name: App Request Issue Comments
+        if: ${{ github.event_name == 'issue_comment' && github.event.action == 'created' && contains(github.event.issue.labels.*.name, 'App Request')}}
         uses: joseph-montanez/forward-event-action@v3.0.0
         with:
           webhook: ${{ secrets.Discord_CasaOS_App_Request_Webhook }}
