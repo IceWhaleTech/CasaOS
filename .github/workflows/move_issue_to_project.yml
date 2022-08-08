@@ -1,4 +1,4 @@
-name: Move Issue To Project
+name: Move Issues To Projects
 
 on:
   issues:
@@ -6,7 +6,7 @@ on:
       - opened
 
 jobs:
-  build:
+  move-issues:
     runs-on: ubuntu-latest
     steps:
       - name: Generate token
