@@ -1,0 +1,16 @@
+name: Push Events to Discord
+
+on:
+  issues:
+    types:
+      - opened
+
+jobs:
+  push-events:
+    runs-on: ubuntu-latest
+    steps:
+      - name: App Request Events
+        if: ${{ github.event_name == 'issues' && github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'App Request')}}
+        uses: joseph-montanez/forward-event-action@v3.0.0
+        with:
+          webhook: ${{ secrets.Discord_CasaOS_App_Request_Webhook }}
