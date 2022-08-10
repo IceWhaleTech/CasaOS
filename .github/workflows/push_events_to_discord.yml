@@ -24,7 +24,7 @@ jobs:
     steps:
       
       - name: General Discussions & Comments
-        if: ${{ ( github.event_name == 'discussion' || github.event_name == 'discussion_comment' ) && github.event.discussion.name == "General" }}
+        if: ${{ ( github.event_name == 'discussion' || github.event_name == 'discussion_comment' ) && github.event.discussion.category.name == 'General' }}
         uses: joseph-montanez/forward-event-action@v3.0.0
         with:
           webhook: ${{ secrets.Discord_CasaOS_General_Webhook }}
