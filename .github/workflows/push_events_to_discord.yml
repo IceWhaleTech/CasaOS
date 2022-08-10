@@ -7,6 +7,14 @@ on:
   issue_comment:
     types:
       - created
+  discussion:
+    types:
+      - created
+      - transferred
+      - answered
+  discussion_comment:
+    types:
+      - created
 
 jobs:
   push-events:
@@ -14,15 +22,27 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      
+      - name: General Discussions & Comments
+        if: ${{ ( github.event_name == 'discussion' || github.event_name == 'discussion_comment' ) && github.event.discussion.category.name == 'General' }}
+        uses: joseph-montanez/forward-event-action@v3.0.0
+        with:
+          webhook: ${{ secrets.Discord_CasaOS_General_Webhook }}
     
-      - name: App Request Issues
-        if: ${{ github.event_name == 'issues' && github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'App Request')}}
+      - name: App Request Issues & Comments
+        if: ${{ ( github.event_name == 'issues' || github.event_name == 'issue_comment' ) && contains(github.event.issue.labels.*.name, 'App Request') }}
         uses: joseph-montanez/forward-event-action@v3.0.0
         with:
           webhook: ${{ secrets.Discord_CasaOS_App_Request_Webhook }}
           
-      - name: App Request Issue Comments
-        if: ${{ github.event_name == 'issue_comment' && github.event.action == 'created' && contains(github.event.issue.labels.*.name, 'App Request')}}
+      - name: Bug Issues & Comments
+        if: ${{ ( github.event_name == 'issues' || github.event_name == 'issue_comment' ) && contains(github.event.issue.labels.*.name, 'bug') && !contains(!github.event.issue.labels.*.name, 'alpha') }}
         uses: joseph-montanez/forward-event-action@v3.0.0
         with:
-          webhook: ${{ secrets.Discord_CasaOS_App_Request_Webhook }}
+          webhook: ${{ secrets.Discord_CasaOS_Bug_Webhook }}
+          
+      - name: Alpha Issues & Comments
+        if: ${{ ( github.event_name == 'issues' || github.event_name == 'issue_comment' ) && contains(!github.event.issue.labels.*.name, 'alpha') }}
+        uses: joseph-montanez/forward-event-action@v3.0.0
+        with:
+          webhook: ${{ secrets.Discord_CasaOS_Alpha_Webhook }}
