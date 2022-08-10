@@ -383,5 +383,7 @@ CheckServiceStatus(){
       echo "running"
    fi
 }
-
+UDEVILUmount(){
+  $sudo_cmd udevil umount -f $1
+}
 

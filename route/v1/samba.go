@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-26 11:08:48
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-28 11:51:03
+ * @LastEditTime: 2022-08-05 12:16:39
  * @FilePath: /CasaOS/route/v1/samba.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -12,6 +12,7 @@ package v1
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -108,10 +109,9 @@ func GetSambaConnectionsList(c *gin.Context) {
 		connectionList = append(connectionList, model.Connections{
 			ID:         v.ID,
 			Username:   v.Username,
-			MountPoint: v.MountPoint,
-			Directory:  v.Directory,
 			Port:       v.Port,
 			Host:       v.Host,
+			MountPoint: v.MountPoint,
 		})
 	}
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: connectionList})
@@ -119,29 +119,24 @@ func GetSambaConnectionsList(c *gin.Context) {
 
 func PostSambaConnectionsCreate(c *gin.Context) {
 	connection := model.Connections{}
-	err := c.ShouldBindJSON(&connection)
-	fmt.Println(err)
+	c.ShouldBindJSON(&connection)
 	if connection.Port == "" {
 		connection.Port = "445"
 	}
-	if connection.Username == "" || connection.Directory == "" || connection.Host == "" || connection.MountPoint == "" {
+	if connection.Username == "" || connection.Host == "" {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
 	// check is exists
 
-	connections := service.MyService.Connections().GetConnectionByDirectory(connection.Directory)
+	connections := service.MyService.Connections().GetConnectionByHost(connection.Host)
 	if len(connections) > 0 {
-		for _, v := range connections {
-			if v.Host == connection.Host {
-				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.Record_ALREADY_EXIST, Message: common_err.GetMsg(common_err.Record_ALREADY_EXIST), Data: common_err.GetMsg(common_err.Record_ALREADY_EXIST)})
-				return
-			}
-		}
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.Record_ALREADY_EXIST, Message: common_err.GetMsg(common_err.Record_ALREADY_EXIST), Data: common_err.GetMsg(common_err.Record_ALREADY_EXIST)})
+		return
 	}
 	// check connect is ok
-	if err := samba.ConnectSambaService(connection.Host, connection.Port, connection.Username, connection.Password, connection.Directory); err != nil {
-		fmt.Println("check", err)
+	directories, err := samba.GetSambaSharesList(connection.Host, connection.Port, connection.Username, connection.Password)
+	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
@@ -149,13 +144,21 @@ func PostSambaConnectionsCreate(c *gin.Context) {
 	connectionDBModel := model2.ConnectionsDBModel{}
 	connectionDBModel.Username = connection.Username
 	connectionDBModel.Password = connection.Password
-	connectionDBModel.Directory = connection.Directory
 	connectionDBModel.Host = connection.Host
 	connectionDBModel.Port = connection.Port
-	connectionDBModel.MountPoint = connection.MountPoint
-	file.IsNotExistMkDir(connection.MountPoint)
+	connectionDBModel.Directories = strings.Join(directories, ",")
+	baseHostPath := "/mnt/" + connection.Host
+	connectionDBModel.MountPoint = baseHostPath
+	connection.MountPoint = baseHostPath
+	file.IsNotExistMkDir(baseHostPath)
+	for _, v := range directories {
+		mountPoint := baseHostPath + "/" + v
+		file.IsNotExistMkDir(mountPoint)
+		service.MyService.Connections().MountSmaba(connectionDBModel.Username, connectionDBModel.Host, v, connectionDBModel.Port, mountPoint, connectionDBModel.Password)
+	}
+
 	service.MyService.Connections().CreateConnection(&connectionDBModel)
-	service.MyService.Connections().MountSmaba(&connectionDBModel)
+
 	connection.ID = connectionDBModel.ID
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: connection})
 }
@@ -167,7 +170,11 @@ func DeleteSambaConnections(c *gin.Context) {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.Record_NOT_EXIST, Message: common_err.GetMsg(common_err.Record_NOT_EXIST)})
 		return
 	}
-	service.MyService.Connections().UnmountSmaba(connection.MountPoint)
+	mountPointList := service.MyService.System().GetDirPath(connection.MountPoint)
+	for _, v := range mountPointList {
+		service.MyService.Connections().UnmountSmaba(v.Path)
+	}
+	os.RemoveAll(connection.MountPoint)
 	service.MyService.Connections().DeleteConnection(id)
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: id})
 }

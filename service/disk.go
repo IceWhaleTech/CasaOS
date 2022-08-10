@@ -36,6 +36,7 @@ type DiskService interface {
 	DeleteMount(id string)
 	UpdateMountPoint(m model2.SerialDisk)
 	RemoveLSBLKCache()
+	UmountUSB(path string)
 }
 type diskService struct {
 	db *gorm.DB
@@ -44,6 +45,10 @@ type diskService struct {
 func (d *diskService) RemoveLSBLKCache() {
 	key := "system_lsblk"
 	Cache.Delete(key)
+}
+func (d *diskService) UmountUSB(path string) {
+	r := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;UDEVILUmount " + path)
+	fmt.Println(r)
 }
 func (d *diskService) SmartCTL(path string) model.SmartctlA {
 
@@ -243,9 +248,9 @@ func (d *diskService) GetDiskInfo(path string) model.LSBLKModel {
 }
 
 func (d *diskService) MountDisk(path, volume string) {
-	fmt.Println("source " + config.AppInfo.ShellPath + "/helper.sh ;do_mount " + path + " " + volume)
+	//fmt.Println("source " + config.AppInfo.ShellPath + "/helper.sh ;do_mount " + path + " " + volume)
 	r := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;do_mount " + path + " " + volume)
-	fmt.Print(r)
+	fmt.Println(r)
 }
 
 func (d *diskService) SaveMountPoint(m model2.SerialDisk) {

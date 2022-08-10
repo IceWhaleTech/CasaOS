@@ -196,6 +196,8 @@ func InitRouter() *gin.Engine {
 
 			//v1DisksGroup.POST("", v1.PostMountDisk)
 			v1DisksGroup.GET("", v1.GetDiskList)
+			v1DisksGroup.GET("/usb", v1.GetDisksUSBList)
+			v1DisksGroup.DELETE("/usb", v1.DeleteDiskUSB)
 			// //format storage
 			// v1DiskGroup.POST("/format", v1.PostDiskFormat)
 

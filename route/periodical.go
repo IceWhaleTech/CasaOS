@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-01 15:11:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-21 15:25:07
+ * @LastEditTime: 2022-08-03 14:49:15
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -133,21 +133,14 @@ func SendUSBBySocket() {
 			temp.Model = v.Model
 			temp.Name = v.Name
 			temp.Size = v.Size
-			mountTemp := true
-			if len(v.Children) == 0 {
-				mountTemp = false
-			}
 			for _, child := range v.Children {
 				if len(child.MountPoint) > 0 {
 					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
 					temp.Avail += avail
-					used, _ := strconv.ParseUint(child.FSUsed, 10, 64)
-					temp.Used += used
-				} else {
-					mountTemp = false
+
 				}
 			}
-			temp.Mount = mountTemp
+
 			usb = append(usb, temp)
 		}
 	}
@@ -250,21 +243,12 @@ func SendAllHardwareStatusBySocket() {
 			temp.Model = v.Model
 			temp.Name = v.Name
 			temp.Size = v.Size
-			mountTemp := true
-			if len(v.Children) == 0 {
-				mountTemp = false
-			}
 			for _, child := range v.Children {
 				if len(child.MountPoint) > 0 {
 					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
 					temp.Avail += avail
-					used, _ := strconv.ParseUint(child.FSUsed, 10, 64)
-					temp.Used += used
-				} else {
-					mountTemp = false
 				}
 			}
-			temp.Mount = mountTemp
 			usb = append(usb, temp)
 		}
 	}

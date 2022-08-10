@@ -18,6 +18,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.3.5-alpha] - 2022-08-08
+
+### Added
+
+- [File] Condivisione samba montata
+- [File] Condivisione dei file tramite samba
+
+### Changed
+
+- [Disk] Supporto per il montaggio di dischi dati esistenti
+
+### Fixed
+
+- fixed uninstalling imported docker container apps results in wiping ALL your config data from them ([#360](https://github.com/IceWhaleTech/CasaOS/issues/360))
+
 ## [0.3.4] - 2022-07-29(UTC)
 
 ### Added

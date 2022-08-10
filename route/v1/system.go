@@ -354,21 +354,13 @@ func GetSystemUtilization(c *gin.Context) {
 			temp.Model = v.Model
 			temp.Name = v.Name
 			temp.Size = v.Size
-			mountTemp := true
-			if len(v.Children) == 0 {
-				mountTemp = false
-			}
+
 			for _, child := range v.Children {
 				if len(child.MountPoint) > 0 {
 					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
 					temp.Avail += avail
-					used, _ := strconv.ParseUint(child.FSUsed, 10, 64)
-					temp.Used += used
-				} else {
-					mountTemp = false
 				}
 			}
-			temp.Mount = mountTemp
 			usb = append(usb, temp)
 		}
 	}

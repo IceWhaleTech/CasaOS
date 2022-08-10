@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-13 10:43:45
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-29 14:21:59
+ * @LastEditTime: 2022-08-03 14:45:35
  * @FilePath: /CasaOS/model/disk.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -61,16 +61,21 @@ type Drive struct {
 }
 
 type DriveUSB struct {
-	Name  string `json:"name"`
-	Size  uint64 `json:"size"`
-	Used  uint64 `json:"use"`
-	Model string `json:"model"`
-	Mount bool   `json:"mount"`
-	Avail uint64 `json:"avail"`
+	Name     string        `json:"name"`
+	Size     uint64        `json:"size"`
+	Model    string        `json:"model"`
+	Avail    uint64        `json:"avail"`
+	Children []USBChildren `json:"children"`
+}
+type USBChildren struct {
+	Name       string `json:"name"`
+	Size       uint64 `json:"size"`
+	Avail      uint64 `json:"avail"`
+	MountPoint string `json:"mount_point"`
 }
 
 type Storage struct {
-	MountPoint string `json:"mountpoint"`
+	MountPoint string `json:"mount_point"`
 	Size       string `json:"size"`
 	Avail      string `json:"avail"` //可用空间
 	Type       string `json:"type"`

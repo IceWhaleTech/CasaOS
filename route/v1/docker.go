@@ -209,7 +209,7 @@ func InstallApp(c *gin.Context) {
 		dockerImage = m.Image
 		dockerImageVersion = "latest"
 	}
-
+	m.Image = dockerImage + ":" + dockerImageVersion
 	for _, u := range m.Ports {
 
 		if u.Protocol == "udp" {
@@ -334,11 +334,11 @@ func InstallApp(c *gin.Context) {
 			return
 		}
 
-		for !service.MyService.Docker().IsExistImage(dockerImage + ":" + dockerImageVersion) {
+		for !service.MyService.Docker().IsExistImage(m.Image) {
 			time.Sleep(time.Second)
 		}
 
-		_, err = service.MyService.Docker().DockerContainerCreate(dockerImage+":"+dockerImageVersion, m)
+		_, err = service.MyService.Docker().DockerContainerCreate(m, "")
 		if err != nil {
 			//service.MyService.Redis().Set(id, "{\"id\"\""+id+"\",\"state\":false,\"message\":\""+err.Error()+"\",\"speed\":80}", 100)
 			notify := notify.Application{}
@@ -829,7 +829,6 @@ func UpdateSetting(c *gin.Context) {
 	// 	c.JSON(http.StatusOK, model.Result{Success: common_err.ERROR_APP_NAME_EXIST, Message: common_err.GetMsg(common_err.ERROR_APP_NAME_EXIST)})
 	// 	return
 	// }
-
 	service.MyService.Docker().DockerContainerStop(id)
 	portMap, _ := strconv.Atoi(m.PortMap)
 	if !port2.IsPortAvailable(portMap, "tcp") {
@@ -874,7 +873,7 @@ func UpdateSetting(c *gin.Context) {
 	service.MyService.Docker().DockerContainerUpdateName(id, id)
 	//service.MyService.Docker().DockerContainerRemove(id, true)
 
-	containerId, err := service.MyService.Docker().DockerContainerCreate(m.Image, m)
+	containerId, err := service.MyService.Docker().DockerContainerCreate(m, id)
 	if err != nil {
 		service.MyService.Docker().DockerContainerUpdateName(m.ContainerName, id)
 		service.MyService.Docker().DockerContainerStart(id)
