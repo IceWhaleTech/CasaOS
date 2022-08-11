@@ -330,17 +330,16 @@ TarFolder() {
   du -sh /DATA
 }
 
-USB_Move_File() {
+USB_Start_Auto() {
   ((EUID)) && sudo_cmd="sudo"
-  $sudo_cmd cp -rf /casaOS/server/shell/11-usb-mount.rules /etc/udev/rules.d/
-  $sudo_cmd chmod +x /casaOS/server/shell/usb-mount.sh
-  $sudo_cmd cp -rf /casaOS/server/shell/usb-mount@.service /etc/systemd/system/
+  $sudo_cmd systemctl enable devmon@devmon
+  $sudo_cmd} systemctl start devmon@devmon
 }
 
-USB_Remove_File() {
+USB_Stop_Auto() {
   ((EUID)) && sudo_cmd="sudo"
-  $sudo_cmd rm -fr /etc/udev/rules.d/11-usb-mount.rules
-  $sudo_cmd rm -fr /etc/systemd/system/usb-mount@.service
+  $sudo_cmd} systemctl stop devmon@devmon
+  $sudo_cmd systemctl disable devmon@devmon
 }
 
 GetDeviceTree(){  

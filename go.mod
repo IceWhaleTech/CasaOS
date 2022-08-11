@@ -38,6 +38,7 @@ require (
 	github.com/jinzhu/copier v0.3.2
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/kr/pretty v0.2.1
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lucas-clemente/quic-go v0.25.0
@@ -49,6 +50,7 @@ require (
 	github.com/opencontainers/image-spec v1.0.2 // indirect
 	github.com/opencontainers/selinux v1.8.5 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/pilebones/go-udev v0.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/robfig/cron v1.2.0

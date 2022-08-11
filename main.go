@@ -95,7 +95,7 @@ func main() {
 		return
 	}
 	go route.SocketInit(service.NotifyMsg)
-
+	go route.MonitoryUSB()
 	//model.Setup()
 	//gredis.Setup()
 	r := route.InitRouter()

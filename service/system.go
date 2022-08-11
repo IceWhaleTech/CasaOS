@@ -233,9 +233,9 @@ func (s *systemService) GetTimeZone() string {
 
 func (s *systemService) ExecUSBAutoMountShell(state string) {
 	if state == "False" {
-		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Remove_File")
+		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Stop_Auto")
 	} else {
-		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Move_File")
+		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Start_Auto")
 	}
 }
 
