@@ -223,6 +223,53 @@ func GetDisksUSBList(c *gin.Context) {
 
 }
 
+func DeleteDisksUmount(c *gin.Context) {
+	id := c.GetHeader("user_id")
+	js := make(map[string]string)
+	c.ShouldBind(&js)
+
+	path := js["path"]
+	pwd := js["password"]
+
+	if len(path) == 0 {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
+	}
+	user := service.MyService.User().GetUserAllInfoById(id)
+	if user.Id == 0 {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
+	if encryption.GetMD5ByStr(pwd) != user.Password {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
+		return
+	}
+
+	if _, ok := diskMap[path]; ok {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
+		return
+	}
+
+	diskInfo := service.MyService.Disk().GetDiskInfo(path)
+	for _, v := range diskInfo.Children {
+		service.MyService.Disk().UmountPointAndRemoveDir(v.Path)
+		//delete data
+		service.MyService.Disk().DeleteMountPoint(v.Path, v.MountPoint)
+	}
+
+	service.MyService.Disk().RemoveLSBLKCache()
+
+	//send notify to client
+	msg := notify.StorageMessage{}
+	msg.Action = "REMOVED"
+	msg.Path = path
+	msg.Volume = ""
+	msg.Size = 0
+	msg.Type = ""
+	service.MyService.Notify().SendStorageBySocket(msg)
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: path})
+}
+
 func DeleteDiskUSB(c *gin.Context) {
 	js := make(map[string]string)
 	c.ShouldBind(&js)
