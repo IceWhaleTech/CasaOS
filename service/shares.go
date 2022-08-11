@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.org
  * @Date: 2022-07-26 11:21:14
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-28 16:08:56
+ * @LastEditTime: 2022-08-11 14:04:00
  * @FilePath: /CasaOS/service/shares.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -94,55 +94,53 @@ func (s *sharesStruct) InitSambaConfig() {
 		file.MoveFile("/etc/samba/smb.conf", "/etc/samba/smb.conf.bak")
 		var smbConf = ""
 		smbConf += `# Copyright (c) 2021-2022 CasaOS Inc. All rights reserved.
-	#
-	#
-	#                          ______     _______
-	#                        (  __  \   (  ___  )
-	#                        | (  \  )  | (   ) |
-	#                        | |   ) |  | |   | |
-	#                        | |   | |  | |   | |
-	#                        | |   ) |  | |   | |
-	#                        | (__/  )  | (___) |
-	#                        (______/   (_______)
-	#
-	#                   _          _______   _________
-	#                  ( (    /|  (  ___  )  \__   __/
-	#                  |  \  ( |  | (   ) |     ) (
-	#                  |   \ | |  | |   | |     | |
-	#                  | (\ \) |  | |   | |     | |
-	#                  | | \   |  | |   | |     | |
-	#                  | )  \  |  | (___) |     | |
-	#                  |/    )_)  (_______)     )_(
-	#
-	#   _______    _______    ______    _________   _______
-	#  (       )  (  ___  )  (  __  \   \__   __/  (  ____ \  |\     /|
-	#  | () () |  | (   ) |  | (  \  )     ) (     | (    \/  ( \   / )
-	#  | || || |  | |   | |  | |   ) |     | |     | (__       \ (_) /
-	#  | |(_)| |  | |   | |  | |   | |     | |     |  __)       \   /
-	#  | |   | |  | |   | |  | |   ) |     | |     | (           ) (
-	#  | )   ( |  | (___) |  | (__/  )  ___) (___  | )           | |
-	#  |/     \|  (_______)  (______/   \_______/  |/            \_/
-	#
-	#
-	# IMPORTANT: CasaOS will not provide technical support for any issues
-	#            caused by unauthorized modification to the configuration.
-	
-	[global]
-	## fruit settings
-	   min protocol = SMB2
-	   ea support = yes
-	   vfs objects = fruit streams_xattr
-	   fruit:metadata = stream
-	   fruit:model = Macmini
-	   fruit:veto_appledouble = no
-	   fruit:posix_rename = yes
-	   fruit:zero_file_id = yes
-	   fruit:wipe_intentionally_left_blank_rfork = yes
-	   fruit:delete_empty_adfiles = yes
-	   map to guest = bad user
-	   include=/etc/samba/smb.casa.conf
-			
-			`
+#
+#
+#                          ______     _______
+#                        (  __  \   (  ___  )
+#                        | (  \  )  | (   ) |
+#                        | |   ) |  | |   | |
+#                        | |   | |  | |   | |
+#                        | |   ) |  | |   | |
+#                        | (__/  )  | (___) |
+#                        (______/   (_______)
+#
+#                   _          _______   _________
+#                  ( (    /|  (  ___  )  \__   __/
+#                  |  \  ( |  | (   ) |     ) (
+#                  |   \ | |  | |   | |     | |
+#                  | (\ \) |  | |   | |     | |
+#                  | | \   |  | |   | |     | |
+#                  | )  \  |  | (___) |     | |
+#                  |/    )_)  (_______)     )_(
+#
+#   _______    _______    ______    _________   _______
+#  (       )  (  ___  )  (  __  \   \__   __/  (  ____ \  |\     /|
+#  | () () |  | (   ) |  | (  \  )     ) (     | (    \/  ( \   / )
+#  | || || |  | |   | |  | |   ) |     | |     | (__       \ (_) /
+#  | |(_)| |  | |   | |  | |   | |     | |     |  __)       \   /
+#  | |   | |  | |   | |  | |   ) |     | |     | (           ) (
+#  | )   ( |  | (___) |  | (__/  )  ___) (___  | )           | |
+#  |/     \|  (_______)  (______/   \_______/  |/            \_/
+#
+#
+# IMPORTANT: CasaOS will not provide technical support for any issues
+#            caused by unauthorized modification to the configuration.
+
+[global]
+## fruit settings
+   min protocol = SMB2
+   ea support = yes
+## vfs objects = fruit streams_xattr
+   fruit:metadata = stream
+   fruit:model = Macmini
+   fruit:veto_appledouble = no
+   fruit:posix_rename = yes
+   fruit:zero_file_id = yes
+   fruit:wipe_intentionally_left_blank_rfork = yes
+   fruit:delete_empty_adfiles = yes
+   map to guest = bad user
+   include=/etc/samba/smb.casa.conf`
 		file.WriteToPath([]byte(smbConf), "/etc/samba", "smb.conf")
 	}
 

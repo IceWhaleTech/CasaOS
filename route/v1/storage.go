@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-11 16:02:29
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-04 11:27:25
+ * @LastEditTime: 2022-08-11 14:20:02
  * @FilePath: /CasaOS/route/v1/storage.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -68,7 +68,7 @@ func GetStorageList(c *gin.Context) {
 					stor.Avail = v.FSAvail
 					stor.Path = v.Path
 					stor.Type = v.FsType
-					stor.DriveName = "System"
+					stor.DriveName = v.Name
 					if len(v.Label) == 0 {
 						stor.Label = "Storage" + strconv.Itoa(diskNumber) + "_" + strconv.Itoa(children)
 						children += 1
