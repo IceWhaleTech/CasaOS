@@ -17,11 +17,11 @@ body:
       label: "App Information"
       description: "The formal information of this app, as detailed as possible."
       value: |
-        - Name:  <!- eg. Nextcloud -!>
-        - Short Description:  <!- eg. Personal cloud and file sharing solution -!>
-        - Official Website:  <!- If available. eg. https://nextcloud.com -!>
-        - GitHub Repository:  <!- If available. eg. https://github.com/nextcloud/server -!>
-        - Docker Image:  <!- If available. eg. nextcloud/server:latest, ghcr.io/nextcloud/server:latest -!>
+        - Name: <!-- eg. Nextcloud -->
+        - Short Description: <!-- eg. Personal cloud and file sharing solution -->
+        - Official Website: <!-- If available. eg. https://nextcloud.com -->
+        - GitHub Repository: <!-- If available. eg. https://github.com/nextcloud/server -->
+        - Docker Image: <!-- If available. eg. nextcloud/server:latest, ghcr.io/nextcloud/server:latest -->
     validations:
       required: true
 
