@@ -5,7 +5,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-01 15:11:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-12 18:43:00
+ * @LastEditTime: 2022-08-12 18:58:00
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -251,17 +251,22 @@ func SendAllHardwareStatusBySocket() {
 	usb := []model.DriveUSB{}
 	for _, v := range usbList {
 		if v.Tran == "usb" {
+			isMount = false
 			temp := model.DriveUSB{}
 			temp.Model = v.Model
 			temp.Name = v.Name
 			temp.Size = v.Size
 			for _, child := range v.Children {
 				if len(child.MountPoint) > 0 {
+					isMount = true
 					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
 					temp.Avail += avail
 				}
 			}
-			usb = append(usb, temp)
+			if isMount {
+				usb = append(usb, temp)
+			}
+
 		}
 	}
 	memInfo := service.MyService.System().GetMemInfo()
