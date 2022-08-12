@@ -333,12 +333,12 @@ TarFolder() {
 USB_Start_Auto() {
   ((EUID)) && sudo_cmd="sudo"
   $sudo_cmd systemctl enable devmon@devmon
-  $sudo_cmd} systemctl start devmon@devmon
+  $sudo_cmd systemctl start devmon@devmon
 }
 
 USB_Stop_Auto() {
   ((EUID)) && sudo_cmd="sudo"
-  $sudo_cmd} systemctl stop devmon@devmon
+  $sudo_cmd systemctl stop devmon@devmon
   $sudo_cmd systemctl disable devmon@devmon
 }
 
