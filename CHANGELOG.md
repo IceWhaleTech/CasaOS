@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- [Disk] Supporto per il montaggio di dischi dati esistenti
+- [Disk] Support for mounting existing data disks
 
 ### Fixed
 

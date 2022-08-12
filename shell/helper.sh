@@ -340,6 +340,7 @@ USB_Stop_Auto() {
   ((EUID)) && sudo_cmd="sudo"
   $sudo_cmd systemctl stop devmon@devmon
   $sudo_cmd systemctl disable devmon@devmon
+  $sudo_cmd udevil clean
 }
 
 GetDeviceTree(){  
