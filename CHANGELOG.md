@@ -22,8 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- [File] Condivisione samba montata
-- [File] Condivisione dei file tramite samba
+- [File] Mount the shared samba
+- [File] File sharing via Samba
 - [System] You can share casaos on Twitter, facebook, reddit
 
 ### Changed

@@ -174,7 +174,7 @@ func PostKillCasaOS(c *gin.Context) {
 func PutSystemUSBAutoMount(c *gin.Context) {
 	js := make(map[string]string)
 	c.ShouldBind(&js)
-	status := js["status"]
+	status := js["state"]
 	if status == "on" {
 		service.MyService.System().UpdateUSBAutoMount("True")
 		service.MyService.System().ExecUSBAutoMountShell("True")
