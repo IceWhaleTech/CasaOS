@@ -5,7 +5,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-01 15:11:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-12 18:58:00
+ * @LastEditTime: 2022-08-15 11:50:04
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -251,7 +251,7 @@ func SendAllHardwareStatusBySocket() {
 	usb := []model.DriveUSB{}
 	for _, v := range usbList {
 		if v.Tran == "usb" {
-			isMount = false
+			isMount := false
 			temp := model.DriveUSB{}
 			temp.Model = v.Model
 			temp.Name = v.Name
