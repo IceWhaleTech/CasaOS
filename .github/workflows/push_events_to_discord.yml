@@ -4,7 +4,6 @@ on:
   issues:
     types:
       - opened
-      - labeled
   issue_comment:
     types:
       - created
