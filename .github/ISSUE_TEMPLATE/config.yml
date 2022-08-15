@@ -1,5 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Questions, Ideas, Discussions
+  - name: Feature/Enhancement Ideas
+    url: https://github.com/IceWhaleTech/CasaOS/discussions/164
+    about: Have an idea for a new feature/enhancement?
+  - name: Questions, Discussions
     url: https://github.com/IceWhaleTech/CasaOS/discussions
     about: Ask questions, propose ideas, or discuss anything related to CasaOS
+  - name: Discord
+    url: https://discord.gg/knqAbbBbeX
+    about: Get help or share great ideas on Discord!
