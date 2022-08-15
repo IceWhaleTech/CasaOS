@@ -1,8 +1,11 @@
+//go:build !darwin
+// +build !darwin
+
 /*
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-01 15:11:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-21 15:25:07
+ * @LastEditTime: 2022-08-12 18:58:00
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -11,14 +14,20 @@
 package route
 
 import (
+	"os"
+	"os/signal"
 	"reflect"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 	"unsafe"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/service"
+	"github.com/pilebones/go-udev/netlink"
+	"go.uber.org/zap"
 )
 
 func SendNetINfoBySocket() {
@@ -129,26 +138,22 @@ func SendUSBBySocket() {
 	usb := []model.DriveUSB{}
 	for _, v := range usbList {
 		if v.Tran == "usb" {
+			isMount := false
 			temp := model.DriveUSB{}
 			temp.Model = v.Model
 			temp.Name = v.Name
 			temp.Size = v.Size
-			mountTemp := true
-			if len(v.Children) == 0 {
-				mountTemp = false
-			}
 			for _, child := range v.Children {
 				if len(child.MountPoint) > 0 {
+					isMount = true
 					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
 					temp.Avail += avail
-					used, _ := strconv.ParseUint(child.FSUsed, 10, 64)
-					temp.Used += used
-				} else {
-					mountTemp = false
+
 				}
 			}
-			temp.Mount = mountTemp
-			usb = append(usb, temp)
+			if isMount {
+				usb = append(usb, temp)
+			}
 		}
 	}
 	service.MyService.Notify().SendUSBInfoBySocket(usb)
@@ -246,30 +251,61 @@ func SendAllHardwareStatusBySocket() {
 	usb := []model.DriveUSB{}
 	for _, v := range usbList {
 		if v.Tran == "usb" {
+			isMount = false
 			temp := model.DriveUSB{}
 			temp.Model = v.Model
 			temp.Name = v.Name
 			temp.Size = v.Size
-			mountTemp := true
-			if len(v.Children) == 0 {
-				mountTemp = false
-			}
 			for _, child := range v.Children {
 				if len(child.MountPoint) > 0 {
+					isMount = true
 					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
 					temp.Avail += avail
-					used, _ := strconv.ParseUint(child.FSUsed, 10, 64)
-					temp.Used += used
-				} else {
-					mountTemp = false
 				}
 			}
-			temp.Mount = mountTemp
-			usb = append(usb, temp)
+			if isMount {
+				usb = append(usb, temp)
+			}
+
 		}
 	}
 	memInfo := service.MyService.System().GetMemInfo()
 
 	service.MyService.Notify().SendAllHardwareStatusBySocket(summary, usb, memInfo, cpuData, newNet)
+
+}
+func MonitoryUSB() {
+	var matcher netlink.Matcher
+
+	conn := new(netlink.UEventConn)
+	if err := conn.Connect(netlink.UdevEvent); err != nil {
+		loger.Error("udev err", zap.Any("Unable to connect to Netlink Kobject UEvent socket", err))
+	}
+	defer conn.Close()
+
+	queue := make(chan netlink.UEvent)
+	errors := make(chan error)
+	quit := conn.Monitor(queue, errors, matcher)
+
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	go func() {
+		<-signals
+		close(quit)
+		os.Exit(0)
+	}()
+
+	for {
+		select {
+		case uevent := <-queue:
+			if uevent.Env["DEVTYPE"] == "disk" {
+				time.Sleep(time.Microsecond * 500)
+				SendUSBBySocket()
+				continue
+			}
+		case err := <-errors:
+			loger.Error("udev err", zap.Any("err", err))
+		}
+	}
 
 }

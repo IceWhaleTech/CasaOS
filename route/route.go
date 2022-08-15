@@ -196,6 +196,9 @@ func InitRouter() *gin.Engine {
 
 			//v1DisksGroup.POST("", v1.PostMountDisk)
 			v1DisksGroup.GET("", v1.GetDiskList)
+			v1DisksGroup.GET("/usb", v1.GetDisksUSBList)
+			v1DisksGroup.DELETE("/usb", v1.DeleteDiskUSB)
+			v1DisksGroup.DELETE("", v1.DeleteDisksUmount)
 			// //format storage
 			// v1DiskGroup.POST("/format", v1.PostDiskFormat)
 
@@ -218,6 +221,26 @@ func InitRouter() *gin.Engine {
 			v1StorageGroup.PUT("", v1.PostDiskFormat)
 
 			v1StorageGroup.DELETE("", v1.PostDiskUmount)
+			v1StorageGroup.GET("", v1.GetStorageList)
+		}
+		v1SambaGroup := v1Group.Group("/samba")
+		v1SambaGroup.Use()
+		{
+			v1ConnectionsGroup := v1SambaGroup.Group("/connections")
+			v1ConnectionsGroup.Use()
+			{
+				v1ConnectionsGroup.GET("", v1.GetSambaConnectionsList)
+				v1ConnectionsGroup.POST("", v1.PostSambaConnectionsCreate)
+				v1ConnectionsGroup.DELETE("/:id", v1.DeleteSambaConnections)
+			}
+			v1SharesGroup := v1SambaGroup.Group("/shares")
+			v1SharesGroup.Use()
+			{
+				v1SharesGroup.GET("", v1.GetSambaSharesList)
+				v1SharesGroup.POST("", v1.PostSambaSharesCreate)
+				v1SharesGroup.DELETE("/:id", v1.DeleteSambaShares)
+				v1SharesGroup.GET("/status", v1.GetSambaStatus)
+			}
 		}
 	}
 	return r

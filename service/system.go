@@ -49,6 +49,7 @@ type SystemService interface {
 	CreateFile(path string) (int, error)
 	RenameFile(oldF, newF string) (int, error)
 	MkdirAll(path string) (int, error)
+	IsServiceRunning(name string) bool
 }
 type systemService struct {
 }
@@ -232,9 +233,9 @@ func (s *systemService) GetTimeZone() string {
 
 func (s *systemService) ExecUSBAutoMountShell(state string) {
 	if state == "False" {
-		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Remove_File")
+		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Stop_Auto")
 	} else {
-		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Move_File")
+		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Start_Auto")
 	}
 }
 
@@ -286,6 +287,12 @@ func GetDeviceAllIP() []string {
 		}
 	}
 	return address
+}
+
+func (s *systemService) IsServiceRunning(name string) bool {
+	status := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CheckServiceStatus smbd")
+	return strings.TrimSpace(status) == "running"
+
 }
 func NewSystemService() SystemService {
 	return &systemService{}

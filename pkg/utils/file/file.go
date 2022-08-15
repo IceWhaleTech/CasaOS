@@ -547,3 +547,20 @@ func MoveFile(sourcePath, destPath string) error {
 	}
 	return nil
 }
+
+func ReadLine(lineNumber int, path string) string {
+	file, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+	fileScanner := bufio.NewScanner(file)
+	lineCount := 1
+	for fileScanner.Scan() {
+		if lineCount == lineNumber {
+			return fileScanner.Text()
+		}
+		lineCount++
+	}
+	defer file.Close()
+	return ""
+}

@@ -174,7 +174,7 @@ func PostKillCasaOS(c *gin.Context) {
 func PutSystemUSBAutoMount(c *gin.Context) {
 	js := make(map[string]string)
 	c.ShouldBind(&js)
-	status := js["status"]
+	status := js["state"]
 	if status == "on" {
 		service.MyService.System().UpdateUSBAutoMount("True")
 		service.MyService.System().ExecUSBAutoMountShell("True")
@@ -182,7 +182,31 @@ func PutSystemUSBAutoMount(c *gin.Context) {
 		service.MyService.System().UpdateUSBAutoMount("False")
 		service.MyService.System().ExecUSBAutoMountShell("False")
 	}
+	go func() {
+		usbList := service.MyService.Disk().LSBLK(false)
+		usb := []model.DriveUSB{}
+		for _, v := range usbList {
+			if v.Tran == "usb" {
+				isMount := false
+				temp := model.DriveUSB{}
+				temp.Model = v.Model
+				temp.Name = v.Name
+				temp.Size = v.Size
+				for _, child := range v.Children {
+					if len(child.MountPoint) > 0 {
+						isMount = true
+						avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
+						temp.Avail += avail
 
+					}
+				}
+				if isMount {
+					usb = append(usb, temp)
+				}
+			}
+		}
+		service.MyService.Notify().SendUSBInfoBySocket(usb)
+	}()
 	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
@@ -202,7 +226,31 @@ func GetSystemUSBAutoMount(c *gin.Context) {
 	if config.ServerInfo.USBAutoMount == "False" {
 		state = "False"
 	}
+	go func() {
+		usbList := service.MyService.Disk().LSBLK(false)
+		usb := []model.DriveUSB{}
+		for _, v := range usbList {
+			if v.Tran == "usb" {
+				isMount := false
+				temp := model.DriveUSB{}
+				temp.Model = v.Model
+				temp.Name = v.Name
+				temp.Size = v.Size
+				for _, child := range v.Children {
+					if len(child.MountPoint) > 0 {
+						isMount = true
+						avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
+						temp.Avail += avail
 
+					}
+				}
+				if isMount {
+					usb = append(usb, temp)
+				}
+			}
+		}
+		service.MyService.Notify().SendUSBInfoBySocket(usb)
+	}()
 	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
@@ -354,21 +402,13 @@ func GetSystemUtilization(c *gin.Context) {
 			temp.Model = v.Model
 			temp.Name = v.Name
 			temp.Size = v.Size
-			mountTemp := true
-			if len(v.Children) == 0 {
-				mountTemp = false
-			}
+
 			for _, child := range v.Children {
 				if len(child.MountPoint) > 0 {
 					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
 					temp.Avail += avail
-					used, _ := strconv.ParseUint(child.FSUsed, 10, 64)
-					temp.Used += used
-				} else {
-					mountTemp = false
 				}
 			}
-			temp.Mount = mountTemp
 			usb = append(usb, temp)
 		}
 	}
