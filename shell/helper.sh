@@ -330,17 +330,17 @@ TarFolder() {
   du -sh /DATA
 }
 
-USB_Move_File() {
+USB_Start_Auto() {
   ((EUID)) && sudo_cmd="sudo"
-  $sudo_cmd cp -rf /casaOS/server/shell/11-usb-mount.rules /etc/udev/rules.d/
-  $sudo_cmd chmod +x /casaOS/server/shell/usb-mount.sh
-  $sudo_cmd cp -rf /casaOS/server/shell/usb-mount@.service /etc/systemd/system/
+  $sudo_cmd systemctl enable devmon@devmon
+  $sudo_cmd systemctl start devmon@devmon
 }
 
-USB_Remove_File() {
+USB_Stop_Auto() {
   ((EUID)) && sudo_cmd="sudo"
-  $sudo_cmd rm -fr /etc/udev/rules.d/11-usb-mount.rules
-  $sudo_cmd rm -fr /etc/systemd/system/usb-mount@.service
+  $sudo_cmd systemctl stop devmon@devmon
+  $sudo_cmd systemctl disable devmon@devmon
+  $sudo_cmd udevil clean
 }
 
 GetDeviceTree(){  
@@ -364,3 +364,26 @@ AddSmabaUser(){
     $2
 EOF
 }
+
+# $1:username $2:host $3:share $4:port $5:mountpoint $6:password 
+MountCIFS(){
+ $sudo_cmd mount -t cifs -o username=$1,password=$6,port=$4 //$2/$3 $5
+}
+
+# $1:service name
+CheckServiceStatus(){
+  rs="`systemctl status  $1 |grep -E  'Active|PID'`"
+#echo "$rs"
+  run="`echo "$rs" |grep -B 2 'running'`"
+  fai="`echo "$rs" |grep  -E -B 2 'failed|inactive|dead'`"
+  if [  "$run" == "" ]
+   then
+	    echo "failed" 
+   else
+      echo "running"
+   fi
+}
+UDEVILUmount(){
+  $sudo_cmd udevil umount -f $1
+}
+

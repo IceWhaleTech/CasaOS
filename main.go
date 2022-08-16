@@ -15,6 +15,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/random"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
+	"github.com/IceWhaleTech/CasaOS/types"
 
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
@@ -26,21 +27,31 @@ var configFlag = flag.String("c", "", "config address")
 var dbFlag = flag.String("db", "", "db path")
 var resetUser = flag.Bool("ru", false, "reset user")
 var user = flag.String("user", "", "user name")
+var version = flag.Bool("v", false, "show version")
 
 func init() {
 	flag.Parse()
+	if *version {
+		fmt.Println("v" + types.CURRENTVERSION)
+		return
+	}
 	config.InitSetup(*configFlag)
 	config.UpdateSetup()
+
 	loger.LogInit()
 	if len(*dbFlag) == 0 {
 		*dbFlag = config.AppInfo.DBPath + "/db"
 	}
+
 	sqliteDB = sqlite.GetDb(*dbFlag)
 	//gredis.GetRedisConn(config.RedisInfo),
+
 	service.MyService = service.NewService(sqliteDB)
+
 	service.Cache = cache.Init()
 
 	service.GetToken()
+
 	service.NewVersionApp = make(map[string]string)
 	route.InitFunction()
 
@@ -62,6 +73,9 @@ func init() {
 // @BasePath /v1
 func main() {
 	service.NotifyMsg = make(chan notify.Message, 10)
+	if *version {
+		return
+	}
 	if *resetUser {
 		if user == nil || len(*user) == 0 {
 			fmt.Println("user is empty")
@@ -81,7 +95,7 @@ func main() {
 		return
 	}
 	go route.SocketInit(service.NotifyMsg)
-
+	go route.MonitoryUSB()
 	//model.Setup()
 	//gredis.Setup()
 	r := route.InitRouter()

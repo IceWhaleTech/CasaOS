@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -45,19 +44,12 @@ func GetDiskList(c *gin.Context) {
 				temp.Model = v.Model
 				temp.Name = v.Name
 				temp.Size = v.Size
-				mountTemp := true
-				if len(v.Children) == 0 {
-					mountTemp = false
-				}
 				for _, child := range v.Children {
 					if len(child.MountPoint) > 0 {
 						avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
 						temp.Avail += avail
-					} else {
-						mountTemp = false
 					}
 				}
-				temp.Mount = mountTemp
 				data = append(data, temp)
 			}
 		}
@@ -87,14 +79,13 @@ func GetDiskList(c *gin.Context) {
 		disk.Size = list[i].Size
 		disk.Path = list[i].Path
 		disk.Model = list[i].Model
-
+		disk.ChildrenNumber = len(list[i].Children)
 		if len(list[i].Children) > 0 && findSystem == 0 {
 			for j := 0; j < len(list[i].Children); j++ {
 				if len(list[i].Children[j].Children) > 0 {
 					for _, v := range list[i].Children[j].Children {
 						if v.MountPoint == "/" {
 							stor := model.Storage{}
-							stor.Name = "System"
 							stor.MountPoint = v.MountPoint
 							stor.Size = v.FSSize
 							stor.Avail = v.FSAvail
@@ -118,7 +109,6 @@ func GetDiskList(c *gin.Context) {
 				} else {
 					if list[i].Children[j].MountPoint == "/" {
 						stor := model.Storage{}
-						stor.Name = "System"
 						stor.MountPoint = list[i].Children[j].MountPoint
 						stor.Size = list[i].Children[j].FSSize
 						stor.Avail = list[i].Children[j].FSAvail
@@ -152,31 +142,29 @@ func GetDiskList(c *gin.Context) {
 			if reflect.DeepEqual(temp, model.SmartctlA{}) {
 				temp.SmartStatus.Passed = true
 			}
-			if len(list[i].Children) == 1 && len(list[i].Children[0].MountPoint) > 0 {
-				stor := model.Storage{}
-				stor.MountPoint = list[i].Children[0].MountPoint
-				stor.Size = list[i].Children[0].FSSize
-				stor.Avail = list[i].Children[0].FSAvail
-				stor.Path = list[i].Children[0].Path
-				stor.Type = list[i].Children[0].FsType
-				stor.DriveName = list[i].Name
-				pathArr := strings.Split(list[i].Children[0].MountPoint, "/")
-				if len(pathArr) == 3 {
-					stor.Name = pathArr[2]
+			isAvail := true
+			for _, v := range list[i].Children {
+				if v.MountPoint != "" {
+					stor := model.Storage{}
+					stor.MountPoint = v.MountPoint
+					stor.Size = v.FSSize
+					stor.Avail = v.FSAvail
+					stor.Path = v.Path
+					stor.Type = v.FsType
+					stor.DriveName = list[i].Name
+					storage = append(storage, stor)
+					isAvail = false
 				}
-				if t, ok := part[list[i].Children[0].MountPoint]; ok {
-					stor.CreatedAt = t
-				}
-				storage = append(storage, stor)
-			} else {
-				//todo   长度有问题
-				if len(list[i].Children) == 1 && list[i].Children[0].FsType == "ext4" {
-					disk.NeedFormat = false
-					avail = append(avail, disk)
-				} else {
-					disk.NeedFormat = true
-					avail = append(avail, disk)
-				}
+			}
+
+			if isAvail {
+				//if len(list[i].Children) == 1 && list[i].Children[0].FsType == "ext4" {
+				disk.NeedFormat = false
+				avail = append(avail, disk)
+				// } else {
+				// 	disk.NeedFormat = true
+				// 	avail = append(avail, disk)
+				// }
 			}
 
 			disk.Temperature = temp.Temperature.Current
@@ -191,6 +179,107 @@ func GetDiskList(c *gin.Context) {
 	data["avail"] = avail
 
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+}
+
+// @Summary disk list
+// @Produce  application/json
+// @Accept application/json
+// @Tags disk
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /disk/list [get]
+func GetDisksUSBList(c *gin.Context) {
+	list := service.MyService.Disk().LSBLK(false)
+	data := []model.DriveUSB{}
+	for _, v := range list {
+		if v.Tran == "usb" {
+			temp := model.DriveUSB{}
+			temp.Model = v.Model
+			temp.Name = v.Label
+			if temp.Name == "" {
+				temp.Name = v.Name
+			}
+			temp.Size = v.Size
+			children := []model.USBChildren{}
+			for _, child := range v.Children {
+
+				if len(child.MountPoint) > 0 {
+					tempChildren := model.USBChildren{}
+					tempChildren.MountPoint = child.MountPoint
+					tempChildren.Size, _ = strconv.ParseUint(child.FSSize, 10, 64)
+					tempChildren.Avail, _ = strconv.ParseUint(child.FSAvail, 10, 64)
+					tempChildren.Name = child.Label
+					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
+					children = append(children, tempChildren)
+					temp.Avail += avail
+				}
+			}
+
+			temp.Children = children
+			data = append(data, temp)
+		}
+	}
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+
+}
+
+func DeleteDisksUmount(c *gin.Context) {
+	id := c.GetHeader("user_id")
+	js := make(map[string]string)
+	c.ShouldBind(&js)
+
+	path := js["path"]
+	pwd := js["password"]
+
+	if len(path) == 0 {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
+	}
+	user := service.MyService.User().GetUserAllInfoById(id)
+	if user.Id == 0 {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+		return
+	}
+	if encryption.GetMD5ByStr(pwd) != user.Password {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
+		return
+	}
+
+	if _, ok := diskMap[path]; ok {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
+		return
+	}
+
+	diskInfo := service.MyService.Disk().GetDiskInfo(path)
+	for _, v := range diskInfo.Children {
+		service.MyService.Disk().UmountPointAndRemoveDir(v.Path)
+		//delete data
+		service.MyService.Disk().DeleteMountPoint(v.Path, v.MountPoint)
+	}
+
+	service.MyService.Disk().RemoveLSBLKCache()
+
+	//send notify to client
+	msg := notify.StorageMessage{}
+	msg.Action = "REMOVED"
+	msg.Path = path
+	msg.Volume = ""
+	msg.Size = 0
+	msg.Type = ""
+	service.MyService.Notify().SendStorageBySocket(msg)
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: path})
+}
+
+func DeleteDiskUSB(c *gin.Context) {
+	js := make(map[string]string)
+	c.ShouldBind(&js)
+	mountPoint := js["mount_point"]
+	if file.CheckNotExist(mountPoint) {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.DIR_NOT_EXISTS, Message: common_err.GetMsg(common_err.DIR_NOT_EXISTS)})
+		return
+	}
+	service.MyService.Disk().UmountUSB(mountPoint)
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: mountPoint})
 }
 
 // @Summary get disk list
@@ -278,10 +367,10 @@ func PostDiskAddPartition(c *gin.Context) {
 	js := make(map[string]interface{})
 	c.ShouldBind(&js)
 	path := js["path"].(string)
-	name := js["name"].(string)
+	//name := js["name"].(string)
 	format := js["format"].(bool)
 
-	if len(name) == 0 || len(path) == 0 {
+	if len(path) == 0 {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
@@ -289,20 +378,17 @@ func PostDiskAddPartition(c *gin.Context) {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_BUSYING, Message: common_err.GetMsg(common_err.DISK_BUSYING)})
 		return
 	}
-	if !file.CheckNotExist("/DATA/" + name) {
-		// /mnt/name exist
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.NAME_NOT_AVAILABLE, Message: common_err.GetMsg(common_err.NAME_NOT_AVAILABLE)})
-		return
-	}
+
+	//diskInfo := service.MyService.Disk().GetDiskInfo(path)
+
+	// if !file.CheckNotExist("/DATA/" + name) {
+	// 	// /mnt/name exist
+	// 	c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.NAME_NOT_AVAILABLE, Message: common_err.GetMsg(common_err.NAME_NOT_AVAILABLE)})
+	// 	return
+	// }
 	diskMap[path] = "busying"
 	currentDisk := service.MyService.Disk().GetDiskInfo(path)
-	if !format {
-		if len(currentDisk.Children) != 1 || !(len(currentDisk.Children) > 0 && currentDisk.Children[0].FsType == "ext4") {
-			delete(diskMap, path)
-			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
-			return
-		}
-	} else {
+	if format {
 		// format := service.MyService.Disk().FormatDisk(path+"1", "ext4")
 		// if len(format) == 0 {
 		// 	delete(diskMap, path)
@@ -312,33 +398,44 @@ func PostDiskAddPartition(c *gin.Context) {
 		service.MyService.Disk().AddPartition(path)
 	}
 
-	formatBool := true
-	for formatBool {
-		currentDisk = service.MyService.Disk().GetDiskInfo(path)
-		fmt.Println(currentDisk.Children)
-		if len(currentDisk.Children) > 0 {
-			formatBool = false
-			break
-		}
-		time.Sleep(time.Second)
-	}
+	// formatBool := true
+	// for formatBool {
+	// 	currentDisk = service.MyService.Disk().GetDiskInfo(path)
+	// 	if len(currentDisk.Children) > 0 {
+	// 		formatBool = false
+	// 		break
+	// 	}
+	// 	time.Sleep(time.Second)
+	// }
 	currentDisk = service.MyService.Disk().GetDiskInfo(path)
-	if len(currentDisk.Children) != 1 {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
-		return
+	// if len(currentDisk.Children) != 1 {
+	// 	c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
+	// 	return
+	// }
+	for i := 0; i < len(currentDisk.Children); i++ {
+		childrenName := currentDisk.Children[i].Label
+		if len(childrenName) == 0 {
+			childrenName = "Storage_" + currentDisk.Children[i].Name
+		}
+		mountPath := "/DATA/" + childrenName
+		if !file.CheckNotExist(mountPath) {
+			ls := service.MyService.System().GetDirPath(mountPath)
+			if len(ls) > 0 {
+				// exist
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.NAME_NOT_AVAILABLE, Message: common_err.GetMsg(common_err.NAME_NOT_AVAILABLE)})
+				return
+			}
+		}
+		m := model2.SerialDisk{}
+		m.MountPoint = mountPath
+		m.Path = currentDisk.Children[i].Path
+		m.UUID = currentDisk.Children[i].UUID
+		m.State = 0
+		m.CreatedAt = time.Now().Unix()
+		service.MyService.Disk().SaveMountPoint(m)
+		//mount dir
+		service.MyService.Disk().MountDisk(currentDisk.Children[i].Path, mountPath)
 	}
-
-	mountPath := "/DATA/" + name
-	m := model2.SerialDisk{}
-	m.MountPoint = mountPath
-	m.Path = currentDisk.Children[0].Path
-	m.UUID = currentDisk.Children[0].UUID
-	m.State = 0
-	m.CreatedAt = time.Now().Unix()
-	service.MyService.Disk().SaveMountPoint(m)
-
-	//mount dir
-	service.MyService.Disk().MountDisk(currentDisk.Children[0].Path, mountPath)
 
 	service.MyService.Disk().RemoveLSBLKCache()
 
@@ -348,7 +445,7 @@ func PostDiskAddPartition(c *gin.Context) {
 	msg := notify.StorageMessage{}
 	msg.Action = "ADDED"
 	msg.Path = currentDisk.Children[0].Path
-	msg.Volume = mountPath
+	msg.Volume = "/DATA/"
 	msg.Size = currentDisk.Children[0].Size
 	msg.Type = currentDisk.Children[0].Tran
 	service.MyService.Notify().SendStorageBySocket(msg)

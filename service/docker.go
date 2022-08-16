@@ -45,7 +45,7 @@ import (
 type DockerService interface {
 	DockerPullImage(imageName string, icon, name string) error
 	IsExistImage(imageName string) bool
-	DockerContainerCreate(imageName string, m model.CustomizationPostData) (containerId string, err error)
+	DockerContainerCreate(m model.CustomizationPostData, id string) (containerId string, err error)
 	DockerContainerCopyCreate(info *types.ContainerJSON) (containerId string, err error)
 	DockerContainerStart(name string) error
 	DockerContainerStats(name string) (string, error)
@@ -376,7 +376,7 @@ func (ds *dockerService) DockerContainerCopyCreate(info *types.ContainerJSON) (c
 //param mapPort 容器主端口映射到外部的端口
 //param tcp 容器其他tcp端口
 //param udp 容器其他udp端口
-func (ds *dockerService) DockerContainerCreate(imageName string, m model.CustomizationPostData) (containerId string, err error) {
+func (ds *dockerService) DockerContainerCreate(m model.CustomizationPostData, id string) (containerId string, err error) {
 	if len(m.NetworkModel) == 0 {
 		m.NetworkModel = "bridge"
 	}
@@ -385,6 +385,7 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 	if err != nil {
 		return "", err
 	}
+
 	defer cli.Close()
 	ports := make(nat.PortSet)
 	portMaps := make(nat.PortMap)
@@ -523,15 +524,26 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 	if len(m.HostName) == 0 {
 		m.HostName = m.Label
 	}
-	config := &container.Config{
-		Image:  imageName,
-		Labels: map[string]string{"origin": m.Origin, m.Origin: m.Origin, "casaos": "casaos"},
-		Env:    envArr,
-		//	Healthcheck: health,
-		Hostname: m.HostName,
-		Cmd:      m.Cmd,
+
+	info, err := cli.ContainerInspect(context.Background(), id)
+	hostConfig := &container.HostConfig{}
+	config := &container.Config{}
+	config.Labels = map[string]string{}
+	if err == nil {
+		// info.HostConfig = &container.HostConfig{}
+		// info.Config = &container.Config{}
+		// info.NetworkSettings = &types.NetworkSettings{}
+		hostConfig = info.HostConfig
+		config = info.Config
 	}
 
+	config.Cmd = m.Cmd
+	config.Image = m.Image
+	config.Env = envArr
+	config.Hostname = m.HostName
+	config.ExposedPorts = ports
+	config.Labels["origin"] = m.Origin
+	config.Labels["casaos"] = "casaos"
 	config.Labels["web"] = m.PortMap
 	config.Labels["icon"] = m.Icon
 	config.Labels["desc"] = m.Description
@@ -541,12 +553,19 @@ func (ds *dockerService) DockerContainerCreate(imageName string, m model.Customi
 	config.Labels["protocol"] = m.Protocol
 	config.Labels["host"] = m.Host
 	config.Labels["name"] = m.Label
-	hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: container.NetworkMode(m.NetworkModel), Privileged: m.Privileged, CapAdd: m.CapAdd}
+	//container, err := cli.ContainerCreate(context.Background(), info.Config, info.HostConfig, &network.NetworkingConfig{info.NetworkSettings.Networks}, nil, info.Name)
+
+	hostConfig.Mounts = volumes
+	hostConfig.Privileged = m.Privileged
+	hostConfig.CapAdd = m.CapAdd
+	hostConfig.NetworkMode = container.NetworkMode(m.NetworkModel)
+	hostConfig.RestartPolicy = rp
+	hostConfig.Resources = res
+	//hostConfig := &container.HostConfig{Resources: res, Mounts: volumes, RestartPolicy: rp, NetworkMode: , Privileged: m.Privileged, CapAdd: m.CapAdd}
 	//if net != "host" {
-	config.ExposedPorts = ports
+
 	hostConfig.PortBindings = portMaps
 	//}
-
 	containerDb, err := cli.ContainerCreate(context.Background(),
 		config,
 		hostConfig,

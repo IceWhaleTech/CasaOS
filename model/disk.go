@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-13 10:43:45
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-13 11:00:04
+ * @LastEditTime: 2022-08-03 14:45:35
  * @FilePath: /CasaOS/model/disk.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -39,6 +39,7 @@ type LSBLKModel struct {
 	Serial      string       `json:"serial"`
 	Children    []LSBLKModel `json:"children"`
 	SubSystems  string       `json:"subsystems"`
+	Label       string       `json:"label"`
 	//详情特有
 	StartSector uint64 `json:"start_sector,omitempty"`
 	Rota        bool   `json:"rota"` //true(hhd) false(ssd)
@@ -47,35 +48,46 @@ type LSBLKModel struct {
 }
 
 type Drive struct {
-	Name        string `json:"name"`
-	Size        uint64 `json:"size"`
-	Model       string `json:"model"`
-	Health      string `json:"health"`
-	Temperature int    `json:"temperature"`
-	DiskType    string `json:"disk_type"`
-	NeedFormat  bool   `json:"need_format"`
-	Serial      string `json:"serial"`
-	Path        string `json:"path"`
+	Name           string `json:"name"`
+	Size           uint64 `json:"size"`
+	Model          string `json:"model"`
+	Health         string `json:"health"`
+	Temperature    int    `json:"temperature"`
+	DiskType       string `json:"disk_type"`
+	NeedFormat     bool   `json:"need_format"`
+	Serial         string `json:"serial"`
+	Path           string `json:"path"`
+	ChildrenNumber int    `json:"children_number"`
 }
 
 type DriveUSB struct {
-	Name  string `json:"name"`
-	Size  uint64 `json:"size"`
-	Used  uint64 `json:"use"`
-	Model string `json:"model"`
-	Mount bool   `json:"mount"`
-	Avail uint64 `json:"avail"`
+	Name     string        `json:"name"`
+	Size     uint64        `json:"size"`
+	Model    string        `json:"model"`
+	Avail    uint64        `json:"avail"`
+	Children []USBChildren `json:"children"`
+}
+type USBChildren struct {
+	Name       string `json:"name"`
+	Size       uint64 `json:"size"`
+	Avail      uint64 `json:"avail"`
+	MountPoint string `json:"mount_point"`
 }
 
 type Storage struct {
-	Name       string `json:"name"`
-	MountPoint string `json:"mountpoint"`
+	MountPoint string `json:"mount_point"`
 	Size       string `json:"size"`
 	Avail      string `json:"avail"` //可用空间
 	Type       string `json:"type"`
-	CreatedAt  int64  `json:"create_at"`
 	Path       string `json:"path"`
 	DriveName  string `json:"drive_name"`
+	Label      string `json:"label"`
+}
+type Storages struct {
+	DiskName string    `json:"disk_name"`
+	Size     uint64    `json:"size"`
+	Path     string    `json:"path"`
+	Children []Storage `json:"children"`
 }
 
 type Summary struct {

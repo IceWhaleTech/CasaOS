@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -218,6 +219,11 @@ func GetDownloadSingleFile(c *gin.Context) {
 func DirPath(c *gin.Context) {
 	path := c.DefaultQuery("path", "")
 	info := service.MyService.System().GetDirPath(path)
+	shares := service.MyService.Shares().GetSharesList()
+	sharesMap := make(map[string]string)
+	for _, v := range shares {
+		sharesMap[v.Path] = fmt.Sprint(v.ID)
+	}
 	if path == "/DATA/AppData" {
 		list := service.MyService.Docker().DockerContainerList()
 		apps := make(map[string]string, len(list))
@@ -257,7 +263,17 @@ func DirPath(c *gin.Context) {
 			}
 		}
 	}
+	for i := 0; i < len(info); i++ {
+		if v, ok := sharesMap[info[i].Path]; ok {
+			ex := make(map[string]interface{})
 
+			shareEx := make(map[string]string)
+			shareEx["shared"] = "true"
+			shareEx["id"] = v
+			ex["share"] = shareEx
+			info[i].Extensions = ex
+		}
+	}
 	//Hide the files or folders in operation
 	fileQueue := make(map[string]string)
 	if len(service.OpStrArr) > 0 {

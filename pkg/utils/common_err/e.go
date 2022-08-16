@@ -27,6 +27,9 @@ const (
 	PORT_IS_OCCUPIED                = 20004
 	COMMAND_ERROR_INVALID_OPERATION = 20005
 	VERIFICATION_FAILURE            = 20006
+	Record_NOT_EXIST                = 20007
+	Record_ALREADY_EXIST            = 20008
+	SERVICE_NOT_RUNNING             = 20009
 
 	//disk
 	NAME_NOT_AVAILABLE       = 40001
@@ -48,8 +51,9 @@ const (
 	DIR_NOT_EXISTS      = 60004
 	SOURCE_DES_SAME     = 60005
 
-	//shortcuts
-	SHORTCUTS_URL_ERROR = 70001
+	//share
+	SHARE_ALREADY_EXISTS      = 70001
+	SHARE_NAME_ALREADY_EXISTS = 70002
 )
 
 var MsgFlags = map[int]string{
@@ -78,6 +82,9 @@ var MsgFlags = map[int]string{
 	FILE_OR_DIR_EXISTS:   "File or folder already exists",
 	PORT_IS_OCCUPIED:     "Port is occupied",
 	VERIFICATION_FAILURE: "Verification failure",
+	Record_ALREADY_EXIST: "Record already exists",
+	Record_NOT_EXIST:     "Record does not exist",
+	SERVICE_NOT_RUNNING:  "Service is not running",
 
 	//app
 	UNINSTALL_APP_ERROR:  "Error uninstalling app",
@@ -91,16 +98,17 @@ var MsgFlags = map[int]string{
 	REMOVE_MOUNT_POINT_ERROR: "Failed to remove mount point",
 	DISK_BUSYING:             "Drive is busy",
 	FORMAT_ERROR:             "Formatting failed, please check if the directory is occupied",
-
+	//share
+	SHARE_ALREADY_EXISTS:      "Share already exists",
+	SHARE_NAME_ALREADY_EXISTS: "Share name already exists",
 	//
 	SOURCE_DES_SAME:     "Source and destination cannot be the same.",
 	FILE_DOES_NOT_EXIST: "File does not exist",
 
 	DIR_NOT_EXISTS: "Directory does not exist",
 
-	FILE_READ_ERROR:     "File read error",
-	FILE_DELETE_ERROR:   "Delete error",
-	SHORTCUTS_URL_ERROR: "URL error",
+	FILE_READ_ERROR:   "File read error",
+	FILE_DELETE_ERROR: "Delete error",
 
 	COMMAND_ERROR_INVALID_OPERATION: "invalid operation",
 }
