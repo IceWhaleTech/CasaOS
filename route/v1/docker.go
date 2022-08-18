@@ -1120,7 +1120,7 @@ func ContainerUpdateInfo(c *gin.Context) {
 	showENV := info.Config.Labels["show_env"]
 	showENVList := strings.Split(showENV, ",")
 	showENVMap := make(map[string]string)
-	if len(showENVList) > 0 {
+	if len(showENVList) > 0 && showENVList[0] != "" {
 		for _, name := range showENVList {
 			showENVMap[name] = "1"
 		}

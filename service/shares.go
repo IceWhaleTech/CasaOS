@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.org
  * @Date: 2022-07-26 11:21:14
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-11 14:04:00
+ * @LastEditTime: 2022-08-18 11:16:25
  * @FilePath: /CasaOS/service/shares.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -30,10 +30,16 @@ type SharesService interface {
 	DeleteShare(id string)
 	UpdateConfigFile()
 	InitSambaConfig()
+	DeleteShareByPath(path string)
 }
 
 type sharesStruct struct {
 	db *gorm.DB
+}
+
+func (s *sharesStruct) DeleteShareByPath(path string) {
+	s.db.Where("path LIKE ?", path+"%").Delete(&model.SharesDBModel{})
+	s.UpdateConfigFile()
 }
 
 func (s *sharesStruct) GetSharesByName(name string) (shares []model2.SharesDBModel) {

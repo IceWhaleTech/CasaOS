@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -255,6 +256,8 @@ func DeleteDisksUmount(c *gin.Context) {
 		service.MyService.Disk().UmountPointAndRemoveDir(v.Path)
 		//delete data
 		service.MyService.Disk().DeleteMountPoint(v.Path, v.MountPoint)
+
+		service.MyService.Shares().DeleteShareByPath(v.MountPoint)
 	}
 
 	service.MyService.Disk().RemoveLSBLKCache()
@@ -367,7 +370,7 @@ func PostDiskAddPartition(c *gin.Context) {
 	js := make(map[string]interface{})
 	c.ShouldBind(&js)
 	path := js["path"].(string)
-	//name := js["name"].(string)
+	name := js["name"].(string)
 	format := js["format"].(bool)
 
 	if len(path) == 0 {
@@ -412,10 +415,16 @@ func PostDiskAddPartition(c *gin.Context) {
 	// 	c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DISK_NEEDS_FORMAT, Message: common_err.GetMsg(common_err.DISK_NEEDS_FORMAT)})
 	// 	return
 	// }
+	fmt.Println(name)
+	if len(name) == 0 {
+		name = "Storage"
+	}
+	fmt.Println(name)
 	for i := 0; i < len(currentDisk.Children); i++ {
 		childrenName := currentDisk.Children[i].Label
 		if len(childrenName) == 0 {
-			childrenName = "Storage_" + currentDisk.Children[i].Name
+			//childrenName = name + "_" + currentDisk.Children[i].Name
+			childrenName = name + "_" + strconv.Itoa(i+1)
 		}
 		mountPath := "/DATA/" + childrenName
 		if !file.CheckNotExist(mountPath) {

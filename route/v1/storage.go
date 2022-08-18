@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-11 16:02:29
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-11 14:20:02
+ * @LastEditTime: 2022-08-17 19:14:50
  * @FilePath: /CasaOS/route/v1/storage.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -11,8 +11,8 @@
 package v1
 
 import (
+	"path/filepath"
 	"reflect"
-	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
@@ -70,7 +70,12 @@ func GetStorageList(c *gin.Context) {
 					stor.Type = v.FsType
 					stor.DriveName = v.Name
 					if len(v.Label) == 0 {
-						stor.Label = "Storage" + strconv.Itoa(diskNumber) + "_" + strconv.Itoa(children)
+						if stor.MountPoint == "/" {
+							stor.Label = "System"
+						} else {
+							stor.Label = filepath.Base(stor.MountPoint)
+						}
+
 						children += 1
 					} else {
 						stor.Label = v.Label
