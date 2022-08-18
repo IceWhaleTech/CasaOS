@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.org
  * @Date: 2022-07-26 11:21:14
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-16 14:28:27
+ * @LastEditTime: 2022-08-18 11:16:25
  * @FilePath: /CasaOS/service/shares.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -41,6 +41,7 @@ func (s *sharesStruct) DeleteShareByPath(path string) {
 	s.db.Where("path LIKE ?", path+"%").Delete(&model.SharesDBModel{})
 	s.UpdateConfigFile()
 }
+
 func (s *sharesStruct) GetSharesByName(name string) (shares []model2.SharesDBModel) {
 	s.db.Select("anonymous,path,id").Where("name = ?", name).Find(&shares)
 

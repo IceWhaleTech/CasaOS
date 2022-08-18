@@ -1,0 +1,33 @@
+name: Add Issues To Projects
+
+on:
+  issues:
+    types: 
+      - opened
+
+jobs:
+  add-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: tibdex/github-app-token@36464acb844fc53b9b8b2401da68844f6b05ebb0
+        with:
+          app_id: ${{ secrets.ALPHA_BOT_ID }}
+          private_key: ${{ secrets.ALPHA_BOT_PEM }}
+
+      - name: Add Alpha Bug Issue To project
+        uses: actions/add-to-project@v0.3.0
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          project-url: https://github.com/orgs/IceWhaleTech/projects/5
+          labeled: alpha, bug
+          label-operator: AND
+          
+      - name: Add App Request Issue To project
+        uses: actions/add-to-project@v0.3.0
+        with:
+          github-token: ${{ steps.generate_token.outputs.token }}
+          project-url: https://github.com/orgs/IceWhaleTech/projects/8
+          labeled: "App Request"
+          label-operator: AND
