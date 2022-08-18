@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-26 11:08:48
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-05 12:16:39
+ * @LastEditTime: 2022-08-17 18:25:42
  * @FilePath: /CasaOS/route/v1/samba.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -85,6 +85,7 @@ func PostSambaSharesCreate(c *gin.Context) {
 		shareDBModel.Anonymous = true
 		shareDBModel.Path = v.Path
 		shareDBModel.Name = filepath.Base(v.Path)
+		os.Chmod(v.Path, 0777)
 		service.MyService.Shares().CreateShare(shareDBModel)
 	}
 
@@ -127,8 +128,8 @@ func PostSambaConnectionsCreate(c *gin.Context) {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
+	connection.Host = strings.Split(connection.Host, "/")[0]
 	// check is exists
-
 	connections := service.MyService.Connections().GetConnectionByHost(connection.Host)
 	if len(connections) > 0 {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.Record_ALREADY_EXIST, Message: common_err.GetMsg(common_err.Record_ALREADY_EXIST), Data: common_err.GetMsg(common_err.Record_ALREADY_EXIST)})

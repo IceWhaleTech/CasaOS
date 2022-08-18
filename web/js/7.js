@@ -18,7 +18,7 @@
 /*!**************************************************!*\
   !*** ./src/assets/background/preview-widget.svg ***!
   \**************************************************/
-/*! no static exports found */function(module,exports,__webpack_require__){eval('module.exports = __webpack_require__.p + "img/preview-widget.5069b926.svg";\n\n//# sourceURL=webpack:///./src/assets/background/preview-widget.svg?')},"./src/assets/background/wallpaper01.jpg":
+/*! no static exports found */function(module,exports,__webpack_require__){eval('module.exports = __webpack_require__.p + "img/preview-widget.e228363c.svg";\n\n//# sourceURL=webpack:///./src/assets/background/preview-widget.svg?')},"./src/assets/background/wallpaper01.jpg":
 /*!***********************************************!*\
   !*** ./src/assets/background/wallpaper01.jpg ***!
   \***********************************************/

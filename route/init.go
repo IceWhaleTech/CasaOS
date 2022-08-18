@@ -5,15 +5,18 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	uuid "github.com/satori/go.uuid"
+	"go.uber.org/zap"
 )
 
 func InitFunction() {
@@ -24,7 +27,8 @@ func InitFunction() {
 	// Soon to be removed
 	ChangeAPIUrl()
 	MoveUserToDB()
-	InitNetworkMount()
+	go InitNetworkMount()
+
 }
 
 func CheckSerialDiskMount() {
@@ -141,12 +145,14 @@ func MoveUserToDB() {
 }
 
 func InitNetworkMount() {
+	time.Sleep(time.Second * 10)
 	connections := service.MyService.Connections().GetConnectionsList()
 	for _, v := range connections {
 		connection := service.MyService.Connections().GetConnectionByID(fmt.Sprint(v.ID))
 		directories, err := samba.GetSambaSharesList(connection.Host, connection.Port, connection.Username, connection.Password)
 		if err != nil {
 			service.MyService.Connections().DeleteConnection(fmt.Sprint(connection.ID))
+			loger.Error("mount samba err", zap.Any("err", err), zap.Any("info", connection))
 			continue
 		}
 		baseHostPath := "/mnt/" + connection.Host
