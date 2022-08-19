@@ -1,7 +1,9 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"reflect"
@@ -524,4 +526,15 @@ func GetSystemNetInfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: newNet})
+}
+
+func GetSystemProxy(c *gin.Context) {
+	url := c.Query("url")
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	rda, _ := ioutil.ReadAll(resp.Body)
+	json.NewEncoder(c.Writer).Encode(json.RawMessage(string(rda)))
 }

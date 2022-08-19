@@ -3,9 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Gateway/common"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -20,6 +22,8 @@ import (
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
 )
+
+const LOCALHOST = "127.0.0.1"
 
 var sqliteDB *gorm.DB
 
@@ -46,7 +50,7 @@ func init() {
 	sqliteDB = sqlite.GetDb(*dbFlag)
 	//gredis.GetRedisConn(config.RedisInfo),
 
-	service.MyService = service.NewService(sqliteDB)
+	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath)
 
 	service.Cache = cache.Init()
 
@@ -98,6 +102,7 @@ func main() {
 	go route.MonitoryUSB()
 	//model.Setup()
 	//gredis.Setup()
+
 	r := route.InitRouter()
 	//service.SyncTask(sqliteDB)
 	cron2 := cron.New()
@@ -117,9 +122,27 @@ func main() {
 		fmt.Println(err)
 	}
 	cron2.Start()
+
 	defer cron2.Stop()
+
+	listener, err := net.Listen("tcp", net.JoinHostPort(LOCALHOST, "0"))
+	if err != nil {
+		panic(err)
+	}
+	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "disks", "storage", "samba"}
+	for _, v := range routers {
+		err = service.MyService.Gateway().CreateRoute(&common.Route{
+			Path:   "/v1/" + v,
+			Target: "http://" + listener.Addr().String(),
+		})
+
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	s := &http.Server{
-		Addr:           fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
+		Addr:           listener.Addr().String(), //fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
 		Handler:        r,
 		ReadTimeout:    60 * time.Second,
 		WriteTimeout:   60 * time.Second,

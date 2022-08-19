@@ -14,7 +14,6 @@ UserDataPath = /var/lib/casaos/conf
 TempPath    = /var/lib/casaos/temp
 
 [server]
-HttpPort = 80
 RunMode = release
 ServerApi = https://api.casaos.io/casaos-api
 Handshake = socket.casaos.io

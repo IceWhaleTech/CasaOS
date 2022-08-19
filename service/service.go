@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-12 09:48:56
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-27 10:28:48
+ * @LastEditTime: 2022-08-18 14:26:00
  * @FilePath: /CasaOS/service/service.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -11,6 +11,7 @@
 package service
 
 import (
+	gateway "github.com/IceWhaleTech/CasaOS-Gateway/common"
 	"github.com/gorilla/websocket"
 	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
@@ -35,10 +36,17 @@ type Repository interface {
 	System() SystemService
 	Shares() SharesService
 	Connections() ConnectionsService
+	Gateway() gateway.ManagementService
 }
 
-func NewService(db *gorm.DB) Repository {
+func NewService(db *gorm.DB, RuntimePath string) Repository {
+	gatewayManagement, err := gateway.NewManagementService(RuntimePath)
+	if err != nil {
+		panic(err)
+	}
+
 	return &store{
+		gateway:     gatewayManagement,
 		app:         NewAppService(db),
 		user:        NewUserService(db),
 		docker:      NewDockerService(),
@@ -64,8 +72,12 @@ type store struct {
 	system      SystemService
 	shares      SharesService
 	connections ConnectionsService
+	gateway     gateway.ManagementService
 }
 
+func (c *store) Gateway() gateway.ManagementService {
+	return c.gateway
+}
 func (s *store) Connections() ConnectionsService {
 	return s.connections
 }

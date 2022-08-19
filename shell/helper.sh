@@ -387,3 +387,41 @@ UDEVILUmount(){
   $sudo_cmd udevil umount -f $1
 }
 
+GetTemp(){
+    if(file_exists("/sys/class/thermal/thermal_zone0/temp"))
+    {
+        $output = rtrim(file_get_contents("/sys/class/thermal/thermal_zone0/temp"));
+    }
+    elseif (file_exists("/sys/class/hwmon/hwmon0/temp1_input"))
+    {
+        $output = rtrim(file_get_contents("/sys/class/hwmon/hwmon0/temp1_input"));
+    }
+    else
+    {
+        $output = "";
+    }
+
+    if(is_numeric($output))
+    {
+        $celsius = intval($output);
+
+        if($celsius > 1000) {
+            $celsius *= 1e-3;
+        }
+
+        if(isset($setupVars['TEMPERATURE_LIMIT']))
+        {
+            $temperaturelimit = intval($setupVars['TEMPERATURE_LIMIT']);
+        }
+        else
+        {
+            $temperaturelimit = 60;
+        }
+    }
+    else
+    {
+        // Nothing can be colder than -273.15 degree Celsius (= 0 Kelvin)
+        // This is the minimum temperature possible (AKA absolute zero)
+        $celsius = -273.16;
+    }
+}

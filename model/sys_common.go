@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-14 11:02:06
+ * @LastEditTime: 2022-08-18 14:32:16
  * @FilePath: /CasaOS/model/sys_common.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -55,6 +55,9 @@ type APPModel struct {
 	DBPath         string
 	ShellPath      string
 	TempPath       string
+}
+type CommonModel struct {
+	RuntimePath string
 }
 
 //公共返回模型

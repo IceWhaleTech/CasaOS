@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-14 10:58:45
+ * @LastEditTime: 2022-08-18 14:31:14
  * @FilePath: /CasaOS/pkg/config/init.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -31,6 +31,10 @@ var UserInfo = &model.UserModel{}
 
 //用户相关
 var AppInfo = &model.APPModel{}
+
+var CommonInfo = &model.CommonModel{
+	RuntimePath: "/var/run/casaos",
+}
 
 //var RedisInfo = &model.RedisModel{}
 

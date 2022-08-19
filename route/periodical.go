@@ -5,7 +5,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-01 15:11:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-15 11:50:04
+ * @LastEditTime: 2022-08-18 16:58:00
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -180,6 +180,8 @@ func SendAllHardwareStatusBySocket() {
 	cpuData := make(map[string]interface{})
 	cpuData["percent"] = cpu
 	cpuData["num"] = num
+	cpuData["temperature"] = service.MyService.System().GetCPUTemperature()
+	cpuData["power"] = service.MyService.System().GetCPUPower()
 
 	list := service.MyService.Disk().LSBLK(true)
 

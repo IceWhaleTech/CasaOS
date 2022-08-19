@@ -143,6 +143,7 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.GET("/apps-state", v1.GetSystemAppsStatus)
 			v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			v1SysGroup.PUT("/port", v1.PutCasaOSPort)
+			v1SysGroup.GET("/proxy", v1.GetSystemProxy)
 		}
 		v1PortGroup := v1Group.Group("/port")
 		v1PortGroup.Use()
