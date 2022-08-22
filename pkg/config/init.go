@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-18 14:31:14
+ * @LastEditTime: 2022-08-22 10:18:41
  * @FilePath: /CasaOS/pkg/config/init.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -73,6 +73,7 @@ func InitSetup(config string) {
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)
 	mapTo("file", FileSettingInfo)
+	mapTo("common", CommonInfo)
 	SystemConfigInfo.ConfigPath = configDir
 	if len(AppInfo.DBPath) == 0 {
 		AppInfo.DBPath = "/var/lib/casaos"

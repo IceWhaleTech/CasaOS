@@ -37,3 +37,5 @@ __debug_bin
 main
 CasaOS
 .all-contributorsrc
+dist
+.goreleaser.yaml

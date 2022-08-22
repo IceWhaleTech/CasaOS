@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Gateway/common"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
@@ -31,11 +30,11 @@ var configFlag = flag.String("c", "", "config address")
 var dbFlag = flag.String("db", "", "db path")
 var resetUser = flag.Bool("ru", false, "reset user")
 var user = flag.String("user", "", "user name")
-var version = flag.Bool("v", false, "show version")
+var versionFlag = flag.Bool("v", false, "version")
 
 func init() {
 	flag.Parse()
-	if *version {
+	if *versionFlag {
 		fmt.Println("v" + types.CURRENTVERSION)
 		return
 	}
@@ -77,7 +76,7 @@ func init() {
 // @BasePath /v1
 func main() {
 	service.NotifyMsg = make(chan notify.Message, 10)
-	if *version {
+	if *versionFlag {
 		return
 	}
 	if *resetUser {
@@ -137,21 +136,21 @@ func main() {
 		})
 
 		if err != nil {
+			fmt.Println("err", err)
 			panic(err)
 		}
 	}
-
-	s := &http.Server{
-		Addr:           listener.Addr().String(), //fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
-		Handler:        r,
-		ReadTimeout:    60 * time.Second,
-		WriteTimeout:   60 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-
-	s.ListenAndServe()
-
-	// if err := r.Run(fmt.Sprintf(":%v", config.ServerInfo.HttpPort)); err != nil {
-	// 	fmt.Println("failed run app: ", err)
+	fmt.Println("注册成功")
+	// s := &http.Server{
+	// 	Addr:           listener.Addr().String(), //fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
+	// 	Handler:        r,
+	// 	ReadTimeout:    60 * time.Second,
+	// 	WriteTimeout:   60 * time.Second,
+	// 	MaxHeaderBytes: 1 << 20,
 	// }
+	// s.ListenAndServe()
+	err = http.Serve(listener, r)
+	if err != nil {
+		panic(err)
+	}
 }

@@ -7,13 +7,8 @@ import (
 	"encoding/binary"
 	json2 "encoding/json"
 	"fmt"
-	"syscall"
 
 	"github.com/IceWhaleTech/CasaOS/model/notify"
-	"github.com/containerd/containerd"
-	"github.com/containerd/containerd/cio"
-	"github.com/containerd/containerd/namespaces"
-	"github.com/containerd/containerd/oci"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
@@ -872,73 +867,73 @@ func NewDockerService() DockerService {
 //
 //}
 
-func Containerd() {
-	// create a new client connected to the default socket path for containerd
-	cli, err := containerd.New("/run/containerd/containerd.sock")
-	if err != nil {
-		fmt.Println("111")
-		fmt.Println(err)
-	}
-	defer cli.Close()
+// func Containerd() {
+// 	// create a new client connected to the default socket path for containerd
+// 	cli, err := containerd.New("/run/containerd/containerd.sock")
+// 	if err != nil {
+// 		fmt.Println("111")
+// 		fmt.Println(err)
+// 	}
+// 	defer cli.Close()
 
-	// create a new context with an "example" namespace
-	ctx := namespaces.WithNamespace(context.Background(), "default")
+// 	// create a new context with an "example" namespace
+// 	ctx := namespaces.WithNamespace(context.Background(), "default")
 
-	// pull the redis image from DockerHub
-	image, err := cli.Pull(ctx, "docker.io/library/busybox:latest", containerd.WithPullUnpack)
-	if err != nil {
-		fmt.Println("222")
-		fmt.Println(err)
-	}
+// 	// pull the redis image from DockerHub
+// 	image, err := cli.Pull(ctx, "docker.io/library/busybox:latest", containerd.WithPullUnpack)
+// 	if err != nil {
+// 		fmt.Println("222")
+// 		fmt.Println(err)
+// 	}
 
-	// create a container
-	container, err := cli.NewContainer(
-		ctx,
-		"test1",
-		containerd.WithImage(image),
-		containerd.WithNewSnapshot("redis-server-snapshot1", image),
-		containerd.WithNewSpec(oci.WithImageConfig(image)),
-	)
+// 	// create a container
+// 	container, err := cli.NewContainer(
+// 		ctx,
+// 		"test1",
+// 		containerd.WithImage(image),
+// 		containerd.WithNewSnapshot("redis-server-snapshot1", image),
+// 		containerd.WithNewSpec(oci.WithImageConfig(image)),
+// 	)
 
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer container.Delete(ctx, containerd.WithSnapshotCleanup)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	defer container.Delete(ctx, containerd.WithSnapshotCleanup)
 
-	// create a task from the container
-	task, err := container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer task.Delete(ctx)
+// 	// create a task from the container
+// 	task, err := container.NewTask(ctx, cio.NewCreator(cio.WithStdio))
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	defer task.Delete(ctx)
 
-	// make sure we wait before calling start
-	exitStatusC, err := task.Wait(ctx)
-	if err != nil {
-		fmt.Println(err)
-	}
+// 	// make sure we wait before calling start
+// 	exitStatusC, err := task.Wait(ctx)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-	// call start on the task to execute the redis server
-	if err = task.Start(ctx); err != nil {
-		fmt.Println(err)
-	}
+// 	// call start on the task to execute the redis server
+// 	if err = task.Start(ctx); err != nil {
+// 		fmt.Println(err)
+// 	}
 
-	fmt.Println("执行完成等待")
-	// sleep for a lil bit to see the logs
-	time.Sleep(3 * time.Second)
+// 	fmt.Println("执行完成等待")
+// 	// sleep for a lil bit to see the logs
+// 	time.Sleep(3 * time.Second)
 
-	// kill the process and get the exit status
-	if err = task.Kill(ctx, syscall.SIGTERM); err != nil {
-		fmt.Println(err)
-	}
+// 	// kill the process and get the exit status
+// 	if err = task.Kill(ctx, syscall.SIGTERM); err != nil {
+// 		fmt.Println(err)
+// 	}
 
-	// wait for the process to fully exit and print out the exit status
+// 	// wait for the process to fully exit and print out the exit status
 
-	status := <-exitStatusC
-	code, _, err := status.Result()
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Printf("redis-server exited with status: %d\n", code)
+// 	status := <-exitStatusC
+// 	code, _, err := status.Result()
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	fmt.Printf("redis-server exited with status: %d\n", code)
 
-}
+// }
