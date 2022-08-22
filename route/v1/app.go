@@ -220,7 +220,7 @@ func AppInfo(c *gin.Context) {
 	// sort.EnvSort(envOrder).Sort(info.Envs)
 	// sort.VolSort(volOrder).Sort(info.Volumes.([]model.PathMap))
 	// sort.DevSort(devOrder).Sort(info.Devices)
-
+	info.Image += ":" + info.ImageVersion
 	info.MaxMemory = (service.MyService.System().GetMemInfo()["total"]).(uint64) >> 20
 
 	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: info})

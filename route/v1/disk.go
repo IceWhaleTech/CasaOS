@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -210,6 +211,9 @@ func GetDisksUSBList(c *gin.Context) {
 					tempChildren.Size, _ = strconv.ParseUint(child.FSSize, 10, 64)
 					tempChildren.Avail, _ = strconv.ParseUint(child.FSAvail, 10, 64)
 					tempChildren.Name = child.Label
+					if len(tempChildren.Name) == 0 {
+						tempChildren.Name = filepath.Base(child.MountPoint)
+					}
 					avail, _ := strconv.ParseUint(child.FSAvail, 10, 64)
 					children = append(children, tempChildren)
 					temp.Avail += avail
