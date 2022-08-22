@@ -1,19 +1,14 @@
 package route
 
 import (
-	"net/http"
-
 	"github.com/IceWhaleTech/CasaOS/middleware"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
-	"github.com/IceWhaleTech/CasaOS/web"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
-
-var OnlineDemo bool = false
 
 func InitRouter() *gin.Engine {
 
@@ -24,8 +19,8 @@ func InitRouter() *gin.Engine {
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 	gin.SetMode(config.ServerInfo.RunMode)
 
-	r.StaticFS("/ui", http.FS(web.Static))
-	r.GET("/", WebUIHome)
+	// r.StaticFS("/ui", http.FS(web.Static))
+	// r.GET("/", WebUIHome)
 	// r.StaticFS("/assets", http.Dir("./static/assets"))
 	// r.StaticFile("/favicon.ico", "./static/favicon.ico")
 	//r.GET("/", func(c *gin.Context) {
