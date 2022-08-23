@@ -6,13 +6,10 @@ require (
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
 	github.com/IceWhaleTech/CasaOS-Gateway v0.3.6-alpha1
 	github.com/Microsoft/go-winio v0.5.0 // indirect
-	github.com/Microsoft/hcsshim v0.8.22 // indirect
 	github.com/ambelovsky/go-structs v1.1.0 // indirect
 	github.com/ambelovsky/gosf v0.0.0-20201109201340-237aea4d6109
 	github.com/ambelovsky/gosf-socketio v0.0.0-20201109193639-add9d32f8b19 // indirect
-	github.com/bits-and-blooms/bitset v1.2.1 // indirect
-	github.com/containerd/containerd v1.5.7
-	github.com/containerd/continuity v0.2.0 // indirect
+	github.com/containerd/containerd v1.5.7 // indirect
 	github.com/disintegration/imaging v1.6.2
 	github.com/docker/distribution v2.8.0+incompatible // indirect
 	github.com/docker/docker v20.10.7+incompatible
@@ -22,12 +19,10 @@ require (
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-ini/ini v1.62.0
-	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang/mock v1.6.0
 	github.com/gomodule/redigo v1.8.5
 	github.com/google/go-github/v36 v36.0.0
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/googollee/go-socket.io v1.6.2
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.4.2
@@ -39,11 +34,9 @@ require (
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect
-	github.com/opencontainers/selinux v1.8.5 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pilebones/go-udev v0.9.0
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/robfig/cron v1.2.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil/v3 v3.22.7
