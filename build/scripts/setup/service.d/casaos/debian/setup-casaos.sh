@@ -2,13 +2,12 @@
 
 set -e
 
-APP_NAME="casaos-user-service"
-APP_NAME_SHORT="user-service"
+APP_NAME="casaos"
 
 # copy config files
 CONF_PATH=/etc/casaos
-CONF_FILE=${CONF_PATH}/${APP_NAME_SHORT}.conf
-CONF_FILE_SAMPLE=${CONF_PATH}/${APP_NAME_SHORT}.conf.sample
+CONF_FILE=${CONF_PATH}/${APP_NAME}.conf
+CONF_FILE_SAMPLE=${CONF_PATH}/${APP_NAME}.conf.sample
 
 if [ ! -f "${CONF_FILE}" ]; then \
     echo "Initializing config file..."
