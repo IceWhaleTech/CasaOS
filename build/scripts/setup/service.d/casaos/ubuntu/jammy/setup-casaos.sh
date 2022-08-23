@@ -1,0 +1,1 @@
+../setup-casaos.sh
