@@ -143,7 +143,7 @@ pushd "${MIGRATION_SERVICE_DIR}"
     for VER2 in "${MIGRATION_PATH[@]}"; do
         MIGRATION_TOOL_FILE=linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
         __info "Extracting ${MIGRATION_TOOL_FILE}..."
-        tar zxvf "${MIGRATION_TOOL_FILE}"
+        tar zxvf "${MIGRATION_TOOL_FILE}" || __error "Failed to extract ${MIGRATION_TOOL_FILE}"
 
         MIGRATION_SYSROOT_DIR=$(realpath -e "${MIGRATION_SERVICE_DIR}"/build/sysroot || __error "Failed to find sysroot directory for migration")
         cp -rv "${MIGRATION_SYSROOT_DIR}"/* / || __error "Failed to copy sysroot directory for migration"
