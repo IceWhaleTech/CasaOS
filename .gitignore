@@ -40,4 +40,3 @@ github.com
 .all-contributorsrc
 build
 dist
-.goreleaser.yaml

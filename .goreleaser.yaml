@@ -1,0 +1,96 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+project_name: casaos
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+builds:
+  - id: casaos-amd64
+    binary: build/sysroot/usr/bin/casaos
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-linux-gnu-gcc
+    ldflags:
+      - -s
+      - -w
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+    goos:
+      - linux
+    goarch:
+      - amd64
+    hooks:
+      post:
+        - find build/sysroot -type f | xargs -L 1 realpath --relative-to=build/sysroot > build/sysroot.manifest
+  - id: casaos-arm64
+    binary: build/sysroot/usr/bin/casaos
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-linux-gnu-gcc
+    ldflags:
+      - -s
+      - -w
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+    goos:
+      - linux
+    goarch:
+      - arm64
+    hooks:
+      post:
+        - find build/sysroot -type f | xargs -L 1 realpath --relative-to=build/sysroot > build/sysroot.manifest
+  - id: casaos-arm-7
+    binary: build/sysroot/usr/bin/casaos
+    env:
+      - CGO_ENABLED=1
+      - CC=arm-linux-gnueabihf-gcc
+    ldflags:
+      - -s
+      - -w
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+    goos:
+      - linux
+    goarch:
+      - arm
+    goarm:
+      - "7"
+    hooks:
+      post:
+        - find build/sysroot -type f | xargs -L 1 realpath --relative-to=build/sysroot > build/sysroot.manifest
+archives:
+  - name_template: "{{ .Os }}-{{ .Arch }}-{{ .ProjectName }}-v{{ .Version }}"
+    id: casaos
+    builds:
+      - casaos-amd64
+      - casaos-arm64
+      - casaos-arm-7
+    replacements:
+      arm: arm-7
+    files:
+      - build/**/*
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ incpatch .Version }}-snapshot"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+release:
+  github:
+    owner: IceWhaleTech
+    name: CasaOS
+  draft: true
+  prerelease: auto
+  mode: replace
+  name_template: "v{{ .Version }}"
