@@ -306,7 +306,7 @@ func (s *systemService) GetCPUTemperature() int {
 		outPut = "0"
 	}
 
-	celsius, _ := strconv.Atoi(outPut)
+	celsius, _ := strconv.Atoi(strings.TrimSpace(outPut))
 
 	if celsius > 1000 {
 		celsius = celsius / 1000
@@ -316,8 +316,8 @@ func (s *systemService) GetCPUTemperature() int {
 func (s *systemService) GetCPUPower() map[string]string {
 	data := make(map[string]string, 2)
 	data["timestamp"] = strconv.FormatInt(time.Now().Unix(), 10)
-	if file.Exists(`/sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj`) {
-		data["value"] = string(file.ReadFullFile(`/sys/class/powercap/intel-rapl/intel-rapl\:0/energy_uj`))
+	if file.Exists("/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj") {
+		data["value"] = strings.TrimSpace(string(file.ReadFullFile("/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj")))
 	} else {
 		data["value"] = "0"
 	}

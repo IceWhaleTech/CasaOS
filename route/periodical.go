@@ -1,11 +1,8 @@
-//go:build !darwin
-// +build !darwin
-
 /*
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-01 15:11:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-18 16:58:00
+ * @LastEditTime: 2022-08-24 18:54:03
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io

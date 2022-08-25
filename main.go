@@ -140,7 +140,6 @@ func main() {
 			panic(err)
 		}
 	}
-	fmt.Println("注册成功")
 	// s := &http.Server{
 	// 	Addr:           listener.Addr().String(), //fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
 	// 	Handler:        r,

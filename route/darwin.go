@@ -5,7 +5,7 @@
  * @Author: LinkLeong link@icewhale.org
  * @Date: 2022-08-12 14:22:28
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-12 18:41:14
+ * @LastEditTime: 2022-08-24 18:52:36
  * @FilePath: /CasaOS/route/darwin.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -14,12 +14,12 @@
 
 package route
 
-func MonitoryUSB() {
+// func MonitoryUSB() {
 
-}
-func SendAllHardwareStatusBySocket() {
+// }
+// func SendAllHardwareStatusBySocket() {
 
-}
-func SendUSBBySocket() {
+// }
+// func SendUSBBySocket() {
 
-}
+// }

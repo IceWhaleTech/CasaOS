@@ -1,8 +1,9 @@
 package v1
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -535,6 +536,13 @@ func GetSystemProxy(c *gin.Context) {
 		return
 	}
 	defer resp.Body.Close()
+	for k, v := range c.Request.Header {
+		c.Header(k, v[0])
+	}
 	rda, _ := ioutil.ReadAll(resp.Body)
-	json.NewEncoder(c.Writer).Encode(json.RawMessage(string(rda)))
+	//	json.NewEncoder(c.Writer).Encode(json.RawMessage(string(rda)))
+	// 响应状态码
+	c.Writer.WriteHeader(resp.StatusCode)
+	// 复制转发的响应Body到响应Body
+	io.Copy(c.Writer, ioutil.NopCloser(bytes.NewBuffer(rda)))
 }
