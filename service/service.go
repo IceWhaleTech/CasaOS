@@ -21,16 +21,17 @@ var Cache *cache.Cache
 
 var MyService Repository
 
-var WebSocketConns []*websocket.Conn
-var NewVersionApp map[string]string
-var SocketRun bool
+var (
+	WebSocketConns []*websocket.Conn
+	NewVersionApp  map[string]string
+	SocketRun      bool
+)
 
 type Repository interface {
 	App() AppService
 	User() UserService
 	Docker() DockerService
 	Casa() CasaService
-	Disk() DiskService
 	Notify() NotifyServer
 	Rely() RelyService
 	System() SystemService
@@ -51,7 +52,6 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 		user:        NewUserService(db),
 		docker:      NewDockerService(),
 		casa:        NewCasaService(),
-		disk:        NewDiskService(db),
 		notify:      NewNotifyService(db),
 		rely:        NewRelyService(db),
 		system:      NewSystemService(),
@@ -66,7 +66,6 @@ type store struct {
 	user        UserService
 	docker      DockerService
 	casa        CasaService
-	disk        DiskService
 	notify      NotifyServer
 	rely        RelyService
 	system      SystemService
@@ -78,9 +77,11 @@ type store struct {
 func (c *store) Gateway() gateway.ManagementService {
 	return c.gateway
 }
+
 func (s *store) Connections() ConnectionsService {
 	return s.connections
 }
+
 func (s *store) Shares() SharesService {
 	return s.shares
 }
@@ -92,8 +93,8 @@ func (c *store) Rely() RelyService {
 func (c *store) System() SystemService {
 	return c.system
 }
-func (c *store) Notify() NotifyServer {
 
+func (c *store) Notify() NotifyServer {
 	return c.notify
 }
 
@@ -111,8 +112,4 @@ func (c *store) Docker() DockerService {
 
 func (c *store) Casa() CasaService {
 	return c.casa
-}
-
-func (c *store) Disk() DiskService {
-	return c.disk
 }
