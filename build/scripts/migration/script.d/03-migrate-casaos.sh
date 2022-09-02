@@ -166,7 +166,7 @@ pushd "${MIGRATION_SERVICE_DIR}"
     for VER2 in "${MIGRATION_PATH[@]}"; do
         MIGRATION_TOOL_FILE=linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
         __info "Extracting ${MIGRATION_TOOL_FILE}..."
-        tar zxvf "${MIGRATION_TOOL_FILE}"
+        tar zxvf "${MIGRATION_TOOL_FILE}" || __error "Failed to extract ${MIGRATION_TOOL_FILE}"
 
         MIGRATION_TOOL_PATH=build/sysroot/usr/bin/${APP_NAME}-migration-tool
         __info "Running ${MIGRATION_TOOL_PATH}..."
