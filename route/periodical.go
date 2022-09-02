@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-01 15:11:36
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-24 18:54:03
+ * @LastEditTime: 2022-08-31 17:20:54
  * @FilePath: /CasaOS/route/periodical.go
  * @Description:
  * @Website: https://www.casaos.io

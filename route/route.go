@@ -1,9 +1,9 @@
 package route
 
 import (
+	jwt2 "github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
 	"github.com/IceWhaleTech/CasaOS/middleware"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	jwt2 "github.com/IceWhaleTech/CasaOS/pkg/utils/jwt"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
 
 	"github.com/gin-contrib/gzip"
@@ -27,14 +27,14 @@ func InitRouter() *gin.Engine {
 	//	c.Redirect(http.StatusMovedPermanently, "ui/")
 	//})
 
-	r.POST("/v1/users/register", v1.PostUserRegister)
-	r.POST("/v1/users/login", v1.PostUserLogin)
-	r.GET("/v1/users/name", v1.GetUserAllUsername) //all/name
-	r.POST("/v1/users/refresh", v1.PostUserRefreshToken)
-	// No short-term modifications
-	r.GET("/v1/users/image", v1.GetUserImage)
+	// r.POST("/v1/users/register", v1.PostUserRegister)
+	// r.POST("/v1/users/login", v1.PostUserLogin)
+	// r.GET("/v1/users/name", v1.GetUserAllUsername) //all/name
+	// r.POST("/v1/users/refresh", v1.PostUserRefreshToken)
+	// // No short-term modifications
+	// r.GET("/v1/users/image", v1.GetUserImage)
 
-	r.GET("/v1/users/status", v1.GetUserStatus) //init/check
+	// r.GET("/v1/users/status", v1.GetUserStatus) //init/check
 	//r.GET("/v1/guide/check", v1.GetGuideCheck)         // /v1/sys/guide_check
 	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
 
@@ -45,28 +45,28 @@ func InitRouter() *gin.Engine {
 
 	v1Group.Use(jwt2.JWT())
 	{
-		v1UsersGroup := v1Group.Group("/users")
-		v1UsersGroup.Use()
-		{
-			v1UsersGroup.GET("/current", v1.GetUserInfo)
-			v1UsersGroup.PUT("/current", v1.PutUserInfo)
-			v1UsersGroup.PUT("/current/password", v1.PutUserPassword)
+		// v1UsersGroup := v1Group.Group("/users")
+		// v1UsersGroup.Use()
+		// {
+		// 	v1UsersGroup.GET("/current", v1.GetUserInfo)
+		// 	v1UsersGroup.PUT("/current", v1.PutUserInfo)
+		// 	v1UsersGroup.PUT("/current/password", v1.PutUserPassword)
 
-			v1UsersGroup.GET("/current/custom/:key", v1.GetUserCustomConf)
-			v1UsersGroup.POST("/current/custom/:key", v1.PostUserCustomConf)
-			v1UsersGroup.DELETE("/current/custom/:key", v1.DeleteUserCustomConf)
+		// 	v1UsersGroup.GET("/current/custom/:key", v1.GetUserCustomConf)
+		// 	v1UsersGroup.POST("/current/custom/:key", v1.PostUserCustomConf)
+		// 	v1UsersGroup.DELETE("/current/custom/:key", v1.DeleteUserCustomConf)
 
-			v1UsersGroup.POST("/current/image/:key", v1.PostUserUploadImage)
-			v1UsersGroup.PUT("/current/image/:key", v1.PutUserImage)
-			//v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
-			v1UsersGroup.DELETE("/current/image", v1.DeleteUserImage)
+		// 	v1UsersGroup.POST("/current/image/:key", v1.PostUserUploadImage)
+		// 	v1UsersGroup.PUT("/current/image/:key", v1.PutUserImage)
+		// 	//v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
+		// 	v1UsersGroup.DELETE("/current/image", v1.DeleteUserImage)
 
-			//v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
-			//v1UserGroup.GET("/avatar", v1.GetUserAvatar)
-			v1UsersGroup.DELETE("/:id", v1.DeleteUser)
-			v1UsersGroup.GET("/:username", v1.GetUserInfoByUsername)
-			v1UsersGroup.DELETE("", v1.DeleteUserAll)
-		}
+		// 	//v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
+		// 	//v1UserGroup.GET("/avatar", v1.GetUserAvatar)
+		// 	v1UsersGroup.DELETE("/:id", v1.DeleteUser)
+		// 	v1UsersGroup.GET("/:username", v1.GetUserInfoByUsername)
+		// 	v1UsersGroup.DELETE("", v1.DeleteUserAll)
+		// }
 
 		v1AppsGroup := v1Group.Group("/apps")
 		v1AppsGroup.Use()

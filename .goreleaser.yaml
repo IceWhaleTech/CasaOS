@@ -65,6 +65,59 @@ builds:
     hooks:
       post:
         - find build/sysroot -type f | xargs -L 1 realpath --relative-to=build/sysroot > build/sysroot.manifest
+  - id: casaos-migration-tool-amd64
+    binary: build/sysroot/usr/bin/casaos-migration-tool
+    main: ./cmd/migration-tool
+    env:
+      - CGO_ENABLED=1
+      - CC=x86_64-linux-gnu-gcc
+    ldflags:
+      - -s
+      - -w
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+    goos:
+      - linux
+    goarch:
+      - amd64
+  - id: casaos-migration-tool-arm64
+    binary: build/sysroot/usr/bin/casaos-migration-tool
+    main: ./cmd/migration-tool
+    env:
+      - CGO_ENABLED=1
+      - CC=aarch64-linux-gnu-gcc
+    ldflags:
+      - -s
+      - -w
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+    goos:
+      - linux
+    goarch:
+      - arm64
+  - id: casaos-migration-tool-arm-7
+    binary: build/sysroot/usr/bin/casaos-migration-tool
+    main: ./cmd/migration-tool
+    env:
+      - CGO_ENABLED=1
+      - CC=arm-linux-gnueabihf-gcc
+    ldflags:
+      - -s
+      - -w
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+    goos:
+      - linux
+    goarch:
+      - arm
+    goarm:
+      - "7"    
 archives:
   - name_template: "{{ .Os }}-{{ .Arch }}-{{ .ProjectName }}-v{{ .Version }}"
     id: casaos
@@ -76,20 +129,38 @@ archives:
       arm: arm-7
     files:
       - build/**/*
+  - name_template: "{{ .Os }}-{{ .Arch }}-{{ .ProjectName }}-migration-tool-v{{ .Version }}"
+    id: casaos-migration-tool
+    builds:
+      - casaos-migration-tool-amd64
+      - casaos-migration-tool-arm64
+      - casaos-migration-tool-arm-7
+    replacements:
+      arm: arm-7
+    files:
+      - build/sysroot/etc/**/*
 checksum:
   name_template: "checksums.txt"
 snapshot:
-  name_template: "{{ incpatch .Version }}-snapshot"
+  name_template: "{{ incpatch .Version }}"
 changelog:
   sort: asc
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+# release:
+#   github:
+#     owner: IceWhaleTech
+#     name: CasaOS
+#   draft: true
+#   prerelease: auto
+#   mode: replace
+#   name_template: "v{{ .Version }}"
 release:
   github:
-    owner: IceWhaleTech
-    name: CasaOS
+    owner: LinkLeong
+    name: casaos-alpha
   draft: true
   prerelease: auto
   mode: replace

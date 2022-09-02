@@ -23,13 +23,23 @@ __error() {
 __is_version_gt() {
     test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"
 }
+__normalize_version() {
+    local version
+    if [ "${1::1}" = "v" ]; then
+        version="${1:1}"
+    else
+        version="${1}"
+    fi
+
+    echo "$version"
+}
 
 __is_migration_needed() {
     local version1
     local version2
 
-    version1="${1}"
-    version2="${2}"
+    version1=$(__normalize_version "${1}")
+    version2=$(__normalize_version "${2}")
 
     if [ "${version1}" = "${version2}" ]; then
         return 1
@@ -50,7 +60,8 @@ BUILD_PATH=$(dirname "${BASH_SOURCE[0]}")/../../..
 SOURCE_ROOT=${BUILD_PATH}/sysroot
 
 APP_NAME="casaos"
-APP_NAME_FORMAL="CasaOS"
+# APP_NAME_FORMAL="CasaOS"
+APP_NAME_FORMAL="casaos-alpha"
 
 # check if migration is needed
 SOURCE_BIN_PATH=${SOURCE_ROOT}/usr/bin
@@ -74,7 +85,11 @@ if [ "${NEED_MIGRATION}" = "false" ]; then
     exit 0
 fi
 
-MIGRATION_SERVICE_DIR=${BUILD_PATH}/scripts/migration/service.d/${APP_NAME}
+MIGRATION_SERVICE_DIR=${1}
+
+if [ -z "${MIGRATION_SERVICE_DIR}" ]; then
+    MIGRATION_SERVICE_DIR=${BUILD_PATH}/scripts/migration/service.d/${APP_NAME}
+fi
 MIGRATION_LIST_FILE=${MIGRATION_SERVICE_DIR}/migration.list
 MIGRATION_PATH=()
 
@@ -95,7 +110,7 @@ while read -r VERSION_PAIR; do
     # obtain "v0.3.6-alpha2" from "v0.3.5 v0.3.6-alpha2"
     VER2=$(echo "${VERSION_PAIR}" | cut -d' ' -f2)
 
-    if [ "v${CURRENT_VERSION}" = "${VER1// /}" ] || [ "${CURRENT_VERSION}" = "LEGACY_WITHOUT_VERSION" ]; then
+    if [ "${CURRENT_VERSION}" = "${VER1// /}" ] || [ "${CURRENT_VERSION}" = "LEGACY_WITHOUT_VERSION" ]; then
         CURRENT_VERSION_FOUND="true"
     fi
 
@@ -128,9 +143,17 @@ esac
 
 pushd "${MIGRATION_SERVICE_DIR}"
 
-{
-    for VER2 in "${MIGRATION_PATH[@]}"; do
-        MIGRATION_TOOL_URL=https://github.com/IceWhaleTech/"${APP_NAME_FORMAL}"/releases/download/"${VER2}"/linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
+{ for VER2 in "${MIGRATION_PATH[@]}"; do
+
+
+        MIGRATION_TOOL_FILE=linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
+
+        if [ -f "${MIGRATION_TOOL_FILE}" ]; then
+            __info "Migration tool ${MIGRATION_TOOL_FILE} exists. Skip downloading."
+            continue
+        fi
+
+        MIGRATION_TOOL_URL=https://github.com/LinkLeong/"${APP_NAME_FORMAL}"/releases/download/"${VER2}"/linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
         echo "Dowloading ${MIGRATION_TOOL_URL}..."
         curl -sL -O "${MIGRATION_TOOL_URL}"
     done
@@ -144,9 +167,6 @@ pushd "${MIGRATION_SERVICE_DIR}"
         MIGRATION_TOOL_FILE=linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
         __info "Extracting ${MIGRATION_TOOL_FILE}..."
         tar zxvf "${MIGRATION_TOOL_FILE}"
-
-        MIGRATION_SYSROOT_DIR=$(realpath -e "${MIGRATION_SERVICE_DIR}"/build/sysroot || __error "Failed to find sysroot directory for migration")
-        cp -rv "${MIGRATION_SYSROOT_DIR}"/* / || __error "Failed to copy sysroot directory for migration"
 
         MIGRATION_TOOL_PATH=build/sysroot/usr/bin/${APP_NAME}-migration-tool
         __info "Running ${MIGRATION_TOOL_PATH}..."

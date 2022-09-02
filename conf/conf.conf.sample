@@ -21,3 +21,6 @@ Token =
 USBAutoMount =
 
 [system]
+
+[common]
+RuntimePath=/var/run/casaos

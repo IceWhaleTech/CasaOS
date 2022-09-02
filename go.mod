@@ -4,8 +4,8 @@ go 1.16
 
 require (
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
-	github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220811222508-6c2a1d77be66
-	github.com/IceWhaleTech/CasaOS-Gateway v0.3.6-alpha1
+	github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220830042034-a4df79c84ce6
+	github.com/IceWhaleTech/CasaOS-Gateway v0.3.6-alpha4
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/ambelovsky/go-structs v1.1.0 // indirect
 	github.com/ambelovsky/gosf v0.0.0-20201109201340-237aea4d6109
@@ -29,7 +29,6 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/hirochachacha/go-smb2 v1.1.0
 	github.com/jinzhu/copier v0.3.2
-	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/lucas-clemente/quic-go v0.25.0
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6 // indirect

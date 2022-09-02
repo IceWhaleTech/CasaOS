@@ -421,6 +421,9 @@ func GetSystemUtilization(c *gin.Context) {
 	cpuData := make(map[string]interface{})
 	cpuData["percent"] = cpu
 	cpuData["num"] = num
+	cpuData["temperature"] = service.MyService.System().GetCPUTemperature()
+	cpuData["power"] = service.MyService.System().GetCPUPower()
+
 	data["cpu"] = cpuData
 	data["mem"] = service.MyService.System().GetMemInfo()
 

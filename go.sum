@@ -83,10 +83,10 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d h1:62lEBImTxZ83pgzywgDNIrPPuQ+j4ep9QjqrWBn1hrU=
 github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d/go.mod h1:lW9x+yEjqKdPbE3+cf2fGPJXCw/hChX3Omi9QHTLFsQ=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
-github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220811222508-6c2a1d77be66 h1:JXzgOmP4HCWbZ7qCl6gr2nRB5RnUN0oTFF8ohv05sZk=
-github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220811222508-6c2a1d77be66/go.mod h1:XGqdbedN9UlF3/rylcXKJ2BW4ayugBmEMa4Z0tk2KbQ=
-github.com/IceWhaleTech/CasaOS-Gateway v0.3.6-alpha1 h1:VTjFhgaDy+yDZZOkGACLoynp2fxCL1PJuwYM+tLL68o=
-github.com/IceWhaleTech/CasaOS-Gateway v0.3.6-alpha1/go.mod h1:wWBJTVHt0P0AGNfoOgI2+HhZ5bGZU4d5xbz/dXNBzAY=
+github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220830042034-a4df79c84ce6 h1:ICitt/XvD1oh3BTdQbzV95G48TFY/aiZr55iA8dMD8M=
+github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220830042034-a4df79c84ce6/go.mod h1:5sqNKg5cEH7IUnCklLSTrVoGx1dMBhm9DFDsCYVPvPQ=
+github.com/IceWhaleTech/CasaOS-Gateway v0.3.6-alpha4 h1:fSlA5kNBS/Q4D6bFWiNZTwUfsYQ5F/78vJLvUoowXao=
+github.com/IceWhaleTech/CasaOS-Gateway v0.3.6-alpha4/go.mod h1:8E5T8HJn2OUXz+KBZRD84CzwhBdCWsIBuQChZJ7XDwE=
 github.com/Microsoft/go-winio v0.4.11/go.mod h1:VhR8bwka0BXejwEJY73c50VrPtXAaKcyvVC4A4RozmA=
 github.com/Microsoft/go-winio v0.4.14/go.mod h1:qXqCSQ3Xa7+6tgxaGTIe4Kpcdsi+P8jBhyzoq1bpyYA=
 github.com/Microsoft/go-winio v0.4.15-0.20190919025122-fc70bd9a86b5/go.mod h1:tTuCMEN+UleMWgg9dVx4Hu52b1bJo+59jBh3ajtinzw=
