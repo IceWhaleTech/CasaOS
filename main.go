@@ -26,11 +26,13 @@ const LOCALHOST = "127.0.0.1"
 
 var sqliteDB *gorm.DB
 
-var configFlag = flag.String("c", "", "config address")
-var dbFlag = flag.String("db", "", "db path")
-var resetUser = flag.Bool("ru", false, "reset user")
-var user = flag.String("user", "", "user name")
-var versionFlag = flag.Bool("v", false, "version")
+var (
+	configFlag  = flag.String("c", "", "config address")
+	dbFlag      = flag.String("db", "", "db path")
+	resetUser   = flag.Bool("ru", false, "reset user")
+	user        = flag.String("user", "", "user name")
+	versionFlag = flag.Bool("v", false, "version")
+)
 
 func init() {
 	flag.Parse()
@@ -47,7 +49,7 @@ func init() {
 	}
 
 	sqliteDB = sqlite.GetDb(*dbFlag)
-	//gredis.GetRedisConn(config.RedisInfo),
+	// gredis.GetRedisConn(config.RedisInfo),
 
 	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath)
 
@@ -60,7 +62,6 @@ func init() {
 
 	// go service.LoopFriend()
 	// go service.MyService.App().CheckNewImage()
-
 }
 
 // @title casaOS API
@@ -98,22 +99,21 @@ func main() {
 		return
 	}
 	go route.SocketInit(service.NotifyMsg)
-	go route.MonitoryUSB()
-	//model.Setup()
-	//gredis.Setup()
+	// model.Setup()
+	// gredis.Setup()
 
 	r := route.InitRouter()
-	//service.SyncTask(sqliteDB)
+	// service.SyncTask(sqliteDB)
 	cron2 := cron.New()
-	//every day execution
+	// every day execution
 
 	err := cron2.AddFunc("0/5 * * * * *", func() {
 		if service.ClientCount > 0 {
-			//route.SendNetINfoBySocket()
-			//route.SendCPUBySocket()
-			//route.SendMemBySocket()
+			// route.SendNetINfoBySocket()
+			// route.SendCPUBySocket()
+			// route.SendMemBySocket()
 			// route.SendDiskBySocket()
-			//route.SendUSBBySocket()
+			// route.SendUSBBySocket()
 			route.SendAllHardwareStatusBySocket()
 		}
 	})

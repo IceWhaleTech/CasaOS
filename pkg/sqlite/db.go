@@ -28,8 +28,8 @@ func GetDb(dbPath string) *gorm.DB {
 		return gdb
 	}
 	// Refer https://github.com/go-sql-driver/mysql#dsn-data-source-name
-	//dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", m.User, m.PWD, m.IP, m.Port, m.DBName)
-	//db, err := gorm.Open(mysql2.Open(dsn), &gorm.Config{})
+	// dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True&loc=Local", m.User, m.PWD, m.IP, m.Port, m.DBName)
+	// db, err := gorm.Open(mysql2.Open(dsn), &gorm.Config{})
 	file.IsNotExistMkDir(dbPath)
 	db, err := gorm.Open(sqlite.Open(dbPath+"/casaOS.db"), &gorm.Config{})
 	c, _ := db.DB()
@@ -53,7 +53,7 @@ func GetDb(dbPath string) *gorm.DB {
 	drop table o_user;	
 	`)
 
-	err = db.AutoMigrate(&model2.AppNotify{}, &model2.AppListDBModel{}, &model2.SerialDisk{}, model2.UserDBModel{}, model2.SharesDBModel{}, model2.ConnectionsDBModel{})
+	err = db.AutoMigrate(&model2.AppNotify{}, &model2.AppListDBModel{}, model2.UserDBModel{}, model2.SharesDBModel{}, model2.ConnectionsDBModel{})
 	db.Exec("DROP TABLE IF EXISTS o_application")
 	db.Exec("DROP TABLE IF EXISTS o_friend")
 	db.Exec("DROP TABLE IF EXISTS o_person_download")

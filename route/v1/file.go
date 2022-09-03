@@ -48,7 +48,7 @@ func GetFilerContent(c *gin.Context) {
 		})
 		return
 	}
-	//文件读取任务是将文件内容读取到内存中。
+	// 文件读取任务是将文件内容读取到内存中。
 	info, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{
@@ -97,7 +97,6 @@ func GetLocalFile(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/download [get]
 func GetDownloadFile(c *gin.Context) {
-
 	t := c.Query("format")
 
 	files := c.Query("files")
@@ -136,11 +135,11 @@ func GetDownloadFile(c *gin.Context) {
 		}
 		if !info.IsDir() {
 
-			//打开文件
+			// 打开文件
 			fileTmp, _ := os.Open(filePath)
 			defer fileTmp.Close()
 
-			//获取文件的名称
+			// 获取文件的名称
 			fileName := path.Base(filePath)
 			c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
 			c.File(filePath)
@@ -180,7 +179,6 @@ func GetDownloadFile(c *gin.Context) {
 			log.Printf("Failed to archive %s: %v", fname, err)
 		}
 	}
-
 }
 
 func GetDownloadSingleFile(c *gin.Context) {
@@ -203,7 +201,7 @@ func GetDownloadSingleFile(c *gin.Context) {
 	defer fileTmp.Close()
 
 	fileName := path.Base(filePath)
-	//c.Header("Content-Disposition", "inline")
+	// c.Header("Content-Disposition", "inline")
 	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
 	c.File(filePath)
 }
@@ -238,25 +236,28 @@ func DirPath(c *gin.Context) {
 		}
 	} else if path == "/DATA" {
 		disk := make(map[string]string)
-		lsblk := service.MyService.Disk().LSBLK(true)
-		for _, v := range lsblk {
-			if len(v.Children) > 0 {
-				t := v.Tran
-				for _, c := range v.Children {
-					if len(c.Children) > 0 {
-						for _, gc := range c.Children {
-							if len(gc.MountPoint) > 0 {
-								disk[gc.MountPoint] = t
-							}
-						}
-					}
-					if len(c.MountPoint) > 0 {
-						disk[c.MountPoint] = t
-					}
-				}
 
-			}
-		}
+		// TODO - tiger - implement a separate API in LocalStorage
+
+		// lsblk := service.MyService.Disk().LSBLK(true)
+		// for _, v := range lsblk {
+		// 	if len(v.Children) > 0 {
+		// 		t := v.Tran
+		// 		for _, c := range v.Children {
+		// 			if len(c.Children) > 0 {
+		// 				for _, gc := range c.Children {
+		// 					if len(gc.MountPoint) > 0 {
+		// 						disk[gc.MountPoint] = t
+		// 					}
+		// 				}
+		// 			}
+		// 			if len(c.MountPoint) > 0 {
+		// 				disk[c.MountPoint] = t
+		// 			}
+		// 		}
+
+		// 	}
+		// }
 		for i := 0; i < len(info); i++ {
 			if v, ok := disk[info[i].Path]; ok {
 				info[i].Type = v
@@ -274,7 +275,7 @@ func DirPath(c *gin.Context) {
 			info[i].Extensions = ex
 		}
 	}
-	//Hide the files or folders in operation
+	// Hide the files or folders in operation
 	fileQueue := make(map[string]string)
 	if len(service.OpStrArr) > 0 {
 		for _, v := range service.OpStrArr {
@@ -384,7 +385,6 @@ func PostCreateFile(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/upload [get]
 func GetFileUpload(c *gin.Context) {
-
 	relative := c.Query("relativePath")
 	fileName := c.Query("filename")
 	chunkNumber := c.Query("chunkNumber")
@@ -448,7 +448,7 @@ func PostFileUpload(c *gin.Context) {
 	if totalChunks > 1 {
 		file.IsNotExistMkDir(tempDir)
 
-		out, _ := os.OpenFile(tempDir+chunkNumber, os.O_WRONLY|os.O_CREATE, 0644)
+		out, _ := os.OpenFile(tempDir+chunkNumber, os.O_WRONLY|os.O_CREATE, 0o644)
 		defer out.Close()
 		_, err := io.Copy(out, f)
 		if err != nil {
@@ -456,7 +456,7 @@ func PostFileUpload(c *gin.Context) {
 			return
 		}
 	} else {
-		out, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
+		out, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
 		defer out.Close()
 		_, err := io.Copy(out, f)
 		if err != nil {
@@ -488,7 +488,6 @@ func PostFileUpload(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/operate [post]
 func PostOperateFileOrDir(c *gin.Context) {
-
 	list := model.FileOperate{}
 	c.ShouldBind(&list)
 
@@ -538,7 +537,6 @@ func PostOperateFileOrDir(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/delete [delete]
 func DeleteFile(c *gin.Context) {
-
 	paths := []string{}
 	c.ShouldBind(&paths)
 	if len(paths) == 0 {
@@ -570,7 +568,6 @@ func DeleteFile(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/update [put]
 func PutFileContent(c *gin.Context) {
-
 	fi := model.FileUpdate{}
 	c.ShouldBind(&fi)
 
@@ -580,7 +577,7 @@ func PutFileContent(c *gin.Context) {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 		return
 	}
-	//err := os.Remove(path)
+	// err := os.Remove(path)
 	err := os.RemoveAll(fi.FilePath)
 	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR), Data: err})

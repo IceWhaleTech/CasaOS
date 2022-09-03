@@ -21,63 +21,22 @@ import (
 
 func InitFunction() {
 	ShellInit()
-	CheckSerialDiskMount()
 	CheckToken2_11()
 	ImportApplications()
 	// Soon to be removed
 	ChangeAPIUrl()
 	MoveUserToDB()
 	go InitNetworkMount()
-
 }
 
-func CheckSerialDiskMount() {
-	// check mount point
-	dbList := service.MyService.Disk().GetSerialAll()
-
-	list := service.MyService.Disk().LSBLK(true)
-	mountPoint := make(map[string]string, len(dbList))
-	//remount
-	for _, v := range dbList {
-		mountPoint[v.UUID] = v.MountPoint
-	}
-	for _, v := range list {
-		command.ExecEnabledSMART(v.Path)
-		if v.Children != nil {
-			for _, h := range v.Children {
-				//if len(h.MountPoint) == 0 && len(v.Children) == 1 && h.FsType == "ext4" {
-				if m, ok := mountPoint[h.UUID]; ok {
-					//mount point check
-					volume := m
-					if !file.CheckNotExist(m) {
-						for i := 0; file.CheckNotExist(volume); i++ {
-							volume = m + strconv.Itoa(i+1)
-						}
-					}
-					service.MyService.Disk().MountDisk(h.Path, volume)
-					if volume != m {
-						ms := model2.SerialDisk{}
-						ms.UUID = v.UUID
-						ms.MountPoint = volume
-						service.MyService.Disk().UpdateMountPoint(ms)
-					}
-
-				}
-				//}
-			}
-		}
-	}
-	service.MyService.Disk().RemoveLSBLKCache()
-	command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;AutoRemoveUnuseDir")
-}
 func ShellInit() {
 	command.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/assist.sh | bash")
 	if !file.CheckNotExist("/casaOS") {
 		command.OnlyExec("source /casaOS/server/shell/update.sh ;")
 		command.OnlyExec("source " + config.AppInfo.ShellPath + "/delete-old-service.sh ;")
 	}
-
 }
+
 func CheckToken2_11() {
 	if len(config.ServerInfo.Token) == 0 {
 		token := uuid.NewV4().String
@@ -92,11 +51,6 @@ func CheckToken2_11() {
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
 
-	if service.MyService.System().GetSysInfo().KernelArch == "aarch64" && config.ServerInfo.USBAutoMount != "True" && strings.Contains(service.MyService.System().GetDeviceTree(), "Raspberry Pi") {
-		service.MyService.System().UpdateUSBAutoMount("False")
-		service.MyService.System().ExecUSBAutoMountShell("False")
-	}
-
 	// str := []string{}
 	// str = append(str, "ddd")
 	// str = append(str, "aaa")
@@ -104,7 +58,6 @@ func CheckToken2_11() {
 	// config.Cfg.Section("file").Key("ShareDir").SetValue(ddd)
 
 	// config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-
 }
 
 func ImportApplications() {
@@ -113,20 +66,17 @@ func ImportApplications() {
 
 // 0.3.1
 func ChangeAPIUrl() {
-
 	newAPIUrl := "https://api.casaos.io/casaos-api"
 	if config.ServerInfo.ServerApi == "https://api.casaos.zimaboard.com" {
 		config.ServerInfo.ServerApi = newAPIUrl
 		config.Cfg.Section("server").Key("ServerApi").SetValue(newAPIUrl)
 		config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 	}
-
 }
 
-//0.3.3
-//Transferring user data to the database
+// 0.3.3
+// Transferring user data to the database
 func MoveUserToDB() {
-
 	if len(config.UserInfo.UserName) > 0 && service.MyService.User().GetUserInfoByUserName(config.UserInfo.UserName).Id == 0 {
 		user := model2.UserDBModel{}
 		user.Username = config.UserInfo.UserName
