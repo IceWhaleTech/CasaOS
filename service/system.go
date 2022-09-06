@@ -50,6 +50,8 @@ type SystemService interface {
 	RenameFile(oldF, newF string) (int, error)
 	MkdirAll(path string) (int, error)
 	IsServiceRunning(name string) bool
+	GetCPUTemperature() int
+	GetCPUPower() map[string]string
 }
 type systemService struct {
 }
@@ -219,7 +221,7 @@ func (s *systemService) UpdateSystemVersion(version string) {
 	}
 	file.CreateFile(config.AppInfo.LogPath + "/upgrade.log")
 	//go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/update.sh | bash")
-	go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | bash")
+	go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | sudo bash")
 	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
 	//s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
 }
@@ -293,6 +295,33 @@ func (s *systemService) IsServiceRunning(name string) bool {
 	status := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CheckServiceStatus smbd")
 	return strings.TrimSpace(status) == "running"
 
+}
+func (s *systemService) GetCPUTemperature() int {
+	outPut := ""
+	if file.Exists("/sys/class/thermal/thermal_zone0/temp") {
+		outPut = string(file.ReadFullFile("/sys/class/thermal/thermal_zone0/temp"))
+	} else if file.Exists("/sys/class/hwmon/hwmon0/temp1_input") {
+		outPut = string(file.ReadFullFile("/sys/class/hwmon/hwmon0/temp1_input"))
+	} else {
+		outPut = "0"
+	}
+
+	celsius, _ := strconv.Atoi(strings.TrimSpace(outPut))
+
+	if celsius > 1000 {
+		celsius = celsius / 1000
+	}
+	return celsius
+}
+func (s *systemService) GetCPUPower() map[string]string {
+	data := make(map[string]string, 2)
+	data["timestamp"] = strconv.FormatInt(time.Now().Unix(), 10)
+	if file.Exists("/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj") {
+		data["value"] = strings.TrimSpace(string(file.ReadFullFile("/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj")))
+	} else {
+		data["value"] = "0"
+	}
+	return data
 }
 func NewSystemService() SystemService {
 	return &systemService{}

@@ -28,8 +28,6 @@ gen
 /sql/
 /out/
 /db/
-/docs/
-/web/
 /conf/conf.ini
 /conf/conf.conf
 /conf/conf.json
@@ -38,6 +36,4 @@ main
 CasaOS
 github.com
 .all-contributorsrc
-build
 dist
-.goreleaser.yaml

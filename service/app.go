@@ -439,7 +439,7 @@ func (a *appStruct) GetHardwareUsageStream() {
 			wg.Add(1)
 			go func(v types.Container, i int) {
 				defer wg.Done()
-				stats, err := cli.ContainerStats(ctx, v.ID, true)
+				stats, err := cli.ContainerStatsOneShot(ctx, v.ID)
 				if err != nil {
 					return
 				}

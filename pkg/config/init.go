@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-14 10:58:45
+ * @LastEditTime: 2022-09-05 11:58:02
  * @FilePath: /CasaOS/pkg/config/init.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -27,10 +27,9 @@ import (
 var SysInfo = &model.SysInfoModel{}
 
 //用户相关
-var UserInfo = &model.UserModel{}
-
-//用户相关
 var AppInfo = &model.APPModel{}
+
+var CommonInfo = &model.CommonModel{}
 
 //var RedisInfo = &model.RedisModel{}
 
@@ -59,37 +58,41 @@ func InitSetup(config string) {
 	//读取文件
 	Cfg, err = ini.Load(configDir)
 	if err != nil {
-		fmt.Printf("Fail to read file: %v", err)
-		os.Exit(1)
+		Cfg, err = ini.Load("/etc/casaos.conf")
+		if err != nil {
+			Cfg, err = ini.Load("/casaOS/server/conf/conf.ini")
+			if err != nil {
+				fmt.Printf("Fail to read file: %v", err)
+				os.Exit(1)
+			}
+		}
 	}
-
-	mapTo("user", UserInfo)
 	mapTo("app", AppInfo)
 	//mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)
 	mapTo("file", FileSettingInfo)
+	mapTo("common", CommonInfo)
 	SystemConfigInfo.ConfigPath = configDir
 	if len(AppInfo.DBPath) == 0 {
 		AppInfo.DBPath = "/var/lib/casaos"
-		Cfg.SaveTo(configDir)
 	}
 	if len(AppInfo.LogPath) == 0 {
 		AppInfo.LogPath = "/var/log/casaos/"
-		Cfg.SaveTo(configDir)
 	}
 	if len(AppInfo.ShellPath) == 0 {
 		AppInfo.ShellPath = "/usr/share/casaos/shell"
-		Cfg.SaveTo(configDir)
 	}
 	if len(AppInfo.UserDataPath) == 0 {
 		AppInfo.UserDataPath = "/var/lib/casaos/conf"
-		Cfg.SaveTo(configDir)
 	}
 	if len(AppInfo.TempPath) == 0 {
 		AppInfo.TempPath = "/var/lib/casaos/temp"
-		Cfg.SaveTo(configDir)
 	}
+	if len(CommonInfo.RuntimePath) == 0 {
+		CommonInfo.RuntimePath = "/var/run/casaos"
+	}
+	Cfg.SaveTo(configDir)
 	//	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
 
 }

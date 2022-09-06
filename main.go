@@ -3,16 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Gateway/common"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/random"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
@@ -21,17 +21,17 @@ import (
 	"gorm.io/gorm"
 )
 
+const LOCALHOST = "127.0.0.1"
+
 var sqliteDB *gorm.DB
 
 var configFlag = flag.String("c", "", "config address")
 var dbFlag = flag.String("db", "", "db path")
-var resetUser = flag.Bool("ru", false, "reset user")
-var user = flag.String("user", "", "user name")
-var version = flag.Bool("v", false, "show version")
+var versionFlag = flag.Bool("v", false, "version")
 
 func init() {
 	flag.Parse()
-	if *version {
+	if *versionFlag {
 		fmt.Println("v" + types.CURRENTVERSION)
 		return
 	}
@@ -46,7 +46,7 @@ func init() {
 	sqliteDB = sqlite.GetDb(*dbFlag)
 	//gredis.GetRedisConn(config.RedisInfo),
 
-	service.MyService = service.NewService(sqliteDB)
+	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath)
 
 	service.Cache = cache.Init()
 
@@ -73,31 +73,14 @@ func init() {
 // @BasePath /v1
 func main() {
 	service.NotifyMsg = make(chan notify.Message, 10)
-	if *version {
-		return
-	}
-	if *resetUser {
-		if user == nil || len(*user) == 0 {
-			fmt.Println("user is empty")
-			return
-		}
-		userData := service.MyService.User().GetUserAllInfoByName(*user)
-		if userData.Id == 0 {
-			fmt.Println("user not exist")
-			return
-		}
-		password := random.RandomString(6, false)
-		userData.Password = encryption.GetMD5ByStr(password)
-		service.MyService.User().UpdateUserPassword(userData)
-		fmt.Println("User reset successful")
-		fmt.Println("UserName:" + userData.Username)
-		fmt.Println("Password:" + password)
+	if *versionFlag {
 		return
 	}
 	go route.SocketInit(service.NotifyMsg)
 	go route.MonitoryUSB()
 	//model.Setup()
 	//gredis.Setup()
+
 	r := route.InitRouter()
 	//service.SyncTask(sqliteDB)
 	cron2 := cron.New()
@@ -117,18 +100,49 @@ func main() {
 		fmt.Println(err)
 	}
 	cron2.Start()
+
 	defer cron2.Stop()
-	s := &http.Server{
-		Addr:           fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
-		Handler:        r,
-		ReadTimeout:    60 * time.Second,
-		WriteTimeout:   60 * time.Second,
-		MaxHeaderBytes: 1 << 20,
+
+	listener, err := net.Listen("tcp", net.JoinHostPort(LOCALHOST, "0"))
+	if err != nil {
+		panic(err)
 	}
+	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "disks", "storage", "samba"}
+	for _, v := range routers {
+		err = service.MyService.Gateway().CreateRoute(&common.Route{
+			Path:   "/v1/" + v,
+			Target: "http://" + listener.Addr().String(),
+		})
 
-	s.ListenAndServe()
+		if err != nil {
+			fmt.Println("err", err)
+			panic(err)
+		}
+	}
+	go func() {
+		time.Sleep(time.Second * 2)
+		//v0.3.6
+		if config.ServerInfo.HttpPort != "" {
+			changePort := common.ChangePortRequest{}
+			changePort.Port = config.ServerInfo.HttpPort
+			err := service.MyService.Gateway().ChangePort(&changePort)
+			if err == nil {
+				config.Cfg.Section("server").Key("HttpPort").SetValue("")
+				config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+			}
+		}
+	}()
 
-	// if err := r.Run(fmt.Sprintf(":%v", config.ServerInfo.HttpPort)); err != nil {
-	// 	fmt.Println("failed run app: ", err)
+	// s := &http.Server{
+	// 	Addr:           listener.Addr().String(), //fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
+	// 	Handler:        r,
+	// 	ReadTimeout:    60 * time.Second,
+	// 	WriteTimeout:   60 * time.Second,
+	// 	MaxHeaderBytes: 1 << 20,
 	// }
+	// s.ListenAndServe()
+	err = http.Serve(listener, r)
+	if err != nil {
+		panic(err)
+	}
 }

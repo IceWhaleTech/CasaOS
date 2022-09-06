@@ -14,6 +14,8 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+
+	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/gin-gonic/gin"
@@ -229,7 +231,6 @@ func GetDisksUSBList(c *gin.Context) {
 }
 
 func DeleteDisksUmount(c *gin.Context) {
-	id := c.GetHeader("user_id")
 	js := make(map[string]string)
 	c.ShouldBind(&js)
 
@@ -240,12 +241,17 @@ func DeleteDisksUmount(c *gin.Context) {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	user := service.MyService.User().GetUserAllInfoById(id)
-	if user.Id == 0 {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+	token := c.GetHeader("Authorization")
+	if len(token) == 0 {
+		token = c.Query("token")
+	}
+	claims, err := jwt.ParseToken(token, true)
+	if err != nil {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}
-	if encryption.GetMD5ByStr(pwd) != user.Password {
+
+	if encryption.GetMD5ByStr(pwd) != claims.Password {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}
@@ -471,19 +477,23 @@ func PostDiskAddPartition(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /disk/format [post]
 func PostDiskFormat(c *gin.Context) {
-	id := c.GetHeader("user_id")
 	js := make(map[string]string)
 	c.ShouldBind(&js)
 	path := js["path"]
 	t := "ext4"
 	pwd := js["password"]
 	volume := js["volume"]
-	user := service.MyService.User().GetUserAllInfoById(id)
-	if user.Id == 0 {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+	token := c.GetHeader("Authorization")
+	if len(token) == 0 {
+		token = c.Query("token")
+	}
+	claims, err := jwt.ParseToken(token, true)
+	if err != nil {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}
-	if encryption.GetMD5ByStr(pwd) != user.Password {
+
+	if encryption.GetMD5ByStr(pwd) != claims.Password {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}
@@ -521,7 +531,6 @@ func PostDiskFormat(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /disk/umount [post]
 func PostDiskUmount(c *gin.Context) {
-	id := c.GetHeader("user_id")
 	js := make(map[string]string)
 	c.ShouldBind(&js)
 
@@ -533,12 +542,17 @@ func PostDiskUmount(c *gin.Context) {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	user := service.MyService.User().GetUserAllInfoById(id)
-	if user.Id == 0 {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.USER_NOT_EXIST, Message: common_err.GetMsg(common_err.USER_NOT_EXIST)})
+	token := c.GetHeader("Authorization")
+	if len(token) == 0 {
+		token = c.Query("token")
+	}
+	claims, err := jwt.ParseToken(token, true)
+	if err != nil {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}
-	if encryption.GetMD5ByStr(pwd) != user.Password {
+
+	if encryption.GetMD5ByStr(pwd) != claims.Password {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.PWD_INVALID, Message: common_err.GetMsg(common_err.PWD_INVALID)})
 		return
 	}

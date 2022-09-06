@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-07-14 11:02:06
+ * @LastEditTime: 2022-09-02 22:12:34
  * @FilePath: /CasaOS/model/sys_common.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -15,20 +15,6 @@ import "time"
 //系统配置
 type SysInfoModel struct {
 	Name string //系统名称
-}
-
-//用户相关
-type UserModel struct {
-	UserName    string
-	PWD         string
-	Token       string
-	Head        string
-	Email       string
-	Description string
-	Initialized bool
-	Avatar      string
-	NickName    string
-	Public      string
 }
 
 //服务配置
@@ -55,6 +41,9 @@ type APPModel struct {
 	DBPath         string
 	ShellPath      string
 	TempPath       string
+}
+type CommonModel struct {
+	RuntimePath string
 }
 
 //公共返回模型

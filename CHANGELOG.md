@@ -18,7 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-## [0.3.5-alpha] - 2022-08-08
+
+## [0.3.6-alpha.1] - 2022-09-06
+
+###  Added
+- [System] Added display of power and temperature to performance widget (Intel)
+- [Apps] Added support for adding custom links in the APP module
+
+### Fixed
+- [Apps] Fixed the problem of not being able to modify the application pairing ([#510](https://github.com/IceWhaleTech/CasaOS/issues/510))
+### Changed
+- [System] Architecture optimization. Improved performance.
+
+## [0.3.5] - 2022-08-23
 
 ### Added
 

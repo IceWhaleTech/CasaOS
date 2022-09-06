@@ -1,7 +1,10 @@
 package v1
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"reflect"
@@ -418,6 +421,9 @@ func GetSystemUtilization(c *gin.Context) {
 	cpuData := make(map[string]interface{})
 	cpuData["percent"] = cpu
 	cpuData["num"] = num
+	cpuData["temperature"] = service.MyService.System().GetCPUTemperature()
+	cpuData["power"] = service.MyService.System().GetCPUPower()
+
 	data["cpu"] = cpuData
 	data["mem"] = service.MyService.System().GetMemInfo()
 
@@ -524,4 +530,22 @@ func GetSystemNetInfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: newNet})
+}
+
+func GetSystemProxy(c *gin.Context) {
+	url := c.Query("url")
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	for k, v := range c.Request.Header {
+		c.Header(k, v[0])
+	}
+	rda, _ := ioutil.ReadAll(resp.Body)
+	//	json.NewEncoder(c.Writer).Encode(json.RawMessage(string(rda)))
+	// 响应状态码
+	c.Writer.WriteHeader(resp.StatusCode)
+	// 复制转发的响应Body到响应Body
+	io.Copy(c.Writer, ioutil.NopCloser(bytes.NewBuffer(rda)))
 }
