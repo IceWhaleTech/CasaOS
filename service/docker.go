@@ -530,6 +530,13 @@ func (ds *dockerService) DockerContainerCreate(m model.CustomizationPostData, id
 		// info.NetworkSettings = &types.NetworkSettings{}
 		hostConfig = info.HostConfig
 		config = info.Config
+		if config.Labels["casaos"] == "casaos" {
+			config.Cmd = m.Cmd
+			config.Image = m.Image
+			config.Env = envArr
+			config.Hostname = m.HostName
+			config.ExposedPorts = ports
+		}
 	} else {
 		config.Cmd = m.Cmd
 		config.Image = m.Image

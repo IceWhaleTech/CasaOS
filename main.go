@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Gateway/common"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
@@ -118,17 +119,20 @@ func main() {
 			panic(err)
 		}
 	}
-
-	//v0.3.6
-	if config.ServerInfo.HttpPort != "" {
-		changePort := common.ChangePortRequest{}
-		changePort.Port = config.ServerInfo.HttpPort
-		err := service.MyService.Gateway().ChangePort(&changePort)
-		if err == nil {
-			config.Cfg.Section("server").Key("HttpPort").SetValue("")
-			config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+	go func() {
+		time.Sleep(time.Second * 2)
+		//v0.3.6
+		if config.ServerInfo.HttpPort != "" {
+			changePort := common.ChangePortRequest{}
+			changePort.Port = config.ServerInfo.HttpPort
+			err := service.MyService.Gateway().ChangePort(&changePort)
+			if err == nil {
+				config.Cfg.Section("server").Key("HttpPort").SetValue("")
+				config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+			}
 		}
-	}
+	}()
+
 	// s := &http.Server{
 	// 	Addr:           listener.Addr().String(), //fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
 	// 	Handler:        r,
