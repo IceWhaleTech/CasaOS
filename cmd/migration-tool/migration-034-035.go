@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.org
  * @Date: 2022-08-24 17:36:00
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-31 17:20:26
+ * @LastEditTime: 2022-09-05 11:24:27
  * @FilePath: /CasaOS/cmd/migration-tool/migration-034-035.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -11,6 +11,10 @@
 package main
 
 import (
+	"io"
+	"io/ioutil"
+	"os"
+	"path"
 	"strings"
 
 	interfaces "github.com/IceWhaleTech/CasaOS-Common"
@@ -75,6 +79,95 @@ func (u *migrationTool) Migrate() error {
 	}
 
 	service.MyService.App().ImportApplications(true)
+
+	src := "/casaOS/server/conf/conf.ini"
+	if file.Exists(src) {
+		dst := "/etc/casaos/casaos.conf"
+		source, err := os.Open(src)
+		if err != nil {
+			return err
+		}
+		defer source.Close()
+
+		destination, err := os.Create(dst)
+		if err != nil {
+			return err
+		}
+		defer destination.Close()
+		_, err = io.Copy(destination, source)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	if file.Exists("/casaOS/server/db") {
+		var fds []os.FileInfo
+		var err error
+		to := "/var/lib/casaos/db"
+		file.IsNotExistMkDir(to)
+		from := "/casaOS/server/db"
+		if fds, err = ioutil.ReadDir(from); err != nil {
+			return err
+		}
+
+		for _, fd := range fds {
+			srcfp := path.Join(from, fd.Name())
+			dstfp := path.Join(to, fd.Name())
+			source, err := os.Open(srcfp)
+			if err != nil {
+				return err
+			}
+			defer source.Close()
+
+			destination, err := os.Create(dstfp)
+			if err != nil {
+				return err
+			}
+			defer destination.Close()
+			_, err = io.Copy(destination, source)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
+
+	if file.Exists("/casaOS/server/conf") {
+		var fds []os.FileInfo
+		var err error
+		to := "/var/lib/casaos/conf"
+		file.IsNotExistMkDir(to)
+		from := "/casaOS/server/conf"
+		if fds, err = ioutil.ReadDir(from); err != nil {
+			return err
+		}
+
+		for _, fd := range fds {
+			fExt := path.Ext(fd.Name())
+			if fExt != ".json" {
+				continue
+			}
+			srcfp := path.Join(from, fd.Name())
+			dstfp := path.Join(to, fd.Name())
+			source, err := os.Open(srcfp)
+			if err != nil {
+				return err
+			}
+			defer source.Close()
+
+			destination, err := os.Create(dstfp)
+			if err != nil {
+				return err
+			}
+			defer destination.Close()
+			_, err = io.Copy(destination, source)
+			if err != nil {
+				return err
+			}
+		}
+
+	}
 
 	_logger.Info("update done")
 	return nil

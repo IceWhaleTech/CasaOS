@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-05-13 18:15:46
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-09-01 22:05:32
+ * @LastEditTime: 2022-09-05 11:58:02
  * @FilePath: /CasaOS/pkg/config/init.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -25,9 +25,6 @@ import (
 
 //系统配置
 var SysInfo = &model.SysInfoModel{}
-
-//用户相关
-var UserInfo = &model.UserModel{}
 
 //用户相关
 var AppInfo = &model.APPModel{}
@@ -63,12 +60,13 @@ func InitSetup(config string) {
 	if err != nil {
 		Cfg, err = ini.Load("/etc/casaos.conf")
 		if err != nil {
-			fmt.Printf("Fail to read file: %v", err)
-			os.Exit(1)
+			Cfg, err = ini.Load("/casaOS/server/conf/conf.ini")
+			if err != nil {
+				fmt.Printf("Fail to read file: %v", err)
+				os.Exit(1)
+			}
 		}
 	}
-
-	mapTo("user", UserInfo)
 	mapTo("app", AppInfo)
 	//mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)

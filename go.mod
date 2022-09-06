@@ -4,8 +4,8 @@ go 1.16
 
 require (
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
-	github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220830042034-a4df79c84ce6
-	github.com/IceWhaleTech/CasaOS-Gateway v0.3.6-alpha4
+	github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220901034123-ca130f6b5ce9
+	github.com/IceWhaleTech/CasaOS-Gateway v0.3.6
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/ambelovsky/go-structs v1.1.0 // indirect
 	github.com/ambelovsky/gosf v0.0.0-20201109201340-237aea4d6109
@@ -20,7 +20,6 @@ require (
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-ini/ini v1.62.0
-	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/golang/mock v1.6.0
 	github.com/gomodule/redigo v1.8.5
 	github.com/google/go-github/v36 v36.0.0

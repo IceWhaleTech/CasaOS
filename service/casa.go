@@ -144,7 +144,7 @@ func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollec
 	listModel := []model.ServerAppList{}
 	communityModel := []model.ServerAppList{}
 	recommendModel := []model.ServerAppList{}
-	json2.Unmarshal([]byte(gjson.Get(listS, "data.list").String()), &listModel)
+	err = json2.Unmarshal([]byte(gjson.Get(listS, "data.list").String()), &listModel)
 	json2.Unmarshal([]byte(gjson.Get(listS, "data.recommend").String()), &recommendModel)
 	json2.Unmarshal([]byte(gjson.Get(listS, "data.community").String()), &communityModel)
 

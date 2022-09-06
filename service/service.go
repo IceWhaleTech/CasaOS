@@ -2,7 +2,7 @@
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-12 09:48:56
  * @LastEditors: LinkLeong
- * @LastEditTime: 2022-09-02 10:57:12
+ * @LastEditTime: 2022-09-02 22:10:05
  * @FilePath: /CasaOS/service/service.go
  * @Description:
  * @Website: https://www.casaos.io
@@ -47,9 +47,8 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 	}
 
 	return &store{
-		gateway: gatewayManagement,
-		app:     NewAppService(db),
-		//user:        NewUserService(db),
+		gateway:     gatewayManagement,
+		app:         NewAppService(db),
 		docker:      NewDockerService(),
 		casa:        NewCasaService(),
 		disk:        NewDiskService(db),
@@ -62,9 +61,8 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 }
 
 type store struct {
-	db  *gorm.DB
-	app AppService
-	//user        UserService
+	db          *gorm.DB
+	app         AppService
 	docker      DockerService
 	casa        CasaService
 	disk        DiskService
@@ -101,10 +99,6 @@ func (c *store) Notify() NotifyServer {
 func (c *store) App() AppService {
 	return c.app
 }
-
-// func (c *store) User() UserService {
-// 	return c.user
-// }
 
 func (c *store) Docker() DockerService {
 	return c.docker
