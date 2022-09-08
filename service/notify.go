@@ -37,10 +37,26 @@ type NotifyServer interface {
 	SendInstallAppBySocket(app notify.Application)
 	SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat)
 	SendStorageBySocket(message notify.StorageMessage)
+	SendNotify(path string, message map[string]interface{})
 }
 
 type notifyServer struct {
 	db *gorm.DB
+}
+
+func (i *notifyServer) SendNotify(path string, message map[string]interface{}) {
+
+	msg := gosf.Message{}
+	msg.Body = message
+	msg.Success = true
+	msg.Text = path
+
+	notify := notify.Message{}
+	notify.Path = path
+	notify.Msg = msg
+
+	NotifyMsg <- notify
+
 }
 
 func (i *notifyServer) SendStorageBySocket(message notify.StorageMessage) {

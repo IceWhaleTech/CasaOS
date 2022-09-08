@@ -38,7 +38,7 @@ var upgrader = websocket.Upgrader{
 	HandshakeTimeout: time.Duration(time.Second * 5),
 }
 
-//打开docker的terminal
+// 打开docker的terminal
 func DockerTerminal(c *gin.Context) {
 	col := c.DefaultQuery("cols", "100")
 	row := c.DefaultQuery("rows", "30")
@@ -877,7 +877,7 @@ func UpdateSetting(c *gin.Context) {
 	if err != nil {
 		service.MyService.Docker().DockerContainerUpdateName(m.ContainerName, id)
 		service.MyService.Docker().DockerContainerStart(id)
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 	//		echo -e "hellow\nworld" >>

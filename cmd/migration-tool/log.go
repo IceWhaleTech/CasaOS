@@ -1,13 +1,3 @@
-/*
- * @Author: LinkLeong link@icewhale.org
- * @Date: 2022-08-30 22:15:30
- * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-30 22:15:47
- * @FilePath: /CasaOS/cmd/migration-tool/log.go
- * @Description:
- * @Website: https://www.casaos.io
- * Copyright (c) 2022 by icewhale, All Rights Reserved.
- */
 package main
 
 import (
