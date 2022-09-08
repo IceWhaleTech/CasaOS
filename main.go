@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Gateway/common"
@@ -12,10 +13,12 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
+	"go.uber.org/zap"
 
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
@@ -107,7 +110,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "disks", "storage", "samba"}
+	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "disks", "storage", "samba", "notify"}
 	for _, v := range routers {
 		err = service.MyService.Gateway().CreateRoute(&common.Route{
 			Path:   "/v1/" + v,
@@ -141,6 +144,15 @@ func main() {
 	// 	MaxHeaderBytes: 1 << 20,
 	// }
 	// s.ListenAndServe()
+	urlFilePath := filepath.Join(config.CommonInfo.RuntimePath, "casaos.url")
+	err = file.CreateFileAndWriteContent(urlFilePath, "http://"+listener.Addr().String())
+	if err != nil {
+		loger.Error("Management service is listening...",
+			zap.Any("address", listener.Addr().String()),
+			zap.Any("filepath", urlFilePath),
+		)
+	}
+
 	err = http.Serve(listener, r)
 	if err != nil {
 		panic(err)

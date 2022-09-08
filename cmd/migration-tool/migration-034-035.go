@@ -25,9 +25,9 @@ import (
 	"github.com/IceWhaleTech/CasaOS/service"
 )
 
-type migrationTool struct{}
+type migrationTool036 struct{}
 
-func (u *migrationTool) IsMigrationNeeded() (bool, error) {
+func (u *migrationTool036) IsMigrationNeeded() (bool, error) {
 
 	majorVersion, minorVersion, patchVersion, err := version.DetectLegacyVersion()
 	if err != nil {
@@ -55,12 +55,12 @@ func (u *migrationTool) IsMigrationNeeded() (bool, error) {
 
 }
 
-func (u *migrationTool) PreMigrate() error {
+func (u *migrationTool036) PreMigrate() error {
 
 	return nil
 }
 
-func (u *migrationTool) Migrate() error {
+func (u *migrationTool036) Migrate() error {
 
 	if service.MyService.System().GetSysInfo().KernelArch == "aarch64" && config.ServerInfo.USBAutoMount != "True" && strings.Contains(service.MyService.System().GetDeviceTree(), "Raspberry Pi") {
 		service.MyService.System().UpdateUSBAutoMount("False")
@@ -173,7 +173,7 @@ func (u *migrationTool) Migrate() error {
 	return nil
 }
 
-func (u *migrationTool) PostMigrate() error {
+func (u *migrationTool036) PostMigrate() error {
 	return nil
 }
 

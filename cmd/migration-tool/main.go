@@ -80,6 +80,7 @@ func main() {
 
 	migrationTools := []interfaces.MigrationTool{
 		NewMigrationToolFor_035(),
+		NewMigrationToolFor_036(),
 	}
 
 	var selectedMigrationTool interfaces.MigrationTool

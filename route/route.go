@@ -40,7 +40,9 @@ func InitRouter() *gin.Engine {
 
 	r.GET("/v1/sys/socket-port", v1.GetSystemSocketPort) //sys/socket_port
 	r.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
-
+	r.GET("/ping", func(ctx *gin.Context) {
+		ctx.String(200, "pong")
+	})
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt2.JWT())
@@ -237,6 +239,11 @@ func InitRouter() *gin.Engine {
 				v1SharesGroup.DELETE("/:id", v1.DeleteSambaShares)
 				v1SharesGroup.GET("/status", v1.GetSambaStatus)
 			}
+		}
+		v1NotifyGroup := v1Group.Group("/notify")
+		v1NotifyGroup.Use()
+		{
+			v1NotifyGroup.POST("/:path", v1.PostNotifyMssage)
 		}
 	}
 	return r
