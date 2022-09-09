@@ -38,7 +38,7 @@ var upgrader = websocket.Upgrader{
 	HandshakeTimeout: time.Duration(time.Second * 5),
 }
 
-//打开docker的terminal
+// 打开docker的terminal
 func DockerTerminal(c *gin.Context) {
 	col := c.DefaultQuery("cols", "100")
 	row := c.DefaultQuery("rows", "30")
@@ -1126,7 +1126,7 @@ func ContainerUpdateInfo(c *gin.Context) {
 		}
 	}
 	for _, v := range info.Config.Env {
-		if len(showENVList) > 0 {
+		if len(showENVList) > 0 && info.Config.Labels["origin"] != "local" {
 			if _, ok := showENVMap[strings.Split(v, "=")[0]]; ok {
 				temp := model.Env{
 					Name:  strings.Split(v, "=")[0],
