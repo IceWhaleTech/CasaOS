@@ -9,4 +9,4 @@
 ### 
 
 
-curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/upgrade.sh | bash
+curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | bash
