@@ -244,6 +244,8 @@ func InitRouter() *gin.Engine {
 		v1NotifyGroup.Use()
 		{
 			v1NotifyGroup.POST("/:path", v1.PostNotifyMssage)
+			//merge to system
+			v1NotifyGroup.POST("", v1.PostSystemNotyfiy)
 		}
 	}
 	return r

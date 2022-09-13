@@ -18,6 +18,7 @@ const (
 
 type NotifyService interface {
 	SendNotify(path string, message map[string]interface{}) error
+	SendSystemNotify(message map[string]interface{}) error
 }
 type notifyService struct {
 	address string
@@ -41,7 +42,24 @@ func (n *notifyService) SendNotify(path string, message map[string]interface{}) 
 	return nil
 
 }
+func (n *notifyService) SendSystemNotify(message map[string]interface{}) error {
 
+	url := strings.TrimSuffix(n.address, "/") + "/" + APICasaOSNotify
+	body, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+	response, err := http.Post(url, "application/json", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	if response.StatusCode != http.StatusCreated {
+		return errors.New("failed to send notify (status code: " + fmt.Sprint(response.StatusCode) + ")")
+	}
+	return nil
+
+}
 func NewNotifyService(runtimePath string) (NotifyService, error) {
 	casaosAddressFile := filepath.Join(runtimePath, CasaOSURLFilename)
 
