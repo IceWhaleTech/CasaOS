@@ -38,14 +38,21 @@ type NotifyServer interface {
 	SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat)
 	SendStorageBySocket(message notify.StorageMessage)
 	SendNotify(path string, message map[string]interface{})
+	SettingSystemTempData(message map[string]interface{})
 }
 
 type notifyServer struct {
-	db *gorm.DB
+	db            *gorm.DB
+	SystemTempMap map[string]interface{}
+}
+
+func (i *notifyServer) SettingSystemTempData(message map[string]interface{}) {
+	for k, v := range message {
+		i.SystemTempMap[k] = v
+	}
 }
 
 func (i *notifyServer) SendNotify(path string, message map[string]interface{}) {
-
 	msg := gosf.Message{}
 	msg.Body = message
 	msg.Success = true
@@ -77,15 +84,16 @@ func (i *notifyServer) SendStorageBySocket(message notify.StorageMessage) {
 func (i *notifyServer) SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat) {
 
 	body := make(map[string]interface{})
-	body["sys_disk"] = disk
-
-	body["sys_usb"] = list
 
 	body["sys_mem"] = mem
 
 	body["sys_cpu"] = cpu
 
 	body["sys_net"] = netList
+
+	for k, v := range i.SystemTempMap {
+		body[k] = v
+	}
 
 	msg := gosf.Message{}
 	msg.Body = body
@@ -470,5 +478,5 @@ func SendMeg() {
 // }
 
 func NewNotifyService(db *gorm.DB) NotifyServer {
-	return &notifyServer{db: db}
+	return &notifyServer{db: db, SystemTempMap: make(map[string]interface{})}
 }

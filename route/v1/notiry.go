@@ -14,3 +14,9 @@ func PostNotifyMssage(c *gin.Context) {
 	service.MyService.Notify().SendNotify(path, message)
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
+func PostSystemNotyfiy(c *gin.Context) {
+	message := make(map[string]interface{})
+	c.ShouldBind(&message)
+	service.MyService.Notify().SettingSystemTempData(message)
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+}
