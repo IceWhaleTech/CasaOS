@@ -80,7 +80,6 @@ func main() {
 		return
 	}
 	go route.SocketInit(service.NotifyMsg)
-	go route.MonitoryUSB()
 	//model.Setup()
 	//gredis.Setup()
 
@@ -110,7 +109,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "disks", "storage", "samba", "notify"}
+	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "samba", "notify"}
 	for _, v := range routers {
 		err = service.MyService.Gateway().CreateRoute(&common.Route{
 			Path:   "/v1/" + v,

@@ -16,3 +16,7 @@ type DockerStatsModel struct {
 	Data     interface{} `json:"data"`
 	Previous interface{} `json:"previous"`
 }
+
+type DeckerDaemonModel struct {
+	Graph string `json:"graph"`
+}

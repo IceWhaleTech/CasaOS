@@ -43,7 +43,7 @@ func GetDb(dbPath string) *gorm.DB {
 	}
 	gdb = db
 
-	err = db.AutoMigrate(&model2.AppNotify{}, &model2.AppListDBModel{}, &model2.SerialDisk{}, model2.SharesDBModel{}, model2.ConnectionsDBModel{})
+	err = db.AutoMigrate(&model2.AppNotify{}, &model2.AppListDBModel{}, model2.SharesDBModel{}, model2.ConnectionsDBModel{})
 	db.Exec("DROP TABLE IF EXISTS o_application")
 	db.Exec("DROP TABLE IF EXISTS o_friend")
 	db.Exec("DROP TABLE IF EXISTS o_person_download")

@@ -1,7 +1,7 @@
 package route
 
 import (
-	jwt2 "github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
 	"github.com/IceWhaleTech/CasaOS/middleware"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
@@ -45,7 +45,7 @@ func InitRouter() *gin.Engine {
 	})
 	v1Group := r.Group("/v1")
 
-	v1Group.Use(jwt2.JWT())
+	v1Group.Use(jwt.ExceptLocalhost())
 	{
 		// v1UsersGroup := v1Group.Group("/users")
 		// v1UsersGroup.Use()
@@ -79,6 +79,7 @@ func InitRouter() *gin.Engine {
 		v1ContainerGroup := v1Group.Group("/container")
 		v1ContainerGroup.Use()
 		{
+
 			v1ContainerGroup.GET("", v1.MyAppList) ///my/list
 			v1ContainerGroup.GET("/usage", v1.AppUsageList)
 			v1ContainerGroup.GET("/:id", v1.ContainerUpdateInfo)    ///update/:id/info
@@ -99,6 +100,8 @@ func InitRouter() *gin.Engine {
 			v1ContainerGroup.PUT("/:id/latest", v1.PutAppUpdate)
 			//Not used
 			v1ContainerGroup.POST("/share", v1.ShareAppFile)
+			v1ContainerGroup.GET("/info", v1.GetcontainerInfo)
+			v1ContainerGroup.PUT("/info", v1.PutcontainerInfo)
 
 		}
 		v1AppCategoriesGroup := v1Group.Group("/app-categories")
@@ -185,42 +188,6 @@ func InitRouter() *gin.Engine {
 		{
 			v1ImageGroup.GET("", v1.GetFileImage)
 		}
-
-		v1DisksGroup := v1Group.Group("/disks")
-		v1DisksGroup.Use()
-		{
-			//v1DiskGroup.GET("/check", v1.GetDiskCheck) //delete
-			//v1DisksGroup.GET("", v1.GetDiskInfo)
-
-			//v1DisksGroup.POST("", v1.PostMountDisk)
-			v1DisksGroup.GET("", v1.GetDiskList)
-			v1DisksGroup.GET("/usb", v1.GetDisksUSBList)
-			v1DisksGroup.DELETE("/usb", v1.DeleteDiskUSB)
-			v1DisksGroup.DELETE("", v1.DeleteDisksUmount)
-			// //format storage
-			// v1DiskGroup.POST("/format", v1.PostDiskFormat)
-
-			// //mount SATA disk
-			// v1DiskGroup.POST("/mount", v1.PostMountDisk)
-
-			// //umount sata disk
-			// v1DiskGroup.POST("/umount", v1.PostDiskUmount)
-
-			//v1DiskGroup.GET("/type", v1.FormatDiskType)//delete
-
-			v1DisksGroup.DELETE("/part", v1.RemovePartition) //disk/delpart
-		}
-
-		v1StorageGroup := v1Group.Group("/storage")
-		v1StorageGroup.Use()
-		{
-			v1StorageGroup.POST("", v1.PostDiskAddPartition)
-
-			v1StorageGroup.PUT("", v1.PostDiskFormat)
-
-			v1StorageGroup.DELETE("", v1.PostDiskUmount)
-			v1StorageGroup.GET("", v1.GetStorageList)
-		}
 		v1SambaGroup := v1Group.Group("/samba")
 		v1SambaGroup.Use()
 		{
@@ -243,9 +210,9 @@ func InitRouter() *gin.Engine {
 		v1NotifyGroup := v1Group.Group("/notify")
 		v1NotifyGroup.Use()
 		{
-			v1NotifyGroup.POST("/:path", v1.PostNotifyMssage)
+			v1NotifyGroup.POST("/:path", v1.PostNotifyMessage)
 			//merge to system
-			v1NotifyGroup.POST("", v1.PostSystemNotyfiy)
+			v1NotifyGroup.POST("/system_status", v1.PostSystemStatusNotify)
 		}
 	}
 	return r

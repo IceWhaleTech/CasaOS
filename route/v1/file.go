@@ -236,33 +236,8 @@ func DirPath(c *gin.Context) {
 				info[i].Type = "application"
 			}
 		}
-	} else if path == "/DATA" {
-		disk := make(map[string]string)
-		lsblk := service.MyService.Disk().LSBLK(true)
-		for _, v := range lsblk {
-			if len(v.Children) > 0 {
-				t := v.Tran
-				for _, c := range v.Children {
-					if len(c.Children) > 0 {
-						for _, gc := range c.Children {
-							if len(gc.MountPoint) > 0 {
-								disk[gc.MountPoint] = t
-							}
-						}
-					}
-					if len(c.MountPoint) > 0 {
-						disk[c.MountPoint] = t
-					}
-				}
-
-			}
-		}
-		for i := 0; i < len(info); i++ {
-			if v, ok := disk[info[i].Path]; ok {
-				info[i].Type = v
-			}
-		}
 	}
+
 	for i := 0; i < len(info); i++ {
 		if v, ok := sharesMap[info[i].Path]; ok {
 			ex := make(map[string]interface{})
