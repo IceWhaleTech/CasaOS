@@ -7,14 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func PostNotifyMssage(c *gin.Context) {
+func PostNotifyMessage(c *gin.Context) {
 	path := c.Param("path")
 	message := make(map[string]interface{})
 	c.ShouldBind(&message)
 	service.MyService.Notify().SendNotify(path, message)
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
-func PostSystemNotyfiy(c *gin.Context) {
+
+func PostSystemStatusNotify(c *gin.Context) {
 	message := make(map[string]interface{})
 	c.ShouldBind(&message)
 	service.MyService.Notify().SettingSystemTempData(message)

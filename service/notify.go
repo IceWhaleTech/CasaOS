@@ -31,11 +31,9 @@ type NotifyServer interface {
 	SendNetInfoBySocket(netList []model2.IOCountersStat)
 	SendCPUInfoBySocket(cpu map[string]interface{})
 	SendMemInfoBySocket(mem map[string]interface{})
-	SendUSBInfoBySocket(list []model2.DriveUSB)
-	SendDiskInfoBySocket(disk model2.Summary)
 	SendFileOperateNotify(nowSend bool)
 	SendInstallAppBySocket(app notify.Application)
-	SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat)
+	SendAllHardwareStatusBySocket(mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat)
 	SendStorageBySocket(message notify.StorageMessage)
 	SendNotify(path string, message map[string]interface{})
 	SettingSystemTempData(message map[string]interface{})
@@ -81,7 +79,7 @@ func (i *notifyServer) SendStorageBySocket(message notify.StorageMessage) {
 
 	NotifyMsg <- notify
 }
-func (i *notifyServer) SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat) {
+func (i *notifyServer) SendAllHardwareStatusBySocket(mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat) {
 
 	body := make(map[string]interface{})
 
@@ -261,38 +259,6 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 		}
 	}
 
-}
-
-func (i *notifyServer) SendDiskInfoBySocket(disk model2.Summary) {
-	body := make(map[string]interface{})
-	body["data"] = disk
-
-	msg := gosf.Message{}
-	msg.Body = body
-	msg.Success = true
-	msg.Text = "sys_disk"
-
-	notify := notify.Message{}
-	notify.Path = "sys_disk"
-	notify.Msg = msg
-
-	NotifyMsg <- notify
-}
-
-func (i *notifyServer) SendUSBInfoBySocket(list []model2.DriveUSB) {
-	body := make(map[string]interface{})
-	body["data"] = list
-
-	msg := gosf.Message{}
-	msg.Body = body
-	msg.Success = true
-	msg.Text = "sys_usb"
-
-	notify := notify.Message{}
-	notify.Path = "sys_usb"
-	notify.Msg = msg
-
-	NotifyMsg <- notify
 }
 
 func (i *notifyServer) SendMemInfoBySocket(mem map[string]interface{}) {

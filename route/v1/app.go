@@ -2,10 +2,12 @@ package v1
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 
@@ -261,4 +263,55 @@ func ShareAppFile(c *gin.Context) {
 	str, _ := ioutil.ReadAll(c.Request.Body)
 	content := service.MyService.Casa().ShareAppFile(str)
 	c.JSON(common_err.SUCCESS, json.RawMessage(content))
+}
+
+func GetcontainerInfo(c *gin.Context) {
+	// info, err := service.MyService.Docker().GetDockerInfo()
+	// if err != nil {
+	// 	c.JSON(common_err.SERVICE_ERROR, &model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+	// 	return
+	// }
+	daemon := model.DeckerDaemonModel{}
+	data := make(map[string]interface{}, 1)
+	data["docker_root_dir"] = ""
+	if file.Exists("/etc/docker/daemon.json") {
+		byteResult := file.ReadFullFile("/etc/docker/daemon.json")
+		err := json.Unmarshal(byteResult, &daemon)
+		if err != nil {
+			c.JSON(common_err.CLIENT_ERROR, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: err.Error()})
+			return
+		}
+		data["docker_root_dir"] = daemon.Graph
+	}
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+}
+func PutcontainerInfo(c *gin.Context) {
+	js := make(map[string]interface{})
+	err := c.BindJSON(&js)
+	if err != nil {
+		c.JSON(common_err.CLIENT_ERROR, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: err.Error()})
+		return
+	}
+	dockerRootDir := js["docker_root_dir"].(string)
+	daemon := model.DeckerDaemonModel{}
+	if file.Exists("/etc/docker/daemon.json") {
+		byteResult := file.ReadFullFile("/etc/docker/daemon.json")
+		err := json.Unmarshal(byteResult, &daemon)
+		if err != nil {
+			c.JSON(common_err.CLIENT_ERROR, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: err.Error()})
+			return
+		}
+	}
+	if !file.Exists(dockerRootDir) {
+		c.JSON(common_err.CLIENT_ERROR, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.DIR_NOT_EXISTS), Data: common_err.GetMsg(common_err.DIR_NOT_EXISTS)})
+		return
+	}
+	daemon.Graph = dockerRootDir
+	byteMode, _ := json.Marshal(daemon)
+	file.WriteToPath(byteMode, "/etc/docker", "daemon.json")
+
+	fmt.Println(command.ExecResultStr("systemctl daemon-reload"))
+	fmt.Println(command.ExecResultStr("systemctl restart docker"))
+
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: js})
 }

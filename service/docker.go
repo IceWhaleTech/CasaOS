@@ -59,6 +59,7 @@ type DockerService interface {
 	DockerImageInfo(image string) (types.ImageInspect, error)
 	GetNetWorkNameByNetWorkID(id string) (string, error)
 	ContainerExecShell(container_id string) string
+	GetDockerInfo() (types.Info, error)
 }
 
 type dockerService struct {
@@ -94,7 +95,7 @@ func (ds *dockerService) ContainerExecShell(container_id string) string {
 	return exec.ID
 }
 
-//创建默认网络
+// 创建默认网络
 func DockerNetwork() {
 
 	cli, _ := client2.NewClientWithOpts(client2.FromEnv)
@@ -109,7 +110,7 @@ func DockerNetwork() {
 	cli.NetworkCreate(context.Background(), docker.NETWORKNAME, types.NetworkCreate{})
 }
 
-//根据网络id获取网络名
+// 根据网络id获取网络名
 func (ds *dockerService) GetNetWorkNameByNetWorkID(id string) (string, error) {
 	cli, _ := client2.NewClientWithOpts(client2.FromEnv)
 	defer cli.Close()
@@ -122,7 +123,7 @@ func (ds *dockerService) GetNetWorkNameByNetWorkID(id string) (string, error) {
 	return "", err
 }
 
-//拉取镜像
+// 拉取镜像
 func DockerPull() {
 
 	cli, _ := client2.NewClientWithOpts(client2.FromEnv)
@@ -141,7 +142,7 @@ func DockerPull() {
 
 }
 
-//拉取镜像
+// 拉取镜像
 func DockerEx() {
 
 	cli, _ := client2.NewClientWithOpts(client2.FromEnv)
@@ -292,7 +293,7 @@ func DockerLogs() {
 
 //正式内容
 
-//检查镜像是否存在
+// 检查镜像是否存在
 func (ds *dockerService) IsExistImage(imageName string) bool {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -311,7 +312,7 @@ func (ds *dockerService) IsExistImage(imageName string) bool {
 	return false
 }
 
-//安装镜像
+// 安装镜像
 func (ds *dockerService) DockerPullImage(imageName string, icon, name string) error {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -365,12 +366,12 @@ func (ds *dockerService) DockerContainerCopyCreate(info *types.ContainerJSON) (c
 	return container.ID, err
 }
 
-//param imageName 镜像名称
-//param containerDbId 数据库的id
-//param port 容器内部主端口
-//param mapPort 容器主端口映射到外部的端口
-//param tcp 容器其他tcp端口
-//param udp 容器其他udp端口
+// param imageName 镜像名称
+// param containerDbId 数据库的id
+// param port 容器内部主端口
+// param mapPort 容器主端口映射到外部的端口
+// param tcp 容器其他tcp端口
+// param udp 容器其他udp端口
 func (ds *dockerService) DockerContainerCreate(m model.CustomizationPostData, id string) (containerId string, err error) {
 	if len(m.NetworkModel) == 0 {
 		m.NetworkModel = "bridge"
@@ -581,7 +582,7 @@ func (ds *dockerService) DockerContainerCreate(m model.CustomizationPostData, id
 	return containerDb.ID, err
 }
 
-//删除容器
+// 删除容器
 func (ds *dockerService) DockerContainerRemove(name string, update bool) error {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -605,7 +606,7 @@ func (ds *dockerService) DockerContainerRemove(name string, update bool) error {
 	return err
 }
 
-//删除镜像
+// 删除镜像
 func (ds *dockerService) DockerImageRemove(name string) error {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -653,7 +654,7 @@ Loop:
 	return err
 }
 
-//停止镜像
+// 停止镜像
 func (ds *dockerService) DockerContainerStop(id string) error {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -664,7 +665,7 @@ func (ds *dockerService) DockerContainerStop(id string) error {
 	return err
 }
 
-//启动容器
+// 启动容器
 func (ds *dockerService) DockerContainerStart(name string) error {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -675,7 +676,7 @@ func (ds *dockerService) DockerContainerStart(name string) error {
 	return err
 }
 
-//查看日志
+// 查看日志
 func (ds *dockerService) DockerContainerLog(name string) (string, error) {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -714,7 +715,7 @@ func DockerContainerStats1() error {
 	return nil
 }
 
-//获取容器状态
+// 获取容器状态
 func (ds *dockerService) DockerContainerStats(name string) (string, error) {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -733,7 +734,7 @@ func (ds *dockerService) DockerContainerStats(name string) (string, error) {
 	return string(sts), nil
 }
 
-//备份容器
+// 备份容器
 func (ds *dockerService) DockerContainerCommit(name string) {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -778,7 +779,7 @@ func (ds *dockerService) DockerListByImage(image, version string) (*types.Contai
 	return &containers[0], nil
 }
 
-//获取容器详情
+// 获取容器详情
 func (ds *dockerService) DockerContainerInfo(name string) (*types.ContainerJSON, error) {
 
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
@@ -793,13 +794,13 @@ func (ds *dockerService) DockerContainerInfo(name string) (*types.ContainerJSON,
 	return &d, nil
 }
 
-//更新容器
-//param shares cpu优先级
-//param containerDbId 数据库的id
-//param port 容器内部主端口
-//param mapPort 容器主端口映射到外部的端口
-//param tcp 容器其他tcp端口
-//param udp 容器其他udp端口
+// 更新容器
+// param shares cpu优先级
+// param containerDbId 数据库的id
+// param port 容器内部主端口
+// param mapPort 容器主端口映射到外部的端口
+// param tcp 容器其他tcp端口
+// param udp 容器其他udp端口
 func (ds *dockerService) DockerContainerUpdate(m model.CustomizationPostData, id string) (err error) {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -834,9 +835,9 @@ func (ds *dockerService) DockerContainerUpdate(m model.CustomizationPostData, id
 	return
 }
 
-//更新容器名称
-//param name 容器名称
-//param id 老的容器名称
+// 更新容器名称
+// param name 容器名称
+// param id 老的容器名称
 func (ds *dockerService) DockerContainerUpdateName(name, id string) (err error) {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
@@ -851,7 +852,7 @@ func (ds *dockerService) DockerContainerUpdateName(name, id string) (err error) 
 	return
 }
 
-//获取网络列表
+// 获取网络列表
 func (ds *dockerService) DockerNetworkModelList() []types.NetworkResource {
 
 	cli, _ := client2.NewClientWithOpts(client2.FromEnv)
@@ -861,6 +862,17 @@ func (ds *dockerService) DockerNetworkModelList() []types.NetworkResource {
 }
 func NewDockerService() DockerService {
 	return &dockerService{rootDir: command2.ExecResultStr(`source ./shell/helper.sh ;GetDockerRootDir`)}
+}
+
+func (ds *dockerService) GetDockerInfo() (types.Info, error) {
+	cli, err := client2.NewClientWithOpts(client2.FromEnv)
+	if err != nil {
+		return types.Info{}, err
+	}
+	defer cli.Close()
+
+	return cli.Info(context.Background())
+
 }
 
 //   ---------------------------------------test------------------------------------
