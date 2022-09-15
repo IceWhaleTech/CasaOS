@@ -32,7 +32,7 @@
         <img alt="CasaOS Stargazers" src="https://img.shields.io/github/stars/IceWhaleTech/CasaOS?color=162453&style=flat-square&label=Stars" />
     </a>
     <a href="https://hosted.weblate.org/engage/casaos/">
-        <img src="https://hosted.weblate.org/widgets/casaos/-/ui/svg-badge.svg" alt="Estado de la traducción" />
+        <img src="https://hosted.weblate.org/widgets/casaos/-/ui/svg-badge.svg" alt="Translation status" />
     </a>
     <!-- <a href="https://github.com/IceWhaleTech/CasaOS/releases" target="_blank">
     <img alt="CasaOS Downloads" src="https://img.shields.io/github/downloads/IceWhaleTech/CasaOS/total?color=162453&style=flat-square" />
