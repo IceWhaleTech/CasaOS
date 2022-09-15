@@ -31,6 +31,9 @@
     <a href="https://github.com/IceWhaleTech/CasaOS/stargazers" target="_blank">
         <img alt="CasaOS Stargazers" src="https://img.shields.io/github/stars/IceWhaleTech/CasaOS?color=162453&style=flat-square&label=Stars" />
     </a>
+    <a href="https://hosted.weblate.org/engage/casaos/">
+        <img src="https://hosted.weblate.org/widgets/casaos/-/ui/svg-badge.svg" alt="Estado de la traducción" />
+    </a>
     <!-- <a href="https://github.com/IceWhaleTech/CasaOS/releases" target="_blank">
     <img alt="CasaOS Downloads" src="https://img.shields.io/github/downloads/IceWhaleTech/CasaOS/total?color=162453&style=flat-square" />
     </a> -->
@@ -191,6 +194,18 @@ The documentation is being refined and you can contact @JohnGuan via [Discord](h
 ### Writing Documentation 📖 (WIP)
 
 Help make our documentation better by writing new content for the CasaOS Wiki, correcting existing material, or translating content into new languages.
+
+### Translate CasaOS
+
+We need the help of people who want to translate CasaOS into several languages. Let's make this project reach many languages. 
+
+This is the current status of the translations in detail.
+
+<a href="https://hosted.weblate.org/engage/casaos/">
+    <img src="https://hosted.weblate.org/widgets/casaos/-/ui/multi-auto.svg" alt="Translation status" />
+</a>
+
+The translation is done on the website of ----> [Weblate](https://hosted.weblate.org/projects/casaos/ui/) <----
 
   </p>
 </details>
