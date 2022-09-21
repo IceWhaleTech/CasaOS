@@ -183,7 +183,15 @@ GitHub Discussions: [https://github.com/IceWhaleTech/CasaOS/discussions](https:/
 
 ### Helping with Translations 🌍 (WIP)
 
-CasaOS officially supports English and Chinese. You are welcome to help make CasaOS available in more languages.
+CasaOS officially supports English and Chinese. You are welcome to help make CasaOS available in more languages. Let's make this project reach many languages as posible. 
+
+This is the current status of the translations in detail.
+
+<a href="https://hosted.weblate.org/engage/casaos/">
+    <img src="https://hosted.weblate.org/widgets/casaos/-/ui/multi-auto.svg" alt="Translation status" />
+</a>
+
+The translation is done on the website of ----> [Weblate](https://hosted.weblate.org/projects/casaos/ui/) <----
 
 ### Performing Alpha Testing ⚠️
 
@@ -194,18 +202,6 @@ The documentation is being refined and you can contact @JohnGuan via [Discord](h
 ### Writing Documentation 📖 (WIP)
 
 Help make our documentation better by writing new content for the CasaOS Wiki, correcting existing material, or translating content into new languages.
-
-### Translate CasaOS
-
-We need the help of people who want to translate CasaOS into several languages. Let's make this project reach many languages. 
-
-This is the current status of the translations in detail.
-
-<a href="https://hosted.weblate.org/engage/casaos/">
-    <img src="https://hosted.weblate.org/widgets/casaos/-/ui/multi-auto.svg" alt="Translation status" />
-</a>
-
-The translation is done on the website of ----> [Weblate](https://hosted.weblate.org/projects/casaos/ui/) <----
 
   </p>
 </details>
