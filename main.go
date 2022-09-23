@@ -41,7 +41,6 @@ func init() {
 		return
 	}
 	config.InitSetup(*configFlag)
-	config.UpdateSetup()
 
 	loger.LogInit()
 	if len(*dbFlag) == 0 {
