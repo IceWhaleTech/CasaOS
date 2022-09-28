@@ -117,7 +117,7 @@ builds:
     goarch:
       - arm
     goarm:
-      - "7"    
+      - "7"
 archives:
   - name_template: "{{ .Os }}-{{ .Arch }}-{{ .ProjectName }}-v{{ .Version }}"
     id: casaos
@@ -159,8 +159,8 @@ changelog:
 #   name_template: "v{{ .Version }}"
 release:
   github:
-    owner: LinkLeong
-    name: casaos-alpha
+    owner: IceWhaleTech
+    name: CasaOS
   draft: true
   prerelease: auto
   mode: replace
