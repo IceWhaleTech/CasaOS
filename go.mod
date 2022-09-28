@@ -11,6 +11,7 @@ require (
 	github.com/ambelovsky/gosf v0.0.0-20201109201340-237aea4d6109
 	github.com/ambelovsky/gosf-socketio v0.0.0-20201109193639-add9d32f8b19 // indirect
 	github.com/containerd/containerd v1.5.7 // indirect
+	github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e
 	github.com/disintegration/imaging v1.6.2
 	github.com/docker/distribution v2.8.0+incompatible // indirect
 	github.com/docker/docker v20.10.7+incompatible

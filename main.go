@@ -18,6 +18,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
+	"github.com/coreos/go-systemd/daemon"
 	"go.uber.org/zap"
 
 	"github.com/robfig/cron"
@@ -135,14 +136,6 @@ func main() {
 		}
 	}()
 
-	// s := &http.Server{
-	// 	Addr:           listener.Addr().String(), //fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
-	// 	Handler:        r,
-	// 	ReadTimeout:    60 * time.Second,
-	// 	WriteTimeout:   60 * time.Second,
-	// 	MaxHeaderBytes: 1 << 20,
-	// }
-	// s.ListenAndServe()
 	urlFilePath := filepath.Join(config.CommonInfo.RuntimePath, "casaos.url")
 	err = file.CreateFileAndWriteContent(urlFilePath, "http://"+listener.Addr().String())
 	if err != nil {
@@ -152,7 +145,20 @@ func main() {
 		)
 	}
 
-	err = http.Serve(listener, r)
+	if supported, err := daemon.SdNotify(false, daemon.SdNotifyReady); err != nil {
+		loger.Error("Failed to notify systemd that casaos main service is ready", zap.Any("error", err))
+	} else if supported {
+		loger.Info("Notified systemd that casaos main service is ready")
+	} else {
+		loger.Info("This process is not running as a systemd service.")
+	}
+
+	s := &http.Server{
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second, // fix G112: Potential slowloris attack (see https://github.com/securego/gosec)
+	}
+
+	err = s.Serve(listener) // not using http.serve() to fix G114: Use of net/http serve function that has no support for setting timeouts (see https://github.com/securego/gosec)
 	if err != nil {
 		panic(err)
 	}
