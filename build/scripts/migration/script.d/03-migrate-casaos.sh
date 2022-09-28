@@ -60,8 +60,8 @@ BUILD_PATH=$(dirname "${BASH_SOURCE[0]}")/../../..
 SOURCE_ROOT=${BUILD_PATH}/sysroot
 
 APP_NAME="casaos"
-# APP_NAME_FORMAL="CasaOS"
-APP_NAME_FORMAL="casaos-alpha"
+APP_NAME_FORMAL="CasaOS"
+#APP_NAME_FORMAL="casaos-alpha"
 
 # check if migration is needed
 SOURCE_BIN_PATH=${SOURCE_ROOT}/usr/bin
@@ -153,7 +153,8 @@ pushd "${MIGRATION_SERVICE_DIR}"
             continue
         fi
 
-        MIGRATION_TOOL_URL=https://github.com/LinkLeong/"${APP_NAME_FORMAL}"/releases/download/"${VER2}"/linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
+       # MIGRATION_TOOL_URL=http://192.168.2.197:8000/v1/package/migration?type=release&name="${APP_NAME_FORMAL}"&version=${VER2}&arch=${ARCH}
+        MIGRATION_TOOL_URL=https://github.com/IceWhaleTech/"${APP_NAME_FORMAL}"/releases/download/"${VER2}"/linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
         echo "Dowloading ${MIGRATION_TOOL_URL}..."
         curl -sL -O "${MIGRATION_TOOL_URL}"
     done
