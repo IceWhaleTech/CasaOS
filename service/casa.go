@@ -130,10 +130,6 @@ func (o *casaService) AsyncGetServerList() (collection model.ServerAppListCollec
 	errr := json2.Unmarshal(results, &collection)
 	if errr != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
-	} else {
-		if collection.Version == o.GetCasaosVersion().Version {
-			return collection, err
-		}
 	}
 
 	head := make(map[string]string)
@@ -204,10 +200,6 @@ func (o *casaService) AsyncGetServerCategoryList() ([]model.CategoryList, error)
 	err := json2.Unmarshal(results, &list)
 	if err != nil {
 		loger.Error("marshal error", zap.Any("err", err), zap.Any("content", string(results)))
-	} else {
-		if list.Version == o.GetCasaosVersion().Version {
-			return list.Item, nil
-		}
 	}
 	item := []model.CategoryList{}
 	head := make(map[string]string)

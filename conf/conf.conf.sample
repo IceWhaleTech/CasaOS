@@ -11,7 +11,6 @@ DateFormat = 2006-01-02
 DBPath     = /var/lib/casaos
 ShellPath  = /usr/share/casaos/shell
 UserDataPath = /var/lib/casaos/conf
-TempPath    = /var/lib/casaos/temp
 
 [server]
 RunMode = release

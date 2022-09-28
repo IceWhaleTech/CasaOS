@@ -52,7 +52,7 @@ type DockerService interface {
 	DockerContainerStop(id string) error
 	DockerContainerUpdateName(name, id string) (err error)
 	DockerContainerUpdate(m model.CustomizationPostData, id string) (err error)
-	DockerContainerLog(name string) (string, error)
+	DockerContainerLog(name string) ([]byte, error)
 	DockerContainerCommit(name string)
 	DockerContainerList() []types.Container
 	DockerNetworkModelList() []types.NetworkResource
@@ -677,23 +677,26 @@ func (ds *dockerService) DockerContainerStart(name string) error {
 }
 
 // 查看日志
-func (ds *dockerService) DockerContainerLog(name string) (string, error) {
+func (ds *dockerService) DockerContainerLog(name string) ([]byte, error) {
 	cli, err := client2.NewClientWithOpts(client2.FromEnv)
 	if err != nil {
-		return "", err
+		return []byte(""), err
 	}
 	defer cli.Close()
-	body, err := cli.ContainerLogs(context.Background(), name, types.ContainerLogsOptions{ShowStderr: true, ShowStdout: true})
+	//body, err := cli.ContainerAttach(context.Background(), name, types.ContainerAttachOptions{Logs: true, Stream: false, Stdin: false, Stdout: false, Stderr: false})
+	body, err := cli.ContainerLogs(context.Background(), name, types.ContainerLogsOptions{ShowStdout: true, ShowStderr: true})
+
 	if err != nil {
-		return "", err
+		return []byte(""), err
 	}
 
 	defer body.Close()
 	content, err := ioutil.ReadAll(body)
+	//content, err := ioutil.ReadAll(body)
 	if err != nil {
-		return "", err
+		return []byte(""), err
 	}
-	return string(content), nil
+	return content, nil
 }
 
 func DockerContainerStats1() error {

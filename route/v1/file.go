@@ -16,7 +16,6 @@ import (
 	"sync"
 
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -267,6 +266,9 @@ func DirPath(c *gin.Context) {
 
 	pathList := []model.Path{}
 	for i := 0; i < len(info); i++ {
+		if info[i].Name == ".temp" && info[i].IsDir {
+			continue
+		}
 		if _, ok := fileQueue[info[i].Path]; !ok {
 			pathList = append(pathList, info[i])
 		}
@@ -367,7 +369,7 @@ func GetFileUpload(c *gin.Context) {
 	path := c.Query("path")
 	dirPath := ""
 	hash := file.GetHashByContent([]byte(fileName))
-	tempDir := config.AppInfo.TempPath + "/" + hash + strconv.Itoa(totalChunks) + "/"
+	tempDir := filepath.Join(path, ".temp", hash+strconv.Itoa(totalChunks)) + "/"
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
 		tempDir += dirPath
@@ -406,7 +408,7 @@ func PostFileUpload(c *gin.Context) {
 		c.JSON(common_err.INVALID_PARAMS, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	tempDir := config.AppInfo.TempPath + "/" + hash + strconv.Itoa(totalChunks) + "/"
+	tempDir := filepath.Join(path, ".temp", hash+strconv.Itoa(totalChunks)) + "/"
 
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)

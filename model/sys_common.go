@@ -12,12 +12,12 @@ package model
 
 import "time"
 
-//系统配置
+// 系统配置
 type SysInfoModel struct {
 	Name string //系统名称
 }
 
-//服务配置
+// 服务配置
 type ServerModel struct {
 	HttpPort     string
 	RunMode      string
@@ -28,7 +28,7 @@ type ServerModel struct {
 	SocketPort   string
 }
 
-//服务配置
+// 服务配置
 type APPModel struct {
 	LogPath        string
 	LogSaveName    string
@@ -40,20 +40,19 @@ type APPModel struct {
 	DateFormat     string
 	DBPath         string
 	ShellPath      string
-	TempPath       string
 }
 type CommonModel struct {
 	RuntimePath string
 }
 
-//公共返回模型
+// 公共返回模型
 type Result struct {
 	Success int         `json:"success" example:"200"`
 	Message string      `json:"message" example:"ok"`
 	Data    interface{} `json:"data" example:"返回结果"`
 }
 
-//redis配置文件
+// redis配置文件
 type RedisModel struct {
 	Host        string
 	Password    string
