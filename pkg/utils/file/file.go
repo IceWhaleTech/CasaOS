@@ -362,21 +362,27 @@ func WriteToFullPath(data []byte, fullPath string, perm fs.FileMode) error {
 func SpliceFiles(dir, path string, length int, startPoint int) error {
 	fullPath := path
 
-	IsNotExistCreateFile(fullPath)
+	if err := IsNotExistCreateFile(fullPath); err != nil {
+		return err
+	}
 
 	file, _ := os.OpenFile(fullPath,
 		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
 		0o666,
 	)
+
 	defer file.Close()
+
 	bufferedWriter := bufio.NewWriter(file)
+
+	// todo: here should have a goroutine to remove each partial file after it is read, to save disk space
+
 	for i := 0; i < length+startPoint; i++ {
 		data, err := ioutil.ReadFile(dir + "/" + strconv.Itoa(i+startPoint))
 		if err != nil {
 			return err
 		}
-		_, err = bufferedWriter.Write(data)
-		if err != nil {
+		if _, err := bufferedWriter.Write(data); err != nil { // recommend to use https://github.com/iceber/iouring-go for faster write
 			return err
 		}
 	}

@@ -1,8 +1,10 @@
 package route
 
 import (
+	"os"
+
+	"github.com/IceWhaleTech/CasaOS-Common/middleware"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
-	"github.com/IceWhaleTech/CasaOS/middleware"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
 
@@ -11,12 +13,22 @@ import (
 )
 
 func InitRouter() *gin.Engine {
-	r := gin.Default()
+	ginMode := gin.ReleaseMode
+	if config.ServerInfo.RunMode != "" {
+		ginMode = config.ServerInfo.RunMode
+	}
+	if os.Getenv(gin.EnvGinMode) != "" {
+		ginMode = os.Getenv(gin.EnvGinMode)
+	}
+	gin.SetMode(ginMode)
 
+	r := gin.New()
+	r.Use(gin.Recovery())
 	r.Use(middleware.Cors())
-	r.Use(middleware.WriteLog())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
-	gin.SetMode(config.ServerInfo.RunMode)
+	if ginMode != gin.ReleaseMode {
+		r.Use(middleware.WriteLog())
+	}
 
 	// r.StaticFS("/ui", http.FS(web.Static))
 	// r.GET("/", WebUIHome)
