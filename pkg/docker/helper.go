@@ -15,7 +15,6 @@ import (
 )
 
 func NewSshClient(user, password string, port string) (*ssh.Client, error) {
-
 	// connet to ssh
 	// addr = fmt.Sprintf("%s:%d", host, port)
 
@@ -23,10 +22,10 @@ func NewSshClient(user, password string, port string) (*ssh.Client, error) {
 		Timeout:         time.Second * 5,
 		User:            user,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		//HostKeyCallback: ,
-		//HostKeyCallback: hostKeyCallBackFunc(h.Host),
+		// HostKeyCallback: ,
+		// HostKeyCallback: hostKeyCallBackFunc(h.Host),
 	}
-	//if h.Type == "password" {
+	// if h.Type == "password" {
 	config.Auth = []ssh.AuthMethod{ssh.Password(password)}
 	//} else {
 	//	config.Auth = []ssh.AuthMethod{publicKeyAuthFunc(h.Key)}
@@ -90,11 +89,11 @@ func (w *wsBufferWriter) Write(p []byte) (int, error) {
 	defer w.mu.Unlock()
 	return w.buffer.Write(p)
 }
+
 func (s *SshConn) Close() {
 	if s.Session != nil {
 		s.Session.Close()
 	}
-
 }
 
 const (
@@ -102,16 +101,15 @@ const (
 	wsMsgResize = "resize"
 )
 
-//ReceiveWsMsg  receive websocket msg do some handling then write into ssh.session.stdin
+// ReceiveWsMsg  receive websocket msg do some handling then write into ssh.session.stdin
 func ReceiveWsMsgUser(wsConn *websocket.Conn, logBuff *bytes.Buffer) string {
-	//tells other go routine quit
+	// tells other go routine quit
 	username := ""
 	for {
 
-		//read websocket msg
+		// read websocket msg
 		_, wsData, err := wsConn.ReadMessage()
 		if err != nil {
-
 			return ""
 		}
 
@@ -125,8 +123,8 @@ func ReceiveWsMsgUser(wsConn *websocket.Conn, logBuff *bytes.Buffer) string {
 		//}
 		switch msgObj.Type {
 		case wsMsgCmd:
-			//handle xterm.js stdin
-			//decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
+			// handle xterm.js stdin
+			// decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
 			decodeBytes := []byte(msgObj.Cmd)
 			if msgObj.Cmd == "\u007f" {
 				if len(username) == 0 {
@@ -144,7 +142,7 @@ func ReceiveWsMsgUser(wsConn *websocket.Conn, logBuff *bytes.Buffer) string {
 			if err := wsConn.WriteMessage(websocket.TextMessage, decodeBytes); err != nil {
 				logrus.WithError(err).Error("ws cmd bytes write to ssh.stdin pipe failed")
 			}
-			//write input cmd to log buffer
+			// write input cmd to log buffer
 			if _, err := logBuff.Write(decodeBytes); err != nil {
 				logrus.WithError(err).Error("write received cmd into log buffer failed")
 			}
@@ -154,11 +152,11 @@ func ReceiveWsMsgUser(wsConn *websocket.Conn, logBuff *bytes.Buffer) string {
 }
 
 func ReceiveWsMsgPassword(wsConn *websocket.Conn, logBuff *bytes.Buffer) string {
-	//tells other go routine quit
+	// tells other go routine quit
 	password := ""
 	for {
 
-		//read websocket msg
+		// read websocket msg
 		_, wsData, err := wsConn.ReadMessage()
 		if err != nil {
 			logrus.WithError(err).Error("reading webSocket message failed")
@@ -175,8 +173,8 @@ func ReceiveWsMsgPassword(wsConn *websocket.Conn, logBuff *bytes.Buffer) string 
 		//}
 		switch msgObj.Type {
 		case wsMsgCmd:
-			//handle xterm.js stdin
-			//decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
+			// handle xterm.js stdin
+			// decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
 			if msgObj.Cmd == "\r" {
 				return password
 			}
@@ -194,16 +192,16 @@ func ReceiveWsMsgPassword(wsConn *websocket.Conn, logBuff *bytes.Buffer) string 
 	}
 }
 
-//ReceiveWsMsg  receive websocket msg do some handling then write into ssh.session.stdin
+// ReceiveWsMsg  receive websocket msg do some handling then write into ssh.session.stdin
 func (ssConn *SshConn) ReceiveWsMsg(wsConn *websocket.Conn, logBuff *bytes.Buffer, exitCh chan bool) {
-	//tells other go routine quit
+	// tells other go routine quit
 	defer setQuit(exitCh)
 	for {
 		select {
 		case <-exitCh:
 			return
 		default:
-			//read websocket msg
+			// read websocket msg
 			_, wsData, err := wsConn.ReadMessage()
 			if err != nil {
 				logrus.WithError(err).Error("reading webSocket message failed")
@@ -227,15 +225,15 @@ func (ssConn *SshConn) ReceiveWsMsg(wsConn *websocket.Conn, logBuff *bytes.Buffe
 			switch msgObj.Type {
 
 			case wsMsgResize:
-				//handle xterm.js size change
+				// handle xterm.js size change
 				if msgObj.Cols > 0 && msgObj.Rows > 0 {
 					if err := ssConn.Session.WindowChange(msgObj.Rows, msgObj.Cols); err != nil {
 						logrus.WithError(err).Error("ssh pty change windows size failed")
 					}
 				}
 			case wsMsgCmd:
-				//handle xterm.js stdin
-				//decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
+				// handle xterm.js stdin
+				// decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
 				decodeBytes := []byte(msgObj.Cmd)
 				if err != nil {
 					logrus.WithError(err).Error("websock cmd string base64 decoding failed")
@@ -243,7 +241,7 @@ func (ssConn *SshConn) ReceiveWsMsg(wsConn *websocket.Conn, logBuff *bytes.Buffe
 				if _, err := ssConn.StdinPipe.Write(decodeBytes); err != nil {
 					logrus.WithError(err).Error("ws cmd bytes write to ssh.stdin pipe failed")
 				}
-				//write input cmd to log buffer
+				// write input cmd to log buffer
 				if _, err := logBuff.Write(decodeBytes); err != nil {
 					logrus.WithError(err).Error("write received cmd into log buffer failed")
 				}
@@ -253,17 +251,17 @@ func (ssConn *SshConn) ReceiveWsMsg(wsConn *websocket.Conn, logBuff *bytes.Buffe
 }
 
 func (ssConn *SshConn) SendComboOutput(wsConn *websocket.Conn, exitCh chan bool) {
-	//tells other go routine quit
-	//defer setQuit(exitCh)
+	// tells other go routine quit
+	// defer setQuit(exitCh)
 
-	//every 120ms write combine output bytes into websocket response
+	// every 120ms write combine output bytes into websocket response
 	tick := time.NewTicker(time.Millisecond * time.Duration(120))
-	//for range time.Tick(120 * time.Millisecond){}
+	// for range time.Tick(120 * time.Millisecond){}
 	defer tick.Stop()
 	for {
 		select {
 		case <-tick.C:
-			//write combine output bytes into websocket response
+			// write combine output bytes into websocket response
 			if err := flushComboOutput(ssConn.ComboOutput, wsConn); err != nil {
 				logrus.WithError(err).Error("ssh sending combo output to webSocket failed")
 				return
@@ -273,6 +271,7 @@ func (ssConn *SshConn) SendComboOutput(wsConn *websocket.Conn, exitCh chan bool)
 		}
 	}
 }
+
 func flushComboOutput(w *wsBufferWriter, wsConn *websocket.Conn) error {
 	if w.buffer.Len() != 0 {
 		err := wsConn.WriteMessage(websocket.TextMessage, w.buffer.Bytes())
@@ -284,16 +283,16 @@ func flushComboOutput(w *wsBufferWriter, wsConn *websocket.Conn) error {
 	return nil
 }
 
-//ReceiveWsMsg  receive websocket msg do some handling then write into ssh.session.stdin
+// ReceiveWsMsg  receive websocket msg do some handling then write into ssh.session.stdin
 func (ssConn *SshConn) Login(wsConn *websocket.Conn, logBuff *bytes.Buffer, exitCh chan bool) {
-	//tells other go routine quit
+	// tells other go routine quit
 	defer setQuit(exitCh)
 	for {
 		select {
 		case <-exitCh:
 			return
 		default:
-			//read websocket msg
+			// read websocket msg
 			_, wsData, err := wsConn.ReadMessage()
 			if err != nil {
 				logrus.WithError(err).Error("reading webSocket message failed")
@@ -317,15 +316,15 @@ func (ssConn *SshConn) Login(wsConn *websocket.Conn, logBuff *bytes.Buffer, exit
 			switch msgObj.Type {
 
 			case wsMsgResize:
-				//handle xterm.js size change
+				// handle xterm.js size change
 				if msgObj.Cols > 0 && msgObj.Rows > 0 {
 					if err := ssConn.Session.WindowChange(msgObj.Rows, msgObj.Cols); err != nil {
 						logrus.WithError(err).Error("ssh pty change windows size failed")
 					}
 				}
 			case wsMsgCmd:
-				//handle xterm.js stdin
-				//decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
+				// handle xterm.js stdin
+				// decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
 				decodeBytes := []byte(msgObj.Cmd)
 				if err != nil {
 					logrus.WithError(err).Error("websock cmd string base64 decoding failed")
@@ -333,7 +332,7 @@ func (ssConn *SshConn) Login(wsConn *websocket.Conn, logBuff *bytes.Buffer, exit
 				if _, err := ssConn.StdinPipe.Write(decodeBytes); err != nil {
 					logrus.WithError(err).Error("ws cmd bytes write to ssh.stdin pipe failed")
 				}
-				//write input cmd to log buffer
+				// write input cmd to log buffer
 				if _, err := logBuff.Write(decodeBytes); err != nil {
 					logrus.WithError(err).Error("write received cmd into log buffer failed")
 				}
@@ -341,6 +340,7 @@ func (ssConn *SshConn) Login(wsConn *websocket.Conn, logBuff *bytes.Buffer, exit
 		}
 	}
 }
+
 func (ssConn *SshConn) SessionWait(quitChan chan bool) {
 	if err := ssConn.Session.Wait(); err != nil {
 		logrus.WithError(err).Error("ssh session wait failed")
@@ -395,7 +395,7 @@ func WsReaderCopy(reader *websocket.Conn, writer io.Writer) {
 			if err = json2.Unmarshal(p, &msgObj); err != nil {
 				writer.Write(p)
 			} else if msgObj.Type == wsMsgResize {
-				//writer.Write([]byte("stty rows " + strconv.Itoa(msgObj.Rows) + " && stty cols " + strconv.Itoa(msgObj.Cols) + " \r"))
+				// writer.Write([]byte("stty rows " + strconv.Itoa(msgObj.Rows) + " && stty cols " + strconv.Itoa(msgObj.Cols) + " \r"))
 			}
 		}
 	}

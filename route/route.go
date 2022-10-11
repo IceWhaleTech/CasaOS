@@ -11,7 +11,6 @@ import (
 )
 
 func InitRouter() *gin.Engine {
-
 	r := gin.Default()
 
 	r.Use(middleware.Cors())
@@ -35,7 +34,7 @@ func InitRouter() *gin.Engine {
 	// r.GET("/v1/users/image", v1.GetUserImage)
 
 	// r.GET("/v1/users/status", v1.GetUserStatus) //init/check
-	//r.GET("/v1/guide/check", v1.GetGuideCheck)         // /v1/sys/guide_check
+	// r.GET("/v1/guide/check", v1.GetGuideCheck)         // /v1/sys/guide_check
 	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
 
 	r.GET("/v1/sys/socket-port", v1.GetSystemSocketPort) //sys/socket_port
@@ -73,7 +72,7 @@ func InitRouter() *gin.Engine {
 		v1AppsGroup := v1Group.Group("/apps")
 		v1AppsGroup.Use()
 		{
-			v1AppsGroup.GET("", v1.AppList) //list
+			v1AppsGroup.GET("", v1.AppList) // list
 			v1AppsGroup.GET("/:id", v1.AppInfo)
 		}
 		v1ContainerGroup := v1Group.Group("/container")
@@ -84,24 +83,24 @@ func InitRouter() *gin.Engine {
 			v1ContainerGroup.GET("/usage", v1.AppUsageList)
 			v1ContainerGroup.GET("/:id", v1.ContainerUpdateInfo)    ///update/:id/info
 			v1ContainerGroup.GET("/:id/logs", v1.ContainerLog)      // /app/logs/:id
-			v1ContainerGroup.GET("/networks", v1.GetDockerNetworks) //app/install/config
+			v1ContainerGroup.GET("/networks", v1.GetDockerNetworks) // app/install/config
 
-			v1ContainerGroup.GET("/:id/state", v1.GetContainerState) //app/state/:id ?state=install_progress
+			v1ContainerGroup.GET("/:id/state", v1.GetContainerState) // app/state/:id ?state=install_progress
 			// there are problems, temporarily do not deal with
-			v1ContainerGroup.GET("/:id/terminal", v1.DockerTerminal) //app/terminal/:id
-			v1ContainerGroup.POST("", v1.InstallApp)                 //app/install
-			//v1ContainerGroup.GET("/:id", v1.ContainerInfo) // /app/info/:id
+			v1ContainerGroup.GET("/:id/terminal", v1.DockerTerminal) // app/terminal/:id
+			v1ContainerGroup.POST("", v1.InstallApp)                 // app/install
+			// v1ContainerGroup.GET("/:id", v1.ContainerInfo) // /app/info/:id
 
 			v1ContainerGroup.PUT("/:id", v1.UpdateSetting) ///update/:id/setting
 
 			v1ContainerGroup.PUT("/:id/state", v1.ChangAppState) // /app/state/:id
-			v1ContainerGroup.DELETE("/:id", v1.UnInstallApp)     //app/uninstall/:id
-			//Not used
+			v1ContainerGroup.DELETE("/:id", v1.UnInstallApp)     // app/uninstall/:id
+			// Not used
 			v1ContainerGroup.PUT("/:id/latest", v1.PutAppUpdate)
-			//Not used
+			// Not used
 			v1ContainerGroup.POST("/share", v1.ShareAppFile)
-			v1ContainerGroup.GET("/info", v1.GetcontainerInfo)
-			v1ContainerGroup.PUT("/info", v1.PutcontainerInfo)
+			v1ContainerGroup.GET("/info", v1.GetDockerDaemonConfiguration)
+			v1ContainerGroup.PUT("/info", v1.PutDockerDaemonConfiguration)
 
 		}
 		v1AppCategoriesGroup := v1Group.Group("/app-categories")
@@ -113,19 +112,19 @@ func InitRouter() *gin.Engine {
 		v1SysGroup := v1Group.Group("/sys")
 		v1SysGroup.Use()
 		{
-			v1SysGroup.GET("/version", v1.GetSystemCheckVersion) //version/check
+			v1SysGroup.GET("/version", v1.GetSystemCheckVersion) // version/check
 
 			v1SysGroup.POST("/update", v1.SystemUpdate)
 
-			v1SysGroup.GET("/hardware", v1.GetSystemHardwareInfo) //hardware/info
+			v1SysGroup.GET("/hardware", v1.GetSystemHardwareInfo) // hardware/info
 
 			v1SysGroup.GET("/wsssh", v1.WsSsh)
 			v1SysGroup.POST("/ssh-login", v1.PostSshLogin)
-			//v1SysGroup.GET("/config", v1.GetSystemConfig) //delete
-			//v1SysGroup.POST("/config", v1.PostSetSystemConfig)
-			v1SysGroup.GET("/logs", v1.GetCasaOSErrorLogs) //error/logs
-			//v1SysGroup.GET("/widget/config", v1.GetWidgetConfig)//delete
-			//v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)//delete
+			// v1SysGroup.GET("/config", v1.GetSystemConfig) //delete
+			// v1SysGroup.POST("/config", v1.PostSetSystemConfig)
+			v1SysGroup.GET("/logs", v1.GetCasaOSErrorLogs) // error/logs
+			// v1SysGroup.GET("/widget/config", v1.GetWidgetConfig)//delete
+			// v1SysGroup.POST("/widget/config", v1.PostSetWidgetConfig)//delete
 
 			v1SysGroup.POST("/stop", v1.PostKillCasaOS)
 
@@ -141,31 +140,31 @@ func InitRouter() *gin.Engine {
 			v1SysGroup.GET("/server-info", nil)
 			v1SysGroup.PUT("/server-info", nil)
 			v1SysGroup.GET("/apps-state", v1.GetSystemAppsStatus)
-			//v1SysGroup.GET("/port", v1.GetCasaOSPort)
-			//v1SysGroup.PUT("/port", v1.PutCasaOSPort)
+			// v1SysGroup.GET("/port", v1.GetCasaOSPort)
+			// v1SysGroup.PUT("/port", v1.PutCasaOSPort)
 			v1SysGroup.GET("/proxy", v1.GetSystemProxy)
 		}
 		v1PortGroup := v1Group.Group("/port")
 		v1PortGroup.Use()
 		{
-			v1PortGroup.GET("/", v1.GetPort)              //app/port
-			v1PortGroup.GET("/state/:port", v1.PortCheck) //app/check/:port
+			v1PortGroup.GET("/", v1.GetPort)              // app/port
+			v1PortGroup.GET("/state/:port", v1.PortCheck) // app/check/:port
 		}
 
 		v1FileGroup := v1Group.Group("/file")
 		v1FileGroup.Use()
 		{
-			v1FileGroup.GET("", v1.GetDownloadSingleFile) //download/:path
+			v1FileGroup.GET("", v1.GetDownloadSingleFile) // download/:path
 			v1FileGroup.POST("", v1.PostCreateFile)
 			v1FileGroup.PUT("", v1.PutFileContent)
 			v1FileGroup.PUT("/name", v1.RenamePath)
-			//file/rename
-			v1FileGroup.GET("/content", v1.GetFilerContent) //file/read
+			// file/rename
+			v1FileGroup.GET("/content", v1.GetFilerContent) // file/read
 
-			//File uploads need to be handled separately, and will not be modified here
+			// File uploads need to be handled separately, and will not be modified here
 			v1FileGroup.POST("/upload", v1.PostFileUpload)
 			v1FileGroup.GET("/upload", v1.GetFileUpload)
-			//v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
+			// v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
 		}
 		v1FolderGroup := v1Group.Group("/folder")
 		v1FolderGroup.Use()
@@ -178,9 +177,9 @@ func InitRouter() *gin.Engine {
 		v1BatchGroup.Use()
 		{
 
-			v1BatchGroup.DELETE("", v1.DeleteFile) //file/delete
+			v1BatchGroup.DELETE("", v1.DeleteFile) // file/delete
 			v1BatchGroup.DELETE("/:id/task", v1.DeleteOperateFileOrDir)
-			v1BatchGroup.POST("/task", v1.PostOperateFileOrDir) //file/operate
+			v1BatchGroup.POST("/task", v1.PostOperateFileOrDir) // file/operate
 			v1BatchGroup.GET("", v1.GetDownloadFile)
 		}
 		v1ImageGroup := v1Group.Group("/image")
@@ -211,7 +210,7 @@ func InitRouter() *gin.Engine {
 		v1NotifyGroup.Use()
 		{
 			v1NotifyGroup.POST("/:path", v1.PostNotifyMessage)
-			//merge to system
+			// merge to system
 			v1NotifyGroup.POST("/system_status", v1.PostSystemStatusNotify)
 		}
 	}

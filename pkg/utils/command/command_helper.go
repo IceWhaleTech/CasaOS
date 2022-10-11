@@ -35,8 +35,8 @@ func ExecResultStrArray(cmdStr string) []string {
 		fmt.Println(err)
 		return nil
 	}
-	//str, err := ioutil.ReadAll(stdout)
-	var networklist = []string{}
+	// str, err := ioutil.ReadAll(stdout)
+	networklist := []string{}
 	outputBuf := bufio.NewReader(stdout)
 	for {
 		output, _, err := outputBuf.ReadLine()
@@ -54,6 +54,8 @@ func ExecResultStrArray(cmdStr string) []string {
 
 func ExecResultStr(cmdStr string) string {
 	cmd := exec.Command("/bin/bash", "-c", cmdStr)
+	println(cmd.String())
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fmt.Println(err)
@@ -73,7 +75,7 @@ func ExecResultStr(cmdStr string) string {
 	return string(str)
 }
 
-//执行 lsblk 命令
+// 执行 lsblk 命令
 func ExecLSBLK() []byte {
 	output, err := exec.Command("lsblk", "-O", "-J", "-b").Output()
 	if err != nil {
@@ -83,7 +85,7 @@ func ExecLSBLK() []byte {
 	return output
 }
 
-//执行 lsblk 命令
+// 执行 lsblk 命令
 func ExecLSBLKByPath(path string) []byte {
 	output, err := exec.Command("lsblk", path, "-O", "-J", "-b").Output()
 	if err != nil {
@@ -93,7 +95,7 @@ func ExecLSBLKByPath(path string) []byte {
 	return output
 }
 
-//exec smart
+// exec smart
 func ExecSmartCTLByPath(path string) []byte {
 	timeout := 3
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
@@ -107,6 +109,5 @@ func ExecSmartCTLByPath(path string) []byte {
 }
 
 func ExecEnabledSMART(path string) {
-
 	exec.Command("smartctl", "-s on", path).Output()
 }

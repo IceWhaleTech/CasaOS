@@ -17,6 +17,8 @@ type DockerStatsModel struct {
 	Previous interface{} `json:"previous"`
 }
 
-type DeckerDaemonModel struct {
-	Graph string `json:"graph"`
+// reference - https://docs.docker.com/engine/reference/commandline/dockerd/#daemon-configuration-file
+type DockerDaemonConfigurationModel struct {
+	// e.g. `/var/lib/docker`
+	Root string `json:"data-root,omitempty"`
 }
