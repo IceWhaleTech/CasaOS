@@ -60,8 +60,6 @@ BUILD_PATH=$(dirname "${BASH_SOURCE[0]}")/../../..
 SOURCE_ROOT=${BUILD_PATH}/sysroot
 
 APP_NAME="casaos"
-APP_NAME_FORMAL="CasaOS"
-#APP_NAME_FORMAL="casaos-alpha"
 
 # check if migration is needed
 SOURCE_BIN_PATH=${SOURCE_ROOT}/usr/bin
@@ -85,45 +83,6 @@ if [ "${NEED_MIGRATION}" = "false" ]; then
     exit 0
 fi
 
-MIGRATION_SERVICE_DIR=${1}
-
-if [ -z "${MIGRATION_SERVICE_DIR}" ]; then
-    MIGRATION_SERVICE_DIR=${BUILD_PATH}/scripts/migration/service.d/${APP_NAME}
-fi
-MIGRATION_LIST_FILE=${MIGRATION_SERVICE_DIR}/migration.list
-MIGRATION_PATH=()
-
-CURRENT_VERSION_FOUND="false"
-
-# a VERSION_PAIR looks like "v0.3.5 v0.3.6-alpha2"
-#
-# - "v0.3.5" is the current version installed on this host
-# - "v0.3.6-alpha2" is the version of the migration tool from GitHub
-while read -r VERSION_PAIR; do
-    if [ -z "${VERSION_PAIR}" ]; then
-        continue
-    fi
-
-    # obtain "v0.3.5" from "v0.3.5 v0.3.6-alpha2"
-    VER1=$(echo "${VERSION_PAIR}" | cut -d' ' -f1)
-
-    # obtain "v0.3.6-alpha2" from "v0.3.5 v0.3.6-alpha2"
-    VER2=$(echo "${VERSION_PAIR}" | cut -d' ' -f2)
-
-    if [ "${CURRENT_VERSION}" = "${VER1// /}" ] || [ "${CURRENT_VERSION}" = "LEGACY_WITHOUT_VERSION" ]; then
-        CURRENT_VERSION_FOUND="true"
-    fi
-
-    if [ "${CURRENT_VERSION_FOUND}" = "true" ]; then
-        MIGRATION_PATH+=("${VER2// /}")
-    fi
-done < "${MIGRATION_LIST_FILE}"
-
-if [ ${#MIGRATION_PATH[@]} -eq 0 ]; then
-    __warning "No migration path found from ${CURRENT_VERSION} to ${SOURCE_VERSION}"
-    exit 0
-fi
-
 ARCH="unknown"
 
 case $(uname -m) in
@@ -141,22 +100,59 @@ case $(uname -m) in
         ;;
 esac
 
+__info "ARCH: ${ARCH}"
+
+MIGRATION_SERVICE_DIR=${1}
+
+if [ -z "${MIGRATION_SERVICE_DIR}" ]; then
+    MIGRATION_SERVICE_DIR=${BUILD_PATH}/scripts/migration/service.d/${APP_NAME}
+fi
+MIGRATION_LIST_FILE=${MIGRATION_SERVICE_DIR}/migration.list
+MIGRATION_PATH=()
+
+CURRENT_VERSION_FOUND="false"
+
+# a VERSION_PAIR looks like "v0.3.5 <url>"
+#
+# - "v0.3.5" is the current version installed on this host
+# - "<url>" is the url of the migration tool
+while read -r VERSION_PAIR; do
+    if [ -z "${VERSION_PAIR}" ]; then
+        continue
+    fi
+
+    # obtain "v0.3.5" from "v0.3.5 v0.3.6-alpha2"
+    VER1=$(echo "${VERSION_PAIR}" | cut -d' ' -f1)
+
+    # obtain "<url>" from "v0.3.5 <url>"
+    URL=$(eval echo "${VERSION_PAIR}" | cut -d' ' -f2)
+
+    if [ "${CURRENT_VERSION}" = "${VER1// /}" ] || [ "${CURRENT_VERSION}" = "LEGACY_WITHOUT_VERSION" ]; then
+        CURRENT_VERSION_FOUND="true"
+    fi
+
+    if [ "${CURRENT_VERSION_FOUND}" = "true" ]; then
+        MIGRATION_PATH+=("${URL// /}")
+    fi
+done < "${MIGRATION_LIST_FILE}"
+
+if [ ${#MIGRATION_PATH[@]} -eq 0 ]; then
+    __warning "No migration path found from ${CURRENT_VERSION} to ${SOURCE_VERSION}"
+    exit 0
+fi
+
 pushd "${MIGRATION_SERVICE_DIR}"
 
-{ for VER2 in "${MIGRATION_PATH[@]}"; do
-
-
-        MIGRATION_TOOL_FILE=linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
+{ for URL in "${MIGRATION_PATH[@]}"; do
+        MIGRATION_TOOL_FILE=$(basename "${URL}")
 
         if [ -f "${MIGRATION_TOOL_FILE}" ]; then
             __info "Migration tool ${MIGRATION_TOOL_FILE} exists. Skip downloading."
             continue
         fi
 
-       # MIGRATION_TOOL_URL=http://192.168.2.197:8000/v1/package/migration?type=release&name="${APP_NAME_FORMAL}"&version=${VER2}&arch=${ARCH}
-        MIGRATION_TOOL_URL=https://github.com/IceWhaleTech/"${APP_NAME_FORMAL}"/releases/download/"${VER2}"/linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
-        echo "Dowloading ${MIGRATION_TOOL_URL}..."
-        curl -sL -O "${MIGRATION_TOOL_URL}"
+        __info "Dowloading ${URL}..."
+        curl -fsSL -o "${MIGRATION_TOOL_FILE}" -O "${URL}"
     done
 } || {
     popd
@@ -164,8 +160,8 @@ pushd "${MIGRATION_SERVICE_DIR}"
 }
 
 {
-    for VER2 in "${MIGRATION_PATH[@]}"; do
-        MIGRATION_TOOL_FILE=linux-"${ARCH}"-"${APP_NAME}"-migration-tool-"${VER2}".tar.gz
+    for URL in "${MIGRATION_PATH[@]}"; do
+        MIGRATION_TOOL_FILE=$(basename "${URL}")
         __info "Extracting ${MIGRATION_TOOL_FILE}..."
         tar zxvf "${MIGRATION_TOOL_FILE}" || __error "Failed to extract ${MIGRATION_TOOL_FILE}"
 

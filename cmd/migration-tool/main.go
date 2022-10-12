@@ -83,8 +83,7 @@ func main() {
 	}
 
 	migrationTools := []interfaces.MigrationTool{
-		NewMigrationToolFor_035(),
-		NewMigrationToolFor_036(),
+		// nothing to migrate from last version
 	}
 
 	var selectedMigrationTool interfaces.MigrationTool
@@ -115,8 +114,7 @@ func main() {
 		panic(err)
 	}
 
-	selectedMigrationTool.PostMigrate()
-	_logger.Info("casaos migration ok")
-	// panic(err)
-
+	if err := selectedMigrationTool.PostMigrate(); err != nil {
+		_logger.Error("Migration succeeded, but post-migration failed: %s", err)
+	}
 }
