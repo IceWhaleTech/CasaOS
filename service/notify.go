@@ -37,6 +37,7 @@ type NotifyServer interface {
 	SendStorageBySocket(message notify.StorageMessage)
 	SendNotify(path string, message map[string]interface{})
 	SettingSystemTempData(message map[string]interface{})
+	GetSystemTempMap() map[string]interface{}
 }
 
 type notifyServer struct {
@@ -442,7 +443,11 @@ func SendMeg() {
 // 	}
 
 // }
+func (i *notifyServer) GetSystemTempMap() map[string]interface{} {
 
+	return i.SystemTempMap
+
+}
 func NewNotifyService(db *gorm.DB) NotifyServer {
 	return &notifyServer{db: db, SystemTempMap: make(map[string]interface{})}
 }

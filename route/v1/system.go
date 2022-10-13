@@ -270,7 +270,7 @@ func GetSystemHardwareInfo(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/utilization [get]
 func GetSystemUtilization(c *gin.Context) {
-	var data = make(map[string]interface{}, 6)
+	var data = make(map[string]interface{})
 	cpu := service.MyService.System().GetCpuPercent()
 	num := service.MyService.System().GetCpuCoreNum()
 	cpuData := make(map[string]interface{})
@@ -299,7 +299,9 @@ func GetSystemUtilization(c *gin.Context) {
 	}
 
 	data["net"] = newNet
-
+	for k, v := range service.MyService.Notify().GetSystemTempMap() {
+		data[k] = v
+	}
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
