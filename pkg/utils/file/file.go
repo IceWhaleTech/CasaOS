@@ -377,7 +377,7 @@ func SpliceFiles(dir, path string, length int, startPoint int) error {
 
 	// todo: here should have a goroutine to remove each partial file after it is read, to save disk space
 
-	for i := 0; i < length+startPoint; i++ {
+	for i := 0; i < length+startPoint-1; i++ {
 		data, err := ioutil.ReadFile(dir + "/" + strconv.Itoa(i+startPoint))
 		if err != nil {
 			return err
