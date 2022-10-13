@@ -18,6 +18,7 @@ import (
 )
 
 const (
+	dockerRootDirFilePath             = "/var/lib/casaos/docker_root"
 	dockerDaemonConfigurationFilePath = "/etc/docker/daemon.json"
 )
 
@@ -274,36 +275,27 @@ func GetDockerDaemonConfiguration(c *gin.Context) {
 	// 	c.JSON(common_err.SERVICE_ERROR, &model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 	// 	return
 	// }
-	dockerConfig := model.DockerDaemonConfigurationModel{}
-	data := make(map[string]interface{}, 1)
-	data["docker_root_dir"] = ""
+	data := make(map[string]interface{})
 
-	// TODO read dockerRootDir from /etc/casaos/casaos.conf
-	if file.Exists(dockerDaemonConfigurationFilePath) {
-		byteResult := file.ReadFullFile(dockerDaemonConfigurationFilePath)
-		err := json.Unmarshal(byteResult, &dockerConfig)
+	if file.Exists(dockerRootDirFilePath) {
+		buf := file.ReadFullFile(dockerRootDirFilePath)
+		err := json.Unmarshal(buf, &data)
 		if err != nil {
-			c.JSON(common_err.CLIENT_ERROR, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: err.Error()})
+			c.JSON(common_err.CLIENT_ERROR, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: err})
 			return
-		}
-
-		if dockerConfig.Root != "" {
-			data["docker_root_dir"] = dockerConfig.Root
-		} else {
-			data["docker_root_dir"] = "/var/lib/docker"
 		}
 	}
 	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 func PutDockerDaemonConfiguration(c *gin.Context) {
-	js := make(map[string]interface{})
-	if err := c.BindJSON(&js); err != nil {
-		c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: err.Error()})
+	request := make(map[string]interface{})
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: err})
 		return
 	}
 
-	value, ok := js["docker_root_dir"]
+	value, ok := request["docker_root_dir"]
 	if !ok {
 		c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: "`docker_root_dir` should not empty"})
 		return
@@ -314,7 +306,7 @@ func PutDockerDaemonConfiguration(c *gin.Context) {
 		byteResult := file.ReadFullFile(dockerDaemonConfigurationFilePath)
 		err := json.Unmarshal(byteResult, &dockerConfig)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to deserialize " + dockerDaemonConfigurationFilePath, Data: err.Error()})
+			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to deserialize " + dockerDaemonConfigurationFilePath, Data: err})
 			return
 		}
 	}
@@ -331,26 +323,33 @@ func PutDockerDaemonConfiguration(c *gin.Context) {
 		dockerConfig.Root = filepath.Join(dockerRootDir, "docker")
 
 		if err := file.IsNotExistMkDir(dockerConfig.Root); err != nil {
-			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to create " + dockerConfig.Root, Data: err.Error()})
+			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to create " + dockerConfig.Root, Data: err})
 			return
 		}
 	}
 
-	byteMode, err := json.Marshal(dockerConfig)
-	if err != nil {
+	if buf, err := json.Marshal(request); err != nil {
+		c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: "error when trying to serialize docker root json", Data: err})
+		return
+	} else {
+		if err := file.WriteToFullPath(buf, dockerRootDirFilePath, 0o644); err != nil {
+			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to write " + dockerRootDirFilePath, Data: err})
+			return
+		}
+	}
+
+	if buf, err := json.Marshal(dockerConfig); err != nil {
 		c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: "error when trying to serialize docker config", Data: dockerConfig})
 		return
+	} else {
+		if err := file.WriteToFullPath(buf, dockerDaemonConfigurationFilePath, 0o644); err != nil {
+			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to write to " + dockerDaemonConfigurationFilePath, Data: err})
+			return
+		}
 	}
-
-	if err := file.WriteToFullPath(byteMode, dockerDaemonConfigurationFilePath, 0o644); err != nil {
-		c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to write to " + dockerDaemonConfigurationFilePath, Data: err.Error()})
-		return
-	}
-
-	// TODO also write dockerRootDir to /etc/casaos/casaos.conf
 
 	println(command.ExecResultStr("systemctl daemon-reload"))
 	println(command.ExecResultStr("systemctl restart docker"))
 
-	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: js})
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: request})
 }

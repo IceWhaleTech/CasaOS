@@ -31,15 +31,10 @@ if [ ! -f "${CONF_FILE}" ]; then
     cp -v "${CONF_FILE_SAMPLE}" "${CONF_FILE}"
 fi
 
-if systemctl is-active "${APP_NAME}.service" &>/dev/null ;then
-    echo "server started"
-else
-    # enable and start service
-    systemctl daemon-reload
+rm -rf /etc/systemd/system/casaos.service # remove old service file
 
-    echo "Enabling service..."
-    systemctl enable --force --no-ask-password "${APP_NAME}.service"
+systemctl daemon-reload
 
-    #echo "Starting service..."
-    #systemctl start --force --no-ask-password "${APP_NAME}.service"
-fi
+# enable service (without starting)
+echo "Enabling service..."
+systemctl enable --force --no-ask-password "${APP_NAME}.service"

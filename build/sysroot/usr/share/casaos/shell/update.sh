@@ -9,4 +9,4 @@
 ### 
 
 
-curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/new.update.sh | bash
+curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | bash
