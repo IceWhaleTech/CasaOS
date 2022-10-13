@@ -31,21 +31,26 @@ type NotifyServer interface {
 	SendNetInfoBySocket(netList []model2.IOCountersStat)
 	SendCPUInfoBySocket(cpu map[string]interface{})
 	SendMemInfoBySocket(mem map[string]interface{})
-	SendUSBInfoBySocket(list []model2.DriveUSB)
-	SendDiskInfoBySocket(disk model2.Summary)
 	SendFileOperateNotify(nowSend bool)
 	SendInstallAppBySocket(app notify.Application)
-	SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat)
+	SendAllHardwareStatusBySocket(mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat)
 	SendStorageBySocket(message notify.StorageMessage)
 	SendNotify(path string, message map[string]interface{})
+	SettingSystemTempData(message map[string]interface{})
 }
 
 type notifyServer struct {
-	db *gorm.DB
+	db            *gorm.DB
+	SystemTempMap map[string]interface{}
+}
+
+func (i *notifyServer) SettingSystemTempData(message map[string]interface{}) {
+	for k, v := range message {
+		i.SystemTempMap[k] = v
+	}
 }
 
 func (i *notifyServer) SendNotify(path string, message map[string]interface{}) {
-
 	msg := gosf.Message{}
 	msg.Body = message
 	msg.Success = true
@@ -74,18 +79,19 @@ func (i *notifyServer) SendStorageBySocket(message notify.StorageMessage) {
 
 	NotifyMsg <- notify
 }
-func (i *notifyServer) SendAllHardwareStatusBySocket(disk model2.Summary, list []model2.DriveUSB, mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat) {
+func (i *notifyServer) SendAllHardwareStatusBySocket(mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat) {
 
 	body := make(map[string]interface{})
-	body["sys_disk"] = disk
-
-	body["sys_usb"] = list
 
 	body["sys_mem"] = mem
 
 	body["sys_cpu"] = cpu
 
 	body["sys_net"] = netList
+
+	for k, v := range i.SystemTempMap {
+		body[k] = v
+	}
 
 	msg := gosf.Message{}
 	msg.Body = body
@@ -253,38 +259,6 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 		}
 	}
 
-}
-
-func (i *notifyServer) SendDiskInfoBySocket(disk model2.Summary) {
-	body := make(map[string]interface{})
-	body["data"] = disk
-
-	msg := gosf.Message{}
-	msg.Body = body
-	msg.Success = true
-	msg.Text = "sys_disk"
-
-	notify := notify.Message{}
-	notify.Path = "sys_disk"
-	notify.Msg = msg
-
-	NotifyMsg <- notify
-}
-
-func (i *notifyServer) SendUSBInfoBySocket(list []model2.DriveUSB) {
-	body := make(map[string]interface{})
-	body["data"] = list
-
-	msg := gosf.Message{}
-	msg.Body = body
-	msg.Success = true
-	msg.Text = "sys_usb"
-
-	notify := notify.Message{}
-	notify.Path = "sys_usb"
-	notify.Msg = msg
-
-	NotifyMsg <- notify
 }
 
 func (i *notifyServer) SendMemInfoBySocket(mem map[string]interface{}) {
@@ -470,5 +444,5 @@ func SendMeg() {
 // }
 
 func NewNotifyService(db *gorm.DB) NotifyServer {
-	return &notifyServer{db: db}
+	return &notifyServer{db: db, SystemTempMap: make(map[string]interface{})}
 }

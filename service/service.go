@@ -30,7 +30,6 @@ type Repository interface {
 	//User() UserService
 	Docker() DockerService
 	Casa() CasaService
-	Disk() DiskService
 	Notify() NotifyServer
 	Rely() RelyService
 	System() SystemService
@@ -51,7 +50,6 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 		app:         NewAppService(db),
 		docker:      NewDockerService(),
 		casa:        NewCasaService(),
-		disk:        NewDiskService(db),
 		notify:      NewNotifyService(db),
 		rely:        NewRelyService(db),
 		system:      NewSystemService(),
@@ -65,7 +63,6 @@ type store struct {
 	app         AppService
 	docker      DockerService
 	casa        CasaService
-	disk        DiskService
 	notify      NotifyServer
 	rely        RelyService
 	system      SystemService
@@ -106,8 +103,4 @@ func (c *store) Docker() DockerService {
 
 func (c *store) Casa() CasaService {
 	return c.casa
-}
-
-func (c *store) Disk() DiskService {
-	return c.disk
 }

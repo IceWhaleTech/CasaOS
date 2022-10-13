@@ -83,8 +83,9 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d h1:62lEBImTxZ83pgzywgDNIrPPuQ+j4ep9QjqrWBn1hrU=
 github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d/go.mod h1:lW9x+yEjqKdPbE3+cf2fGPJXCw/hChX3Omi9QHTLFsQ=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
-github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220901034123-ca130f6b5ce9 h1:q4I/lSsCooxdd6LxinGy90y0n6V8EcaPBV1JCfpEnV4=
 github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220901034123-ca130f6b5ce9/go.mod h1:2MiivEMzvh41codhEKUcn46WK3Ffesop/04qa9jsvQk=
+github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220929035515-b1287110d6d8 h1:r8nhgQ6tnrn6ikXN9aLH/K4H4H64Nc0hZ6jyW2B22x0=
+github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220929035515-b1287110d6d8/go.mod h1:2MiivEMzvh41codhEKUcn46WK3Ffesop/04qa9jsvQk=
 github.com/IceWhaleTech/CasaOS-Gateway v0.3.6 h1:2tQQo85+jzbbjqIsKKn77QlAA73bc7vZsVCFvWnK4mg=
 github.com/IceWhaleTech/CasaOS-Gateway v0.3.6/go.mod h1:hnZwGUzcOyiufMpVO7l3gu2gAm6Ws4TY4Nlj3kMshXA=
 github.com/Microsoft/go-winio v0.4.11/go.mod h1:VhR8bwka0BXejwEJY73c50VrPtXAaKcyvVC4A4RozmA=
@@ -813,8 +814,6 @@ github.com/pelletier/go-toml/v2 v2.0.1/go.mod h1:r9LEWfGN8R5k0VXJ+0BkIe7MYkRdwZO
 github.com/peterbourgon/diskv v2.0.1+incompatible/go.mod h1:uqqh8zWWbv1HBMNONnaR/tNboyR3/BZd58JJSHlUSCU=
 github.com/pierrec/lz4/v4 v4.1.2 h1:qvY3YFXRQE/XB8MlLzJH7mSzBs74eA2gg52YTk6jUPM=
 github.com/pierrec/lz4/v4 v4.1.2/go.mod h1:gZWDp/Ze/IJXGXf23ltt2EXimqmTUXEy0GFuRQyBid4=
-github.com/pilebones/go-udev v0.9.0 h1:N1uEO/SxUwtIctc0WLU0t69JeBxIYEYnj8lT/Nabl9Q=
-github.com/pilebones/go-udev v0.9.0/go.mod h1:T2eI2tUSK0hA2WS5QLjXJUfQkluZQu+18Cqvem3CaXI=
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1-0.20171018195549-f15c970de5b7/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=

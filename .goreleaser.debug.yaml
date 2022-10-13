@@ -11,9 +11,9 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=x86_64-linux-gnu-gcc
+    gcflags:
+      - all=-N -l
     ldflags:
-      - -s
-      - -w
       - -extldflags "-static"
     tags:
       - musl
@@ -30,9 +30,9 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=aarch64-linux-gnu-gcc
+    gcflags:
+      - all=-N -l
     ldflags:
-      - -s
-      - -w
       - -extldflags "-static"
     tags:
       - musl
@@ -49,9 +49,9 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=arm-linux-gnueabihf-gcc
+    gcflags:
+      - all=-N -l
     ldflags:
-      - -s
-      - -w
       - -extldflags "-static"
     tags:
       - musl
@@ -71,9 +71,9 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=x86_64-linux-gnu-gcc
+    gcflags:
+      - all=-N -l
     ldflags:
-      - -s
-      - -w
       - -extldflags "-static"
     tags:
       - musl
@@ -88,9 +88,9 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=aarch64-linux-gnu-gcc
+    gcflags:
+      - all=-N -l
     ldflags:
-      - -s
-      - -w
       - -extldflags "-static"
     tags:
       - musl
@@ -105,9 +105,9 @@ builds:
     env:
       - CGO_ENABLED=1
       - CC=arm-linux-gnueabihf-gcc
+    gcflags:
+      - all=-N -l
     ldflags:
-      - -s
-      - -w
       - -extldflags "-static"
     tags:
       - musl

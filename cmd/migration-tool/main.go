@@ -28,25 +28,29 @@ const (
 	casaosServiceName = "casaos.service"
 )
 
-var _logger *Logger
-var sqliteDB *gorm.DB
+var (
+	_logger  *Logger
+	sqliteDB *gorm.DB
+)
 
-var configFlag = ""
-var dbFlag = ""
+var (
+	configFlag = ""
+	dbFlag     = ""
+)
 
 func init() {
 	config.InitSetup(configFlag)
-	config.UpdateSetup()
 
 	if len(dbFlag) == 0 {
 		dbFlag = config.AppInfo.DBPath + "/db"
 	}
 
 	sqliteDB = sqlite.GetDb(dbFlag)
-	//gredis.GetRedisConn(config.RedisInfo),
+	// gredis.GetRedisConn(config.RedisInfo),
 
 	service.MyService = service.NewService(sqliteDB, "")
 }
+
 func main() {
 	versionFlag := flag.Bool("v", false, "version")
 	debugFlag := flag.Bool("d", true, "debug")
@@ -79,8 +83,7 @@ func main() {
 	}
 
 	migrationTools := []interfaces.MigrationTool{
-		NewMigrationToolFor_035(),
-		NewMigrationToolFor_036(),
+		// nothing to migrate from last version
 	}
 
 	var selectedMigrationTool interfaces.MigrationTool
@@ -111,8 +114,7 @@ func main() {
 		panic(err)
 	}
 
-	selectedMigrationTool.PostMigrate()
-	_logger.Info("casaos migration ok")
-	//panic(err)
-
+	if err := selectedMigrationTool.PostMigrate(); err != nil {
+		_logger.Error("Migration succeeded, but post-migration failed: %s", err)
+	}
 }

@@ -3,15 +3,23 @@ package v1
 import (
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
+	"path/filepath"
 	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 
 	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	dockerRootDirFilePath             = "/var/lib/casaos/docker_root"
+	dockerDaemonConfigurationFilePath = "/etc/docker/daemon.json"
 )
 
 // @Summary 获取远程列表
@@ -27,8 +35,7 @@ import (
 // @Success 200 {string} string "ok"
 // @Router /app/list [get]
 func AppList(c *gin.Context) {
-
-	//service.MyService.Docker().DockerContainerCommit("test2")
+	// service.MyService.Docker().DockerContainerCommit("test2")
 
 	index := c.DefaultQuery("index", "1")
 	size := c.DefaultQuery("size", "10000")
@@ -137,7 +144,7 @@ func MyAppList(c *gin.Context) {
 func AppUsageList(c *gin.Context) {
 	list := service.MyService.App().GetHardwareUsage()
 	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
-	//c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: nil})
+	// c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: nil})
 }
 
 // @Summary 应用详情
@@ -149,7 +156,6 @@ func AppUsageList(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /app/appinfo/{id} [get]
 func AppInfo(c *gin.Context) {
-
 	id := c.Param("id")
 	language := c.GetHeader("Language")
 	info, err := service.MyService.Casa().GetServerAppInfo(id, "", language)
@@ -211,7 +217,7 @@ func AppInfo(c *gin.Context) {
 	// 	return c1.Type < c2.Type
 	// }
 
-	//sort
+	// sort
 	// if info.NetworkModel != "host" {
 	// 	sort.PortsSort(portOrder).Sort(info.Configures.TcpPorts)
 	// 	sort.PortsSort(portOrder).Sort(info.Configures.UdpPorts)
@@ -261,4 +267,89 @@ func ShareAppFile(c *gin.Context) {
 	str, _ := ioutil.ReadAll(c.Request.Body)
 	content := service.MyService.Casa().ShareAppFile(str)
 	c.JSON(common_err.SUCCESS, json.RawMessage(content))
+}
+
+func GetDockerDaemonConfiguration(c *gin.Context) {
+	// info, err := service.MyService.Docker().GetDockerInfo()
+	// if err != nil {
+	// 	c.JSON(common_err.SERVICE_ERROR, &model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+	// 	return
+	// }
+	data := make(map[string]interface{})
+
+	if file.Exists(dockerRootDirFilePath) {
+		buf := file.ReadFullFile(dockerRootDirFilePath)
+		err := json.Unmarshal(buf, &data)
+		if err != nil {
+			c.JSON(common_err.CLIENT_ERROR, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: err})
+			return
+		}
+	}
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+}
+
+func PutDockerDaemonConfiguration(c *gin.Context) {
+	request := make(map[string]interface{})
+	if err := c.BindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: err})
+		return
+	}
+
+	value, ok := request["docker_root_dir"]
+	if !ok {
+		c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: "`docker_root_dir` should not empty"})
+		return
+	}
+
+	dockerConfig := model.DockerDaemonConfigurationModel{}
+	if file.Exists(dockerDaemonConfigurationFilePath) {
+		byteResult := file.ReadFullFile(dockerDaemonConfigurationFilePath)
+		err := json.Unmarshal(byteResult, &dockerConfig)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to deserialize " + dockerDaemonConfigurationFilePath, Data: err})
+			return
+		}
+	}
+
+	dockerRootDir := value.(string)
+	if dockerRootDir == "/" {
+		dockerConfig.Root = "" // omitempty - empty string will not be serialized
+	} else {
+		if !file.Exists(dockerRootDir) {
+			c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.DIR_NOT_EXISTS), Data: common_err.GetMsg(common_err.DIR_NOT_EXISTS)})
+			return
+		}
+
+		dockerConfig.Root = filepath.Join(dockerRootDir, "docker")
+
+		if err := file.IsNotExistMkDir(dockerConfig.Root); err != nil {
+			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to create " + dockerConfig.Root, Data: err})
+			return
+		}
+	}
+
+	if buf, err := json.Marshal(request); err != nil {
+		c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: "error when trying to serialize docker root json", Data: err})
+		return
+	} else {
+		if err := file.WriteToFullPath(buf, dockerRootDirFilePath, 0o644); err != nil {
+			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to write " + dockerRootDirFilePath, Data: err})
+			return
+		}
+	}
+
+	if buf, err := json.Marshal(dockerConfig); err != nil {
+		c.JSON(http.StatusBadRequest, &model.Result{Success: common_err.CLIENT_ERROR, Message: "error when trying to serialize docker config", Data: dockerConfig})
+		return
+	} else {
+		if err := file.WriteToFullPath(buf, dockerDaemonConfigurationFilePath, 0o644); err != nil {
+			c.JSON(http.StatusInternalServerError, &model.Result{Success: common_err.SERVICE_ERROR, Message: "error when trying to write to " + dockerDaemonConfigurationFilePath, Data: err})
+			return
+		}
+	}
+
+	println(command.ExecResultStr("systemctl daemon-reload"))
+	println(command.ExecResultStr("systemctl restart docker"))
+
+	c.JSON(http.StatusOK, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: request})
 }
