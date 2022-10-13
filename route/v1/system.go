@@ -164,51 +164,6 @@ func PostKillCasaOS(c *gin.Context) {
 	os.Exit(0)
 }
 
-// @Summary Turn off usb auto-mount
-// @Produce  application/json
-// @Accept application/json
-// @Tags sys
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /sys/usb/off [put]
-func PutSystemUSBAutoMount(c *gin.Context) {
-	js := make(map[string]string)
-	c.ShouldBind(&js)
-	status := js["state"]
-	if status == "on" {
-		service.MyService.System().UpdateUSBAutoMount("True")
-		service.MyService.System().ExecUSBAutoMountShell("True")
-	} else {
-		service.MyService.System().UpdateUSBAutoMount("False")
-		service.MyService.System().ExecUSBAutoMountShell("False")
-	}
-	c.JSON(common_err.SUCCESS,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-		})
-}
-
-// @Summary Turn off usb auto-mount
-// @Produce  application/json
-// @Accept application/json
-// @Tags sys
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /sys/usb [get]
-func GetSystemUSBAutoMount(c *gin.Context) {
-	state := "True"
-	if config.ServerInfo.USBAutoMount == "False" {
-		state = "False"
-	}
-	c.JSON(common_err.SUCCESS,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    state,
-		})
-}
-
 func GetSystemAppsStatus(c *gin.Context) {
 	systemAppList := service.MyService.App().GetSystemAppList()
 	appList := []model2.MyAppList{}
@@ -225,12 +180,12 @@ func GetSystemAppsStatus(c *gin.Context) {
 			Id:       v.ID,
 			Port:     v.Labels["web"],
 			Index:    v.Labels["index"],
-			//Order:      m.Labels["order"],
+			// Order:      m.Labels["order"],
 			Image:  v.Image,
 			Latest: false,
-			//Type:   m.Labels["origin"],
-			//Slogan: m.Slogan,
-			//Rely:     m.Rely,
+			// Type:   m.Labels["origin"],
+			// Slogan: m.Slogan,
+			// Rely:     m.Rely,
 			Host:     v.Labels["host"],
 			Protocol: v.Labels["protocol"],
 		})
@@ -251,7 +206,6 @@ func GetSystemAppsStatus(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/hardware/info [get]
 func GetSystemHardwareInfo(c *gin.Context) {
-
 	data := make(map[string]string, 1)
 	data["drive_model"] = service.MyService.System().GetDeviceTree()
 	c.JSON(common_err.SUCCESS,
@@ -270,7 +224,7 @@ func GetSystemHardwareInfo(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/utilization [get]
 func GetSystemUtilization(c *gin.Context) {
-	var data = make(map[string]interface{})
+	data := make(map[string]interface{})
 	cpu := service.MyService.System().GetCpuPercent()
 	num := service.MyService.System().GetCpuCoreNum()
 	cpuData := make(map[string]interface{})
@@ -282,7 +236,7 @@ func GetSystemUtilization(c *gin.Context) {
 	data["cpu"] = cpuData
 	data["mem"] = service.MyService.System().GetMemInfo()
 
-	//拼装网络信息
+	// 拼装网络信息
 	netList := service.MyService.System().GetNetInfo()
 	newNet := []model.IOCountersStat{}
 	nets := service.MyService.System().GetNet(true)
@@ -313,7 +267,6 @@ func GetSystemUtilization(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /sys/socket/port [get]
 func GetSystemSocketPort(c *gin.Context) {
-
 	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
@@ -336,7 +289,6 @@ func GetSystemCupInfo(c *gin.Context) {
 	data["percent"] = cpu
 	data["num"] = num
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
-
 }
 
 // @Summary get mem info
@@ -349,7 +301,6 @@ func GetSystemCupInfo(c *gin.Context) {
 func GetSystemMemInfo(c *gin.Context) {
 	mem := service.MyService.System().GetMemInfo()
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: mem})
-
 }
 
 // @Summary get disk info
