@@ -26,6 +26,7 @@ type ServerModel struct {
 	Token        string
 	USBAutoMount string
 	SocketPort   string
+	UpdateUrl    string
 }
 
 // 服务配置
