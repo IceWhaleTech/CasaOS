@@ -146,9 +146,6 @@ func InitRouter() *gin.Engine {
 			// v1SysGroup.GET("/disk", v1.GetSystemDiskInfo)
 			// v1SysGroup.GET("/network", v1.GetSystemNetInfo)
 
-			v1SysGroup.PUT("/usb-auto-mount", v1.PutSystemUSBAutoMount) ///sys/usb/:status
-			v1SysGroup.GET("/usb-auto-mount", v1.GetSystemUSBAutoMount) ///sys/usb/status
-
 			v1SysGroup.GET("/server-info", nil)
 			v1SysGroup.PUT("/server-info", nil)
 			v1SysGroup.GET("/apps-state", v1.GetSystemAppsStatus)

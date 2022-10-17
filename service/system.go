@@ -30,8 +30,6 @@ type SystemService interface {
 	UpdateAssist()
 	UpSystemPort(port string)
 	GetTimeZone() string
-	UpdateUSBAutoMount(state string)
-	ExecUSBAutoMountShell(state string)
 	UpAppOrderFile(str, id string)
 	GetAppOrderFile(id string) []byte
 	GetNet(physics bool) []string
@@ -53,14 +51,7 @@ type SystemService interface {
 	GetCPUTemperature() int
 	GetCPUPower() map[string]string
 }
-type systemService struct {
-}
-
-func (s *systemService) UpdateUSBAutoMount(state string) {
-	config.ServerInfo.USBAutoMount = state
-	config.Cfg.Section("server").Key("USBAutoMount").SetValue(state)
-	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
-}
+type systemService struct{}
 
 func (c *systemService) MkdirAll(path string) (int, error) {
 	_, err := os.Stat(path)
@@ -76,8 +67,8 @@ func (c *systemService) MkdirAll(path string) (int, error) {
 	}
 	return common_err.SERVICE_ERROR, err
 }
-func (c *systemService) RenameFile(oldF, newF string) (int, error) {
 
+func (c *systemService) RenameFile(oldF, newF string) (int, error) {
 	_, err := os.Stat(newF)
 	if err == nil {
 		return common_err.DIR_ALREADY_EXISTS, nil
@@ -92,6 +83,7 @@ func (c *systemService) RenameFile(oldF, newF string) (int, error) {
 	}
 	return common_err.SERVICE_ERROR, err
 }
+
 func (c *systemService) CreateFile(path string) (int, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -104,9 +96,11 @@ func (c *systemService) CreateFile(path string) (int, error) {
 	}
 	return common_err.SERVICE_ERROR, err
 }
+
 func (c *systemService) GetDeviceTree() string {
 	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDeviceTree")
 }
+
 func (c *systemService) GetSysInfo() host.InfoStat {
 	info, _ := host.Info()
 	return *info
@@ -128,9 +122,7 @@ func (c *systemService) GetNetState(name string) string {
 }
 
 func (c *systemService) GetDirPathOne(path string) (m model.Path) {
-
 	f, err := os.Stat(path)
-
 	if err != nil {
 		return
 	}
@@ -175,6 +167,7 @@ func (c *systemService) GetDirPath(path string) []model.Path {
 	}
 	return dirs
 }
+
 func (c *systemService) GetCpuInfo() []cpu.InfoStat {
 	info, _ := cpu.Info()
 	return info
@@ -207,6 +200,7 @@ func (c *systemService) GetNetInfo() []net.IOCountersStat {
 	parts, _ := net.IOCounters(true)
 	return parts
 }
+
 func (c *systemService) GetNet(physics bool) []string {
 	t := "1"
 	if physics {
@@ -230,20 +224,13 @@ func (s *systemService) UpdateSystemVersion(version string) {
 	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
 	//s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
 }
+
 func (s *systemService) UpdateAssist() {
 	command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/assist.sh")
 }
 
 func (s *systemService) GetTimeZone() string {
 	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetTimeZone")
-}
-
-func (s *systemService) ExecUSBAutoMountShell(state string) {
-	if state == "False" {
-		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Stop_Auto")
-	} else {
-		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Start_Auto")
-	}
 }
 
 func (s *systemService) GetSystemConfigDebug() []string {
@@ -253,9 +240,11 @@ func (s *systemService) GetSystemConfigDebug() []string {
 func (s *systemService) UpAppOrderFile(str, id string) {
 	file.WriteToPath([]byte(str), config.AppInfo.DBPath+"/"+id, "app_order.json")
 }
+
 func (s *systemService) GetAppOrderFile(id string) []byte {
 	return file.ReadFullFile(config.AppInfo.UserDataPath + "/" + id + "/app_order.json")
 }
+
 func (s *systemService) UpSystemPort(port string) {
 	if len(port) > 0 && port != config.ServerInfo.HttpPort {
 		config.Cfg.Section("server").Key("HttpPort").SetValue(port)
@@ -263,6 +252,7 @@ func (s *systemService) UpSystemPort(port string) {
 	}
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
+
 func (s *systemService) GetCasaOSLogs(lineNumber int) string {
 	file, err := os.Open(filepath.Join(config.AppInfo.LogPath, fmt.Sprintf("%s.%s",
 		config.AppInfo.LogSaveName,
@@ -299,8 +289,8 @@ func GetDeviceAllIP() []string {
 func (s *systemService) IsServiceRunning(name string) bool {
 	status := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CheckServiceStatus smbd")
 	return strings.TrimSpace(status) == "running"
-
 }
+
 func (s *systemService) GetCPUTemperature() int {
 	outPut := ""
 	if file.Exists("/sys/class/thermal/thermal_zone0/temp") {
@@ -318,6 +308,7 @@ func (s *systemService) GetCPUTemperature() int {
 	}
 	return celsius
 }
+
 func (s *systemService) GetCPUPower() map[string]string {
 	data := make(map[string]string, 2)
 	data["timestamp"] = strconv.FormatInt(time.Now().Unix(), 10)
@@ -328,6 +319,7 @@ func (s *systemService) GetCPUPower() map[string]string {
 	}
 	return data
 }
+
 func NewSystemService() SystemService {
 	return &systemService{}
 }

@@ -11,18 +11,13 @@
 package main
 
 import (
-	"strings"
-
 	interfaces "github.com/IceWhaleTech/CasaOS-Common"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/version"
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	"github.com/IceWhaleTech/CasaOS/service"
 )
 
 type migrationTool struct{}
 
 func (u *migrationTool) IsMigrationNeeded() (bool, error) {
-
 	majorVersion, minorVersion, patchVersion, err := version.DetectLegacyVersion()
 	if err != nil {
 		if err == version.ErrLegacyVersionNotFound {
@@ -46,22 +41,13 @@ func (u *migrationTool) IsMigrationNeeded() (bool, error) {
 
 	_logger.Info("Migration is needed for a CasaOS version 0.3.5 and older...")
 	return true, nil
-
 }
 
 func (u *migrationTool) PreMigrate() error {
-
 	return nil
 }
 
 func (u *migrationTool) Migrate() error {
-
-	if service.MyService.System().GetSysInfo().KernelArch == "aarch64" && config.ServerInfo.USBAutoMount != "True" && strings.Contains(service.MyService.System().GetDeviceTree(), "Raspberry Pi") {
-		service.MyService.System().UpdateUSBAutoMount("False")
-		service.MyService.System().ExecUSBAutoMountShell("False")
-	}
-
-	_logger.Info("update done")
 	return nil
 }
 
