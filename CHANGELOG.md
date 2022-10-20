@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Storage] Fixed a lot of known issues
 
 
-## [0.3.6-alpha.1] - 2022-09-06
+## [0.3.6] - 2022-09-06
 
 ###  Added
 - [System] Added power and temperature info to performance widget (Intel)
