@@ -1,0 +1,1 @@
+../../debian/bullseye/cleanup-casaos.sh

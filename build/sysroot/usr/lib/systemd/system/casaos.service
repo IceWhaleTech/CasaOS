@@ -1,12 +1,13 @@
 [Unit]
 After=casaos-gateway.service
 ConditionFileNotEmpty=/etc/casaos/casaos.conf
-Description=CasaOS Service
+Description=CasaOS Main Service
 
 [Service]
 ExecStart=/usr/bin/casaos -c /etc/casaos/casaos.conf
 PIDFile=/var/run/casaos/casaos.pid
 Restart=always
+Type=notify
 
 [Install]
 WantedBy=multi-user.target

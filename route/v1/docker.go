@@ -761,7 +761,7 @@ func ChangAppState(c *gin.Context) {
 func ContainerLog(c *gin.Context) {
 	appId := c.Param("id")
 	log, _ := service.MyService.Docker().DockerContainerLog(appId)
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: log})
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: string(log)})
 }
 
 // @Summary 获取容器状态
@@ -877,7 +877,7 @@ func UpdateSetting(c *gin.Context) {
 	if err != nil {
 		service.MyService.Docker().DockerContainerUpdateName(m.ContainerName, id)
 		service.MyService.Docker().DockerContainerStart(id)
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
 	//		echo -e "hellow\nworld" >>

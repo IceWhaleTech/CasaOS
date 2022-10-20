@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"log"
 	"mime/multipart"
@@ -60,7 +61,7 @@ func MkDir(src string) error {
 	if err != nil {
 		return err
 	}
-	os.Chmod(src, 0777)
+	os.Chmod(src, 0o777)
 
 	return nil
 }
@@ -103,7 +104,7 @@ func MustOpen(fileName, filePath string) (*os.File, error) {
 		return nil, fmt.Errorf("file.IsNotExistMkDir src: %s, err: %v", src, err)
 	}
 
-	f, err := Open(src+fileName, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
+	f, err := Open(src+fileName, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0o644)
 	if err != nil {
 		return nil, fmt.Errorf("Fail to OpenFile :%v", err)
 	}
@@ -113,7 +114,7 @@ func MustOpen(fileName, filePath string) (*os.File, error) {
 
 // 判断所给路径文件/文件夹是否存在
 func Exists(path string) bool {
-	_, err := os.Stat(path) //os.Stat获取文件信息
+	_, err := os.Stat(path) // os.Stat获取文件信息
 	if err != nil {
 		if os.IsExist(err) {
 			return true
@@ -147,7 +148,7 @@ func CreateFile(path string) error {
 }
 
 func CreateFileAndWriteContent(path string, content string) error {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o666)
 	if err != nil {
 		return err
 	}
@@ -163,7 +164,7 @@ func CreateFileAndWriteContent(path string, content string) error {
 
 // IsNotExistMkDir create a directory if it does not exist
 func IsNotExistCreateFile(src string) error {
-	if notExist := CheckNotExist(src); notExist == true {
+	if notExist := CheckNotExist(src); notExist {
 		if err := CreateFile(src); err != nil {
 			return err
 		}
@@ -267,7 +268,7 @@ func CopySingleFile(src, dst, style string) error {
 	return os.Chmod(dst, srcinfo.Mode())
 }
 
-//Check for duplicate file names
+// Check for duplicate file names
 func GetNoDuplicateFileName(fullPath string) string {
 	path, fileName := filepath.Split(fullPath)
 	fileSuffix := path2.Ext(fileName)
@@ -293,7 +294,7 @@ func CopyDir(src string, dst string, style string) error {
 		}
 		return nil
 	}
-	//dstPath := dst
+	// dstPath := dst
 	lastPath := src[strings.LastIndex(src, "/")+1:]
 	dst += "/" + lastPath
 	// for i := 0; Exists(dst); i++ {
@@ -314,7 +315,7 @@ func CopyDir(src string, dst string, style string) error {
 	}
 	for _, fd := range fds {
 		srcfp := path.Join(src, fd.Name())
-		dstfp := dst //path.Join(dst, fd.Name())
+		dstfp := dst // path.Join(dst, fd.Name())
 
 		if fd.IsDir() {
 			if err = CopyDir(srcfp, dstfp, style); err != nil {
@@ -336,10 +337,17 @@ func WriteToPath(data []byte, path, name string) error {
 	} else {
 		fullPath += "/" + name
 	}
-	IsNotExistCreateFile(fullPath)
+	return WriteToFullPath(data, fullPath, 0o666)
+}
+
+func WriteToFullPath(data []byte, fullPath string, perm fs.FileMode) error {
+	if err := IsNotExistCreateFile(fullPath); err != nil {
+		return err
+	}
+
 	file, err := os.OpenFile(fullPath,
 		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
-		0666,
+		perm,
 	)
 	if err != nil {
 		return err
@@ -350,26 +358,31 @@ func WriteToPath(data []byte, path, name string) error {
 	return err
 }
 
-//最终拼接
+// 最终拼接
 func SpliceFiles(dir, path string, length int, startPoint int) error {
-
 	fullPath := path
 
-	IsNotExistCreateFile(fullPath)
+	if err := IsNotExistCreateFile(fullPath); err != nil {
+		return err
+	}
 
 	file, _ := os.OpenFile(fullPath,
 		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
-		0666,
+		0o666,
 	)
+
 	defer file.Close()
+
 	bufferedWriter := bufio.NewWriter(file)
-	for i := 0; i < length+startPoint; i++ {
+
+	// todo: here should have a goroutine to remove each partial file after it is read, to save disk space
+
+	for i := 0; i < length+startPoint-1; i++ {
 		data, err := ioutil.ReadFile(dir + "/" + strconv.Itoa(i+startPoint))
 		if err != nil {
 			return err
 		}
-		_, err = bufferedWriter.Write(data)
-		if err != nil {
+		if _, err := bufferedWriter.Write(data); err != nil { // recommend to use https://github.com/iceber/iouring-go for faster write
 			return err
 		}
 	}
@@ -380,7 +393,6 @@ func SpliceFiles(dir, path string, length int, startPoint int) error {
 }
 
 func GetCompressionAlgorithm(t string) (string, archiver.Writer, error) {
-
 	switch t {
 	case "zip", "":
 		return ".zip", archiver.NewZip(), nil
@@ -400,8 +412,8 @@ func GetCompressionAlgorithm(t string) (string, archiver.Writer, error) {
 		return "", nil, errors.New("format not implemented")
 	}
 }
-func AddFile(ar archiver.Writer, path, commonPath string) error {
 
+func AddFile(ar archiver.Writer, path, commonPath string) error {
 	info, err := os.Stat(path)
 	if err != nil {
 		return err
@@ -447,6 +459,7 @@ func AddFile(ar archiver.Writer, path, commonPath string) error {
 
 	return nil
 }
+
 func CommonPrefix(sep byte, paths ...string) string {
 	// Handle special cases.
 	switch len(paths) {
@@ -513,7 +526,7 @@ func GetFileOrDirSize(path string) (int64, error) {
 	return fileInfo.Size(), nil
 }
 
-//getFileSize get file size by path(B)
+// getFileSize get file size by path(B)
 func DirSizeB(path string) (int64, error) {
 	var size int64
 	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
