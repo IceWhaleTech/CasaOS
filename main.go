@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/IceWhaleTech/CasaOS-Gateway/common"
+	"github.com/IceWhaleTech/CasaOS-Common/model"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -112,7 +112,7 @@ func main() {
 	}
 	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "samba", "notify"}
 	for _, v := range routers {
-		err = service.MyService.Gateway().CreateRoute(&common.Route{
+		err = service.MyService.Gateway().CreateRoute(&model.Route{
 			Path:   "/v1/" + v,
 			Target: "http://" + listener.Addr().String(),
 		})
@@ -126,7 +126,7 @@ func main() {
 		time.Sleep(time.Second * 2)
 		// v0.3.6
 		if config.ServerInfo.HttpPort != "" {
-			changePort := common.ChangePortRequest{}
+			changePort := model.ChangePortRequest{}
 			changePort.Port = config.ServerInfo.HttpPort
 			err := service.MyService.Gateway().ChangePort(&changePort)
 			if err == nil {

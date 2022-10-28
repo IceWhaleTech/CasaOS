@@ -11,7 +11,7 @@
 package service
 
 import (
-	gateway "github.com/IceWhaleTech/CasaOS-Gateway/common"
+	"github.com/IceWhaleTech/CasaOS-Common/external"
 	"github.com/gorilla/websocket"
 	"github.com/patrickmn/go-cache"
 	"gorm.io/gorm"
@@ -35,12 +35,12 @@ type Repository interface {
 	System() SystemService
 	Shares() SharesService
 	Connections() ConnectionsService
-	Gateway() gateway.ManagementService
+	Gateway() external.ManagementService
 }
 
 func NewService(db *gorm.DB, RuntimePath string) Repository {
 
-	gatewayManagement, err := gateway.NewManagementService(RuntimePath)
+	gatewayManagement, err := external.NewManagementService(RuntimePath)
 	if err != nil && len(RuntimePath) > 0 {
 		panic(err)
 	}
@@ -68,10 +68,10 @@ type store struct {
 	system      SystemService
 	shares      SharesService
 	connections ConnectionsService
-	gateway     gateway.ManagementService
+	gateway     external.ManagementService
 }
 
-func (c *store) Gateway() gateway.ManagementService {
+func (c *store) Gateway() external.ManagementService {
 	return c.gateway
 }
 func (s *store) Connections() ConnectionsService {
