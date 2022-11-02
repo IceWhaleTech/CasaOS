@@ -1,5 +1,5 @@
 ---
-name: 5. Submit application
+name: Submit application
 about: Add an app to this project
 title: ''
 labels: ''
