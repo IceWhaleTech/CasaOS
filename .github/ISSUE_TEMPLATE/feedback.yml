@@ -2,9 +2,6 @@ name: "Feedback"
 description: Feedback, showcases, thoughts, needs and questions, etc.
 title: "[Feedback] "
 labels: ["feedback"]
-assignees:
-  - JohnGuan
-  - ETWang1991
 body:
   - type: markdown
     attributes:
