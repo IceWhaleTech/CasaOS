@@ -37,3 +37,6 @@ github.com
 .all-contributorsrc
 dist
 CasaOS
+
+# System Files
+.DS_Store
