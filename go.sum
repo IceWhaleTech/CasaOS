@@ -84,8 +84,8 @@ github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
 github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d/go.mod h1:lW9x+yEjqKdPbE3+cf2fGPJXCw/hChX3Omi9QHTLFsQ=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/IceWhaleTech/CasaOS-Common v0.0.0-20220901034123-ca130f6b5ce9/go.mod h1:2MiivEMzvh41codhEKUcn46WK3Ffesop/04qa9jsvQk=
-github.com/IceWhaleTech/CasaOS-Common v0.3.7-4 h1:+36XRGoR+WgdfmbMkEYLYNl8yYmVvP5PzK05stSjICM=
-github.com/IceWhaleTech/CasaOS-Common v0.3.7-4/go.mod h1:2MiivEMzvh41codhEKUcn46WK3Ffesop/04qa9jsvQk=
+github.com/IceWhaleTech/CasaOS-Common v0.3.7-5 h1:CLPeUaFoGCA3WNnOWxtdFbBmLIg7odCQglZJ/c878uU=
+github.com/IceWhaleTech/CasaOS-Common v0.3.7-5/go.mod h1:2MiivEMzvh41codhEKUcn46WK3Ffesop/04qa9jsvQk=
 github.com/IceWhaleTech/CasaOS-Gateway v0.3.6 h1:2tQQo85+jzbbjqIsKKn77QlAA73bc7vZsVCFvWnK4mg=
 github.com/IceWhaleTech/CasaOS-Gateway v0.3.6/go.mod h1:hnZwGUzcOyiufMpVO7l3gu2gAm6Ws4TY4Nlj3kMshXA=
 github.com/Microsoft/go-winio v0.4.11/go.mod h1:VhR8bwka0BXejwEJY73c50VrPtXAaKcyvVC4A4RozmA=
