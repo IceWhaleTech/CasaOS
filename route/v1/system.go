@@ -343,7 +343,6 @@ func GetSystemNetInfo(c *gin.Context) {
 
 func GetSystemProxy(c *gin.Context) {
 	url := c.Query("url")
-
 	resp, err := http2.Get(url, 30*time.Second)
 	if err != nil {
 		return
