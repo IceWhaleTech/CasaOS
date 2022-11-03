@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -342,11 +343,23 @@ func GetSystemNetInfo(c *gin.Context) {
 
 func GetSystemProxy(c *gin.Context) {
 	url := c.Query("url")
-	resp, err := http.Get(url)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error(), Data: nil})
+		return
+	}
+
+	resp, err := http.DefaultClient.Do(request)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error(), Data: nil})
 		return
 	}
 	defer resp.Body.Close()
+
 	for k, v := range c.Request.Header {
 		c.Header(k, v[0])
 	}
