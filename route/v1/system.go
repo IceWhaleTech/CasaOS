@@ -349,13 +349,11 @@ func GetSystemProxy(c *gin.Context) {
 
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error(), Data: nil})
 		return
 	}
 
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error(), Data: nil})
 		return
 	}
 	defer resp.Body.Close()
