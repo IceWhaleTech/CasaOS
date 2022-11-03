@@ -348,7 +348,6 @@ func GetSystemProxy(c *gin.Context) {
 		return
 	}
 	defer resp.Body.Close()
-
 	for k, v := range c.Request.Header {
 		c.Header(k, v[0])
 	}
