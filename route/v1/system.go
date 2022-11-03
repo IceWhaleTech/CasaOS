@@ -12,6 +12,7 @@ import (
 	"time"
 	"unsafe"
 
+	http2 "github.com/IceWhaleTech/CasaOS-Common/utils/http"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
@@ -342,7 +343,7 @@ func GetSystemNetInfo(c *gin.Context) {
 
 func GetSystemProxy(c *gin.Context) {
 	url := c.Query("url")
-	resp, err := http.Get(url)
+	resp, err := http2.Get(url, 30*time.Second)
 	if err != nil {
 		return
 	}
