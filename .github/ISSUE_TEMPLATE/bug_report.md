@@ -28,5 +28,19 @@ If applicable, add screenshots to help explain your problem.
  - Browser [e.g. chrome, safari]
  - Version [e.g. 22]
 
+**Logs**
+
+run following command to collect corresponding logs:
+
+```bash
+sudo journalctl -xef -u casaos-gateway
+sudo journalctl -xef -u casaos-user-service
+sudo journalctl -xef -u casaos-local-storage
+sudo journalctl -xef -u casaos.service
+```
+
+
+
+
 **Additional context**
 Add any other context about the problem here.
