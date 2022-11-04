@@ -1,21 +1,55 @@
 package route
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/service"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"go.uber.org/zap"
 )
 
 func InitFunction() {
 	go InitNetworkMount()
+	go InitInfo()
 }
+
+func InitInfo() {
+	mb := model.BaseInfo{}
+	if file.Exists(config.AppInfo.DBPath + "/baseinfo.conf") {
+		err := json.Unmarshal(file.ReadFullFile(config.AppInfo.DBPath+"/baseinfo.conf"), &mb)
+		if err != nil {
+			loger.Error("baseinfo.conf", zap.String("error", err.Error()))
+		}
+	}
+	if file.Exists("/etc/CHANNEL") {
+		channel := file.ReadFullFile("/etc/CHANNEL")
+		mb.Channel = string(channel)
+	}
+	mac, err := service.MyService.System().GetMacAddress()
+	if err != nil {
+		loger.Error("GetMacAddress", zap.String("error", err.Error()))
+	}
+	mb.Hash = encryption.GetMD5ByStr(mac)
+	mb.Version = types.CURRENTVERSION
+	os.Remove(config.AppInfo.DBPath + "/baseinfo.conf")
+	by, err := json.Marshal(mb)
+	if err != nil {
+		loger.Error("init info err", zap.Any("err", err))
+		return
+	}
+	file.WriteToFullPath(by, config.AppInfo.DBPath+"/baseinfo.conf", 0o666)
+}
+
 func InitNetworkMount() {
 	time.Sleep(time.Second * 10)
 	connections := service.MyService.Connections().GetConnectionsList()
