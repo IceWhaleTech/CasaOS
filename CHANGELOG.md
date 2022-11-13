@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix CPU Temp for other platforms ([#661](https://github.com/IceWhaleTech/CasaOS/issues/661))
+
 ## [0.3.7] - 2022-10-28
 
 ### Added
