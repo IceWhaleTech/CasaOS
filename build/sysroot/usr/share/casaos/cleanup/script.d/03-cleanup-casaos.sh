@@ -1,4 +1,14 @@
 #!/bin/bash
+###
+ # @Author: LinkLeong link@icewhale.org
+ # @Date: 2022-11-15 15:51:44
+ # @LastEditors: LinkLeong
+ # @LastEditTime: 2022-11-15 15:53:37
+ # @FilePath: /CasaOS/build/sysroot/usr/share/casaos/cleanup/script.d/03-cleanup-casaos.sh
+ # @Description: 
+ # @Website: https://www.casaos.io
+ # Copyright (c) 2022 by icewhale, All Rights Reserved. 
+### 
 
 set -e
 
@@ -44,4 +54,3 @@ readonly SETUP_SCRIPT_FILEPATH="${SETUP_SCRIPT_DIRECTORY}/${SETUP_SCRIPT_FILENAM
 
 echo "🟩 Running ${SETUP_SCRIPT_FILENAME}..."
 $SHELL "${SETUP_SCRIPT_FILEPATH}" "${BUILD_PATH}"
-

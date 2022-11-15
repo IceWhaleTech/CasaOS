@@ -74,3 +74,8 @@ type FileSetting struct {
 	ShareDir    []string `json:"share_dir" delim:"|"`
 	DownloadDir string   `json:"download_dir"`
 }
+type BaseInfo struct {
+	Hash    string `json:"i"`
+	Version string `json:"v"`
+	Channel string `json:"c,omitempty"`
+}

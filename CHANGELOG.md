@@ -18,7 +18,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-## [0.3.7] - 2022-10-28
+## [0.3.7.1] 2022-11-04
+
+### Fixed
+
+- Fix memory leak issue ([#658](https://github.com/IceWhaleTech/CasaOS/issues/658)[#646](https://github.com/IceWhaleTech/CasaOS/issues/646))
+- Solve the problem of local application import failure ([#490](https://github.com/IceWhaleTech/CasaOS/issues/490))
+
+## [0.3.7] 2022-10-28
+
+### Added
+- [Storage] Disk merge (Beta), you can merge multiple disks into a single storage space (currently you need to enable this feature from the command line)
+
+### Changed
+- [Files] Changed the cache file storage location, now the file upload size is not limited by the system disk capacity.
+- [Scripts] Updated installation and upgrade scripts to support more Debian-based Linux distributions.
+- [Engineering] Refactored Local Storage into a standalone service as part of CasaOS modularization.
+
+### Fixed
+- [Apps] App list update mechanism improved, now you can see the latest apps in App Store immediately.
+- [Storage] Fixed a lot of known issues
+
 
 ### Added
 - [Storage] Disk merge (Beta), you can merge multiple disks into a single storage space (currently you need to enable this feature from the command line)

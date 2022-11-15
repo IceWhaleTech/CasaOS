@@ -560,6 +560,7 @@ func (ds *dockerService) DockerContainerCreate(m model.CustomizationPostData, id
 	//container, err := cli.ContainerCreate(context.Background(), info.Config, info.HostConfig, &network.NetworkingConfig{info.NetworkSettings.Networks}, nil, info.Name)
 
 	hostConfig.Mounts = volumes
+	hostConfig.Binds = []string{}
 	hostConfig.Privileged = m.Privileged
 	hostConfig.CapAdd = m.CapAdd
 	hostConfig.NetworkMode = container.NetworkMode(m.NetworkModel)
