@@ -81,12 +81,6 @@ func InitRouter() *gin.Engine {
 		// 	v1UsersGroup.DELETE("", v1.DeleteUserAll)
 		// }
 
-		v1AppsGroup := v1Group.Group("/apps")
-		v1AppsGroup.Use()
-		{
-			v1AppsGroup.GET("", v1.AppList) // list
-			v1AppsGroup.GET("/:id", v1.AppInfo)
-		}
 		v1ContainerGroup := v1Group.Group("/container")
 		v1ContainerGroup.Use()
 		{

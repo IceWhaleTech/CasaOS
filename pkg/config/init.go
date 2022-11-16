@@ -31,14 +31,12 @@ var AppInfo = &model.APPModel{}
 
 var CommonInfo = &model.CommonModel{}
 
-//var RedisInfo = &model.RedisModel{}
+// var RedisInfo = &model.RedisModel{}
 
 // server相关
 var ServerInfo = &model.ServerModel{}
 
 var SystemConfigInfo = &model.SystemConfig{}
-
-var CasaOSGlobalVariables = &model.CasaOSGlobalVariables{}
 
 var FileSettingInfo = &model.FileSetting{}
 
@@ -46,8 +44,7 @@ var Cfg *ini.File
 
 // 初始化设置，获取系统的部分信息。
 func InitSetup(config string) {
-
-	var configDir = USERCONFIGURL
+	configDir := USERCONFIGURL
 	if len(config) > 0 {
 		configDir = config
 	}
@@ -55,7 +52,7 @@ func InitSetup(config string) {
 		configDir = "./conf/conf.conf"
 	}
 	var err error
-	//读取文件
+	// 读取文件
 	Cfg, err = ini.Load(configDir)
 	if err != nil {
 		Cfg, err = ini.Load("/etc/casaos.conf")
@@ -68,7 +65,7 @@ func InitSetup(config string) {
 		}
 	}
 	mapTo("app", AppInfo)
-	//mapTo("redis", RedisInfo)
+	// mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)
 	mapTo("file", FileSettingInfo)
@@ -91,7 +88,6 @@ func InitSetup(config string) {
 	}
 	Cfg.SaveTo(configDir)
 	//	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
-
 }
 
 // 映射
@@ -111,6 +107,7 @@ func getCurrentAbPathByCaller() string {
 	}
 	return abPath
 }
+
 func getCurrentDirectory() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
