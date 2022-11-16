@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+## [0.3.8-alpha.1] 2022-11-16
+
+### Added
+- [System] Add system announcement
+- [App] Allow to turn off the display of "Existing Docker Apps" in the settings.
+
+### Changed
+- [System] Improve the feedback function, you can submit feedback in the bottom right corner of WebUI.
+
 ## [0.3.7.1] 2022-11-04
 
 ### Fixed
