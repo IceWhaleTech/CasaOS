@@ -67,3 +67,5 @@ jobs:
             dist/linux-arm64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-arm64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz
             dist/linux-amd64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-amd64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz
 
+
+

@@ -51,9 +51,18 @@ type SystemService interface {
 	IsServiceRunning(name string) bool
 	GetCPUTemperature() int
 	GetCPUPower() map[string]string
+	GetMacAddress() (string, error)
 }
 type systemService struct{}
 
+func (c *systemService) GetMacAddress() (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+	inter := interfaces[0]
+	return inter.HardwareAddr, nil
+}
 func (c *systemService) MkdirAll(path string) (int, error) {
 	_, err := os.Stat(path)
 	if err == nil {

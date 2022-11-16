@@ -18,9 +18,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fix CPU Temp for other platforms ([#661](https://github.com/IceWhaleTech/CasaOS/issues/661))
 
-## [0.3.7] - 2022-10-28
+## [0.3.8-alpha.1] 2022-11-16
+
+### Added
+- [System] Add system announcement
+- [App] Allow to turn off the display of "Existing Docker Apps" in the settings.
+
+### Changed
+- [System] Improve the feedback function, you can submit feedback in the bottom right corner of WebUI.
+
+### Fixed
+- [System] Fix CPU Temp for other platforms ([#661](https://github.com/IceWhaleTech/CasaOS/issues/661))
+
+## [0.3.7.1] 2022-11-04
+
+### Fixed
+
+- Fix memory leak issue ([#658](https://github.com/IceWhaleTech/CasaOS/issues/658)[#646](https://github.com/IceWhaleTech/CasaOS/issues/646))
+- Solve the problem of local application import failure ([#490](https://github.com/IceWhaleTech/CasaOS/issues/490))
+
+## [0.3.7] 2022-10-28
+
+### Added
+- [Storage] Disk merge (Beta), you can merge multiple disks into a single storage space (currently you need to enable this feature from the command line)
+
+### Changed
+- [Files] Changed the cache file storage location, now the file upload size is not limited by the system disk capacity.
+- [Scripts] Updated installation and upgrade scripts to support more Debian-based Linux distributions.
+- [Engineering] Refactored Local Storage into a standalone service as part of CasaOS modularization.
+
+### Fixed
+- [Apps] App list update mechanism improved, now you can see the latest apps in App Store immediately.
+- [Storage] Fixed a lot of known issues
 
 ### Added
 - [Storage] Disk merge (Beta), you can merge multiple disks into a single storage space (currently you need to enable this feature from the command line)
