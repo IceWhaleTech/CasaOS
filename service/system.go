@@ -16,6 +16,7 @@ import (
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
@@ -300,12 +301,46 @@ func (s *systemService) IsServiceRunning(name string) bool {
 	return strings.TrimSpace(status) == "running"
 }
 
+// find thermal_zone of cpu.
+// assertions:
+// * thermal_zone "type" and "temp" are required fields
+//   (https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-thermal)
+func GetCPUThermalZone() string {
+	keyName := "cpu_thermal_zone"
+
+	var path string
+	if result, ok := Cache.Get(keyName); ok {
+		path, ok = result.(string)
+		if ok {
+			return path
+		}
+	}
+
+	for i := 0; i < 100; i++ {
+		path := "/sys/devices/virtual/thermal/thermal_zone" + strconv.Itoa(i)
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			name := strings.TrimSuffix(string(file.ReadFullFile(path + "/type")), "\n")
+			cpu_types := []string{"x86_pkg_temp", "cpu", "CPU", "soc"}
+			for _, s := range cpu_types {
+				if strings.HasPrefix(name, s) {
+					loger.Info(fmt.Sprintf("CPU thermal zone found: %s, path: %s.", name, path))
+					Cache.SetDefault(keyName, path)
+					return path
+				}
+			}
+		} else {
+			loger.Error("CPUThermalZone not found. CPU Temp will not be displayed.")
+			break
+		}
+	}
+	return ""
+}
+
 func (s *systemService) GetCPUTemperature() int {
 	outPut := ""
-	if file.Exists("/sys/class/thermal/thermal_zone0/temp") {
-		outPut = string(file.ReadFullFile("/sys/class/thermal/thermal_zone0/temp"))
-	} else if file.Exists("/sys/class/hwmon/hwmon0/temp1_input") {
-		outPut = string(file.ReadFullFile("/sys/class/hwmon/hwmon0/temp1_input"))
+	path := GetCPUThermalZone()
+	if len(path)>0 {
+		outPut = string(file.ReadFullFile(path + "/temp"))
 	} else {
 		outPut = "0"
 	}

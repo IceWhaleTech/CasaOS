@@ -56,6 +56,7 @@ func init() {
 	service.Cache = cache.Init()
 
 	service.GetToken()
+	service.GetCPUThermalZone()
 
 	service.NewVersionApp = make(map[string]string)
 	route.InitFunction()
