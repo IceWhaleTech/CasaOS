@@ -96,6 +96,8 @@ github.com/IceWhaleTech/CasaOS-Common v0.3.9-0.20221116004806-159ec400f70f h1:zR
 github.com/IceWhaleTech/CasaOS-Common v0.3.9-0.20221116004806-159ec400f70f/go.mod h1:2MiivEMzvh41codhEKUcn46WK3Ffesop/04qa9jsvQk=
 github.com/IceWhaleTech/CasaOS-Common v0.3.9-0.20221116011801-d8017d2ff420 h1:4M+5/doXry6Y8iKS3Cl/SLJIZPrRH1cmwQfMrj57T3I=
 github.com/IceWhaleTech/CasaOS-Common v0.3.9-0.20221116011801-d8017d2ff420/go.mod h1:2MiivEMzvh41codhEKUcn46WK3Ffesop/04qa9jsvQk=
+github.com/IceWhaleTech/CasaOS-Common v0.3.9-0.20221118234001-876079b9590f h1:ap74AFvaqNXGYcG6ZHA9VUp7sVCEFLQdr8ocufcRZB0=
+github.com/IceWhaleTech/CasaOS-Common v0.3.9-0.20221118234001-876079b9590f/go.mod h1:2MiivEMzvh41codhEKUcn46WK3Ffesop/04qa9jsvQk=
 github.com/IceWhaleTech/CasaOS-Gateway v0.3.6 h1:2tQQo85+jzbbjqIsKKn77QlAA73bc7vZsVCFvWnK4mg=
 github.com/IceWhaleTech/CasaOS-Gateway v0.3.6/go.mod h1:hnZwGUzcOyiufMpVO7l3gu2gAm6Ws4TY4Nlj3kMshXA=
 github.com/Microsoft/go-winio v0.4.11/go.mod h1:VhR8bwka0BXejwEJY73c50VrPtXAaKcyvVC4A4RozmA=
