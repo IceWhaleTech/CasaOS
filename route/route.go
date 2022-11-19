@@ -86,7 +86,6 @@ func InitRouter() *gin.Engine {
 
 			v1SysGroup.GET("/server-info", nil)
 			v1SysGroup.PUT("/server-info", nil)
-			v1SysGroup.GET("/apps-state", v1.GetSystemAppsStatus)
 			// v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			// v1SysGroup.PUT("/port", v1.PutCasaOSPort)
 			v1SysGroup.GET("/proxy", v1.GetSystemProxy)
