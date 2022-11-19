@@ -13,10 +13,10 @@ import (
 	"unsafe"
 
 	http2 "github.com/IceWhaleTech/CasaOS-Common/utils/http"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/port"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
-	port2 "github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -127,7 +127,7 @@ func PutCasaOSPort(c *gin.Context) {
 	json := make(map[string]string)
 	c.ShouldBind(&json)
 	portStr := json["port"]
-	port, err := strconv.Atoi(portStr)
+	portNumber, err := strconv.Atoi(portStr)
 	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR,
 			model.Result{
@@ -137,7 +137,7 @@ func PutCasaOSPort(c *gin.Context) {
 		return
 	}
 
-	isAvailable := port2.IsPortAvailable(port, "tcp")
+	isAvailable := port.IsPortAvailable(portNumber, "tcp")
 	if !isAvailable {
 		c.JSON(common_err.SERVICE_ERROR,
 			model.Result{
@@ -146,7 +146,7 @@ func PutCasaOSPort(c *gin.Context) {
 			})
 		return
 	}
-	service.MyService.System().UpSystemPort(strconv.Itoa(port))
+	service.MyService.System().UpSystemPort(strconv.Itoa(portNumber))
 	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
@@ -163,40 +163,6 @@ func PutCasaOSPort(c *gin.Context) {
 // @Router /sys/restart [post]
 func PostKillCasaOS(c *gin.Context) {
 	os.Exit(0)
-}
-
-func GetSystemAppsStatus(c *gin.Context) {
-	systemAppList := service.MyService.App().GetSystemAppList()
-	appList := []model2.MyAppList{}
-	for _, v := range systemAppList {
-		name := strings.ReplaceAll(v.Names[0], "/", "")
-		if len(v.Labels["name"]) > 0 {
-			name = v.Labels["name"]
-		}
-		appList = append(appList, model2.MyAppList{
-			Name:     name,
-			Icon:     v.Labels["icon"],
-			State:    v.State,
-			CustomId: v.Labels["custom_id"],
-			Id:       v.ID,
-			Port:     v.Labels["web"],
-			Index:    v.Labels["index"],
-			// Order:      m.Labels["order"],
-			Image:  v.Image,
-			Latest: false,
-			// Type:   m.Labels["origin"],
-			// Slogan: m.Slogan,
-			// Rely:     m.Rely,
-			Host:     v.Labels["host"],
-			Protocol: v.Labels["protocol"],
-		})
-	}
-	c.JSON(common_err.SUCCESS,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    appList,
-		})
 }
 
 // @Summary get system hardware info
@@ -228,7 +194,7 @@ func GetSystemUtilization(c *gin.Context) {
 	data := make(map[string]interface{})
 	cpu := service.MyService.System().GetCpuPercent()
 	num := service.MyService.System().GetCpuCoreNum()
-	var cpuModel = "arm"
+	cpuModel := "arm"
 	if cpu := service.MyService.System().GetCpuInfo(); len(cpu) > 0 {
 		if strings.Count(strings.ToLower(strings.TrimSpace(cpu[0].ModelName)), "intel") > 0 {
 			cpuModel = "intel"
@@ -375,13 +341,46 @@ func PutSystemState(c *gin.Context) {
 			time.Sleep(30 * time.Second)
 			service.MyService.System().SystemShutdown()
 		}()
-
 	} else if state == "restart" {
 		go func() {
 			time.Sleep(30 * time.Second)
 			service.MyService.System().SystemReboot()
 		}()
-
 	}
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: "The operation will be executed after 30 seconds"})
+}
+
+// @Summary 获取一个可用端口
+// @Produce  application/json
+// @Accept application/json
+// @Tags app
+// @Param  type query string true "端口类型 udp/tcp"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /app/getport [get]
+func GetPort(c *gin.Context) {
+	t := c.DefaultQuery("type", "tcp")
+	var p int
+	ok := true
+	for ok {
+		p, _ = port.GetAvailablePort(t)
+		ok = !port.IsPortAvailable(p, t)
+	}
+	// @tiger 这里最好封装成 {'port': ...} 的形式，来体现出参的上下文
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: p})
+}
+
+// @Summary 检查端口是否可用
+// @Produce  application/json
+// @Accept application/json
+// @Tags app
+// @Param  port path int true "端口号"
+// @Param  type query string true "端口类型 udp/tcp"
+// @Security ApiKeyAuth
+// @Success 200 {string} string "ok"
+// @Router /app/check/{port} [get]
+func PortCheck(c *gin.Context) {
+	p, _ := strconv.Atoi(c.Param("port"))
+	t := c.DefaultQuery("type", "tcp")
+	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: port.IsPortAvailable(p, t)})
 }
