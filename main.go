@@ -109,7 +109,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	routers := []string{"sys", "container", "app-categories", "port", "file", "folder", "batch", "image", "samba", "notify"}
+	routers := []string{"sys", "port", "file", "folder", "batch", "image", "samba", "notify"}
 	for _, v := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{
 			Path:   "/v1/" + v,
