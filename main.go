@@ -55,10 +55,8 @@ func init() {
 
 	service.Cache = cache.Init()
 
-	service.GetToken()
 	service.GetCPUThermalZone()
 
-	service.NewVersionApp = make(map[string]string)
 	route.InitFunction()
 
 	// go service.LoopFriend()
@@ -111,7 +109,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "samba", "notify"}
+	routers := []string{"sys", "container", "app-categories", "port", "file", "folder", "batch", "image", "samba", "notify"}
 	for _, v := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{
 			Path:   "/v1/" + v,
@@ -138,9 +136,8 @@ func main() {
 	}()
 
 	urlFilePath := filepath.Join(config.CommonInfo.RuntimePath, "casaos.url")
-	err = file.CreateFileAndWriteContent(urlFilePath, "http://"+listener.Addr().String())
-	if err != nil {
-		loger.Error("Management service is listening...",
+	if err := file.CreateFileAndWriteContent(urlFilePath, "http://"+listener.Addr().String()); err != nil {
+		loger.Error("error when creating address file", zap.Error(err),
 			zap.Any("address", listener.Addr().String()),
 			zap.Any("filepath", urlFilePath),
 		)
