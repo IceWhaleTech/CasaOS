@@ -9,7 +9,7 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
-	sshHelper "github.com/IceWhaleTech/CasaOS/pkg/ssh"
+	sshHelper "github.com/IceWhaleTech/CasaOS-Common/utils/ssh"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
