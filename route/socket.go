@@ -14,15 +14,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/port"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/port"
 	"github.com/IceWhaleTech/CasaOS/service"
 	f "github.com/ambelovsky/gosf"
 )
 
 func SocketInit(msg chan notify.Message) {
-
 	// set socket port
 	socketPort := 0
 	if len(config.ServerInfo.SocketPort) == 0 {
@@ -51,10 +50,9 @@ func SocketInit(msg chan notify.Message) {
 			f.Broadcast("", v.Path, &v.Msg)
 			time.Sleep(time.Millisecond * 100)
 		}
-
 	}(msg)
 
 	f.Startup(map[string]interface{}{
-		"port": socketPort})
-
+		"port": socketPort,
+	})
 }
