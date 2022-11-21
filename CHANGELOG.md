@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 
-## [0.3.8-alpha.1] 2022-11-16
+## [0.3.8] 2022-11-21
 
 ### Added
 - [System] Add system announcement
