@@ -228,7 +228,7 @@ func (s *systemService) UpdateSystemVersion(version string) {
 	if len(config.ServerInfo.UpdateUrl) > 0 {
 		go command2.OnlyExec("curl -fsSL " + config.ServerInfo.UpdateUrl + " | bash")
 	} else {
-		go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | bash")
+		go command2.OnlyExec("curl -fsSL https://get.casaos.io/update | bash")
 	}
 
 	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
@@ -303,8 +303,8 @@ func (s *systemService) IsServiceRunning(name string) bool {
 
 // find thermal_zone of cpu.
 // assertions:
-// * thermal_zone "type" and "temp" are required fields
-//   (https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-thermal)
+//   - thermal_zone "type" and "temp" are required fields
+//     (https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-thermal)
 func GetCPUThermalZone() string {
 	keyName := "cpu_thermal_zone"
 
@@ -319,7 +319,7 @@ func GetCPUThermalZone() string {
 	for i := 0; i < 100; i++ {
 		path := "/sys/devices/virtual/thermal/thermal_zone" + strconv.Itoa(i)
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
-			name := strings.TrimSuffix(string(file.ReadFullFile(path + "/type")), "\n")
+			name := strings.TrimSuffix(string(file.ReadFullFile(path+"/type")), "\n")
 			cpu_types := []string{"x86_pkg_temp", "cpu", "CPU", "soc"}
 			for _, s := range cpu_types {
 				if strings.HasPrefix(name, s) {
@@ -339,7 +339,7 @@ func GetCPUThermalZone() string {
 func (s *systemService) GetCPUTemperature() int {
 	outPut := ""
 	path := GetCPUThermalZone()
-	if len(path)>0 {
+	if len(path) > 0 {
 		outPut = string(file.ReadFullFile(path + "/temp"))
 	} else {
 		outPut = "0"
