@@ -222,19 +222,6 @@ func DirPath(c *gin.Context) {
 	for _, v := range shares {
 		sharesMap[v.Path] = fmt.Sprint(v.ID)
 	}
-	// if path == "/DATA/AppData" {
-	// 	list := service.MyService.Docker().DockerContainerList()
-	// 	apps := make(map[string]string, len(list))
-	// 	for _, v := range list {
-	// 		apps[strings.ReplaceAll(v.Names[0], "/", "")] = strings.ReplaceAll(v.Names[0], "/", "")
-	// 	}
-	// 	for i := 0; i < len(info); i++ {
-	// 		if v, ok := apps[info[i].Name]; ok {
-	// 			info[i].Label = v
-	// 			info[i].Type = "application"
-	// 		}
-	// 	}
-	// } // TODO - ?
 
 	for i := 0; i < len(info); i++ {
 		if v, ok := sharesMap[info[i].Path]; ok {
