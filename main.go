@@ -58,9 +58,6 @@ func init() {
 	service.GetCPUThermalZone()
 
 	route.InitFunction()
-
-	// go service.LoopFriend()
-	// go service.MyService.App().CheckNewImage()
 }
 
 // @title casaOS API
