@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
-	github.com/IceWhaleTech/CasaOS-Common v0.3.9-0.20221121171403-32986f4e8839
+	github.com/IceWhaleTech/CasaOS-Common v0.3.9-0.20221123215333-fceb61cc0996
 	github.com/IceWhaleTech/CasaOS-Gateway v0.3.6
 	github.com/ambelovsky/go-structs v1.1.0 // indirect
 	github.com/ambelovsky/gosf v0.0.0-20201109201340-237aea4d6109
@@ -20,7 +20,7 @@ require (
 	github.com/gomodule/redigo v1.8.5
 	github.com/google/go-github/v36 v36.0.0
 	github.com/googollee/go-socket.io v1.6.2
-	github.com/gorilla/websocket v1.4.2
+	github.com/gorilla/websocket v1.5.0
 	github.com/hirochachacha/go-smb2 v1.1.0
 	github.com/lucas-clemente/quic-go v0.25.0
 	github.com/mholt/archiver/v3 v3.5.1
@@ -28,7 +28,6 @@ require (
 	github.com/robfig/cron v1.2.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil/v3 v3.22.7
-	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.8.0
