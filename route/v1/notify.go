@@ -3,8 +3,8 @@ package v1
 import (
 	"net/http"
 
+	"github.com/IceWhaleTech/CasaOS-Common/model/notify"
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
