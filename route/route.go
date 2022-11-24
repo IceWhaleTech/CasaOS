@@ -159,6 +159,8 @@ func InitRouter() *gin.Engine {
 			v1NotifyGroup.POST("/:path", v1.PostNotifyMessage)
 			// merge to system
 			v1NotifyGroup.POST("/system_status", v1.PostSystemStatusNotify)
+			v1NotifyGroup.POST("/install_app", v1.PostInstallAppNotify)
+			v1NotifyGroup.POST("/uninstall_app", v1.PostUninstallAppNotify)
 		}
 	}
 	return r
