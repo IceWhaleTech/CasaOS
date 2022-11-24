@@ -17,12 +17,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"go.uber.org/zap"
@@ -38,7 +38,7 @@ func InitInfo() {
 	if file.Exists(config.AppInfo.DBPath + "/baseinfo.conf") {
 		err := json.Unmarshal(file.ReadFullFile(config.AppInfo.DBPath+"/baseinfo.conf"), &mb)
 		if err != nil {
-			loger.Error("baseinfo.conf", zap.String("error", err.Error()))
+			logger.Error("baseinfo.conf", zap.String("error", err.Error()))
 		}
 	}
 	if file.Exists("/etc/CHANNEL") {
@@ -47,14 +47,14 @@ func InitInfo() {
 	}
 	mac, err := service.MyService.System().GetMacAddress()
 	if err != nil {
-		loger.Error("GetMacAddress", zap.String("error", err.Error()))
+		logger.Error("GetMacAddress", zap.String("error", err.Error()))
 	}
 	mb.Hash = encryption.GetMD5ByStr(mac)
 	mb.Version = types.CURRENTVERSION
 	os.Remove(config.AppInfo.DBPath + "/baseinfo.conf")
 	by, err := json.Marshal(mb)
 	if err != nil {
-		loger.Error("init info err", zap.Any("err", err))
+		logger.Error("init info err", zap.Any("err", err))
 		return
 	}
 	file.WriteToFullPath(by, config.AppInfo.DBPath+"/baseinfo.conf", 0o666)
@@ -68,7 +68,7 @@ func InitNetworkMount() {
 		directories, err := samba.GetSambaSharesList(connection.Host, connection.Port, connection.Username, connection.Password)
 		if err != nil {
 			service.MyService.Connections().DeleteConnection(fmt.Sprint(connection.ID))
-			loger.Error("mount samba err", zap.Any("err", err), zap.Any("info", connection))
+			logger.Error("mount samba err", zap.Any("err", err), zap.Any("info", connection))
 			continue
 		}
 		baseHostPath := "/mnt/" + connection.Host
