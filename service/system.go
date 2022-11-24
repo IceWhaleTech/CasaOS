@@ -316,11 +316,13 @@ func GetCPUThermalZone() string {
 		}
 	}
 
+	var name string
+	cpu_types := []string{"x86_pkg_temp", "cpu", "CPU", "soc"}
+	stub := "/sys/devices/virtual/thermal/thermal_zone"
 	for i := 0; i < 100; i++ {
-		path := "/sys/devices/virtual/thermal/thermal_zone" + strconv.Itoa(i)
+		path = stub + strconv.Itoa(i)
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
-			name := strings.TrimSuffix(string(file.ReadFullFile(path+"/type")), "\n")
-			cpu_types := []string{"x86_pkg_temp", "cpu", "CPU", "soc"}
+			name = strings.TrimSuffix(string(file.ReadFullFile(path+"/type")), "\n")
 			for _, s := range cpu_types {
 				if strings.HasPrefix(name, s) {
 					loger.Info(fmt.Sprintf("CPU thermal zone found: %s, path: %s.", name, path))
@@ -329,11 +331,18 @@ func GetCPUThermalZone() string {
 				}
 			}
 		} else {
-			loger.Error("CPUThermalZone not found. CPU Temp will not be displayed.")
+			if len(name) > 0 { //proves at least one zone
+				loger.Warn("CPU thermal zone not matched. Default to thermal_zone0.")
+				path = stub + "0"
+			} else {
+				loger.Error("No CPU thermal zones found. CPU temp will not be displayed.")
+				path = ""
+			}
 			break
 		}
 	}
-	return ""
+	Cache.SetDefault(keyName, path)
+	return path
 }
 
 func (s *systemService) GetCPUTemperature() int {
