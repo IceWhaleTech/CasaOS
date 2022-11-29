@@ -15,10 +15,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
@@ -222,19 +222,6 @@ func DirPath(c *gin.Context) {
 	for _, v := range shares {
 		sharesMap[v.Path] = fmt.Sprint(v.ID)
 	}
-	if path == "/DATA/AppData" {
-		list := service.MyService.Docker().DockerContainerList()
-		apps := make(map[string]string, len(list))
-		for _, v := range list {
-			apps[strings.ReplaceAll(v.Names[0], "/", "")] = strings.ReplaceAll(v.Names[0], "/", "")
-		}
-		for i := 0; i < len(info); i++ {
-			if v, ok := apps[info[i].Name]; ok {
-				info[i].Label = v
-				info[i].Type = "application"
-			}
-		}
-	}
 
 	for i := 0; i < len(info); i++ {
 		if v, ok := sharesMap[info[i].Path]; ok {
@@ -403,7 +390,7 @@ func PostFileUpload(c *gin.Context) {
 	hash := file.GetHashByContent([]byte(fileName))
 
 	if len(path) == 0 {
-		loger.Error("path should not be empty")
+		logger.Error("path should not be empty")
 		c.JSON(http.StatusBadRequest, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
@@ -413,7 +400,7 @@ func PostFileUpload(c *gin.Context) {
 		dirPath = strings.TrimSuffix(relative, fileName)
 		tempDir += dirPath
 		if err := file.MkDir(path + "/" + dirPath); err != nil {
-			loger.Error("error when trying to create `"+path+"/"+dirPath+"`", zap.Error(err))
+			logger.Error("error when trying to create `"+path+"/"+dirPath+"`", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 			return
 		}
@@ -423,7 +410,7 @@ func PostFileUpload(c *gin.Context) {
 
 	if !file.CheckNotExist(tempDir + chunkNumber) {
 		if err := file.RMDir(tempDir + chunkNumber); err != nil {
-			loger.Error("error when trying to remove existing `"+tempDir+chunkNumber+"`", zap.Error(err))
+			logger.Error("error when trying to remove existing `"+tempDir+chunkNumber+"`", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 			return
 		}
@@ -431,14 +418,14 @@ func PostFileUpload(c *gin.Context) {
 
 	if totalChunks > 1 {
 		if err := file.IsNotExistMkDir(tempDir); err != nil {
-			loger.Error("error when trying to create `"+tempDir+"`", zap.Error(err))
+			logger.Error("error when trying to create `"+tempDir+"`", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 			return
 		}
 
 		out, err := os.OpenFile(tempDir+chunkNumber, os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
-			loger.Error("error when trying to open `"+tempDir+chunkNumber+"` for creation", zap.Error(err))
+			logger.Error("error when trying to open `"+tempDir+chunkNumber+"` for creation", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 			return
 		}
@@ -446,27 +433,27 @@ func PostFileUpload(c *gin.Context) {
 		defer out.Close()
 
 		if _, err := io.Copy(out, f); err != nil { // recommend to use https://github.com/iceber/iouring-go for faster copy
-			loger.Error("error when trying to write to `"+tempDir+chunkNumber+"`", zap.Error(err))
+			logger.Error("error when trying to write to `"+tempDir+chunkNumber+"`", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 			return
 		}
 
 		fileNum, err := ioutil.ReadDir(tempDir)
 		if err != nil {
-			loger.Error("error when trying to read number of files under `"+tempDir+"`", zap.Error(err))
+			logger.Error("error when trying to read number of files under `"+tempDir+"`", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 			return
 		}
 
 		if totalChunks == len(fileNum) {
 			if err := file.SpliceFiles(tempDir, path, totalChunks, 1); err != nil {
-				loger.Error("error when trying to splice files under `"+tempDir+"`", zap.Error(err))
+				logger.Error("error when trying to splice files under `"+tempDir+"`", zap.Error(err))
 				c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 				return
 			}
 
 			if err := file.RMDir(tempDir); err != nil {
-				loger.Error("error when trying to remove `"+tempDir+"`", zap.Error(err))
+				logger.Error("error when trying to remove `"+tempDir+"`", zap.Error(err))
 				c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 				return
 			}
@@ -474,7 +461,7 @@ func PostFileUpload(c *gin.Context) {
 	} else {
 		out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
-			loger.Error("error when trying to open `"+path+"` for creation", zap.Error(err))
+			logger.Error("error when trying to open `"+path+"` for creation", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 			return
 		}
@@ -482,7 +469,7 @@ func PostFileUpload(c *gin.Context) {
 		defer out.Close()
 
 		if _, err := io.Copy(out, f); err != nil { // recommend to use https://github.com/iceber/iouring-go for faster copy
-			loger.Error("error when trying to write to `"+path+"`", zap.Error(err))
+			logger.Error("error when trying to write to `"+path+"`", zap.Error(err))
 			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 			return
 		}

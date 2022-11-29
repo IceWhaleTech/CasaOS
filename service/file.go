@@ -19,9 +19,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"go.uber.org/zap"
 )
 
@@ -78,8 +78,8 @@ func (w *writer) Write(p []byte) (n int, err error) {
 		return w.w.Write(p)
 	}
 }
-func FileOperate(k string) {
 
+func FileOperate(k string) {
 	list, ok := FileQueue.Load(k)
 	if !ok {
 		return
@@ -103,10 +103,10 @@ func FileOperate(k string) {
 			}
 			err := os.Rename(v.From, temp.To+"/"+lastPath)
 			if err != nil {
-				loger.Error("file move error", zap.Any("err", err))
+				logger.Error("file move error", zap.Any("err", err))
 				err = file.MoveFile(v.From, temp.To+"/"+lastPath)
 				if err != nil {
-					loger.Error("MoveFile error", zap.Any("err", err))
+					logger.Error("MoveFile error", zap.Any("err", err))
 					continue
 				}
 
@@ -152,7 +152,6 @@ func CheckFileStatus() {
 			}
 			temp := item.(model.FileOperate)
 			for i := 0; i < len(temp.Item); i++ {
-
 				if !temp.Item[i].Finished {
 					size, err := file.GetFileOrDirSize(temp.To + "/" + filepath.Base(temp.Item[i].From))
 					if err != nil {
@@ -166,7 +165,6 @@ func CheckFileStatus() {
 				} else {
 					total += temp.Item[i].ProcessedSize
 				}
-
 			}
 			temp.ProcessedSize = total
 			FileQueue.Store(v, temp)

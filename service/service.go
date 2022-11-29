@@ -21,14 +21,13 @@ var Cache *cache.Cache
 
 var MyService Repository
 
-var WebSocketConns []*websocket.Conn
-var NewVersionApp map[string]string
-var SocketRun bool
+var (
+	WebSocketConns []*websocket.Conn
+	SocketRun      bool
+)
 
 type Repository interface {
-	App() AppService
-	//User() UserService
-	Docker() DockerService
+	// User() UserService
 	Casa() CasaService
 	Notify() NotifyServer
 	Rely() RelyService
@@ -39,7 +38,6 @@ type Repository interface {
 }
 
 func NewService(db *gorm.DB, RuntimePath string) Repository {
-
 	gatewayManagement, err := external.NewManagementService(RuntimePath)
 	if err != nil && len(RuntimePath) > 0 {
 		panic(err)
@@ -47,8 +45,6 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 
 	return &store{
 		gateway:     gatewayManagement,
-		app:         NewAppService(db),
-		docker:      NewDockerService(),
 		casa:        NewCasaService(),
 		notify:      NewNotifyService(db),
 		rely:        NewRelyService(db),
@@ -60,8 +56,6 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 
 type store struct {
 	db          *gorm.DB
-	app         AppService
-	docker      DockerService
 	casa        CasaService
 	notify      NotifyServer
 	rely        RelyService
@@ -74,9 +68,11 @@ type store struct {
 func (c *store) Gateway() external.ManagementService {
 	return c.gateway
 }
+
 func (s *store) Connections() ConnectionsService {
 	return s.connections
 }
+
 func (s *store) Shares() SharesService {
 	return s.shares
 }
@@ -88,17 +84,9 @@ func (c *store) Rely() RelyService {
 func (c *store) System() SystemService {
 	return c.system
 }
+
 func (c *store) Notify() NotifyServer {
-
 	return c.notify
-}
-
-func (c *store) App() AppService {
-	return c.app
-}
-
-func (c *store) Docker() DockerService {
-	return c.docker
 }
 
 func (c *store) Casa() CasaService {

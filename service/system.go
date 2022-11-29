@@ -12,12 +12,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
@@ -66,6 +66,7 @@ func (c *systemService) GetMacAddress() (string, error) {
 	inter := interfaces[0]
 	return inter.HardwareAddr, nil
 }
+
 func (c *systemService) MkdirAll(path string) (int, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -227,15 +228,15 @@ func (s *systemService) UpdateSystemVersion(version string) {
 		os.Remove(config.AppInfo.LogPath + "/upgrade.log")
 	}
 	file.CreateFile(config.AppInfo.LogPath + "/upgrade.log")
-	//go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/update.sh | bash")
+	// go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/update.sh | bash")
 	if len(config.ServerInfo.UpdateUrl) > 0 {
 		go command2.OnlyExec("curl -fsSL " + config.ServerInfo.UpdateUrl + " | bash")
 	} else {
 		go command2.OnlyExec("curl -fsSL https://get.casaos.io/update | bash")
 	}
 
-	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
-	//s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
+	// s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
+	// s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
 }
 
 func (s *systemService) UpdateAssist() {
@@ -328,17 +329,17 @@ func GetCPUThermalZone() string {
 			name = strings.TrimSuffix(string(file.ReadFullFile(path+"/type")), "\n")
 			for _, s := range cpu_types {
 				if strings.HasPrefix(name, s) {
-					loger.Info(fmt.Sprintf("CPU thermal zone found: %s, path: %s.", name, path))
+					logger.Info(fmt.Sprintf("CPU thermal zone found: %s, path: %s.", name, path))
 					Cache.SetDefault(keyName, path)
 					return path
 				}
 			}
 		} else {
-			if len(name) > 0 { //proves at least one zone
-				loger.Warn("CPU thermal zone not matched. Default to thermal_zone0.")
+			if len(name) > 0 { // proves at least one zone
+				logger.Info("CPU thermal zone not matched. Default to thermal_zone0.")
 				path = stub + "0"
 			} else {
-				loger.Error("No CPU thermal zones found. CPU temp will not be displayed.")
+				logger.Error("No CPU thermal zones found. CPU temp will not be displayed.")
 				path = ""
 			}
 			break
