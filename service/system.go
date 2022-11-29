@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	net2 "net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -52,6 +53,8 @@ type SystemService interface {
 	GetCPUTemperature() int
 	GetCPUPower() map[string]string
 	GetMacAddress() (string, error)
+	SystemReboot() error
+	SystemShutdown() error
 }
 type systemService struct{}
 
@@ -373,6 +376,26 @@ func (s *systemService) GetCPUPower() map[string]string {
 	return data
 }
 
+func (s *systemService) SystemReboot() error {
+	arg := []string{"6"}
+	cmd := exec.Command("init", arg...)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (s *systemService) SystemShutdown() error {
+	arg := []string{"0"}
+	cmd := exec.Command("init", arg...)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewSystemService() SystemService {
+
 	return &systemService{}
 }

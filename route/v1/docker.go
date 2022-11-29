@@ -622,6 +622,11 @@ func UnInstallApp(c *gin.Context) {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
+
+	j := make(map[string]string)
+	c.ShouldBind(&j)
+	isDelete := j["delete_config_folder"]
+
 	//info := service.MyService.App().GetUninstallInfo(appId)
 
 	info, err := service.MyService.Docker().DockerContainerInfo(appId)
@@ -646,7 +651,7 @@ func UnInstallApp(c *gin.Context) {
 	// step：remove image
 	service.MyService.Docker().DockerImageRemove(info.Config.Image)
 
-	if info.Config.Labels["origin"] != "custom" {
+	if info.Config.Labels["origin"] != "custom" && len(isDelete) > 0 {
 		//step: 删除文件夹
 		for _, v := range info.Mounts {
 			if strings.Contains(v.Source, info.Name) {

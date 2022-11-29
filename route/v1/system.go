@@ -228,11 +228,20 @@ func GetSystemUtilization(c *gin.Context) {
 	data := make(map[string]interface{})
 	cpu := service.MyService.System().GetCpuPercent()
 	num := service.MyService.System().GetCpuCoreNum()
+	var cpuModel = "arm"
+	if cpu := service.MyService.System().GetCpuInfo(); len(cpu) > 0 {
+		if strings.Count(strings.ToLower(strings.TrimSpace(cpu[0].ModelName)), "intel") > 0 {
+			cpuModel = "intel"
+		} else if strings.Count(strings.ToLower(strings.TrimSpace(cpu[0].ModelName)), "amd") > 0 {
+			cpuModel = "amd"
+		}
+	}
 	cpuData := make(map[string]interface{})
 	cpuData["percent"] = cpu
 	cpuData["num"] = num
 	cpuData["temperature"] = service.MyService.System().GetCPUTemperature()
 	cpuData["power"] = service.MyService.System().GetCPUPower()
+	cpuData["model"] = cpuModel
 
 	data["cpu"] = cpuData
 	data["mem"] = service.MyService.System().GetMemInfo()
@@ -357,4 +366,22 @@ func GetSystemProxy(c *gin.Context) {
 	c.Writer.WriteHeader(resp.StatusCode)
 	// 复制转发的响应Body到响应Body
 	io.Copy(c.Writer, ioutil.NopCloser(bytes.NewBuffer(rda)))
+}
+
+func PutSystemState(c *gin.Context) {
+	state := c.Param("state")
+	if state == "off" {
+		go func() {
+			time.Sleep(30 * time.Second)
+			service.MyService.System().SystemShutdown()
+		}()
+
+	} else if state == "restart" {
+		go func() {
+			time.Sleep(30 * time.Second)
+			service.MyService.System().SystemReboot()
+		}()
+
+	}
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: "The operation will be executed after 30 seconds"})
 }
