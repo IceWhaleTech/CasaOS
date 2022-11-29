@@ -70,12 +70,23 @@ func SendAllHardwareStatusBySocket() {
 		}
 	}
 	cpu := service.MyService.System().GetCpuPercent()
+
+	var cpuModel = "arm"
+	if cpu := service.MyService.System().GetCpuInfo(); len(cpu) > 0 {
+		if strings.Count(strings.ToLower(strings.TrimSpace(cpu[0].ModelName)), "intel") > 0 {
+			cpuModel = "intel"
+		} else if strings.Count(strings.ToLower(strings.TrimSpace(cpu[0].ModelName)), "amd") > 0 {
+			cpuModel = "amd"
+		}
+	}
+
 	num := service.MyService.System().GetCpuCoreNum()
 	cpuData := make(map[string]interface{})
 	cpuData["percent"] = cpu
 	cpuData["num"] = num
 	cpuData["temperature"] = service.MyService.System().GetCPUTemperature()
 	cpuData["power"] = service.MyService.System().GetCPUPower()
+	cpuData["model"] = cpuModel
 
 	memInfo := service.MyService.System().GetMemInfo()
 

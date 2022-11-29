@@ -14,12 +14,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/gin-gonic/gin"
@@ -125,9 +127,27 @@ func PostSambaConnectionsCreate(c *gin.Context) {
 		connection.Port = "445"
 	}
 	if connection.Username == "" || connection.Host == "" {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CHARACTER_LIMIT, Message: common_err.GetMsg(common_err.CHARACTER_LIMIT)})
+		return
+	}
+
+	if ok, _ := regexp.MatchString("^[a-zA-Z0-9]{4,30}$", connection.Password); !ok {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CHARACTER_LIMIT, Message: common_err.GetMsg(common_err.CHARACTER_LIMIT)})
+		return
+	}
+	if ok, _ := regexp.MatchString("^[a-zA-Z0-9]{4,30}$", connection.Username); !ok {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
+	if !ip_helper.IsIPv4(connection.Host) && !ip_helper.IsIPv6(connection.Host) {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
+	}
+	if ok, _ := regexp.MatchString("^[0-9]{1,6}$", connection.Port); !ok {
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		return
+	}
+
 	connection.Host = strings.Split(connection.Host, "/")[0]
 	// check is exists
 	connections := service.MyService.Connections().GetConnectionByHost(connection.Host)
