@@ -15,6 +15,7 @@ require (
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/gin-contrib/gzip v0.0.6
 	github.com/gin-gonic/gin v1.8.1
+	github.com/glebarez/sqlite v1.5.0
 	github.com/go-ini/ini v1.62.0
 	github.com/golang/mock v1.6.0
 	github.com/gomodule/redigo v1.8.5
@@ -37,6 +38,5 @@ require (
 	golang.org/x/mod v0.5.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/tools v0.1.7 // indirect
-	gorm.io/driver/sqlite v1.2.6
-	gorm.io/gorm v1.22.5
+	gorm.io/gorm v1.24.0
 )
