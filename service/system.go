@@ -335,10 +335,8 @@ func GetCPUThermalZone() string {
 			}
 		} else {
 			if len(name) > 0 { //proves at least one zone
-				loger.Warn("CPU thermal zone not matched. Default to thermal_zone0.")
 				path = stub + "0"
 			} else {
-				loger.Error("No CPU thermal zones found. CPU temp will not be displayed.")
 				path = ""
 			}
 			break
