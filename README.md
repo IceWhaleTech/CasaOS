@@ -114,6 +114,7 @@ Community Support
 - Armbian 22.04 (✅ Tested)
 - Alpine (🚧 Not Fully Tested Yet)
 - OpenWrt (🚧 Not Fully Tested Yet)
+- ArchLinux (🚧 Not Fully Tested Yet)
 
 ### Quick Setup CasaOS
 

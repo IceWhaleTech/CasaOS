@@ -54,7 +54,6 @@ func SendMemBySocket() {
 }
 
 func SendAllHardwareStatusBySocket() {
-
 	netList := service.MyService.System().GetNetInfo()
 	newNet := []model.IOCountersStat{}
 	nets := service.MyService.System().GetNet(true)
@@ -91,7 +90,6 @@ func SendAllHardwareStatusBySocket() {
 	memInfo := service.MyService.System().GetMemInfo()
 
 	service.MyService.Notify().SendAllHardwareStatusBySocket(memInfo, cpuData, newNet)
-
 }
 
 // func MonitoryUSB() {
@@ -99,7 +97,7 @@ func SendAllHardwareStatusBySocket() {
 
 // 	conn := new(netlink.UEventConn)
 // 	if err := conn.Connect(netlink.UdevEvent); err != nil {
-// 		loger.Error("udev err", zap.Any("Unable to connect to Netlink Kobject UEvent socket", err))
+// 		logger.Error("udev err", zap.Any("Unable to connect to Netlink Kobject UEvent socket", err))
 // 	}
 // 	defer conn.Close()
 
@@ -124,7 +122,7 @@ func SendAllHardwareStatusBySocket() {
 // 				continue
 // 			}
 // 		case err := <-errors:
-// 			loger.Error("udev err", zap.Any("err", err))
+// 			logger.Error("udev err", zap.Any("err", err))
 // 		}
 // 	}
 

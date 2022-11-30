@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	notifyCommon "github.com/IceWhaleTech/CasaOS-Common/model/notify"
 	model2 "github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/service/model"
@@ -15,24 +16,26 @@ import (
 	"gorm.io/gorm"
 )
 
-var NotifyMsg chan notify.Message
-var ClientCount int = 0
+var (
+	NotifyMsg   chan notify.Message
+	ClientCount int
+)
 
 type NotifyServer interface {
 	GetLog(id string) model.AppNotify
 	AddLog(log model.AppNotify)
 	UpdateLog(log model.AppNotify)
-	UpdateLogByCustomId(log model.AppNotify)
+	UpdateLogByCustomID(log model.AppNotify)
 	DelLog(id string)
 	GetList(c int) (list []model.AppNotify)
 	MarkRead(id string, state int)
 	//	SendText(m model.AppNotify)
-	SendUninstallAppBySocket(app notify.Application)
+	SendUninstallAppBySocket(app notifyCommon.Application)
 	SendNetInfoBySocket(netList []model2.IOCountersStat)
 	SendCPUInfoBySocket(cpu map[string]interface{})
 	SendMemInfoBySocket(mem map[string]interface{})
 	SendFileOperateNotify(nowSend bool)
-	SendInstallAppBySocket(app notify.Application)
+	SendInstallAppBySocket(app notifyCommon.Application)
 	SendAllHardwareStatusBySocket(mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat)
 	SendStorageBySocket(message notify.StorageMessage)
 	SendNotify(path string, message map[string]interface{})
@@ -62,7 +65,6 @@ func (i *notifyServer) SendNotify(path string, message map[string]interface{}) {
 	notify.Msg = msg
 
 	NotifyMsg <- notify
-
 }
 
 func (i *notifyServer) SendStorageBySocket(message notify.StorageMessage) {
@@ -80,8 +82,8 @@ func (i *notifyServer) SendStorageBySocket(message notify.StorageMessage) {
 
 	NotifyMsg <- notify
 }
-func (i *notifyServer) SendAllHardwareStatusBySocket(mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat) {
 
+func (i *notifyServer) SendAllHardwareStatusBySocket(mem map[string]interface{}, cpu map[string]interface{}, netList []model2.IOCountersStat) {
 	body := make(map[string]interface{})
 
 	body["sys_mem"] = mem
@@ -104,12 +106,10 @@ func (i *notifyServer) SendAllHardwareStatusBySocket(mem map[string]interface{},
 	notify.Msg = msg
 
 	NotifyMsg <- notify
-
 }
 
 // Send periodic broadcast messages
 func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
-
 	if nowSend {
 
 		len := 0
@@ -259,7 +259,6 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 			time.Sleep(time.Second * 3)
 		}
 	}
-
 }
 
 func (i *notifyServer) SendMemInfoBySocket(mem map[string]interface{}) {
@@ -278,7 +277,7 @@ func (i *notifyServer) SendMemInfoBySocket(mem map[string]interface{}) {
 	NotifyMsg <- notify
 }
 
-func (i *notifyServer) SendInstallAppBySocket(app notify.Application) {
+func (i *notifyServer) SendInstallAppBySocket(app notifyCommon.Application) {
 	body := make(map[string]interface{})
 	body["data"] = app
 
@@ -309,6 +308,7 @@ func (i *notifyServer) SendCPUInfoBySocket(cpu map[string]interface{}) {
 
 	NotifyMsg <- notify
 }
+
 func (i *notifyServer) SendNetInfoBySocket(netList []model2.IOCountersStat) {
 	body := make(map[string]interface{})
 	body["data"] = netList
@@ -325,7 +325,7 @@ func (i *notifyServer) SendNetInfoBySocket(netList []model2.IOCountersStat) {
 	NotifyMsg <- notify
 }
 
-func (i *notifyServer) SendUninstallAppBySocket(app notify.Application) {
+func (i *notifyServer) SendUninstallAppBySocket(app notifyCommon.Application) {
 	body := make(map[string]interface{})
 	body["data"] = app
 
@@ -358,17 +358,20 @@ func (i *notifyServer) AddLog(log model.AppNotify) {
 func (i *notifyServer) UpdateLog(log model.AppNotify) {
 	i.db.Save(&log)
 }
-func (i *notifyServer) UpdateLogByCustomId(log model.AppNotify) {
+
+func (i *notifyServer) UpdateLogByCustomID(log model.AppNotify) {
 	if len(log.CustomId) == 0 {
 		return
 	}
 	i.db.Model(&model.AppNotify{}).Select("*").Where("custom_id = ? ", log.CustomId).Updates(log)
 }
+
 func (i *notifyServer) GetLog(id string) model.AppNotify {
 	var log model.AppNotify
 	i.db.Where("custom_id = ? ", id).First(&log)
 	return log
 }
+
 func (i *notifyServer) MarkRead(id string, state int) {
 	if id == "0" {
 		i.db.Model(&model.AppNotify{}).Where("1 = ?", 1).Update("state", state)
@@ -376,6 +379,7 @@ func (i *notifyServer) MarkRead(id string, state int) {
 	}
 	i.db.Model(&model.AppNotify{}).Where("id = ? ", id).Update("state", state)
 }
+
 func (i *notifyServer) DelLog(id string) {
 	var log model.AppNotify
 	i.db.Where("custom_id = ?", id).Delete(&log)
@@ -444,10 +448,9 @@ func SendMeg() {
 
 // }
 func (i *notifyServer) GetSystemTempMap() map[string]interface{} {
-
 	return i.SystemTempMap
-
 }
+
 func NewNotifyService(db *gorm.DB) NotifyServer {
 	return &notifyServer{db: db, SystemTempMap: make(map[string]interface{})}
 }
