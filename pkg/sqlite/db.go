@@ -34,7 +34,7 @@ func GetDb(dbPath string) *gorm.DB {
 	db, err := gorm.Open(sqlite.Open(dbPath+"/casaOS.db"), &gorm.Config{})
 	c, _ := db.DB()
 	c.SetMaxIdleConns(10)
-	c.SetMaxOpenConns(100)
+	c.SetMaxOpenConns(1)
 	c.SetConnMaxIdleTime(time.Second * 1000)
 	if err != nil {
 		logger.Error("sqlite connect error", zap.Any("db connect error", err))
