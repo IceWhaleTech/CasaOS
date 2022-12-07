@@ -337,17 +337,12 @@ func GetSystemProxy(c *gin.Context) {
 func PutSystemState(c *gin.Context) {
 	state := c.Param("state")
 	if state == "off" {
-		go func() {
-			time.Sleep(30 * time.Second)
-			service.MyService.System().SystemShutdown()
-		}()
+		service.MyService.System().SystemShutdown()
 	} else if state == "restart" {
-		go func() {
-			time.Sleep(30 * time.Second)
-			service.MyService.System().SystemReboot()
-		}()
+		service.MyService.System().SystemReboot()
+
 	}
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: "The operation will be executed after 30 seconds"})
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: "The operation will be completed shortly."})
 }
 
 // @Summary 获取一个可用端口
