@@ -16,8 +16,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.4.0 - alpha]
+### Added
+
+- [Developer] Included `casaos-cli` command tool for debugging
+- [Developer] Added message bus for events and actions - Use `casaos-cli message-bus` to manage.
+- [Disk] Disk notification in Dashboard
+- [System] Restart/shutdown directly from CasaOS Dashboard
+### Changed
+
+- [General] CasaOS new logo!
+- [App] Redesign of Featured App
+- [App] Now you can choose to delete userdata along with app uninstallation
+
+### Security
+
+- [System] Fixed a shell injection issue for better security
+
 ### Fixed
+
 - [System] Re-instate default zone0 for CPU Temp ([#694](https://github.com/IceWhaleTech/CasaOS/issues/694))
+- [Disk] Fixed storage name with extra `-1` after rebooting ([#698](https://github.com/IceWhaleTech/CasaOS/issues/698))
+- [Disk] Fixed disk check so it does not impact disk going into idle ([#704](https://github.com/IceWhaleTech/CasaOS/issues/704))
 
 ## [0.3.8] 2022-11-21
 
