@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	net2 "net"
@@ -63,8 +64,15 @@ func (c *systemService) GetMacAddress() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	inter := interfaces[0]
-	return inter.HardwareAddr, nil
+	nets := MyService.System().GetNet(true)
+	for _, v := range interfaces {
+		for _, n := range nets {
+			if v.Name == n {
+				return v.HardwareAddr, nil
+			}
+		}
+	}
+	return "", errors.New("not found")
 }
 
 func (c *systemService) MkdirAll(path string) (int, error) {
