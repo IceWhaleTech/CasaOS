@@ -104,7 +104,6 @@ func (i *notifyServer) SendAllHardwareStatusBySocket(mem map[string]interface{},
 	notify := notify.Message{}
 	notify.Path = "sys_hardware_status"
 	notify.Msg = msg
-
 	NotifyMsg <- notify
 }
 

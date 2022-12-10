@@ -37,7 +37,8 @@ func SendNetINfoBySocket() {
 			}
 		}
 	}
-	service.MyService.Notify().SendNetInfoBySocket(newNet)
+	SendDataBySocketIo("net", newNet)
+	//service.MyService.Notify().SendNetInfoBySocket(newNet)
 }
 
 func SendCPUBySocket() {
@@ -88,7 +89,7 @@ func SendAllHardwareStatusBySocket() {
 	cpuData["model"] = cpuModel
 
 	memInfo := service.MyService.System().GetMemInfo()
-
+	SendDataBySocketIo("net", newNet)
 	service.MyService.Notify().SendAllHardwareStatusBySocket(memInfo, cpuData, newNet)
 }
 

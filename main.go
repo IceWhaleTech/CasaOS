@@ -19,6 +19,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/coreos/go-systemd/daemon"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"github.com/robfig/cron"
@@ -81,6 +82,13 @@ func main() {
 	// gredis.Setup()
 
 	r := route.InitRouter()
+
+	server := route.SocketIo()
+
+	defer server.Close()
+	r.GET("/v1/socketio/*any", gin.WrapH(server))
+	r.POST("/v1/socketio/*any", gin.WrapH(server))
+
 	// service.SyncTask(sqliteDB)
 	cron2 := cron.New()
 	// every day execution
@@ -106,7 +114,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	routers := []string{"sys", "port", "file", "folder", "batch", "image", "samba", "notify"}
+	routers := []string{"sys", "port", "file", "folder", "batch", "image", "samba", "notify", "socketio"}
 	for _, v := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{
 			Path:   "/v1/" + v,
