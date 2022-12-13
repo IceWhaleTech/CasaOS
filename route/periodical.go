@@ -22,38 +22,6 @@ import (
 	"github.com/IceWhaleTech/CasaOS/service"
 )
 
-func SendNetINfoBySocket() {
-	netList := service.MyService.System().GetNetInfo()
-	newNet := []model.IOCountersStat{}
-	nets := service.MyService.System().GetNet(true)
-	for _, n := range netList {
-		for _, netCardName := range nets {
-			if n.Name == netCardName {
-				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
-				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
-				item.Time = time.Now().Unix()
-				newNet = append(newNet, item)
-				break
-			}
-		}
-	}
-	SendDataBySocketIo("net", newNet)
-	//service.MyService.Notify().SendNetInfoBySocket(newNet)
-}
-
-func SendCPUBySocket() {
-	cpu := service.MyService.System().GetCpuPercent()
-	num := service.MyService.System().GetCpuCoreNum()
-	cpuData := make(map[string]interface{})
-	cpuData["percent"] = cpu
-	cpuData["num"] = num
-	service.MyService.Notify().SendCPUInfoBySocket(cpuData)
-}
-
-func SendMemBySocket() {
-	service.MyService.Notify().SendMemInfoBySocket(service.MyService.System().GetMemInfo())
-}
-
 func SendAllHardwareStatusBySocket() {
 	netList := service.MyService.System().GetNetInfo()
 	newNet := []model.IOCountersStat{}
@@ -89,8 +57,19 @@ func SendAllHardwareStatusBySocket() {
 	cpuData["model"] = cpuModel
 
 	memInfo := service.MyService.System().GetMemInfo()
-	SendDataBySocketIo("net", newNet)
-	service.MyService.Notify().SendAllHardwareStatusBySocket(memInfo, cpuData, newNet)
+
+	body := make(map[string]interface{})
+
+	body["sys_mem"] = memInfo
+
+	body["sys_cpu"] = cpu
+
+	body["sys_net"] = netList
+	systemTempMap := service.MyService.Notify().GetSystemTempMap()
+	for k, v := range systemTempMap {
+		body[k] = v
+	}
+	service.MyService.Notify().SendNotify("sys_hardware_status", body)
 }
 
 // func MonitoryUSB() {

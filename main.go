@@ -10,7 +10,6 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS-Common/model"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
-	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
@@ -52,7 +51,7 @@ func init() {
 	sqliteDB = sqlite.GetDb(*dbFlag)
 	// gredis.GetRedisConn(config.RedisInfo),
 
-	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath)
+	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath, route.SocketIo())
 
 	service.Cache = cache.Init()
 
@@ -73,21 +72,16 @@ func init() {
 // @name Authorization
 // @BasePath /v1
 func main() {
-	service.NotifyMsg = make(chan notify.Message, 10)
 	if *versionFlag {
 		return
 	}
-	go route.SocketInit(service.NotifyMsg)
 	// model.Setup()
 	// gredis.Setup()
 
 	r := route.InitRouter()
-
-	server := route.SocketIo()
-
-	defer server.Close()
-	r.GET("/v1/socketio/*any", gin.WrapH(server))
-	r.POST("/v1/socketio/*any", gin.WrapH(server))
+	defer service.SocketServer.Close()
+	r.GET("/v1/socketio/*any", gin.WrapH(service.SocketServer))
+	r.POST("/v1/socketio/*any", gin.WrapH(service.SocketServer))
 
 	// service.SyncTask(sqliteDB)
 	cron2 := cron.New()

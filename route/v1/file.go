@@ -184,7 +184,7 @@ func GetDownloadFile(c *gin.Context) {
 func GetDownloadSingleFile(c *gin.Context) {
 	filePath := c.Query("path")
 	if len(filePath) == 0 {
-		c.JSON(service.ClientCount, model.Result{
+		c.JSON(common_err.CLIENT_ERROR, model.Result{
 			Success: common_err.INVALID_PARAMS,
 			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
