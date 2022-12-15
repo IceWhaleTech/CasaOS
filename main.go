@@ -9,11 +9,13 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Common/model"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -139,6 +141,10 @@ func main() {
 			zap.Any("filepath", urlFilePath),
 		)
 	}
+
+	// run any script that needs to be executed
+	scriptDirectory := filepath.Join(constants.DefaultConfigPath, "start.d")
+	command.ExecuteScripts(scriptDirectory)
 
 	if supported, err := daemon.SdNotify(false, daemon.SdNotifyReady); err != nil {
 		logger.Error("Failed to notify systemd that casaos main service is ready", zap.Any("error", err))

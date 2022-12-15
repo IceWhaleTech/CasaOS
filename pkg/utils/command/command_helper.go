@@ -5,7 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -110,4 +113,54 @@ func ExecSmartCTLByPath(path string) []byte {
 
 func ExecEnabledSMART(path string) {
 	exec.Command("smartctl", "-s on", path).Output()
+}
+
+func ExecuteScripts(scriptDirectory string) {
+	if _, err := os.Stat(scriptDirectory); os.IsNotExist(err) {
+		fmt.Printf("No post-start scripts at %s\n", scriptDirectory)
+		return
+	}
+
+	files, err := os.ReadDir(scriptDirectory)
+	if err != nil {
+		fmt.Printf("Failed to read from script directory %s: %s\n", scriptDirectory, err.Error())
+		return
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		scriptFilepath := filepath.Join(scriptDirectory, file.Name())
+
+		f, err := os.Open(scriptFilepath)
+		if err != nil {
+			fmt.Printf("Failed to open script file %s: %s\n", scriptFilepath, err.Error())
+			continue
+		}
+		f.Close()
+
+		scanner := bufio.NewScanner(f)
+		scanner.Scan()
+		shebang := scanner.Text()
+
+		interpreter := "/bin/sh"
+		if strings.HasPrefix(shebang, "#!") {
+			interpreter = shebang[2:]
+		}
+
+		cmd := exec.Command(interpreter, scriptFilepath)
+
+		fmt.Printf("Executing post-start script %s using %s\n", scriptFilepath, interpreter)
+
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err = cmd.Run()
+		if err != nil {
+			fmt.Printf("Failed to execute post-start script %s: %s\n", scriptFilepath, err.Error())
+		}
+	}
+	fmt.Println("Finished executing post-start scripts.")
 }

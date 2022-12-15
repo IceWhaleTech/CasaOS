@@ -39,4 +39,5 @@ require (
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/tools v0.1.7 // indirect
 	gorm.io/gorm v1.24.0
+	gotest.tools v2.2.0+incompatible
 )
