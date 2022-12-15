@@ -1,13 +1,29 @@
 package command
 
 import (
-	"path/filepath"
+	"os"
 	"testing"
 
-	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
+	"gotest.tools/assert"
 )
 
-func TestExecutePostStartScripts(t *testing.T) {
-	scriptDirectory := filepath.Join(constants.DefaultConfigPath, "start.d")
-	ExecuteScripts(scriptDirectory)
+func TestExecuteScripts(t *testing.T) {
+	// make a temp directory
+	tmpDir, err := os.MkdirTemp("", "casaos-test-*")
+	assert.NilError(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	ExecuteScripts(tmpDir)
+
+	// create a sample script under tmpDir
+	script := tmpDir + "/test.sh"
+	f, err := os.Create(script)
+	assert.NilError(t, err)
+	defer f.Close()
+
+	// write a sample script
+	_, err = f.WriteString("#!/bin/bash\necho 123")
+	assert.NilError(t, err)
+
+	ExecuteScripts(tmpDir)
 }
