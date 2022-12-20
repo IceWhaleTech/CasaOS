@@ -12,15 +12,18 @@ package service
 
 import (
 	"github.com/IceWhaleTech/CasaOS-Common/external"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	socketio "github.com/googollee/go-socket.io"
 	"github.com/gorilla/websocket"
 	"github.com/patrickmn/go-cache"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 var Cache *cache.Cache
 
 var MyService Repository
-
+var SocketServer *socketio.Server
 var (
 	WebSocketConns []*websocket.Conn
 	SocketRun      bool
@@ -37,7 +40,11 @@ type Repository interface {
 	Gateway() external.ManagementService
 }
 
-func NewService(db *gorm.DB, RuntimePath string) Repository {
+func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Repository {
+	if socket == nil {
+		logger.Error("socket is nil", zap.Any("error", "socket is nil"))
+	}
+	SocketServer = socket
 	gatewayManagement, err := external.NewManagementService(RuntimePath)
 	if err != nil && len(RuntimePath) > 0 {
 		panic(err)

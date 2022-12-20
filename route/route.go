@@ -119,6 +119,7 @@ func InitRouter() *gin.Engine {
 			v1FolderGroup.PUT("/name", v1.RenamePath)
 			v1FolderGroup.GET("", v1.DirPath)   ///file/dirpath
 			v1FolderGroup.POST("", v1.MkdirAll) ///file/mkdir
+			v1FolderGroup.GET("/size", v1.GetSize)
 		}
 		v1BatchGroup := v1Group.Group("/batch")
 		v1BatchGroup.Use()

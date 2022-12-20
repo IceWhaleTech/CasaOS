@@ -184,7 +184,7 @@ func GetDownloadFile(c *gin.Context) {
 func GetDownloadSingleFile(c *gin.Context) {
 	filePath := c.Query("path")
 	if len(filePath) == 0 {
-		c.JSON(service.ClientCount, model.Result{
+		c.JSON(common_err.CLIENT_ERROR, model.Result{
 			Success: common_err.INVALID_PARAMS,
 			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
@@ -648,4 +648,15 @@ func DeleteOperateFileOrDir(c *gin.Context) {
 
 	go service.MyService.Notify().SendFileOperateNotify(true)
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+}
+func GetSize(c *gin.Context) {
+	json := make(map[string]string)
+	c.ShouldBind(&json)
+	path := json["path"]
+	size, err := file.GetFileOrDirSize(path)
+	if err != nil {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return
+	}
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: size})
 }

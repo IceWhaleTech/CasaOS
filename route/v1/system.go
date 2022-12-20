@@ -336,11 +336,10 @@ func GetSystemProxy(c *gin.Context) {
 
 func PutSystemState(c *gin.Context) {
 	state := c.Param("state")
-	if state == "off" {
+	if strings.ToLower(state) == "off" {
 		service.MyService.System().SystemShutdown()
-	} else if state == "restart" {
+	} else if strings.ToLower(state) == "restart" {
 		service.MyService.System().SystemReboot()
-
 	}
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: "The operation will be completed shortly."})
 }
