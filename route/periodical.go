@@ -62,9 +62,9 @@ func SendAllHardwareStatusBySocket() {
 
 	body["sys_mem"] = memInfo
 
-	body["sys_cpu"] = cpu
+	body["sys_cpu"] = cpuData
 
-	body["sys_net"] = netList
+	body["sys_net"] = newNet
 	systemTempMap := service.MyService.Notify().GetSystemTempMap()
 	for k, v := range systemTempMap {
 		body[k] = v

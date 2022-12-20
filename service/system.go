@@ -376,6 +376,7 @@ func (s *systemService) GetCPUPower() map[string]string {
 }
 
 func (s *systemService) SystemReboot() error {
+	//cmd := exec.Command("/bin/bash", "-c", "reboot")
 	arg := []string{"6"}
 	cmd := exec.Command("init", arg...)
 	_, err := cmd.CombinedOutput()
