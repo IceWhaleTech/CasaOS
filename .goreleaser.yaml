@@ -3,7 +3,8 @@
 project_name: casaos
 before:
   hooks:
-    # You may remove this if you don't use go modules.
+    - go generate
+    - go run github.com/google/go-licenses@latest check . --disallowed_types=restricted
     - go mod tidy
 builds:
   - id: casaos-amd64
