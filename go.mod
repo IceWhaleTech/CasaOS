@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
-	github.com/IceWhaleTech/CasaOS-Common v0.4.1-alpha1
+	github.com/IceWhaleTech/CasaOS-Common v0.4.1-alpha2
 	github.com/IceWhaleTech/CasaOS-Gateway v0.3.6
 	github.com/ambelovsky/go-structs v1.1.0 // indirect
 	github.com/ambelovsky/gosf v0.0.0-20201109201340-237aea4d6109
