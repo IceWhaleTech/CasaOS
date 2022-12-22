@@ -25,7 +25,6 @@ type ServerModel struct {
 	LockAccount  bool
 	Token        string
 	USBAutoMount string
-	SocketPort   string
 	UpdateUrl    string
 }
 

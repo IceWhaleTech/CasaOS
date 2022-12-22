@@ -235,22 +235,6 @@ func GetSystemUtilization(c *gin.Context) {
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
-// @Summary Get notification port
-// @Produce  application/json
-// @Accept application/json
-// @Tags sys
-// @Security ApiKeyAuth
-// @Success 200 {string} string "ok"
-// @Router /sys/socket/port [get]
-func GetSystemSocketPort(c *gin.Context) {
-	c.JSON(common_err.SUCCESS,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    config.ServerInfo.SocketPort, // @tiger 这里最好封装成 {'port': ...} 的形式，来体现出参的上下文
-		})
-}
-
 // @Summary get cpu info
 // @Produce  application/json
 // @Accept application/json

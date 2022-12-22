@@ -49,7 +49,6 @@ func InitRouter() *gin.Engine {
 	// r.GET("/v1/guide/check", v1.GetGuideCheck)         // /v1/sys/guide_check
 	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
 
-	r.GET("/v1/sys/socket-port", v1.GetSystemSocketPort) //sys/socket_port
 	r.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
 	r.GET("/ping", func(ctx *gin.Context) {
 		ctx.String(200, "pong")
