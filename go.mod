@@ -20,7 +20,6 @@ require (
 	github.com/googollee/go-socket.io v1.6.2
 	github.com/gorilla/websocket v1.5.0
 	github.com/hirochachacha/go-smb2 v1.1.0
-	github.com/lucas-clemente/quic-go v0.25.0
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/robfig/cron v1.2.0
@@ -32,9 +31,7 @@ require (
 	github.com/tidwall/gjson v1.10.2
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
-	golang.org/x/mod v0.5.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
-	golang.org/x/tools v0.1.7 // indirect
 	gorm.io/gorm v1.24.0
 	gotest.tools v2.2.0+incompatible
 )
