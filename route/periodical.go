@@ -22,39 +22,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/service"
 )
 
-func SendNetINfoBySocket() {
-	netList := service.MyService.System().GetNetInfo()
-	newNet := []model.IOCountersStat{}
-	nets := service.MyService.System().GetNet(true)
-	for _, n := range netList {
-		for _, netCardName := range nets {
-			if n.Name == netCardName {
-				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
-				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
-				item.Time = time.Now().Unix()
-				newNet = append(newNet, item)
-				break
-			}
-		}
-	}
-	service.MyService.Notify().SendNetInfoBySocket(newNet)
-}
-
-func SendCPUBySocket() {
-	cpu := service.MyService.System().GetCpuPercent()
-	num := service.MyService.System().GetCpuCoreNum()
-	cpuData := make(map[string]interface{})
-	cpuData["percent"] = cpu
-	cpuData["num"] = num
-	service.MyService.Notify().SendCPUInfoBySocket(cpuData)
-}
-
-func SendMemBySocket() {
-	service.MyService.Notify().SendMemInfoBySocket(service.MyService.System().GetMemInfo())
-}
-
 func SendAllHardwareStatusBySocket() {
-
 	netList := service.MyService.System().GetNetInfo()
 	newNet := []model.IOCountersStat{}
 	nets := service.MyService.System().GetNet(true)
@@ -90,8 +58,18 @@ func SendAllHardwareStatusBySocket() {
 
 	memInfo := service.MyService.System().GetMemInfo()
 
-	service.MyService.Notify().SendAllHardwareStatusBySocket(memInfo, cpuData, newNet)
+	body := make(map[string]interface{})
 
+	body["sys_mem"] = memInfo
+
+	body["sys_cpu"] = cpuData
+
+	body["sys_net"] = newNet
+	systemTempMap := service.MyService.Notify().GetSystemTempMap()
+	for k, v := range systemTempMap {
+		body[k] = v
+	}
+	service.MyService.Notify().SendNotify("sys_hardware_status", body)
 }
 
 // func MonitoryUSB() {
@@ -99,7 +77,7 @@ func SendAllHardwareStatusBySocket() {
 
 // 	conn := new(netlink.UEventConn)
 // 	if err := conn.Connect(netlink.UdevEvent); err != nil {
-// 		loger.Error("udev err", zap.Any("Unable to connect to Netlink Kobject UEvent socket", err))
+// 		logger.Error("udev err", zap.Any("Unable to connect to Netlink Kobject UEvent socket", err))
 // 	}
 // 	defer conn.Close()
 
@@ -124,7 +102,7 @@ func SendAllHardwareStatusBySocket() {
 // 				continue
 // 			}
 // 		case err := <-errors:
-// 			loger.Error("udev err", zap.Any("err", err))
+// 			logger.Error("udev err", zap.Any("err", err))
 // 		}
 // 	}
 

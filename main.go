@@ -9,16 +9,18 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Common/model"
-	"github.com/IceWhaleTech/CasaOS/model/notify"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/coreos/go-systemd/daemon"
+	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"github.com/robfig/cron"
@@ -43,7 +45,7 @@ func init() {
 	}
 	config.InitSetup(*configFlag)
 
-	loger.LogInit()
+	logger.LogInit(config.AppInfo.LogPath, config.AppInfo.LogSaveName, config.AppInfo.LogFileExt)
 	if len(*dbFlag) == 0 {
 		*dbFlag = config.AppInfo.DBPath + "/db"
 	}
@@ -51,18 +53,13 @@ func init() {
 	sqliteDB = sqlite.GetDb(*dbFlag)
 	// gredis.GetRedisConn(config.RedisInfo),
 
-	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath)
+	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath, route.SocketIo())
 
 	service.Cache = cache.Init()
 
-	service.GetToken()
 	service.GetCPUThermalZone()
 
-	service.NewVersionApp = make(map[string]string)
 	route.InitFunction()
-
-	// go service.LoopFriend()
-	// go service.MyService.App().CheckNewImage()
 }
 
 // @title casaOS API
@@ -77,15 +74,17 @@ func init() {
 // @name Authorization
 // @BasePath /v1
 func main() {
-	service.NotifyMsg = make(chan notify.Message, 10)
 	if *versionFlag {
 		return
 	}
-	go route.SocketInit(service.NotifyMsg)
 	// model.Setup()
 	// gredis.Setup()
 
 	r := route.InitRouter()
+	defer service.SocketServer.Close()
+	r.GET("/v1/socketio/*any", gin.WrapH(service.SocketServer))
+	r.POST("/v1/socketio/*any", gin.WrapH(service.SocketServer))
+
 	// service.SyncTask(sqliteDB)
 	cron2 := cron.New()
 	// every day execution
@@ -111,7 +110,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "samba", "notify"}
+	routers := []string{"sys", "port", "file", "folder", "batch", "image", "samba", "notify", "socketio"}
 	for _, v := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{
 			Path:   "/v1/" + v,
@@ -138,26 +137,31 @@ func main() {
 	}()
 
 	urlFilePath := filepath.Join(config.CommonInfo.RuntimePath, "casaos.url")
-	err = file.CreateFileAndWriteContent(urlFilePath, "http://"+listener.Addr().String())
-	if err != nil {
-		loger.Error("Management service is listening...",
+	if err := file.CreateFileAndWriteContent(urlFilePath, "http://"+listener.Addr().String()); err != nil {
+		logger.Error("error when creating address file", zap.Error(err),
 			zap.Any("address", listener.Addr().String()),
 			zap.Any("filepath", urlFilePath),
 		)
 	}
 
+	// run any script that needs to be executed
+	scriptDirectory := filepath.Join(constants.DefaultConfigPath, "start.d")
+	command.ExecuteScripts(scriptDirectory)
+
 	if supported, err := daemon.SdNotify(false, daemon.SdNotifyReady); err != nil {
-		loger.Error("Failed to notify systemd that casaos main service is ready", zap.Any("error", err))
+		logger.Error("Failed to notify systemd that casaos main service is ready", zap.Any("error", err))
 	} else if supported {
-		loger.Info("Notified systemd that casaos main service is ready")
+		logger.Info("Notified systemd that casaos main service is ready")
 	} else {
-		loger.Info("This process is not running as a systemd service.")
+		logger.Info("This process is not running as a systemd service.")
 	}
 
 	s := &http.Server{
 		Handler:           r,
 		ReadHeaderTimeout: 5 * time.Second, // fix G112: Potential slowloris attack (see https://github.com/securego/gosec)
 	}
+
+	logger.Info("CasaOS main service is listening...", zap.Any("address", listener.Addr().String()))
 
 	err = s.Serve(listener) // not using http.serve() to fix G114: Use of net/http serve function that has no support for setting timeouts (see https://github.com/securego/gosec)
 	if err != nil {

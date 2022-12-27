@@ -14,7 +14,7 @@ import "time"
 
 // 系统配置
 type SysInfoModel struct {
-	Name string //系统名称
+	Name string // 系统名称
 }
 
 // 服务配置
@@ -25,7 +25,6 @@ type ServerModel struct {
 	LockAccount  bool
 	Token        string
 	USBAutoMount string
-	SocketPort   string
 	UpdateUrl    string
 }
 
@@ -64,10 +63,6 @@ type RedisModel struct {
 
 type SystemConfig struct {
 	ConfigPath string `json:"config_path"`
-}
-
-type CasaOSGlobalVariables struct {
-	AppChange bool
 }
 
 type FileSetting struct {

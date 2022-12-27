@@ -3,13 +3,15 @@
 project_name: casaos
 before:
   hooks:
-    # You may remove this if you don't use go modules.
+    - go generate
+    - go run github.com/google/go-licenses@latest check . --disallowed_types=restricted
     - go mod tidy
+    - go test -v ./...
+
 builds:
   - id: casaos-amd64
     binary: build/sysroot/usr/bin/casaos
     env:
-      - CGO_ENABLED=1
       - CC=x86_64-linux-gnu-gcc
     ldflags:
       - -s
@@ -18,6 +20,7 @@ builds:
     tags:
       - musl
       - netgo
+      - osusergo
     goos:
       - linux
     goarch:
@@ -28,7 +31,6 @@ builds:
   - id: casaos-arm64
     binary: build/sysroot/usr/bin/casaos
     env:
-      - CGO_ENABLED=1
       - CC=aarch64-linux-gnu-gcc
     ldflags:
       - -s
@@ -37,6 +39,7 @@ builds:
     tags:
       - musl
       - netgo
+      - osusergo
     goos:
       - linux
     goarch:
@@ -47,7 +50,6 @@ builds:
   - id: casaos-arm-7
     binary: build/sysroot/usr/bin/casaos
     env:
-      - CGO_ENABLED=1
       - CC=arm-linux-gnueabihf-gcc
     ldflags:
       - -s
@@ -56,6 +58,7 @@ builds:
     tags:
       - musl
       - netgo
+      - osusergo
     goos:
       - linux
     goarch:
@@ -69,7 +72,6 @@ builds:
     binary: build/sysroot/usr/bin/casaos-migration-tool
     main: ./cmd/migration-tool
     env:
-      - CGO_ENABLED=1
       - CC=x86_64-linux-gnu-gcc
     ldflags:
       - -s
@@ -78,6 +80,7 @@ builds:
     tags:
       - musl
       - netgo
+      - osusergo
     goos:
       - linux
     goarch:
@@ -86,7 +89,6 @@ builds:
     binary: build/sysroot/usr/bin/casaos-migration-tool
     main: ./cmd/migration-tool
     env:
-      - CGO_ENABLED=1
       - CC=aarch64-linux-gnu-gcc
     ldflags:
       - -s
@@ -95,6 +97,7 @@ builds:
     tags:
       - musl
       - netgo
+      - osusergo
     goos:
       - linux
     goarch:
@@ -103,7 +106,6 @@ builds:
     binary: build/sysroot/usr/bin/casaos-migration-tool
     main: ./cmd/migration-tool
     env:
-      - CGO_ENABLED=1
       - CC=arm-linux-gnueabihf-gcc
     ldflags:
       - -s
@@ -112,6 +114,7 @@ builds:
     tags:
       - musl
       - netgo
+      - osusergo
     goos:
       - linux
     goarch:

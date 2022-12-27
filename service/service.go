@@ -12,23 +12,25 @@ package service
 
 import (
 	"github.com/IceWhaleTech/CasaOS-Common/external"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	socketio "github.com/googollee/go-socket.io"
 	"github.com/gorilla/websocket"
 	"github.com/patrickmn/go-cache"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 var Cache *cache.Cache
 
 var MyService Repository
-
-var WebSocketConns []*websocket.Conn
-var NewVersionApp map[string]string
-var SocketRun bool
+var SocketServer *socketio.Server
+var (
+	WebSocketConns []*websocket.Conn
+	SocketRun      bool
+)
 
 type Repository interface {
-	App() AppService
-	//User() UserService
-	Docker() DockerService
+	// User() UserService
 	Casa() CasaService
 	Notify() NotifyServer
 	Rely() RelyService
@@ -38,8 +40,11 @@ type Repository interface {
 	Gateway() external.ManagementService
 }
 
-func NewService(db *gorm.DB, RuntimePath string) Repository {
-
+func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Repository {
+	if socket == nil {
+		logger.Error("socket is nil", zap.Any("error", "socket is nil"))
+	}
+	SocketServer = socket
 	gatewayManagement, err := external.NewManagementService(RuntimePath)
 	if err != nil && len(RuntimePath) > 0 {
 		panic(err)
@@ -47,8 +52,6 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 
 	return &store{
 		gateway:     gatewayManagement,
-		app:         NewAppService(db),
-		docker:      NewDockerService(),
 		casa:        NewCasaService(),
 		notify:      NewNotifyService(db),
 		rely:        NewRelyService(db),
@@ -60,8 +63,6 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 
 type store struct {
 	db          *gorm.DB
-	app         AppService
-	docker      DockerService
 	casa        CasaService
 	notify      NotifyServer
 	rely        RelyService
@@ -74,9 +75,11 @@ type store struct {
 func (c *store) Gateway() external.ManagementService {
 	return c.gateway
 }
+
 func (s *store) Connections() ConnectionsService {
 	return s.connections
 }
+
 func (s *store) Shares() SharesService {
 	return s.shares
 }
@@ -88,17 +91,9 @@ func (c *store) Rely() RelyService {
 func (c *store) System() SystemService {
 	return c.system
 }
+
 func (c *store) Notify() NotifyServer {
-
 	return c.notify
-}
-
-func (c *store) App() AppService {
-	return c.app
-}
-
-func (c *store) Docker() DockerService {
-	return c.docker
 }
 
 func (c *store) Casa() CasaService {

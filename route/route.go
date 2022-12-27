@@ -49,7 +49,6 @@ func InitRouter() *gin.Engine {
 	// r.GET("/v1/guide/check", v1.GetGuideCheck)         // /v1/sys/guide_check
 	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
 
-	r.GET("/v1/sys/socket-port", v1.GetSystemSocketPort) //sys/socket_port
 	r.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
 	r.GET("/ping", func(ctx *gin.Context) {
 		ctx.String(200, "pong")
@@ -58,68 +57,6 @@ func InitRouter() *gin.Engine {
 
 	v1Group.Use(jwt.ExceptLocalhost())
 	{
-		// v1UsersGroup := v1Group.Group("/users")
-		// v1UsersGroup.Use()
-		// {
-		// 	v1UsersGroup.GET("/current", v1.GetUserInfo)
-		// 	v1UsersGroup.PUT("/current", v1.PutUserInfo)
-		// 	v1UsersGroup.PUT("/current/password", v1.PutUserPassword)
-
-		// 	v1UsersGroup.GET("/current/custom/:key", v1.GetUserCustomConf)
-		// 	v1UsersGroup.POST("/current/custom/:key", v1.PostUserCustomConf)
-		// 	v1UsersGroup.DELETE("/current/custom/:key", v1.DeleteUserCustomConf)
-
-		// 	v1UsersGroup.POST("/current/image/:key", v1.PostUserUploadImage)
-		// 	v1UsersGroup.PUT("/current/image/:key", v1.PutUserImage)
-		// 	//v1UserGroup.POST("/file/image/:key", v1.PostUserFileImage)
-		// 	v1UsersGroup.DELETE("/current/image", v1.DeleteUserImage)
-
-		// 	//v1UserGroup.PUT("/avatar", v1.PutUserAvatar)
-		// 	//v1UserGroup.GET("/avatar", v1.GetUserAvatar)
-		// 	v1UsersGroup.DELETE("/:id", v1.DeleteUser)
-		// 	v1UsersGroup.GET("/:username", v1.GetUserInfoByUsername)
-		// 	v1UsersGroup.DELETE("", v1.DeleteUserAll)
-		// }
-
-		v1AppsGroup := v1Group.Group("/apps")
-		v1AppsGroup.Use()
-		{
-			v1AppsGroup.GET("", v1.AppList) // list
-			v1AppsGroup.GET("/:id", v1.AppInfo)
-		}
-		v1ContainerGroup := v1Group.Group("/container")
-		v1ContainerGroup.Use()
-		{
-
-			v1ContainerGroup.GET("", v1.MyAppList) ///my/list
-			v1ContainerGroup.GET("/usage", v1.AppUsageList)
-			v1ContainerGroup.GET("/:id", v1.ContainerUpdateInfo)    ///update/:id/info
-			v1ContainerGroup.GET("/:id/logs", v1.ContainerLog)      // /app/logs/:id
-			v1ContainerGroup.GET("/networks", v1.GetDockerNetworks) // app/install/config
-
-			v1ContainerGroup.GET("/:id/state", v1.GetContainerState) // app/state/:id ?state=install_progress
-			// there are problems, temporarily do not deal with
-			v1ContainerGroup.GET("/:id/terminal", v1.DockerTerminal) // app/terminal/:id
-			v1ContainerGroup.POST("", v1.InstallApp)                 // app/install
-			// v1ContainerGroup.GET("/:id", v1.ContainerInfo) // /app/info/:id
-
-			v1ContainerGroup.PUT("/:id", v1.UpdateSetting) ///update/:id/setting
-
-			v1ContainerGroup.PUT("/:id/state", v1.ChangAppState) // /app/state/:id
-			v1ContainerGroup.DELETE("/:id", v1.UnInstallApp)     // app/uninstall/:id
-			// Not used
-			v1ContainerGroup.PUT("/:id/latest", v1.PutAppUpdate)
-			// Not used
-			v1ContainerGroup.POST("/share", v1.ShareAppFile)
-			v1ContainerGroup.GET("/info", v1.GetDockerDaemonConfiguration)
-			v1ContainerGroup.PUT("/info", v1.PutDockerDaemonConfiguration)
-
-		}
-		v1AppCategoriesGroup := v1Group.Group("/app-categories")
-		v1AppCategoriesGroup.Use()
-		{
-			v1AppCategoriesGroup.GET("", v1.CategoryList)
-		}
 
 		v1SysGroup := v1Group.Group("/sys")
 		v1SysGroup.Use()
@@ -148,7 +85,6 @@ func InitRouter() *gin.Engine {
 
 			v1SysGroup.GET("/server-info", nil)
 			v1SysGroup.PUT("/server-info", nil)
-			v1SysGroup.GET("/apps-state", v1.GetSystemAppsStatus)
 			// v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			// v1SysGroup.PUT("/port", v1.PutCasaOSPort)
 			v1SysGroup.GET("/proxy", v1.GetSystemProxy)
@@ -182,6 +118,7 @@ func InitRouter() *gin.Engine {
 			v1FolderGroup.PUT("/name", v1.RenamePath)
 			v1FolderGroup.GET("", v1.DirPath)   ///file/dirpath
 			v1FolderGroup.POST("", v1.MkdirAll) ///file/mkdir
+			v1FolderGroup.GET("/size", v1.GetSize)
 		}
 		v1BatchGroup := v1Group.Group("/batch")
 		v1BatchGroup.Use()
@@ -222,6 +159,8 @@ func InitRouter() *gin.Engine {
 			v1NotifyGroup.POST("/:path", v1.PostNotifyMessage)
 			// merge to system
 			v1NotifyGroup.POST("/system_status", v1.PostSystemStatusNotify)
+			v1NotifyGroup.POST("/install_app", v1.PostInstallAppNotify)
+			v1NotifyGroup.POST("/uninstall_app", v1.PostUninstallAppNotify)
 		}
 	}
 	return r
