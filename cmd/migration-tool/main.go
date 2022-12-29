@@ -17,10 +17,10 @@ import (
 
 	interfaces "github.com/IceWhaleTech/CasaOS-Common"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
-	"github.com/IceWhaleTech/CasaOS-Gateway/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
 	"github.com/IceWhaleTech/CasaOS/service"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"gorm.io/gorm"
 )
 
@@ -29,40 +29,35 @@ const (
 )
 
 var (
+	commit = "private build"
+	date   = "private build"
+
 	_logger  *Logger
 	sqliteDB *gorm.DB
-)
 
-var (
 	configFlag = ""
 	dbFlag     = ""
 )
 
 func init() {
-	config.InitSetup(configFlag)
-
-	if len(dbFlag) == 0 {
-		dbFlag = config.AppInfo.DBPath + "/db"
-	}
-
-	sqliteDB = sqlite.GetDb(dbFlag)
-	// gredis.GetRedisConn(config.RedisInfo),
-
-	service.MyService = service.NewService(sqliteDB, "", nil)
-}
-
-func main() {
 	versionFlag := flag.Bool("v", false, "version")
 	debugFlag := flag.Bool("d", true, "debug")
 	forceFlag := flag.Bool("f", true, "force")
+
 	flag.Parse()
-	_logger = NewLogger()
+
 	if *versionFlag {
-		fmt.Println(common.Version)
+		fmt.Println("v" + types.CURRENTVERSION)
 		os.Exit(0)
 	}
 
+	println("git commit:", commit)
+	println("build date:", date)
+
+	_logger = NewLogger()
+
 	if os.Getuid() != 0 {
+		_logger.Info("Root privileges are required to run this program.")
 		os.Exit(1)
 	}
 
@@ -82,6 +77,19 @@ func main() {
 		}
 	}
 
+	config.InitSetup(configFlag)
+
+	if len(dbFlag) == 0 {
+		dbFlag = config.AppInfo.DBPath + "/db"
+	}
+
+	sqliteDB = sqlite.GetDb(dbFlag)
+	// gredis.GetRedisConn(config.RedisInfo),
+
+	service.MyService = service.NewService(sqliteDB, "", nil)
+}
+
+func main() {
 	migrationTools := []interfaces.MigrationTool{
 		// nothing to migrate from last version
 	}
