@@ -32,6 +32,9 @@ const LOCALHOST = "127.0.0.1"
 var sqliteDB *gorm.DB
 
 var (
+	commit = "private build"
+	date   = "private build"
+
 	configFlag  = flag.String("c", "", "config address")
 	dbFlag      = flag.String("db", "", "db path")
 	versionFlag = flag.Bool("v", false, "version")
@@ -43,6 +46,10 @@ func init() {
 		fmt.Println("v" + types.CURRENTVERSION)
 		return
 	}
+
+	println("git commit:", commit)
+	println("build date:", date)
+
 	config.InitSetup(*configFlag)
 
 	logger.LogInit(config.AppInfo.LogPath, config.AppInfo.LogSaveName, config.AppInfo.LogFileExt)

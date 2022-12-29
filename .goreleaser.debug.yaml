@@ -25,9 +25,6 @@ builds:
       - linux
     goarch:
       - amd64
-    hooks:
-      post:
-        - find build/sysroot -type f | xargs -L 1 realpath --relative-to=build/sysroot > build/sysroot.manifest
   - id: casaos-arm64
     binary: build/sysroot/usr/bin/casaos
     env:
@@ -44,9 +41,6 @@ builds:
       - linux
     goarch:
       - arm64
-    hooks:
-      post:
-        - find build/sysroot -type f | xargs -L 1 realpath --relative-to=build/sysroot > build/sysroot.manifest
   - id: casaos-arm-7
     binary: build/sysroot/usr/bin/casaos
     env:
@@ -65,9 +59,6 @@ builds:
       - arm
     goarm:
       - "7"
-    hooks:
-      post:
-        - find build/sysroot -type f | xargs -L 1 realpath --relative-to=build/sysroot > build/sysroot.manifest
   - id: casaos-migration-tool-amd64
     binary: build/sysroot/usr/bin/casaos-migration-tool
     main: ./cmd/migration-tool

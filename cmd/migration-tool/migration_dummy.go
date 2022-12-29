@@ -55,6 +55,6 @@ func (u *migrationTool) PostMigrate() error {
 	return nil
 }
 
-func NewMigrationToolFor_036() interfaces.MigrationTool {
+func NewMigrationDummy() interfaces.MigrationTool {
 	return &migrationTool{}
 }
