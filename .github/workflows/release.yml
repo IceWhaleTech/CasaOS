@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt update 
           sudo apt-get --no-install-recommends --yes install \
-            libc6-dev-amd64-cross \
+            upx libc6-dev-amd64-cross \
             gcc-aarch64-linux-gnu libc6-dev-arm64-cross \
             gcc-arm-linux-gnueabihf libc6-dev-armhf-cross
       -
