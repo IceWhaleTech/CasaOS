@@ -1,0 +1,36 @@
+pre_install() {
+    if [[ -f "${PREFIX}/etc/udev/rules.d/11-usb-mount.rules" ]]; then
+        rm -rf "${PREFIX}/etc/udev/rules.d/11-usb-mount.rules"
+    fi
+
+    if [[ -f "${PREFIX}/etc/systemd/system/usb-mount@.service" ]]; then
+        rm -rf "${PREFIX}/etc/systemd/system/usb-mount@.service"
+    fi
+
+    if [[ -f $PREFIX${UDEVIL_CONF_PATH} ]]; then
+        USERNAME=devmon
+        id ${USERNAME} &>/dev/null || {
+            useradd -M -u 300 ${USERNAME}
+            usermod -L ${USERNAME}
+        }
+
+        systemctl enable --now devmon@devmon
+    fi
+}
+post_install() {
+    systemctl enable --now casaos.service
+    systemctl enable --now casaos-app-management.service
+    systemctl enable --now casaos-gateway.service
+    systemctl enable --now casaos-local-storage.service
+    systemctl enable --now casaos-message-bus.service
+    systemctl enable --now casaos-user-service.service
+}
+
+post_upgrade() {
+    systemctl restart casaos.service
+    systemctl restart casaos-app-management.service
+    systemctl restart casaos-gateway.service
+    systemctl restart casaos-local-storage.service
+    systemctl restart casaos-message-bus.service
+    systemctl restart casaos-user-service.service    
+}
