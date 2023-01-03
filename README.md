@@ -7,9 +7,9 @@
 <p align="center">
     <!-- CasaOS Banner -->
     <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_dark_night_800px.png">
-        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_twilight_blue_800px.png">
-        <img alt="CasaOS" src="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_twilight_blue_800px.png">
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_dark_night_800x300.png">
+        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_twilight_blue_800x300.png">
+        <img alt="CasaOS" src="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_twilight_blue_800x300.png">
     </picture>
     <br/>
     <i>Connect with the community developing HOME CLOUD, creating self-sovereign, and defining the future of the distributed cloud.</i>
@@ -114,19 +114,20 @@ Community Support
 - Armbian 22.04 (✅ Tested)
 - Alpine (🚧 Not Fully Tested Yet)
 - OpenWrt (🚧 Not Fully Tested Yet)
+- ArchLinux (🚧 Not Fully Tested Yet)
 
 ### Quick Setup CasaOS
 
 Freshly install a system from the list above and run this command:
 
 ```sh
-wget -qO- https://get.casaos.io | bash
+wget -qO- https://get.casaos.io | sudo bash
 ```
 
 or
 
 ```sh
-curl -fsSL https://get.casaos.io | bash
+curl -fsSL https://get.casaos.io | sudo bash
 ```
 
 ### Uninstall CasaOS
@@ -141,7 +142,7 @@ casaos-uninstall
 Before v0.3.3
 
 ```sh
-curl -fsSL https://get.icewhale.io/casaos-uninstall.sh | bash
+curl -fsSL https://get.icewhale.io/casaos-uninstall.sh | sudo bash
 ```
 
 ## Community 
@@ -170,6 +171,8 @@ CasaOS is a community-driven open source project and the people involved are Cas
 
 We are refining documentation that can be used for effective community collaboration. Feel free to start a discussion if you have a good idea.
 
+- See <https://wiki.casaos.io/en/contribute/development> if you want to be involved in code contribution specificially
+
 ### Helping Users 💬
 
 If you have extensive knowledge of CasaOS and related areas. We highly encourage you to help others as much as you can in Discord and Discussions.
@@ -193,6 +196,10 @@ The documentation is being refined and you can contact @JohnGuan via [Discord](h
 ### Writing Documentation 📖 (WIP)
 
 Help make our documentation better by writing new content for the CasaOS Wiki, correcting existing material, or translating content into new languages.
+
+### Others
+
+- See <https://wiki.casaos.io/en/contribute> for ways of contribution to CasaOS
 
   </p>
 </details>

@@ -1,65 +1,63 @@
+/*
+ * @Author: LinkLeong link@icewhale.org
+ * @Date: 2022-11-15 15:51:44
+ * @LastEditors: LinkLeong
+ * @LastEditTime: 2022-11-15 15:55:16
+ * @FilePath: /CasaOS/route/init.go
+ * @Description:
+ * @Website: https://www.casaos.io
+ * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ */
 package route
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
 	"github.com/IceWhaleTech/CasaOS/service"
-	model2 "github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/IceWhaleTech/CasaOS/types"
 	"go.uber.org/zap"
 )
 
 func InitFunction() {
-	CheckSerialDiskMount()
 	go InitNetworkMount()
+	go InitInfo()
 }
 
-func CheckSerialDiskMount() {
-	// check mount point
-	dbList := service.MyService.Disk().GetSerialAll()
-
-	list := service.MyService.Disk().LSBLK(true)
-	mountPoint := make(map[string]string, len(dbList))
-	//remount
-	for _, v := range dbList {
-		mountPoint[v.UUID] = v.MountPoint
-	}
-	for _, v := range list {
-		command.ExecEnabledSMART(v.Path)
-		if v.Children != nil {
-			for _, h := range v.Children {
-				//if len(h.MountPoint) == 0 && len(v.Children) == 1 && h.FsType == "ext4" {
-				if m, ok := mountPoint[h.UUID]; ok {
-					//mount point check
-					volume := m
-					if !file.CheckNotExist(m) {
-						for i := 0; file.CheckNotExist(volume); i++ {
-							volume = m + strconv.Itoa(i+1)
-						}
-					}
-					service.MyService.Disk().MountDisk(h.Path, volume)
-					if volume != m {
-						ms := model2.SerialDisk{}
-						ms.UUID = v.UUID
-						ms.MountPoint = volume
-						service.MyService.Disk().UpdateMountPoint(ms)
-					}
-
-				}
-				//}
-			}
+func InitInfo() {
+	mb := model.BaseInfo{}
+	if file.Exists(config.AppInfo.DBPath + "/baseinfo.conf") {
+		err := json.Unmarshal(file.ReadFullFile(config.AppInfo.DBPath+"/baseinfo.conf"), &mb)
+		if err != nil {
+			logger.Error("baseinfo.conf", zap.String("error", err.Error()))
 		}
 	}
-	service.MyService.Disk().RemoveLSBLKCache()
-	command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;AutoRemoveUnuseDir")
+	if file.Exists("/etc/CHANNEL") {
+		channel := file.ReadFullFile("/etc/CHANNEL")
+		mb.Channel = string(channel)
+	}
+	mac, err := service.MyService.System().GetMacAddress()
+	if err != nil {
+		logger.Error("GetMacAddress", zap.String("error", err.Error()))
+	}
+	mb.Hash = encryption.GetMD5ByStr(mac)
+	mb.Version = types.CURRENTVERSION
+	os.Remove(config.AppInfo.DBPath + "/baseinfo.conf")
+	by, err := json.Marshal(mb)
+	if err != nil {
+		logger.Error("init info err", zap.Any("err", err))
+		return
+	}
+	file.WriteToFullPath(by, config.AppInfo.DBPath+"/baseinfo.conf", 0o666)
 }
 
 func InitNetworkMount() {
@@ -70,7 +68,7 @@ func InitNetworkMount() {
 		directories, err := samba.GetSambaSharesList(connection.Host, connection.Port, connection.Username, connection.Password)
 		if err != nil {
 			service.MyService.Connections().DeleteConnection(fmt.Sprint(connection.ID))
-			loger.Error("mount samba err", zap.Any("err", err), zap.Any("info", connection))
+			logger.Error("mount samba err", zap.Any("err", err), zap.Any("info", connection))
 			continue
 		}
 		baseHostPath := "/mnt/" + connection.Host

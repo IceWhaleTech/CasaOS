@@ -23,31 +23,28 @@ import (
 	"github.com/go-ini/ini"
 )
 
-//系统配置
+// 系统配置
 var SysInfo = &model.SysInfoModel{}
 
-//用户相关
+// 用户相关
 var AppInfo = &model.APPModel{}
 
 var CommonInfo = &model.CommonModel{}
 
-//var RedisInfo = &model.RedisModel{}
+// var RedisInfo = &model.RedisModel{}
 
-//server相关
+// server相关
 var ServerInfo = &model.ServerModel{}
 
 var SystemConfigInfo = &model.SystemConfig{}
-
-var CasaOSGlobalVariables = &model.CasaOSGlobalVariables{}
 
 var FileSettingInfo = &model.FileSetting{}
 
 var Cfg *ini.File
 
-//初始化设置，获取系统的部分信息。
+// 初始化设置，获取系统的部分信息。
 func InitSetup(config string) {
-
-	var configDir = USERCONFIGURL
+	configDir := USERCONFIGURL
 	if len(config) > 0 {
 		configDir = config
 	}
@@ -55,7 +52,7 @@ func InitSetup(config string) {
 		configDir = "./conf/conf.conf"
 	}
 	var err error
-	//读取文件
+	// 读取文件
 	Cfg, err = ini.Load(configDir)
 	if err != nil {
 		Cfg, err = ini.Load("/etc/casaos.conf")
@@ -68,7 +65,7 @@ func InitSetup(config string) {
 		}
 	}
 	mapTo("app", AppInfo)
-	//mapTo("redis", RedisInfo)
+	// mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)
 	mapTo("file", FileSettingInfo)
@@ -86,18 +83,14 @@ func InitSetup(config string) {
 	if len(AppInfo.UserDataPath) == 0 {
 		AppInfo.UserDataPath = "/var/lib/casaos/conf"
 	}
-	if len(AppInfo.TempPath) == 0 {
-		AppInfo.TempPath = "/var/lib/casaos/temp"
-	}
 	if len(CommonInfo.RuntimePath) == 0 {
 		CommonInfo.RuntimePath = "/var/run/casaos"
 	}
 	Cfg.SaveTo(configDir)
 	//	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
-
 }
 
-//映射
+// 映射
 func mapTo(section string, v interface{}) {
 	err := Cfg.Section(section).MapTo(v)
 	if err != nil {
@@ -114,6 +107,7 @@ func getCurrentAbPathByCaller() string {
 	}
 	return abPath
 }
+
 func getCurrentDirectory() string {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {

@@ -1,0 +1,1 @@
+../cleanup-casaos.sh

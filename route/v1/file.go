@@ -15,13 +15,14 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
+	"go.uber.org/zap"
 )
 
 // @Summary 读取文件
@@ -48,7 +49,7 @@ func GetFilerContent(c *gin.Context) {
 		})
 		return
 	}
-	//文件读取任务是将文件内容读取到内存中。
+	// 文件读取任务是将文件内容读取到内存中。
 	info, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{
@@ -84,7 +85,6 @@ func GetLocalFile(c *gin.Context) {
 		return
 	}
 	c.File(path)
-	return
 }
 
 // @Summary download
@@ -97,7 +97,6 @@ func GetLocalFile(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/download [get]
 func GetDownloadFile(c *gin.Context) {
-
 	t := c.Query("format")
 
 	files := c.Query("files")
@@ -136,11 +135,11 @@ func GetDownloadFile(c *gin.Context) {
 		}
 		if !info.IsDir() {
 
-			//打开文件
+			// 打开文件
 			fileTmp, _ := os.Open(filePath)
 			defer fileTmp.Close()
 
-			//获取文件的名称
+			// 获取文件的名称
 			fileName := path.Base(filePath)
 			c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
 			c.File(filePath)
@@ -180,13 +179,12 @@ func GetDownloadFile(c *gin.Context) {
 			log.Printf("Failed to archive %s: %v", fname, err)
 		}
 	}
-
 }
 
 func GetDownloadSingleFile(c *gin.Context) {
 	filePath := c.Query("path")
 	if len(filePath) == 0 {
-		c.JSON(service.ClientCount, model.Result{
+		c.JSON(common_err.CLIENT_ERROR, model.Result{
 			Success: common_err.INVALID_PARAMS,
 			Message: common_err.GetMsg(common_err.INVALID_PARAMS),
 		})
@@ -203,7 +201,7 @@ func GetDownloadSingleFile(c *gin.Context) {
 	defer fileTmp.Close()
 
 	fileName := path.Base(filePath)
-	//c.Header("Content-Disposition", "inline")
+	// c.Header("Content-Disposition", "inline")
 	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
 	c.File(filePath)
 }
@@ -224,45 +222,7 @@ func DirPath(c *gin.Context) {
 	for _, v := range shares {
 		sharesMap[v.Path] = fmt.Sprint(v.ID)
 	}
-	if path == "/DATA/AppData" {
-		list := service.MyService.Docker().DockerContainerList()
-		apps := make(map[string]string, len(list))
-		for _, v := range list {
-			apps[strings.ReplaceAll(v.Names[0], "/", "")] = strings.ReplaceAll(v.Names[0], "/", "")
-		}
-		for i := 0; i < len(info); i++ {
-			if v, ok := apps[info[i].Name]; ok {
-				info[i].Label = v
-				info[i].Type = "application"
-			}
-		}
-	} else if path == "/DATA" {
-		disk := make(map[string]string)
-		lsblk := service.MyService.Disk().LSBLK(true)
-		for _, v := range lsblk {
-			if len(v.Children) > 0 {
-				t := v.Tran
-				for _, c := range v.Children {
-					if len(c.Children) > 0 {
-						for _, gc := range c.Children {
-							if len(gc.MountPoint) > 0 {
-								disk[gc.MountPoint] = t
-							}
-						}
-					}
-					if len(c.MountPoint) > 0 {
-						disk[c.MountPoint] = t
-					}
-				}
 
-			}
-		}
-		for i := 0; i < len(info); i++ {
-			if v, ok := disk[info[i].Path]; ok {
-				info[i].Type = v
-			}
-		}
-	}
 	for i := 0; i < len(info); i++ {
 		if v, ok := sharesMap[info[i].Path]; ok {
 			ex := make(map[string]interface{})
@@ -274,7 +234,7 @@ func DirPath(c *gin.Context) {
 			info[i].Extensions = ex
 		}
 	}
-	//Hide the files or folders in operation
+	// Hide the files or folders in operation
 	fileQueue := make(map[string]string)
 	if len(service.OpStrArr) > 0 {
 		for _, v := range service.OpStrArr {
@@ -292,6 +252,9 @@ func DirPath(c *gin.Context) {
 
 	pathList := []model.Path{}
 	for i := 0; i < len(info); i++ {
+		if info[i].Name == ".temp" && info[i].IsDir {
+			continue
+		}
 		if _, ok := fileQueue[info[i].Path]; !ok {
 			pathList = append(pathList, info[i])
 		}
@@ -384,7 +347,6 @@ func PostCreateFile(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/upload [get]
 func GetFileUpload(c *gin.Context) {
-
 	relative := c.Query("relativePath")
 	fileName := c.Query("filename")
 	chunkNumber := c.Query("chunkNumber")
@@ -392,7 +354,7 @@ func GetFileUpload(c *gin.Context) {
 	path := c.Query("path")
 	dirPath := ""
 	hash := file.GetHashByContent([]byte(fileName))
-	tempDir := config.AppInfo.TempPath + "/" + hash + strconv.Itoa(totalChunks) + "/"
+	tempDir := filepath.Join(path, ".temp", hash+strconv.Itoa(totalChunks)) + "/"
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
 		tempDir += dirPath
@@ -428,55 +390,91 @@ func PostFileUpload(c *gin.Context) {
 	hash := file.GetHashByContent([]byte(fileName))
 
 	if len(path) == 0 {
-		c.JSON(common_err.INVALID_PARAMS, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+		logger.Error("path should not be empty")
+		c.JSON(http.StatusBadRequest, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
-	tempDir := config.AppInfo.TempPath + "/" + hash + strconv.Itoa(totalChunks) + "/"
+	tempDir := filepath.Join(path, ".temp", hash+strconv.Itoa(totalChunks)) + "/"
 
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
 		tempDir += dirPath
-		file.MkDir(path + "/" + dirPath)
+		if err := file.MkDir(path + "/" + dirPath); err != nil {
+			logger.Error("error when trying to create `"+path+"/"+dirPath+"`", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
+			return
+		}
 	}
 
 	path += "/" + relative
 
 	if !file.CheckNotExist(tempDir + chunkNumber) {
-		file.RMDir(tempDir + chunkNumber)
+		if err := file.RMDir(tempDir + chunkNumber); err != nil {
+			logger.Error("error when trying to remove existing `"+tempDir+chunkNumber+"`", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
+			return
+		}
 	}
 
 	if totalChunks > 1 {
-		file.IsNotExistMkDir(tempDir)
-
-		out, _ := os.OpenFile(tempDir+chunkNumber, os.O_WRONLY|os.O_CREATE, 0644)
-		defer out.Close()
-		_, err := io.Copy(out, f)
-		if err != nil {
-			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		if err := file.IsNotExistMkDir(tempDir); err != nil {
+			logger.Error("error when trying to create `"+tempDir+"`", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 			return
+		}
+
+		out, err := os.OpenFile(tempDir+chunkNumber, os.O_WRONLY|os.O_CREATE, 0o644)
+		if err != nil {
+			logger.Error("error when trying to open `"+tempDir+chunkNumber+"` for creation", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
+			return
+		}
+
+		defer out.Close()
+
+		if _, err := io.Copy(out, f); err != nil { // recommend to use https://github.com/iceber/iouring-go for faster copy
+			logger.Error("error when trying to write to `"+tempDir+chunkNumber+"`", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
+			return
+		}
+
+		fileNum, err := ioutil.ReadDir(tempDir)
+		if err != nil {
+			logger.Error("error when trying to read number of files under `"+tempDir+"`", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
+			return
+		}
+
+		if totalChunks == len(fileNum) {
+			if err := file.SpliceFiles(tempDir, path, totalChunks, 1); err != nil {
+				logger.Error("error when trying to splice files under `"+tempDir+"`", zap.Error(err))
+				c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
+				return
+			}
+
+			if err := file.RMDir(tempDir); err != nil {
+				logger.Error("error when trying to remove `"+tempDir+"`", zap.Error(err))
+				c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
+				return
+			}
 		}
 	} else {
-		out, _ := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0644)
-		defer out.Close()
-		_, err := io.Copy(out, f)
+		out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
-			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+			logger.Error("error when trying to open `"+path+"` for creation", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
-		return
-	}
-	fileNum, err := ioutil.ReadDir(tempDir)
-	if err != nil {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-		return
-	}
-	if totalChunks == len(fileNum) {
-		file.SpliceFiles(tempDir, path, totalChunks, 1)
-		file.RMDir(tempDir)
-	}
 
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+		defer out.Close()
+
+		if _, err := io.Copy(out, f); err != nil { // recommend to use https://github.com/iceber/iouring-go for faster copy
+			logger.Error("error when trying to write to `"+path+"`", zap.Error(err))
+			c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+			return
+		}
+	}
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary copy or move file
@@ -488,7 +486,6 @@ func PostFileUpload(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/operate [post]
 func PostOperateFileOrDir(c *gin.Context) {
-
 	list := model.FileOperate{}
 	c.ShouldBind(&list)
 
@@ -538,7 +535,6 @@ func PostOperateFileOrDir(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/delete [delete]
 func DeleteFile(c *gin.Context) {
-
 	paths := []string{}
 	c.ShouldBind(&paths)
 	if len(paths) == 0 {
@@ -570,7 +566,6 @@ func DeleteFile(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/update [put]
 func PutFileContent(c *gin.Context) {
-
 	fi := model.FileUpdate{}
 	c.ShouldBind(&fi)
 
@@ -580,7 +575,7 @@ func PutFileContent(c *gin.Context) {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 		return
 	}
-	//err := os.Remove(path)
+	// err := os.Remove(path)
 	err := os.RemoveAll(fi.FilePath)
 	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR), Data: err})
@@ -653,4 +648,15 @@ func DeleteOperateFileOrDir(c *gin.Context) {
 
 	go service.MyService.Notify().SendFileOperateNotify(true)
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+}
+func GetSize(c *gin.Context) {
+	json := make(map[string]string)
+	c.ShouldBind(&json)
+	path := json["path"]
+	size, err := file.GetFileOrDirSize(path)
+	if err != nil {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return
+	}
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: size})
 }

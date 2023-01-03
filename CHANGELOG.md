@@ -16,10 +16,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.4.0] - 2022-12-13
+### Added
+
+- [Developer] Included `casaos-cli` command tool for debugging
+- [Developer] Added message bus for events and actions - Use `casaos-cli message-bus` to manage.
+- [Disk] Disk notification in Dashboard
+- [System] Restart/shutdown directly from CasaOS Dashboard
+### Changed
+
+- [General] CasaOS new logo!
+- [App] Redesign of Featured App
+- [App] Now you can choose to delete userdata along with app uninstallation
+
+### Security
+
+- [System] Fixed a shell injection issue for better security
+
 ### Fixed
 
+- [System] Re-instate default zone0 for CPU Temp ([#694](https://github.com/IceWhaleTech/CasaOS/issues/694))
+- [Disk] Fixed storage name with extra `-1` after rebooting ([#698](https://github.com/IceWhaleTech/CasaOS/issues/698))
+- [Disk] Fixed disk check so it does not impact disk going into idle ([#704](https://github.com/IceWhaleTech/CasaOS/issues/704))
 
-## [0.3.6-alpha.1] - 2022-09-06
+## [0.3.8] 2022-11-21
+
+### Added
+- [System] Add system announcement
+- [App] Allow to turn off the display of "Existing Docker Apps" in the settings.
+
+### Changed
+- [System] Improve the feedback function, you can submit feedback in the bottom right corner of WebUI.
+
+### Fixed
+- [System] Fix CPU Temp for other platforms ([#661](https://github.com/IceWhaleTech/CasaOS/issues/661))
+
+## [0.3.7.1] 2022-11-04
+
+### Fixed
+
+- Fix memory leak issue ([#658](https://github.com/IceWhaleTech/CasaOS/issues/658)[#646](https://github.com/IceWhaleTech/CasaOS/issues/646))
+- Solve the problem of local application import failure ([#490](https://github.com/IceWhaleTech/CasaOS/issues/490))
+
+## [0.3.7] 2022-10-28
+
+### Added
+- [Storage] Disk merge (Beta), you can merge multiple disks into a single storage space (currently you need to enable this feature from the command line)
+
+### Changed
+- [Files] Changed the cache file storage location, now the file upload size is not limited by the system disk capacity.
+- [Scripts] Updated installation and upgrade scripts to support more Debian-based Linux distributions.
+- [Engineering] Refactored Local Storage into a standalone service as part of CasaOS modularization.
+
+### Fixed
+- [Apps] App list update mechanism improved, now you can see the latest apps in App Store immediately.
+- [Storage] Fixed a lot of known issues
+
+### Added
+- [Storage] Disk merge (Beta), you can merge multiple disks into a single storage space (currently you need to enable this feature from the command line)
+
+### Changed
+- [Files] Changed the cache file storage location, now the file upload size is not limited by the system disk capacity.
+- [Scripts] Updated installation and upgrade scripts to support more Debian-based Linux distributions.
+- [Engineering] Refactored Local Storage into a standalone service as part of CasaOS modularization.
+
+### Fixed
+- [Apps] App list update mechanism improved, now you can see the latest apps in App Store immediately.
+- [Storage] Fixed a lot of known issues
+
+
+## [0.3.6] - 2022-09-06
 
 ###  Added
 - [System] Added power and temperature info to performance widget (Intel)

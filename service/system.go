@@ -1,16 +1,19 @@
 package service
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	net2 "net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
@@ -30,8 +33,6 @@ type SystemService interface {
 	UpdateAssist()
 	UpSystemPort(port string)
 	GetTimeZone() string
-	UpdateUSBAutoMount(state string)
-	ExecUSBAutoMountShell(state string)
 	UpAppOrderFile(str, id string)
 	GetAppOrderFile(id string) []byte
 	GetNet(physics bool) []string
@@ -52,14 +53,26 @@ type SystemService interface {
 	IsServiceRunning(name string) bool
 	GetCPUTemperature() int
 	GetCPUPower() map[string]string
+	GetMacAddress() (string, error)
+	SystemReboot() error
+	SystemShutdown() error
 }
-type systemService struct {
-}
+type systemService struct{}
 
-func (s *systemService) UpdateUSBAutoMount(state string) {
-	config.ServerInfo.USBAutoMount = state
-	config.Cfg.Section("server").Key("USBAutoMount").SetValue(state)
-	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
+func (c *systemService) GetMacAddress() (string, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+	nets := MyService.System().GetNet(true)
+	for _, v := range interfaces {
+		for _, n := range nets {
+			if v.Name == n {
+				return v.HardwareAddr, nil
+			}
+		}
+	}
+	return "", errors.New("not found")
 }
 
 func (c *systemService) MkdirAll(path string) (int, error) {
@@ -76,8 +89,8 @@ func (c *systemService) MkdirAll(path string) (int, error) {
 	}
 	return common_err.SERVICE_ERROR, err
 }
-func (c *systemService) RenameFile(oldF, newF string) (int, error) {
 
+func (c *systemService) RenameFile(oldF, newF string) (int, error) {
 	_, err := os.Stat(newF)
 	if err == nil {
 		return common_err.DIR_ALREADY_EXISTS, nil
@@ -92,6 +105,7 @@ func (c *systemService) RenameFile(oldF, newF string) (int, error) {
 	}
 	return common_err.SERVICE_ERROR, err
 }
+
 func (c *systemService) CreateFile(path string) (int, error) {
 	_, err := os.Stat(path)
 	if err == nil {
@@ -104,9 +118,11 @@ func (c *systemService) CreateFile(path string) (int, error) {
 	}
 	return common_err.SERVICE_ERROR, err
 }
+
 func (c *systemService) GetDeviceTree() string {
 	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDeviceTree")
 }
+
 func (c *systemService) GetSysInfo() host.InfoStat {
 	info, _ := host.Info()
 	return *info
@@ -128,9 +144,7 @@ func (c *systemService) GetNetState(name string) string {
 }
 
 func (c *systemService) GetDirPathOne(path string) (m model.Path) {
-
 	f, err := os.Stat(path)
-
 	if err != nil {
 		return
 	}
@@ -175,6 +189,7 @@ func (c *systemService) GetDirPath(path string) []model.Path {
 	}
 	return dirs
 }
+
 func (c *systemService) GetCpuInfo() []cpu.InfoStat {
 	info, _ := cpu.Info()
 	return info
@@ -207,6 +222,7 @@ func (c *systemService) GetNetInfo() []net.IOCountersStat {
 	parts, _ := net.IOCounters(true)
 	return parts
 }
+
 func (c *systemService) GetNet(physics bool) []string {
 	t := "1"
 	if physics {
@@ -220,25 +236,23 @@ func (s *systemService) UpdateSystemVersion(version string) {
 		os.Remove(config.AppInfo.LogPath + "/upgrade.log")
 	}
 	file.CreateFile(config.AppInfo.LogPath + "/upgrade.log")
-	//go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/update.sh | bash")
-	go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/IceWhaleTech/get/main/update.sh | bash")
-	//s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
-	//s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
+	// go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/update.sh | bash")
+	if len(config.ServerInfo.UpdateUrl) > 0 {
+		go command2.OnlyExec("curl -fsSL " + config.ServerInfo.UpdateUrl + " | bash")
+	} else {
+		go command2.OnlyExec("curl -fsSL https://get.casaos.io/update | bash")
+	}
+
+	// s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
+	// s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
 }
+
 func (s *systemService) UpdateAssist() {
 	command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/assist.sh")
 }
 
 func (s *systemService) GetTimeZone() string {
 	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetTimeZone")
-}
-
-func (s *systemService) ExecUSBAutoMountShell(state string) {
-	if state == "False" {
-		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Stop_Auto")
-	} else {
-		command2.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;USB_Start_Auto")
-	}
 }
 
 func (s *systemService) GetSystemConfigDebug() []string {
@@ -248,9 +262,11 @@ func (s *systemService) GetSystemConfigDebug() []string {
 func (s *systemService) UpAppOrderFile(str, id string) {
 	file.WriteToPath([]byte(str), config.AppInfo.DBPath+"/"+id, "app_order.json")
 }
+
 func (s *systemService) GetAppOrderFile(id string) []byte {
 	return file.ReadFullFile(config.AppInfo.UserDataPath + "/" + id + "/app_order.json")
 }
+
 func (s *systemService) UpSystemPort(port string) {
 	if len(port) > 0 && port != config.ServerInfo.HttpPort {
 		config.Cfg.Section("server").Key("HttpPort").SetValue(port)
@@ -258,6 +274,7 @@ func (s *systemService) UpSystemPort(port string) {
 	}
 	config.Cfg.SaveTo(config.SystemConfigInfo.ConfigPath)
 }
+
 func (s *systemService) GetCasaOSLogs(lineNumber int) string {
 	file, err := os.Open(filepath.Join(config.AppInfo.LogPath, fmt.Sprintf("%s.%s",
 		config.AppInfo.LogSaveName,
@@ -294,14 +311,55 @@ func GetDeviceAllIP() []string {
 func (s *systemService) IsServiceRunning(name string) bool {
 	status := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CheckServiceStatus smbd")
 	return strings.TrimSpace(status) == "running"
-
 }
+
+// find thermal_zone of cpu.
+// assertions:
+//   - thermal_zone "type" and "temp" are required fields
+//     (https://www.kernel.org/doc/Documentation/ABI/testing/sysfs-class-thermal)
+func GetCPUThermalZone() string {
+	keyName := "cpu_thermal_zone"
+
+	var path string
+	if result, ok := Cache.Get(keyName); ok {
+		path, ok = result.(string)
+		if ok {
+			return path
+		}
+	}
+
+	var name string
+	cpu_types := []string{"x86_pkg_temp", "cpu", "CPU", "soc"}
+	stub := "/sys/devices/virtual/thermal/thermal_zone"
+	for i := 0; i < 100; i++ {
+		path = stub + strconv.Itoa(i)
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			name = strings.TrimSuffix(string(file.ReadFullFile(path+"/type")), "\n")
+			for _, s := range cpu_types {
+				if strings.HasPrefix(name, s) {
+					logger.Info(fmt.Sprintf("CPU thermal zone found: %s, path: %s.", name, path))
+					Cache.SetDefault(keyName, path)
+					return path
+				}
+			}
+		} else {
+			if len(name) > 0 { //proves at least one zone
+				path = stub + "0"
+			} else {
+				path = ""
+			}
+			break
+		}
+	}
+	Cache.SetDefault(keyName, path)
+	return path
+}
+
 func (s *systemService) GetCPUTemperature() int {
 	outPut := ""
-	if file.Exists("/sys/class/thermal/thermal_zone0/temp") {
-		outPut = string(file.ReadFullFile("/sys/class/thermal/thermal_zone0/temp"))
-	} else if file.Exists("/sys/class/hwmon/hwmon0/temp1_input") {
-		outPut = string(file.ReadFullFile("/sys/class/hwmon/hwmon0/temp1_input"))
+	path := GetCPUThermalZone()
+	if len(path) > 0 {
+		outPut = string(file.ReadFullFile(path + "/temp"))
 	} else {
 		outPut = "0"
 	}
@@ -313,6 +371,7 @@ func (s *systemService) GetCPUTemperature() int {
 	}
 	return celsius
 }
+
 func (s *systemService) GetCPUPower() map[string]string {
 	data := make(map[string]string, 2)
 	data["timestamp"] = strconv.FormatInt(time.Now().Unix(), 10)
@@ -323,6 +382,28 @@ func (s *systemService) GetCPUPower() map[string]string {
 	}
 	return data
 }
+
+func (s *systemService) SystemReboot() error {
+	//cmd := exec.Command("/bin/bash", "-c", "reboot")
+	arg := []string{"6"}
+	cmd := exec.Command("init", arg...)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (s *systemService) SystemShutdown() error {
+	arg := []string{"0"}
+	cmd := exec.Command("init", arg...)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewSystemService() SystemService {
+
 	return &systemService{}
 }

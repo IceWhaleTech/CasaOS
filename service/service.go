@@ -11,47 +11,48 @@
 package service
 
 import (
-	gateway "github.com/IceWhaleTech/CasaOS-Gateway/common"
+	"github.com/IceWhaleTech/CasaOS-Common/external"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	socketio "github.com/googollee/go-socket.io"
 	"github.com/gorilla/websocket"
 	"github.com/patrickmn/go-cache"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 var Cache *cache.Cache
 
 var MyService Repository
-
-var WebSocketConns []*websocket.Conn
-var NewVersionApp map[string]string
-var SocketRun bool
+var SocketServer *socketio.Server
+var (
+	WebSocketConns []*websocket.Conn
+	SocketRun      bool
+)
 
 type Repository interface {
-	App() AppService
-	//User() UserService
-	Docker() DockerService
+	// User() UserService
 	Casa() CasaService
-	Disk() DiskService
 	Notify() NotifyServer
 	Rely() RelyService
 	System() SystemService
 	Shares() SharesService
 	Connections() ConnectionsService
-	Gateway() gateway.ManagementService
+	Gateway() external.ManagementService
 }
 
-func NewService(db *gorm.DB, RuntimePath string) Repository {
-
-	gatewayManagement, err := gateway.NewManagementService(RuntimePath)
+func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Repository {
+	if socket == nil {
+		logger.Error("socket is nil", zap.Any("error", "socket is nil"))
+	}
+	SocketServer = socket
+	gatewayManagement, err := external.NewManagementService(RuntimePath)
 	if err != nil && len(RuntimePath) > 0 {
 		panic(err)
 	}
 
 	return &store{
 		gateway:     gatewayManagement,
-		app:         NewAppService(db),
-		docker:      NewDockerService(),
 		casa:        NewCasaService(),
-		disk:        NewDiskService(db),
 		notify:      NewNotifyService(db),
 		rely:        NewRelyService(db),
 		system:      NewSystemService(),
@@ -62,24 +63,23 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 
 type store struct {
 	db          *gorm.DB
-	app         AppService
-	docker      DockerService
 	casa        CasaService
-	disk        DiskService
 	notify      NotifyServer
 	rely        RelyService
 	system      SystemService
 	shares      SharesService
 	connections ConnectionsService
-	gateway     gateway.ManagementService
+	gateway     external.ManagementService
 }
 
-func (c *store) Gateway() gateway.ManagementService {
+func (c *store) Gateway() external.ManagementService {
 	return c.gateway
 }
+
 func (s *store) Connections() ConnectionsService {
 	return s.connections
 }
+
 func (s *store) Shares() SharesService {
 	return s.shares
 }
@@ -91,23 +91,11 @@ func (c *store) Rely() RelyService {
 func (c *store) System() SystemService {
 	return c.system
 }
+
 func (c *store) Notify() NotifyServer {
-
 	return c.notify
-}
-
-func (c *store) App() AppService {
-	return c.app
-}
-
-func (c *store) Docker() DockerService {
-	return c.docker
 }
 
 func (c *store) Casa() CasaService {
 	return c.casa
-}
-
-func (c *store) Disk() DiskService {
-	return c.disk
 }

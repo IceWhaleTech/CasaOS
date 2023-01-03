@@ -30,6 +30,7 @@ const (
 	Record_NOT_EXIST                = 20007
 	Record_ALREADY_EXIST            = 20008
 	SERVICE_NOT_RUNNING             = 20009
+	CHARACTER_LIMIT                 = 20010
 
 	//disk
 	NAME_NOT_AVAILABLE       = 40001
@@ -85,6 +86,7 @@ var MsgFlags = map[int]string{
 	Record_ALREADY_EXIST: "Record already exists",
 	Record_NOT_EXIST:     "Record does not exist",
 	SERVICE_NOT_RUNNING:  "Service is not running",
+	CHARACTER_LIMIT:      "Only uppercase letters, lowercase letters and numbers are allowed for username and password.",
 
 	//app
 	UNINSTALL_APP_ERROR:  "Error uninstalling app",
@@ -113,7 +115,7 @@ var MsgFlags = map[int]string{
 	COMMAND_ERROR_INVALID_OPERATION: "invalid operation",
 }
 
-//获取错误信息
+// 获取错误信息
 func GetMsg(code int) string {
 	msg, ok := MsgFlags[code]
 	if ok {

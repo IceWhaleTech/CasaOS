@@ -5,17 +5,23 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"path/filepath"
 	"time"
 
-	"github.com/IceWhaleTech/CasaOS-Gateway/common"
-	"github.com/IceWhaleTech/CasaOS/model/notify"
+	"github.com/IceWhaleTech/CasaOS-Common/model"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/loger"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
+	"github.com/coreos/go-systemd/daemon"
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
@@ -25,9 +31,14 @@ const LOCALHOST = "127.0.0.1"
 
 var sqliteDB *gorm.DB
 
-var configFlag = flag.String("c", "", "config address")
-var dbFlag = flag.String("db", "", "db path")
-var versionFlag = flag.Bool("v", false, "version")
+var (
+	commit = "private build"
+	date   = "private build"
+
+	configFlag  = flag.String("c", "", "config address")
+	dbFlag      = flag.String("db", "", "db path")
+	versionFlag = flag.Bool("v", false, "version")
+)
 
 func init() {
 	flag.Parse()
@@ -35,29 +46,27 @@ func init() {
 		fmt.Println("v" + types.CURRENTVERSION)
 		return
 	}
-	config.InitSetup(*configFlag)
-	config.UpdateSetup()
 
-	loger.LogInit()
+	println("git commit:", commit)
+	println("build date:", date)
+
+	config.InitSetup(*configFlag)
+
+	logger.LogInit(config.AppInfo.LogPath, config.AppInfo.LogSaveName, config.AppInfo.LogFileExt)
 	if len(*dbFlag) == 0 {
 		*dbFlag = config.AppInfo.DBPath + "/db"
 	}
 
 	sqliteDB = sqlite.GetDb(*dbFlag)
-	//gredis.GetRedisConn(config.RedisInfo),
+	// gredis.GetRedisConn(config.RedisInfo),
 
-	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath)
+	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath, route.SocketIo())
 
 	service.Cache = cache.Init()
 
-	service.GetToken()
+	service.GetCPUThermalZone()
 
-	service.NewVersionApp = make(map[string]string)
 	route.InitFunction()
-
-	// go service.LoopFriend()
-	// go service.MyService.App().CheckNewImage()
-
 }
 
 // @title casaOS API
@@ -72,27 +81,28 @@ func init() {
 // @name Authorization
 // @BasePath /v1
 func main() {
-	service.NotifyMsg = make(chan notify.Message, 10)
 	if *versionFlag {
 		return
 	}
-	go route.SocketInit(service.NotifyMsg)
-	go route.MonitoryUSB()
-	//model.Setup()
-	//gredis.Setup()
+	// model.Setup()
+	// gredis.Setup()
 
 	r := route.InitRouter()
-	//service.SyncTask(sqliteDB)
+	defer service.SocketServer.Close()
+	r.GET("/v1/socketio/*any", gin.WrapH(service.SocketServer))
+	r.POST("/v1/socketio/*any", gin.WrapH(service.SocketServer))
+
+	// service.SyncTask(sqliteDB)
 	cron2 := cron.New()
-	//every day execution
+	// every day execution
 
 	err := cron2.AddFunc("0/5 * * * * *", func() {
 		if service.ClientCount > 0 {
-			//route.SendNetINfoBySocket()
-			//route.SendCPUBySocket()
-			//route.SendMemBySocket()
+			// route.SendNetINfoBySocket()
+			// route.SendCPUBySocket()
+			// route.SendMemBySocket()
 			// route.SendDiskBySocket()
-			//route.SendUSBBySocket()
+			// route.SendUSBBySocket()
 			route.SendAllHardwareStatusBySocket()
 		}
 	})
@@ -107,9 +117,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	routers := []string{"sys", "apps", "container", "app-categories", "port", "file", "folder", "batch", "image", "disks", "storage", "samba"}
+	routers := []string{"sys", "port", "file", "folder", "batch", "image", "samba", "notify", "socketio"}
 	for _, v := range routers {
-		err = service.MyService.Gateway().CreateRoute(&common.Route{
+		err = service.MyService.Gateway().CreateRoute(&model.Route{
 			Path:   "/v1/" + v,
 			Target: "http://" + listener.Addr().String(),
 		})
@@ -121,9 +131,9 @@ func main() {
 	}
 	go func() {
 		time.Sleep(time.Second * 2)
-		//v0.3.6
+		// v0.3.6
 		if config.ServerInfo.HttpPort != "" {
-			changePort := common.ChangePortRequest{}
+			changePort := model.ChangePortRequest{}
 			changePort.Port = config.ServerInfo.HttpPort
 			err := service.MyService.Gateway().ChangePort(&changePort)
 			if err == nil {
@@ -133,15 +143,34 @@ func main() {
 		}
 	}()
 
-	// s := &http.Server{
-	// 	Addr:           listener.Addr().String(), //fmt.Sprintf(":%v", config.ServerInfo.HttpPort),
-	// 	Handler:        r,
-	// 	ReadTimeout:    60 * time.Second,
-	// 	WriteTimeout:   60 * time.Second,
-	// 	MaxHeaderBytes: 1 << 20,
-	// }
-	// s.ListenAndServe()
-	err = http.Serve(listener, r)
+	urlFilePath := filepath.Join(config.CommonInfo.RuntimePath, "casaos.url")
+	if err := file.CreateFileAndWriteContent(urlFilePath, "http://"+listener.Addr().String()); err != nil {
+		logger.Error("error when creating address file", zap.Error(err),
+			zap.Any("address", listener.Addr().String()),
+			zap.Any("filepath", urlFilePath),
+		)
+	}
+
+	// run any script that needs to be executed
+	scriptDirectory := filepath.Join(constants.DefaultConfigPath, "start.d")
+	command.ExecuteScripts(scriptDirectory)
+
+	if supported, err := daemon.SdNotify(false, daemon.SdNotifyReady); err != nil {
+		logger.Error("Failed to notify systemd that casaos main service is ready", zap.Any("error", err))
+	} else if supported {
+		logger.Info("Notified systemd that casaos main service is ready")
+	} else {
+		logger.Info("This process is not running as a systemd service.")
+	}
+
+	s := &http.Server{
+		Handler:           r,
+		ReadHeaderTimeout: 5 * time.Second, // fix G112: Potential slowloris attack (see https://github.com/securego/gosec)
+	}
+
+	logger.Info("CasaOS main service is listening...", zap.Any("address", listener.Addr().String()))
+
+	err = s.Serve(listener) // not using http.serve() to fix G114: Use of net/http serve function that has no support for setting timeouts (see https://github.com/securego/gosec)
 	if err != nil {
 		panic(err)
 	}

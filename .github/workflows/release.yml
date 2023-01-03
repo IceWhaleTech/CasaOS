@@ -17,7 +17,7 @@ jobs:
         run: |
           sudo apt update 
           sudo apt-get --no-install-recommends --yes install \
-            libc6-dev-amd64-cross \
+            upx libc6-dev-amd64-cross \
             gcc-aarch64-linux-gnu libc6-dev-arm64-cross \
             gcc-arm-linux-gnueabihf libc6-dev-armhf-cross
       -
@@ -28,6 +28,10 @@ jobs:
       -
         name: Fetch all tags
         run: git fetch --force --tags
+        
+      - name: Get version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
       -
         name: Set up Go
         uses: actions/setup-go@v2
@@ -45,3 +49,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+      
+      - name: Upload to oss
+        id: upload_to_oss
+        uses: tvrcgo/upload-to-oss@master
+        with:
+          key-id: ${{ secrets.OSS_KEY_ID }}
+          key-secret: ${{ secrets.OSS_KEY_SECRET }}
+          region: oss-cn-shanghai
+          bucket: casaos
+          assets: |
+            dist/checksums.txt:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/checksums.txt
+            dist/linux-arm-7-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-arm-7-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz
+            dist/linux-arm64-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-arm64-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz
+            dist/linux-amd64-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-amd64-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz
+            dist/linux-arm-7-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-arm-7-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz
+            dist/linux-arm64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-arm64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz
+            dist/linux-amd64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-amd64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz
+
+
+

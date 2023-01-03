@@ -12,9 +12,9 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-//发送GET请求
-//url:请求地址
-//response:请求返回的内容
+// 发送GET请求
+// url:请求地址
+// response:请求返回的内容
 func Get(url string, head map[string]string) (response string) {
 	client := &http.Client{Timeout: 30 * time.Second}
 	req, err := http.NewRequest("GET", url, nil)
@@ -28,10 +28,10 @@ func Get(url string, head map[string]string) (response string) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
-		//需要错误日志的处理
-		//loger.Error(error)
+		// 需要错误日志的处理
+		// logger.Error(error)
 		return ""
-		//panic(error)
+		// panic(error)
 	}
 	defer resp.Body.Close()
 	var buffer [512]byte
@@ -42,7 +42,7 @@ func Get(url string, head map[string]string) (response string) {
 		if err != nil && err == io.EOF {
 			break
 		} else if err != nil {
-			//loger.Error(err)
+			// logger.Error(err)
 			return ""
 			//	panic(err)
 		}
@@ -51,22 +51,21 @@ func Get(url string, head map[string]string) (response string) {
 	return
 }
 
-//发送GET请求
-//url:请求地址
-//response:请求返回的内容
+// 发送GET请求
+// url:请求地址
+// response:请求返回的内容
 func PersonGet(url string) (response string) {
 	client := &http.Client{Timeout: 5 * time.Second}
 	req, err := http.NewRequest("GET", url, nil)
-
 	if err != nil {
 		return ""
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		//需要错误日志的处理
-		//loger.Error(error)
+		// 需要错误日志的处理
+		// logger.Error(error)
 		return ""
-		//panic(error)
+		// panic(error)
 	}
 	defer resp.Body.Close()
 	var buffer [512]byte
@@ -77,7 +76,7 @@ func PersonGet(url string) (response string) {
 		if err != nil && err == io.EOF {
 			break
 		} else if err != nil {
-			//loger.Error(err)
+			// logger.Error(err)
 			return ""
 			//	panic(err)
 		}
@@ -86,11 +85,10 @@ func PersonGet(url string) (response string) {
 	return
 }
 
-//发送POST请求
-//url:请求地址，data:POST请求提交的数据,contentType:请求体格式，如：application/json
-//content:请求放回的内容
+// 发送POST请求
+// url:请求地址，data:POST请求提交的数据,contentType:请求体格式，如：application/json
+// content:请求放回的内容
 func Post(url string, data []byte, contentType string, head map[string]string) (content string) {
-
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	req.Header.Add("content-type", contentType)
 	for k, v := range head {
@@ -113,9 +111,9 @@ func Post(url string, data []byte, contentType string, head map[string]string) (
 	return
 }
 
-//发送POST请求
-//url:请求地址，data:POST请求提交的数据,contentType:请求体格式，如：application/json
-//content:请求放回的内容
+// 发送POST请求
+// url:请求地址，data:POST请求提交的数据,contentType:请求体格式，如：application/json
+// content:请求放回的内容
 func ZeroTierGet(url string, head map[string]string) (content string, code int) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	for k, v := range head {
@@ -138,11 +136,10 @@ func ZeroTierGet(url string, head map[string]string) (content string, code int) 
 	return
 }
 
-//发送GET请求
-//url:请求地址
-//response:请求返回的内容
+// 发送GET请求
+// url:请求地址
+// response:请求返回的内容
 func OasisGet(url string) (response string) {
-
 	head := make(map[string]string)
 
 	t := make(chan string)
@@ -155,5 +152,4 @@ func OasisGet(url string) (response string) {
 	head["Authorization"] = <-t
 
 	return Get(url, head)
-
 }
