@@ -56,6 +56,22 @@ __is_migration_needed() {
     __is_version_gt "${version2}" "${version1}"
 }
 
+__get_download_domain(){
+    local region
+    # Use ipconfig.io/country and https://ifconfig.io/country_code to get the country code
+    region=$(curl --connect-timeout 2 -s ipconfig.io/country || echo "")
+    if [ "${region}" = "" ]; then
+       region=$(curl --connect-timeout 2 -s https://ifconfig.io/country_code || echo "")
+    fi
+    if [[ "${region}" = "China" ]] || [[ "${region}" = "CN" ]]; then
+        echo "https://casaos.oss-cn-shanghai.aliyuncs.com/"
+    else
+        echo "https://github.com/"
+    fi
+}
+
+DOWNLOAD_DOMAIN=$(__get_download_domain)
+
 BUILD_PATH=$(dirname "${BASH_SOURCE[0]}")/../../..
 SOURCE_ROOT=${BUILD_PATH}/sysroot
 
@@ -71,7 +87,7 @@ CURRENT_BIN_FILE=${CURRENT_BIN_PATH}/${APP_NAME}
 CURRENT_BIN_FILE_LEGACY=$(realpath -e ${CURRENT_BIN_PATH_LEGACY}/${APP_NAME} || which ${APP_NAME} || echo CURRENT_BIN_FILE_LEGACY_NOT_FOUND)
 
 SOURCE_VERSION="$(${SOURCE_BIN_FILE} -v)"
-CURRENT_VERSION="$(${CURRENT_BIN_FILE} -v || ${CURRENT_BIN_FILE_LEGACY} -v || (stat "${CURRENT_BIN_FILE_LEGACY}" > /dev/null && echo LEGACY_WITHOUT_VERSION) || echo CURRENT_VERSION_NOT_FOUND)"
+CURRENT_VERSION="$(${CURRENT_BIN_FILE} -v || ${CURRENT_BIN_FILE_LEGACY} -v || (stat "${CURRENT_BIN_FILE_LEGACY}" >/dev/null && echo LEGACY_WITHOUT_VERSION) || echo CURRENT_VERSION_NOT_FOUND)"
 
 __info_done "CURRENT_VERSION: ${CURRENT_VERSION}"
 __info_done "SOURCE_VERSION: ${SOURCE_VERSION}"
@@ -86,18 +102,18 @@ fi
 ARCH="unknown"
 
 case $(uname -m) in
-    x86_64)
-        ARCH="amd64"
-        ;;
-    aarch64)
-        ARCH="arm64"
-        ;;
-    armv7l)
-        ARCH="arm-7"
-        ;;
-    *)
-        __error "Unsupported architecture"
-        ;;
+x86_64)
+    ARCH="amd64"
+    ;;
+aarch64)
+    ARCH="arm64"
+    ;;
+armv7l)
+    ARCH="arm-7"
+    ;;
+*)
+    __error "Unsupported architecture"
+    ;;
 esac
 
 __info "ARCH: ${ARCH}"
@@ -134,7 +150,7 @@ while read -r VERSION_PAIR; do
     if [ "${CURRENT_VERSION_FOUND}" = "true" ]; then
         MIGRATION_PATH+=("${URL// /}")
     fi
-done < "${MIGRATION_LIST_FILE}"
+done <"${MIGRATION_LIST_FILE}"
 
 if [ ${#MIGRATION_PATH[@]} -eq 0 ]; then
     __warning "No migration path found from ${CURRENT_VERSION} to ${SOURCE_VERSION}"
@@ -143,7 +159,8 @@ fi
 
 pushd "${MIGRATION_SERVICE_DIR}"
 
-{ for URL in "${MIGRATION_PATH[@]}"; do
+{
+    for URL in "${MIGRATION_PATH[@]}"; do
         MIGRATION_TOOL_FILE=$(basename "${URL}")
 
         if [ -f "${MIGRATION_TOOL_FILE}" ]; then
