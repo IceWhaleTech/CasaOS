@@ -3,8 +3,8 @@ github.com/BurntSushi/toml v1.2.0 h1:Rt8g24XnyGTyglgET/PRUNlrUeu9F5L+7FilkXfZgs0
 github.com/BurntSushi/toml v1.2.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
 github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d h1:62lEBImTxZ83pgzywgDNIrPPuQ+j4ep9QjqrWBn1hrU=
 github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d/go.mod h1:lW9x+yEjqKdPbE3+cf2fGPJXCw/hChX3Omi9QHTLFsQ=
-github.com/IceWhaleTech/CasaOS-Common v0.4.1-alpha2 h1:O6vDvIy+wFBj6DuUN4ZDLa6M7Cg80SXXpMsM9t2EqpA=
-github.com/IceWhaleTech/CasaOS-Common v0.4.1-alpha2/go.mod h1:xcemiRsXcs1zrmQxYMyExDjZ7UHYwkJqYE71IDIV0xA=
+github.com/IceWhaleTech/CasaOS-Common v0.4.1-alpha3 h1:jQfIty6u06fPJCutpS+97qr8uho3RpQX+B/CwHPCv/Q=
+github.com/IceWhaleTech/CasaOS-Common v0.4.1-alpha3/go.mod h1:xcemiRsXcs1zrmQxYMyExDjZ7UHYwkJqYE71IDIV0xA=
 github.com/andybalholm/brotli v1.0.1 h1:KqhlKozYbRtJvsPrrEeXcO+N2l6NYT5A2QAFmSULpEc=
 github.com/andybalholm/brotli v1.0.1/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu3qAvBg8x/Y=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
