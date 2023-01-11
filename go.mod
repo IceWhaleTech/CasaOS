@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
-	github.com/IceWhaleTech/CasaOS-Common v0.4.1-alpha2
+	github.com/IceWhaleTech/CasaOS-Common v0.4.1-alpha3
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/disintegration/imaging v1.6.2

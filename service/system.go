@@ -13,12 +13,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/file"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/host"
@@ -232,6 +233,8 @@ func (c *systemService) GetNet(physics bool) []string {
 }
 
 func (s *systemService) UpdateSystemVersion(version string) {
+	keyName := "casa_version"
+	Cache.Delete(keyName)
 	if file.Exists(config.AppInfo.LogPath + "/upgrade.log") {
 		os.Remove(config.AppInfo.LogPath + "/upgrade.log")
 	}
@@ -240,7 +243,8 @@ func (s *systemService) UpdateSystemVersion(version string) {
 	if len(config.ServerInfo.UpdateUrl) > 0 {
 		go command2.OnlyExec("curl -fsSL " + config.ServerInfo.UpdateUrl + " | bash")
 	} else {
-		go command2.OnlyExec("curl -fsSL https://get.casaos.io/update | bash")
+		osRelease, _ := file.ReadOSRelease()
+		go command2.OnlyExec("curl -fsSL https://get.casaos.io/update?t=" + osRelease["MANUFACTURER"] + " | bash")
 	}
 
 	// s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
