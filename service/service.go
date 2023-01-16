@@ -38,6 +38,11 @@ type Repository interface {
 	Shares() SharesService
 	Connections() ConnectionsService
 	Gateway() external.ManagementService
+	Storage() StorageService
+	Storages() StoragesService
+	StoragePath() StoragePathService
+	FsListService() FsListService
+	FsService() FsService
 }
 
 func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Repository {
@@ -51,25 +56,55 @@ func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Reposi
 	}
 
 	return &store{
-		gateway:     gatewayManagement,
-		casa:        NewCasaService(),
-		notify:      NewNotifyService(db),
-		rely:        NewRelyService(db),
-		system:      NewSystemService(),
-		shares:      NewSharesService(db),
-		connections: NewConnectionsService(db),
+		gateway:      gatewayManagement,
+		casa:         NewCasaService(),
+		notify:       NewNotifyService(db),
+		rely:         NewRelyService(db),
+		system:       NewSystemService(),
+		shares:       NewSharesService(db),
+		connections:  NewConnectionsService(db),
+		storage:      NewStorageService(db),
+		storages:     NewStoragesService(),
+		storage_path: NewStoragePathService(),
+		fs_list:      NewFsListService(),
+		fs:           NewFsService(),
 	}
 }
 
 type store struct {
-	db          *gorm.DB
-	casa        CasaService
-	notify      NotifyServer
-	rely        RelyService
-	system      SystemService
-	shares      SharesService
-	connections ConnectionsService
-	gateway     external.ManagementService
+	db           *gorm.DB
+	casa         CasaService
+	notify       NotifyServer
+	rely         RelyService
+	system       SystemService
+	shares       SharesService
+	connections  ConnectionsService
+	gateway      external.ManagementService
+	storage      StorageService
+	storages     StoragesService
+	storage_path StoragePathService
+	fs_list      FsListService
+	fs           FsService
+}
+
+func (c *store) FsService() FsService {
+	return c.fs
+}
+
+func (c *store) FsListService() FsListService {
+	return c.fs_list
+}
+
+func (c *store) StoragePath() StoragePathService {
+	return c.storage_path
+}
+
+func (c *store) Storages() StoragesService {
+	return c.storages
+}
+
+func (c *store) Storage() StorageService {
+	return c.storage
 }
 
 func (c *store) Gateway() external.ManagementService {

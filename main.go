@@ -23,6 +23,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	_ "github.com/IceWhaleTech/CasaOS/drivers"
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
 )
@@ -65,6 +66,7 @@ func init() {
 	service.Cache = cache.Init()
 
 	service.GetCPUThermalZone()
+	service.MyService.Storages().InitStorages()
 
 	route.InitFunction()
 }
@@ -117,7 +119,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	routers := []string{"sys", "port", "file", "folder", "batch", "image", "samba", "notify", "socketio"}
+	routers := []string{"sys", "port", "file", "folder", "batch", "image", "samba", "notify", "socketio", "driver", "storage", "recover", "fs"}
 	for _, v := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{
 			Path:   "/v1/" + v,

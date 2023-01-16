@@ -215,8 +215,36 @@ func GetDownloadSingleFile(c *gin.Context) {
 // @Success 200 {string} string "ok"
 // @Router /file/dirpath [get]
 func DirPath(c *gin.Context) {
-	path := c.DefaultQuery("path", "")
-	info := service.MyService.System().GetDirPath(path)
+	var req ListReq
+	if err := c.ShouldBind(&req); err != nil {
+		c.JSON(common_err.SUCCESS, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: err.Error()})
+		return
+	}
+	req.Validate()
+	storage, _, _ := service.MyService.StoragePath().GetStorageAndActualPath(req.Path)
+	if storage != nil {
+		req.Validate()
+		objs, err := service.MyService.FsService().FList(c, req.Path, req.Refresh)
+		if err != nil {
+			c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+			return
+		}
+		total, objs := pagination(objs, &req.PageReq)
+		provider := "unknown"
+		storage, err := service.MyService.FsService().GetStorage(req.Path)
+		if err == nil {
+			provider = storage.GetStorage().Driver
+		}
+		c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: FsListResp{
+			Content:  toObjsResp(objs, req.Path, false),
+			Total:    int64(total),
+			Readme:   "",
+			Write:    false,
+			Provider: provider,
+		}})
+		return
+	}
+	info := service.MyService.System().GetDirPath(req.Path)
 	shares := service.MyService.Shares().GetSharesList()
 	sharesMap := make(map[string]string)
 	for _, v := range shares {
@@ -250,17 +278,30 @@ func DirPath(c *gin.Context) {
 		}
 	}
 
-	pathList := []model.Path{}
+	pathList := []ObjResp{}
 	for i := 0; i < len(info); i++ {
 		if info[i].Name == ".temp" && info[i].IsDir {
 			continue
 		}
+
 		if _, ok := fileQueue[info[i].Path]; !ok {
-			pathList = append(pathList, info[i])
+			t := ObjResp{}
+			t.IsDir = info[i].IsDir
+			t.Name = info[i].Name
+			t.Modified = info[i].Date
+			t.Size = info[i].Size
+			t.Path = info[i].Path
+			pathList = append(pathList, t)
 		}
 	}
-
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: pathList})
+	flist := FsListResp{
+		Content:  pathList,
+		Total:    int64(len(pathList)),
+		Readme:   "",
+		Write:    true,
+		Provider: "local",
+	}
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: flist})
 }
 
 // @Summary rename file or dir
