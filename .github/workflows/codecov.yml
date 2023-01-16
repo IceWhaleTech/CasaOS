@@ -1,0 +1,22 @@
+name: Collect Code Coverage
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Run coverage
+        run: go test -race -failfast -coverprofile=coverage.txt -covermode=atomic -v ./...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
