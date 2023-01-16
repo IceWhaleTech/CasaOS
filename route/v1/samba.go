@@ -131,11 +131,11 @@ func PostSambaConnectionsCreate(c *gin.Context) {
 		return
 	}
 
-	if ok, _ := regexp.MatchString("^[a-zA-Z0-9]{4,30}$", connection.Password); !ok {
+	if ok, _ := regexp.MatchString(`^[\w@#*.]{4,30}$`, connection.Password); !ok {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CHARACTER_LIMIT, Message: common_err.GetMsg(common_err.CHARACTER_LIMIT)})
 		return
 	}
-	if ok, _ := regexp.MatchString("^[a-zA-Z0-9]{4,30}$", connection.Username); !ok {
+	if ok, _ := regexp.MatchString(`^[\w@#*.]{4,30}$`, connection.Username); !ok {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
