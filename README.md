@@ -28,6 +28,9 @@
     <a href="https://github.com/IceWhaleTech/CasaOS/issues" target="_blank">
         <img alt="CasaOS Issues" src="https://img.shields.io/github/issues/IceWhaleTech/CasaOS?color=162453&style=flat-square&label=Issues" />
     </a>
+    <a href="https://codecov.io/gh/IceWhaleTech/CasaOS" > 
+    <img src="https://codecov.io/gh/IceWhaleTech/CasaOS/branch/main/graph/badge.svg?token=l9uMKGlkxM"/> 
+    </a>
     <a href="https://github.com/IceWhaleTech/CasaOS/stargazers" target="_blank">
         <img alt="CasaOS Stargazers" src="https://img.shields.io/github/stars/IceWhaleTech/CasaOS?color=162453&style=flat-square&label=Stars" />
     </a>
