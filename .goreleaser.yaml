@@ -6,7 +6,7 @@ before:
     - go generate
     - go run github.com/google/go-licenses@latest check . --disallowed_types=restricted
     - go mod tidy
-    - go test -v ./...
+    - go test -race -v ./...
 
 builds:
   - id: casaos-amd64
