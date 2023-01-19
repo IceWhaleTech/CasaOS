@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ### Added
-- [Disj] Added disk merging feature in storage management (beta) that allows for multiple disks to be merged into a single storage space
+- [Disk] Added disk merging feature in storage management (beta) that allows for multiple disks to be merged into a single storage space
 - [System] Added option for startpage.com search engine
 - [APP] Added app cloning feature in the app's context menu.
 ### Changed
