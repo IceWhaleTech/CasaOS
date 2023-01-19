@@ -17,16 +17,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 
-## [0.4.1-alpha] - 2023-1-8
+## [0.4.1] - 2023-1-19
+
 
 ### Added
 - [Disj] Added disk merging feature in storage management (beta) that allows for multiple disks to be merged into a single storage space
 - [System] Added option for startpage.com search engine
 - [APP] Added app cloning feature in the app's context menu.
-- 
 ### Changed
 - [APP] Improved app installation process, including display of the installation process, checks for successful installation, and prompts
-
+- [System] Binary sizes are 40%~60% smaller (thanks to upx)
+- [App] Optimization of install and update for certain country.
+- [All] Lots of bug fixes
 
 ## [0.4.0] - 2022-12-13
 ### Added
