@@ -38,7 +38,7 @@ paths:
       summary: Get service status
       description: |-
         Get running status of each `casaos-*` service.
-      operationId: getHealth
+      operationId: getHealthServices
       responses:
         "200":
           $ref: "#/components/responses/GetHealthServicesOK"

@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (s *CasaOS) GetHealth(ctx echo.Context) error {
+func (s *CasaOS) GetHealthServices(ctx echo.Context) error {
 	services, err := service.MyService.Health().Services()
 	if err != nil {
 		message := err.Error()
