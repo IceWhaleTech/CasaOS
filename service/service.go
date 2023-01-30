@@ -22,22 +22,25 @@ import (
 
 var Cache *cache.Cache
 
-var MyService Repository
-var SocketServer *socketio.Server
+var (
+	MyService    Repository
+	SocketServer *socketio.Server
+)
+
 var (
 	WebSocketConns []*websocket.Conn
 	SocketRun      bool
 )
 
 type Repository interface {
-	// User() UserService
 	Casa() CasaService
-	Notify() NotifyServer
-	Rely() RelyService
-	System() SystemService
-	Shares() SharesService
 	Connections() ConnectionsService
 	Gateway() external.ManagementService
+	Health() HealthService
+	Notify() NotifyServer
+	Rely() RelyService
+	Shares() SharesService
+	System() SystemService
 }
 
 func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Repository {
@@ -51,25 +54,27 @@ func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Reposi
 	}
 
 	return &store{
-		gateway:     gatewayManagement,
 		casa:        NewCasaService(),
+		connections: NewConnectionsService(db),
+		gateway:     gatewayManagement,
+		health:      NewHealthService(),
 		notify:      NewNotifyService(db),
 		rely:        NewRelyService(db),
-		system:      NewSystemService(),
 		shares:      NewSharesService(db),
-		connections: NewConnectionsService(db),
+		system:      NewSystemService(),
 	}
 }
 
 type store struct {
 	db          *gorm.DB
 	casa        CasaService
-	notify      NotifyServer
-	rely        RelyService
-	system      SystemService
-	shares      SharesService
 	connections ConnectionsService
 	gateway     external.ManagementService
+	health      HealthService
+	notify      NotifyServer
+	rely        RelyService
+	shares      SharesService
+	system      SystemService
 }
 
 func (c *store) Gateway() external.ManagementService {
@@ -98,4 +103,8 @@ func (c *store) Notify() NotifyServer {
 
 func (c *store) Casa() CasaService {
 	return c.casa
+}
+
+func (c *store) Health() HealthService {
+	return c.health
 }

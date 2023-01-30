@@ -7,12 +7,13 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
+	"github.com/IceWhaleTech/CasaOS/service"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
-func InitRouter() *gin.Engine {
+func InitV1Router() *gin.Engine {
 	ginMode := gin.ReleaseMode
 	if config.ServerInfo.RunMode != "" {
 		ginMode = config.ServerInfo.RunMode
@@ -30,23 +31,6 @@ func InitRouter() *gin.Engine {
 		r.Use(middleware.WriteLog())
 	}
 
-	// r.StaticFS("/ui", http.FS(web.Static))
-	// r.GET("/", WebUIHome)
-	// r.StaticFS("/assets", http.Dir("./static/assets"))
-	// r.StaticFile("/favicon.ico", "./static/favicon.ico")
-	//r.GET("/", func(c *gin.Context) {
-	//	c.Redirect(http.StatusMovedPermanently, "ui/")
-	//})
-
-	// r.POST("/v1/users/register", v1.PostUserRegister)
-	// r.POST("/v1/users/login", v1.PostUserLogin)
-	// r.GET("/v1/users/name", v1.GetUserAllUsername) //all/name
-	// r.POST("/v1/users/refresh", v1.PostUserRefreshToken)
-	// // No short-term modifications
-	// r.GET("/v1/users/image", v1.GetUserImage)
-
-	// r.GET("/v1/users/status", v1.GetUserStatus) //init/check
-	// r.GET("/v1/guide/check", v1.GetGuideCheck)         // /v1/sys/guide_check
 	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
 
 	r.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
@@ -163,5 +147,10 @@ func InitRouter() *gin.Engine {
 			v1NotifyGroup.POST("/uninstall_app", v1.PostUninstallAppNotify)
 		}
 	}
+
+	// socketio
+	v1Group.GET("/socketio/*any", gin.WrapH(service.SocketServer))
+	v1Group.POST("/socketio/*any", gin.WrapH(service.SocketServer))
+
 	return r
 }
