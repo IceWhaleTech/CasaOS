@@ -11,7 +11,7 @@ type HealthService interface {
 type service struct{}
 
 func (s *service) Services() (map[bool]*[]string, error) {
-	services, err := systemctl.ListServices("casaos-*")
+	services, err := systemctl.ListServices("casaos*")
 	if err != nil {
 		return nil, err
 	}
@@ -19,7 +19,7 @@ func (s *service) Services() (map[bool]*[]string, error) {
 	var running, notRunning []string
 
 	for _, service := range services {
-		if service.Status == "running" {
+		if service.Running {
 			running = append(running, service.Name)
 		} else {
 			notRunning = append(notRunning, service.Name)
