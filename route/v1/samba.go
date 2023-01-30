@@ -12,10 +12,13 @@ package v1
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
@@ -30,12 +33,14 @@ import (
 // service
 
 func GetSambaStatus(c *gin.Context) {
-	status := service.MyService.System().IsServiceRunning("smbd")
-
-	if !status {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_NOT_RUNNING, Message: common_err.GetMsg(common_err.SERVICE_NOT_RUNNING)})
+	if status, err := systemctl.IsServiceRunning("smbd"); err != nil || !status {
+		c.JSON(http.StatusInternalServerError, model.Result{
+			Success: common_err.SERVICE_NOT_RUNNING,
+			Message: common_err.GetMsg(common_err.SERVICE_NOT_RUNNING),
+		})
 		return
 	}
+
 	needInit := true
 	if file.Exists("/etc/samba/smb.conf") {
 		str := file.ReadLine(1, "/etc/samba/smb.conf")
@@ -87,12 +92,13 @@ func PostSambaSharesCreate(c *gin.Context) {
 		shareDBModel.Anonymous = true
 		shareDBModel.Path = v.Path
 		shareDBModel.Name = filepath.Base(v.Path)
-		os.Chmod(v.Path, 0777)
+		os.Chmod(v.Path, 0o777)
 		service.MyService.Shares().CreateShare(shareDBModel)
 	}
 
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: shares})
 }
+
 func DeleteSambaShares(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -103,8 +109,7 @@ func DeleteSambaShares(c *gin.Context) {
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: id})
 }
 
-//client
-
+// client
 func GetSambaConnectionsList(c *gin.Context) {
 	connections := service.MyService.Connections().GetConnectionsList()
 	connectionList := []model.Connections{}

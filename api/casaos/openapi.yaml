@@ -1,0 +1,101 @@
+openapi: 3.0.3
+
+info:
+  title: CasaOS API
+  version: v2
+  description: |
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_dark_night_800px.png">
+        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_twilight_blue_800px.png">
+        <img alt="CasaOS" src="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_twilight_blue_800px.png">
+    </picture>
+
+    CasaOS API provides miscellaneous methods for different scenarios.
+
+    For issues and discussions, please visit the [GitHub repository](https://github.com/IceWhaleTech/CasaOS) or join [our Discord](https://discord.gg/knqAbbBbeX).
+
+servers:
+  - url: /v2/casaos
+
+tags:
+  - name: Health methods
+    description: |-
+      (TODO)
+
+x-tagGroups:
+  - name: Methods
+    tags:
+      - Health methods
+
+security:
+  - access_token: []
+
+paths:
+  /health/services:
+    get:
+      tags:
+        - Health methods
+      summary: Get service status
+      description: |-
+        Get running status of each `casaos-*` service.
+      operationId: getHealthServices
+      responses:
+        "200":
+          $ref: "#/components/responses/GetHealthServicesOK"
+        "500":
+          $ref: "#/components/responses/ResponseInternalServerError"
+
+components:
+  securitySchemes:
+    access_token:
+      type: apiKey
+      in: header
+      name: Authorization
+
+  responses:
+    ResponseOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponse"
+
+    ResponseInternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponse"
+
+    GetHealthServicesOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/BaseResponse"
+              - properties:
+                  data:
+                    $ref: "#/components/schemas/HealthServices"
+
+  schemas:
+    BaseResponse:
+      properties:
+        message:
+          readOnly: true
+          description: message returned by server side if there is any
+          type: string
+          example: ""
+
+    HealthServices:
+      properties:
+        running:
+          type: array
+          items:
+            type: string
+            example: "casaos-gateway.service"
+        not_running:
+          type: array
+          items:
+            type: string
+            example: "casaos.service"

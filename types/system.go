@@ -19,6 +19,6 @@
  */
 package types
 
-const CURRENTVERSION = "0.4.1"
+const CURRENTVERSION = "0.4.2"
 
 const BODY = " "

@@ -51,7 +51,6 @@ type SystemService interface {
 	CreateFile(path string) (int, error)
 	RenameFile(oldF, newF string) (int, error)
 	MkdirAll(path string) (int, error)
-	IsServiceRunning(name string) bool
 	GetCPUTemperature() int
 	GetCPUPower() map[string]string
 	GetMacAddress() (string, error)
@@ -312,11 +311,6 @@ func GetDeviceAllIP() []string {
 	return address
 }
 
-func (s *systemService) IsServiceRunning(name string) bool {
-	status := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CheckServiceStatus smbd")
-	return strings.TrimSpace(status) == "running"
-}
-
 // find thermal_zone of cpu.
 // assertions:
 //   - thermal_zone "type" and "temp" are required fields
@@ -347,7 +341,7 @@ func GetCPUThermalZone() string {
 				}
 			}
 		} else {
-			if len(name) > 0 { //proves at least one zone
+			if len(name) > 0 { // proves at least one zone
 				path = stub + "0"
 			} else {
 				path = ""
@@ -388,7 +382,7 @@ func (s *systemService) GetCPUPower() map[string]string {
 }
 
 func (s *systemService) SystemReboot() error {
-	//cmd := exec.Command("/bin/bash", "-c", "reboot")
+	// cmd := exec.Command("/bin/bash", "-c", "reboot")
 	arg := []string{"6"}
 	cmd := exec.Command("init", arg...)
 	_, err := cmd.CombinedOutput()
@@ -397,6 +391,7 @@ func (s *systemService) SystemReboot() error {
 	}
 	return nil
 }
+
 func (s *systemService) SystemShutdown() error {
 	arg := []string{"0"}
 	cmd := exec.Command("init", arg...)
@@ -408,6 +403,5 @@ func (s *systemService) SystemShutdown() error {
 }
 
 func NewSystemService() SystemService {
-
 	return &systemService{}
 }

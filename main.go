@@ -1,6 +1,9 @@
+//go:generate bash -c "mkdir -p codegen && go run github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12.4 -generate types,server,spec -package codegen api/casaos/openapi.yaml > codegen/casaos_api.go"
+
 package main
 
 import (
+	_ "embed"
 	"flag"
 	"fmt"
 	"net"
@@ -11,6 +14,9 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/model"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+
+	util_http "github.com/IceWhaleTech/CasaOS-Common/utils/http"
+
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
@@ -20,7 +26,6 @@ import (
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/coreos/go-systemd/daemon"
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	"github.com/robfig/cron"
@@ -34,6 +39,12 @@ var sqliteDB *gorm.DB
 var (
 	commit = "private build"
 	date   = "private build"
+
+	//go:embed api/index.html
+	_docHTML string
+
+	//go:embed api/casaos/openapi.yaml
+	_docYAML string
 
 	configFlag  = flag.String("c", "", "config address")
 	dbFlag      = flag.String("db", "", "db path")
@@ -84,15 +95,21 @@ func main() {
 	if *versionFlag {
 		return
 	}
-	// model.Setup()
-	// gredis.Setup()
 
-	r := route.InitRouter()
+	v1Router := route.InitV1Router()
 	defer service.SocketServer.Close()
-	r.GET("/v1/socketio/*any", gin.WrapH(service.SocketServer))
-	r.POST("/v1/socketio/*any", gin.WrapH(service.SocketServer))
 
-	// service.SyncTask(sqliteDB)
+	v2Router := route.InitV2Router()
+	v2DocRouter := route.InitV2DocRouter(_docHTML, _docYAML)
+
+	mux := &util_http.HandlerMultiplexer{
+		HandlerMap: map[string]http.Handler{
+			"v1":  v1Router,
+			"v2":  v2Router,
+			"doc": v2DocRouter,
+		},
+	}
+
 	cron2 := cron.New()
 	// every day execution
 
@@ -117,10 +134,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	routers := []string{"sys", "port", "file", "folder", "batch", "image", "samba", "notify", "socketio"}
-	for _, v := range routers {
+	apiPaths := []string{
+		"/v1/sys",
+		"/v1/port",
+		"/v1/file",
+		"/v1/folder",
+		"/v1/batch",
+		"/v1/image",
+		"/v1/samba",
+		"/v1/notify",
+		"/v1/socketio",
+		route.V2APIPath,
+		route.V2DocPath,
+	}
+	for _, apiPath := range apiPaths {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{
-			Path:   "/v1/" + v,
+			Path:   apiPath,
 			Target: "http://" + listener.Addr().String(),
 		})
 
@@ -164,7 +193,7 @@ func main() {
 	}
 
 	s := &http.Server{
-		Handler:           r,
+		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second, // fix G112: Potential slowloris attack (see https://github.com/securego/gosec)
 	}
 
