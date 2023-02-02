@@ -19,6 +19,7 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/config/configfile"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -28,6 +29,7 @@ import (
 	"github.com/coreos/go-systemd/daemon"
 	"go.uber.org/zap"
 
+	_ "github.com/IceWhaleTech/CasaOS/drivers"
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
 )
@@ -76,8 +78,23 @@ func init() {
 	service.Cache = cache.Init()
 
 	service.GetCPUThermalZone()
+	service.MyService.Storages().InitStorages()
 
 	route.InitFunction()
+	data := &configfile.Storage{}
+	e := data.Load()
+	fmt.Println(e)
+	fmt.Println(data.GetSectionList())
+	// fmt.Println(data.HasSection("google"))
+	// fmt.Println(data.GetKeyList("google"))
+	// fmt.Println(data.GetValue("google", "token"))
+	// data.SetValue("google", "type", "drive")
+	// data.SetValue("google", "client_id", "865173455964-4ce3gdl73ak5s15kn1vkn73htc8tant2.apps.googleusercontent.com")
+	// data.SetValue("google", "client_secret", "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")
+	// data.SetValue("google", "scope", "drive")
+	// data.SetValue("google", "token", `{"access_token":"ya29.a0AVvZVsqsy3vWjpjsl87mtxirrtkHpkyEXdvlORzZeIahObdEtDE47-Hzo1bIg8vJhfYKh-cdqgrUM305hiEJssFMcpkM-0IwPyxlpynMFWS0L5356AUvbv3DUd_RbV_MbKijyTThuDkfrXdLIiEOwxMOtYSXmDUaCgYKAbgSAQASFQGbdwaI6ae1NZbJARogHtpjitLGkg0166","token_type":"Bearer","refresh_token":"1//01CoIJ-aZDrUPCgYIARAAGAESNwF-L9IrNLyzp1Xzfa_sPPMouyrTgJrVchPX6uXqMizXjohTdycCpVgVcu402ND-Ikn2hArRGXA","expiry":"2023-01-28T19:26:50.198064816+08:00"}`)
+	//e = data.Save()
+	//fmt.Println(e)
 }
 
 // @title casaOS API
@@ -134,7 +151,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	apiPaths := []string{
+	routers := []string{
 		"/v1/sys",
 		"/v1/port",
 		"/v1/file",
@@ -144,10 +161,13 @@ func main() {
 		"/v1/samba",
 		"/v1/notify",
 		"/v1/socketio",
+		"/v1/driver",
+		"/v1/storage",
+		"/v1/recover",
 		route.V2APIPath,
 		route.V2DocPath,
 	}
-	for _, apiPath := range apiPaths {
+	for _, apiPath := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{
 			Path:   apiPath,
 			Target: "http://" + listener.Addr().String(),

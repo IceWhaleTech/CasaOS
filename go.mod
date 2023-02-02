@@ -14,6 +14,7 @@ require (
 	github.com/gin-gonic/gin v1.8.2
 	github.com/glebarez/sqlite v1.6.0
 	github.com/go-ini/ini v1.67.0
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang/mock v1.6.0
 	github.com/gomodule/redigo v1.8.9
 	github.com/google/go-github/v36 v36.0.0
@@ -23,15 +24,17 @@ require (
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil/v3 v3.22.11
+	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/gjson v1.14.4
 	go.uber.org/zap v1.24.0
-	golang.org/x/crypto v0.4.0
+	golang.org/x/crypto v0.5.0
 	golang.org/x/oauth2 v0.3.0
-	gorm.io/gorm v1.24.2
+	gorm.io/gorm v1.24.3
 	gotest.tools v2.2.0+incompatible
 )
 

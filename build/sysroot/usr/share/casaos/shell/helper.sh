@@ -133,11 +133,7 @@ GetPlugInDisk() {
   fdisk -l | grep 'Disk' | grep 'sd' | awk -F , '{print substr($1,11,3)}'
 }
 
-#获取磁盘状态
-#param 磁盘路径
-GetDiskHealthState() {
-  smartctl -H $1 | grep "SMART Health Status" | awk -F ":" '{print$2}'
-}
+
 
 #获取磁盘字节数量和扇区数量
 #param 磁盘路径  /dev/sda

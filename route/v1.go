@@ -37,6 +37,7 @@ func InitV1Router() *gin.Engine {
 	r.GET("/ping", func(ctx *gin.Context) {
 		ctx.String(200, "pong")
 	})
+	r.GET("/v1/recover/:type", v1.GetRecoverStorage)
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt.ExceptLocalhost())
@@ -95,6 +96,18 @@ func InitV1Router() *gin.Engine {
 			v1FileGroup.POST("/upload", v1.PostFileUpload)
 			v1FileGroup.GET("/upload", v1.GetFileUpload)
 			// v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
+
+		}
+		v1StorageGroup := v1Group.Group("/storage")
+		v1StorageGroup.Use()
+		{
+			v1StorageGroup.GET("", v1.ListStorages)
+			v1StorageGroup.DELETE("", v1.DeleteStorage)
+		}
+		v1DriverGroup := v1Group.Group("/driver")
+		v1DriverGroup.Use()
+		{
+			v1DriverGroup.GET("", v1.ListDriverInfo)
 		}
 		v1FolderGroup := v1Group.Group("/folder")
 		v1FolderGroup.Use()

@@ -41,6 +41,12 @@ type Repository interface {
 	Rely() RelyService
 	Shares() SharesService
 	System() SystemService
+	Storage() StorageService
+	Storages() StoragesService
+	StoragePath() StoragePathService
+	FsListService() FsListService
+	FsLinkService() FsLinkService
+	FsService() FsService
 }
 
 func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Repository {
@@ -54,27 +60,62 @@ func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Reposi
 	}
 
 	return &store{
-		casa:        NewCasaService(),
-		connections: NewConnectionsService(db),
-		gateway:     gatewayManagement,
-		health:      NewHealthService(),
-		notify:      NewNotifyService(db),
-		rely:        NewRelyService(db),
-		shares:      NewSharesService(db),
-		system:      NewSystemService(),
+		casa:         NewCasaService(),
+		connections:  NewConnectionsService(db),
+		gateway:      gatewayManagement,
+		notify:       NewNotifyService(db),
+		rely:         NewRelyService(db),
+		system:       NewSystemService(),
+		health:       NewHealthService(),
+		shares:       NewSharesService(db),
+		storage:      NewStorageService(),
+		storages:     NewStoragesService(),
+		storage_path: NewStoragePathService(),
+		fs_list:      NewFsListService(),
+		fs_link:      NewFsLinkService(),
+		fs:           NewFsService(),
 	}
 }
 
 type store struct {
-	db          *gorm.DB
-	casa        CasaService
-	connections ConnectionsService
-	gateway     external.ManagementService
-	health      HealthService
-	notify      NotifyServer
-	rely        RelyService
-	shares      SharesService
-	system      SystemService
+	db           *gorm.DB
+	casa         CasaService
+	notify       NotifyServer
+	rely         RelyService
+	system       SystemService
+	shares       SharesService
+	connections  ConnectionsService
+	gateway      external.ManagementService
+	storage      StorageService
+	storages     StoragesService
+	storage_path StoragePathService
+	fs_list      FsListService
+	fs_link      FsLinkService
+	fs           FsService
+	health       HealthService
+}
+
+func (c *store) FsLinkService() FsLinkService {
+	return c.fs_link
+}
+func (c *store) FsService() FsService {
+	return c.fs
+}
+
+func (c *store) FsListService() FsListService {
+	return c.fs_list
+}
+
+func (c *store) StoragePath() StoragePathService {
+	return c.storage_path
+}
+
+func (c *store) Storages() StoragesService {
+	return c.storages
+}
+
+func (c *store) Storage() StorageService {
+	return c.storage
 }
 
 func (c *store) Gateway() external.ManagementService {
