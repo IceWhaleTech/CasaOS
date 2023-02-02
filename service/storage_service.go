@@ -15,7 +15,6 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS/model"
 
-	"github.com/IceWhaleTech/CasaOS/internal/conf"
 	"github.com/IceWhaleTech/CasaOS/internal/driver"
 	"github.com/IceWhaleTech/CasaOS/internal/op"
 	mapset "github.com/deckarep/golang-set/v2"
@@ -30,9 +29,9 @@ type StoragesService interface {
 	DisableStorage(ctx context.Context, id uint) error
 	UpdateStorage(ctx context.Context, storage model.Storage) error
 	DeleteStorageById(ctx context.Context, id uint) error
-	MustSaveDriverStorage(driver driver.Driver)
+	MustSaveDriverStorage(driver driver.Driver) error
 	GetStorageVirtualFilesByPath(prefix string) []model.Obj
-	initStorage(ctx context.Context, storage model.Storage, storageDriver driver.Driver) (err error)
+	initStorage(ctx context.Context, storage model.Storage, storageDriver driver.Driver, setMountPath func(d driver.Driver, ctx context.Context) string) (err error)
 	InitStorages()
 	GetBalancedStorage(path string) driver.Driver
 }
@@ -75,18 +74,28 @@ func (s *storagesStruct) CreateStorage(ctx context.Context, storage model.Storag
 		return 0, errors.WithMessage(err, "failed get driver new")
 	}
 	storageDriver := driverNew()
-	// insert storage to database
-	err = MyService.Storage().CreateStorage(&storage)
-	if err != nil {
-		return storage.ID, errors.WithMessage(err, "failed create storage in database")
-	}
+	// // insert storage to database
+	// err = MyService.Storage().CreateStorage(&storage)
+	// if err != nil {
+
+	// 	return storage.ID, errors.WithMessage(err, "failed create storage in database")
+	// }
 	// already has an id
-	err = s.initStorage(ctx, storage, storageDriver)
+	err = s.initStorage(ctx, storage, storageDriver, func(d driver.Driver, ctx context.Context) string {
+		u, _ := d.GetUserInfo(ctx)
+		if len(u) > 0 {
+			a := strings.Split(u, "@")
+			u = a[0]
+		}
+		return u
+	})
+	if err != nil {
+		s.DeleteStorageById(ctx, storage.ID)
+		return storage.ID, errors.Wrap(err, "failed init storage")
+	}
+
 	go op.CallStorageHooks("add", storageDriver)
 
-	if err != nil {
-		return storage.ID, errors.Wrap(err, "failed init storage but storage is already created")
-	}
 	logger.Error("storage created", zap.Any("storage", storageDriver))
 	return storage.ID, nil
 }
@@ -102,14 +111,14 @@ func (s *storagesStruct) LoadStorage(ctx context.Context, storage model.Storage)
 	}
 	storageDriver := driverNew()
 
-	err = s.initStorage(ctx, storage, storageDriver)
+	err = s.initStorage(ctx, storage, storageDriver, nil)
 	go op.CallStorageHooks("add", storageDriver)
 	logger.Info("storage created", zap.Any("storage", storageDriver))
 	return err
 }
 
 // initStorage initialize the driver and store to storagesMap
-func (s *storagesStruct) initStorage(ctx context.Context, storage model.Storage, storageDriver driver.Driver) (err error) {
+func (s *storagesStruct) initStorage(ctx context.Context, storage model.Storage, storageDriver driver.Driver, setMountPath func(d driver.Driver, ctx context.Context) string) (err error) {
 	storageDriver.SetStorage(storage)
 	driverStorage := storageDriver.GetStorage()
 
@@ -121,61 +130,72 @@ func (s *storagesStruct) initStorage(ctx context.Context, storage model.Storage,
 	if err == nil {
 		err = storageDriver.Init(ctx)
 	}
+	if setMountPath != nil {
+		driverStorage.MountPath += "_" + setMountPath(storageDriver, ctx)
+
+	}
+	if s.HasStorage(driverStorage.MountPath) {
+		return errors.New("mount path already exists")
+	}
+	storageDriver.SetStorage(*driverStorage)
 	storagesMap.Store(driverStorage.MountPath, storageDriver)
+
 	if err != nil {
 		driverStorage.SetStatus(err.Error())
 		err = errors.Wrap(err, "failed init storage")
 	} else {
 		driverStorage.SetStatus(op.WORK)
 	}
-	s.MustSaveDriverStorage(storageDriver)
+
+	err = s.MustSaveDriverStorage(storageDriver)
+
 	return err
 }
 
 func (s *storagesStruct) EnableStorage(ctx context.Context, id uint) error {
-	storage, err := MyService.Storage().GetStorageById(id)
-	if err != nil {
-		return errors.WithMessage(err, "failed get storage")
-	}
-	if !storage.Disabled {
-		return errors.Errorf("this storage have enabled")
-	}
-	storage.Disabled = false
-	err = MyService.Storage().UpdateStorage(storage)
-	if err != nil {
-		return errors.WithMessage(err, "failed update storage in db")
-	}
-	err = s.LoadStorage(ctx, *storage)
-	if err != nil {
-		return errors.WithMessage(err, "failed load storage")
-	}
+	// storage, err := MyService.Storage().GetStorageById(id)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed get storage")
+	// }
+	// if !storage.Disabled {
+	// 	return errors.Errorf("this storage have enabled")
+	// }
+	// storage.Disabled = false
+	// err = MyService.Storage().UpdateStorage(storage)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed update storage in db")
+	// }
+	// err = s.LoadStorage(ctx, *storage)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed load storage")
+	// }
 	return nil
 }
 
 func (s *storagesStruct) DisableStorage(ctx context.Context, id uint) error {
-	storage, err := MyService.Storage().GetStorageById(id)
-	if err != nil {
-		return errors.WithMessage(err, "failed get storage")
-	}
-	if storage.Disabled {
-		return errors.Errorf("this storage have disabled")
-	}
-	storageDriver, err := GetStorageByMountPath(storage.MountPath)
-	if err != nil {
-		return errors.WithMessage(err, "failed get storage driver")
-	}
-	// drop the storage in the driver
-	if err := storageDriver.Drop(ctx); err != nil {
-		return errors.Wrap(err, "failed drop storage")
-	}
-	// delete the storage in the memory
-	storage.Disabled = true
-	err = MyService.Storage().UpdateStorage(storage)
-	if err != nil {
-		return errors.WithMessage(err, "failed update storage in db")
-	}
-	storagesMap.Delete(storage.MountPath)
-	go op.CallStorageHooks("del", storageDriver)
+	// storage, err := MyService.Storage().GetStorageById(id)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed get storage")
+	// }
+	// if storage.Disabled {
+	// 	return errors.Errorf("this storage have disabled")
+	// }
+	// storageDriver, err := GetStorageByMountPath(storage.MountPath)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed get storage driver")
+	// }
+	// // drop the storage in the driver
+	// if err := storageDriver.Drop(ctx); err != nil {
+	// 	return errors.Wrap(err, "failed drop storage")
+	// }
+	// // delete the storage in the memory
+	// storage.Disabled = true
+	// err = MyService.Storage().UpdateStorage(storage)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed update storage in db")
+	// }
+	// storagesMap.Delete(storage.MountPath)
+	// go op.CallStorageHooks("del", storageDriver)
 	return nil
 }
 
@@ -183,90 +203,92 @@ func (s *storagesStruct) DisableStorage(ctx context.Context, id uint) error {
 // get old storage first
 // drop the storage then reinitialize
 func (s *storagesStruct) UpdateStorage(ctx context.Context, storage model.Storage) error {
-	oldStorage, err := MyService.Storage().GetStorageById(storage.ID)
-	if err != nil {
-		return errors.WithMessage(err, "failed get old storage")
-	}
-	if oldStorage.Driver != storage.Driver {
-		return errors.Errorf("driver cannot be changed")
-	}
-	storage.Modified = time.Now()
-	storage.MountPath = utils.FixAndCleanPath(storage.MountPath)
-	err = MyService.Storage().UpdateStorage(&storage)
-	if err != nil {
-		return errors.WithMessage(err, "failed update storage in database")
-	}
-	if storage.Disabled {
-		return nil
-	}
-	storageDriver, err := GetStorageByMountPath(oldStorage.MountPath)
-	if oldStorage.MountPath != storage.MountPath {
-		// mount path renamed, need to drop the storage
-		storagesMap.Delete(oldStorage.MountPath)
-	}
-	if err != nil {
-		return errors.WithMessage(err, "failed get storage driver")
-	}
-	err = storageDriver.Drop(ctx)
-	if err != nil {
-		return errors.Wrapf(err, "failed drop storage")
-	}
+	// oldStorage, err := MyService.Storage().GetStorageById(storage.ID)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed get old storage")
+	// }
+	// if oldStorage.Driver != storage.Driver {
+	// 	return errors.Errorf("driver cannot be changed")
+	// }
+	// storage.Modified = time.Now()
+	// storage.MountPath = utils.FixAndCleanPath(storage.MountPath)
+	// err = MyService.Storage().UpdateStorage(&storage)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed update storage in database")
+	// }
+	// if storage.Disabled {
+	// 	return nil
+	// }
+	// storageDriver, err := GetStorageByMountPath(oldStorage.MountPath)
+	// if oldStorage.MountPath != storage.MountPath {
+	// 	// mount path renamed, need to drop the storage
+	// 	storagesMap.Delete(oldStorage.MountPath)
+	// }
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed get storage driver")
+	// }
+	// err = storageDriver.Drop(ctx)
+	// if err != nil {
+	// 	return errors.Wrapf(err, "failed drop storage")
+	// }
 
-	err = s.initStorage(ctx, storage, storageDriver)
-	go op.CallStorageHooks("update", storageDriver)
+	// err = s.initStorage(ctx, storage, storageDriver, nil)
+	// go op.CallStorageHooks("update", storageDriver)
 
-	logger.Info("storage updated", zap.Any("storage", storageDriver))
-	return err
+	// logger.Info("storage updated", zap.Any("storage", storageDriver))
+	//return err
+	return nil
 }
 
 func (s *storagesStruct) DeleteStorageById(ctx context.Context, id uint) error {
-	storage, err := MyService.Storage().GetStorageById(id)
-	if err != nil {
-		return errors.WithMessage(err, "failed get storage")
-	}
-	if !storage.Disabled {
-		storageDriver, err := GetStorageByMountPath(storage.MountPath)
-		if err != nil {
-			return errors.WithMessage(err, "failed get storage driver")
-		}
-		// drop the storage in the driver
-		if err := storageDriver.Drop(ctx); err != nil {
-			return errors.Wrapf(err, "failed drop storage")
-		}
-		// delete the storage in the memory
-		storagesMap.Delete(storage.MountPath)
-		go op.CallStorageHooks("del", storageDriver)
-	}
-	// delete the storage in the database
-	if err := MyService.Storage().DeleteStorageById(id); err != nil {
-		return errors.WithMessage(err, "failed delete storage in database")
-	}
+	// storage, err := MyService.Storage().GetStorageById(id)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed get storage")
+	// }
+	// if !storage.Disabled {
+	// 	storageDriver, err := GetStorageByMountPath(storage.MountPath)
+	// 	if err == nil {
+	// 		// drop the storage in the driver
+	// 		if err := storageDriver.Drop(ctx); err != nil {
+	// 			return errors.Wrapf(err, "failed drop storage")
+	// 		}
+	// 		// delete the storage in the memory
+	// 		storagesMap.Delete(storage.MountPath)
+	// 	}
+
+	// 	go op.CallStorageHooks("del", storageDriver)
+	// }
+	// // delete the storage in the database
+	// if err := MyService.Storage().DeleteStorageById(id); err != nil {
+	// 	return errors.WithMessage(err, "failed delete storage in database")
+	// }
 	return nil
 }
 
 // MustSaveDriverStorage call from specific driver
-func (s *storagesStruct) MustSaveDriverStorage(driver driver.Driver) {
+func (s *storagesStruct) MustSaveDriverStorage(driver driver.Driver) error {
 	err := saveDriverStorage(driver)
 	if err != nil {
 		logger.Error("failed save driver storage", zap.Any("err", err))
 	}
+	return err
 }
 
 func saveDriverStorage(driver driver.Driver) error {
-	storage := driver.GetStorage()
-	addition := driver.GetAddition()
+	// storage := driver.GetStorage()
+	// addition := driver.GetAddition()
 
-	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	// var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-	str, err := json.MarshalToString(addition)
-	if err != nil {
-		return errors.Wrap(err, "error while marshal addition")
-	}
-	storage.Addition = str
-	err = MyService.Storage().UpdateStorage(storage)
-	if err != nil {
-		return errors.WithMessage(err, "failed update storage in database")
-	}
+	// str, err := json.MarshalToString(addition)
+	// if err != nil {
+	// 	return errors.Wrap(err, "error while marshal addition")
+	// }
+	// storage.Addition = str
+	// err = MyService.Storage().UpdateStorage(storage)
+	// if err != nil {
+	// 	return errors.WithMessage(err, "failed update storage in database")
+	// }
 	return nil
 }
 
@@ -354,21 +376,21 @@ func (s *storagesStruct) GetBalancedStorage(path string) driver.Driver {
 	}
 }
 func (s *storagesStruct) InitStorages() {
-	storages, err := MyService.Storage().GetEnabledStorages()
-	if err != nil {
-		logger.Error("failed get enabled storages", zap.Any("err", err))
-	}
-	go func(storages []model.Storage) {
-		for i := range storages {
-			err := s.LoadStorage(context.Background(), storages[i])
-			if err != nil {
-				logger.Error("failed get enabled storages", zap.Any("err", err))
-			} else {
-				logger.Info("success load storage", zap.String("mount_path", storages[i].MountPath))
-			}
-		}
-		conf.StoragesLoaded = true
-	}(storages)
+	// storages, err := MyService.Storage().GetEnabledStorages()
+	// if err != nil {
+	// 	logger.Error("failed get enabled storages", zap.Any("err", err))
+	// }
+	// go func(storages []model.Storage) {
+	// 	for i := range storages {
+	// 		err := s.LoadStorage(context.Background(), storages[i])
+	// 		if err != nil {
+	// 			logger.Error("failed get enabled storages", zap.Any("err", err))
+	// 		} else {
+	// 			logger.Info("success load storage", zap.String("mount_path", storages[i].MountPath))
+	// 		}
+	// 	}
+	// 	conf.StoragesLoaded = true
+	// }(storages)
 
 }
 func NewStoragesService() StoragesService {

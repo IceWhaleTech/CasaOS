@@ -1,73 +1,100 @@
 package service
 
 import (
-	"fmt"
+	"io/ioutil"
 
-	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/pkg/errors"
-	"gorm.io/gorm"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 )
 
 type StorageService interface {
-	CreateStorage(storage *model.Storage) error
-	UpdateStorage(storage *model.Storage) error
-	DeleteStorageById(id uint) error
-	GetStorages(pageIndex, pageSize int) ([]model.Storage, int64, error)
-	GetStorageById(id uint) (*model.Storage, error)
-	GetEnabledStorages() ([]model.Storage, error)
+	MountStorage(mountPoint, fs string) error
+	UnmountStorage(mountPoint string) error
+	GetStorages() (httper.MountList, error)
+	CreateConfig(data map[string]string, name string, t string) error
+	CheckAndMountByName(name string) error
+	CheckAndMountAll() error
+	GetConfigByName(name string) (map[string]string, error)
+	DeleteConfigByName(name string) error
 }
 
 type storageStruct struct {
-	db *gorm.DB
 }
 
-// CreateStorage just insert storage to database
-func (s *storageStruct) CreateStorage(storage *model.Storage) error {
-	return errors.WithStack(s.db.Create(storage).Error)
+func (s *storageStruct) MountStorage(mountPoint, fs string) error {
+	file.IsNotExistMkDir(mountPoint)
+	httper.Mount(mountPoint, fs)
+	return nil
 }
+func (s *storageStruct) UnmountStorage(mountPoint string) error {
+	err := httper.Unmount(mountPoint)
+	if err == nil {
+		dir, _ := ioutil.ReadDir(mountPoint)
 
-// UpdateStorage just update storage in database
-func (s *storageStruct) UpdateStorage(storage *model.Storage) error {
-	return errors.WithStack(s.db.Save(storage).Error)
-}
-
-// DeleteStorageById just delete storage from database by id
-func (s *storageStruct) DeleteStorageById(id uint) error {
-	return errors.WithStack(s.db.Delete(&model.Storage{}, id).Error)
-}
-
-// GetStorages Get all storages from database order by index
-func (s *storageStruct) GetStorages(pageIndex, pageSize int) ([]model.Storage, int64, error) {
-	storageDB := s.db.Model(&model.Storage{})
-	var count int64
-	if err := storageDB.Count(&count).Error; err != nil {
-		return nil, 0, errors.Wrapf(err, "failed get storages count")
+		if len(dir) == 0 {
+			file.RMDir(mountPoint)
+		}
+		return nil
 	}
-	var storages []model.Storage
-	if err := storageDB.Order("`order`").Offset((pageIndex - 1) * pageSize).Limit(pageSize).Find(&storages).Error; err != nil {
-		return nil, 0, errors.WithStack(err)
-	}
-	return storages, count, nil
+	return err
 }
-
-// GetStorageById Get Storage by id, used to update storage usually
-func (s *storageStruct) GetStorageById(id uint) (*model.Storage, error) {
-	var storage model.Storage
-	storage.ID = id
-	if err := s.db.First(&storage).Error; err != nil {
-		return nil, errors.WithStack(err)
-	}
-	return &storage, nil
+func (s *storageStruct) GetStorages() (httper.MountList, error) {
+	return httper.GetMountList()
 }
-
-func (s *storageStruct) GetEnabledStorages() ([]model.Storage, error) {
-	var storages []model.Storage
-	if err := s.db.Where(fmt.Sprintf("%s = ?", "disabled"), false).Find(&storages).Error; err != nil {
-		return nil, errors.WithStack(err)
-	}
-	return storages, nil
+func (s *storageStruct) CreateConfig(data map[string]string, name string, t string) error {
+	httper.CreateConfig(data, name, t)
+	return nil
 }
-
-func NewStorageService(db *gorm.DB) StorageService {
-	return &storageStruct{db: db}
+func (s *storageStruct) CheckAndMountByName(name string) error {
+	storages, _ := MyService.Storage().GetStorages()
+	currentRemote, _ := httper.GetConfigByName(name)
+	mountPoint := currentRemote["mount_point"]
+	isMount := false
+	for _, v := range storages.MountPoints {
+		if v.MountPoint == mountPoint {
+			isMount = true
+			break
+		}
+	}
+	if !isMount {
+		MyService.Storage().MountStorage(mountPoint, name+":")
+	}
+	return nil
+}
+func (s *storageStruct) CheckAndMountAll() error {
+	storages, err := MyService.Storage().GetStorages()
+	if err != nil {
+		return err
+	}
+	section, err := httper.GetAllConfigName()
+	if err != nil {
+		return err
+	}
+	for _, v := range section.Remotes {
+		currentRemote, _ := httper.GetConfigByName(v)
+		mountPoint := currentRemote["mount_point"]
+		if len(mountPoint) == 0 {
+			continue
+		}
+		isMount := false
+		for _, v := range storages.MountPoints {
+			if v.MountPoint == mountPoint {
+				isMount = true
+				break
+			}
+		}
+		if !isMount {
+			return MyService.Storage().MountStorage(mountPoint, v+":")
+		}
+	}
+	return nil
+}
+func (s *storageStruct) GetConfigByName(name string) (map[string]string, error) {
+	return httper.GetConfigByName(name)
+}
+func (s *storageStruct) DeleteConfigByName(name string) error {
+	return httper.DeleteConfigByName(name)
+}
+func NewStorageService() StorageService {
+	return &storageStruct{}
 }

@@ -118,13 +118,7 @@ func InitRouter() *gin.Engine {
 		v1StorageGroup.Use()
 		{
 			v1StorageGroup.GET("", v1.ListStorages)
-			v1StorageGroup.POST("", v1.CreateStorage)
 			v1StorageGroup.DELETE("", v1.DeleteStorage)
-		}
-		v1FsGroup := v1Group.Group("/fs")
-		v1FsGroup.Use()
-		{
-			v1FsGroup.POST("/list", v1.FsList)
 		}
 		v1DriverGroup := v1Group.Group("/driver")
 		v1DriverGroup.Use()

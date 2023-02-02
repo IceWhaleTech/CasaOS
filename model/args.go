@@ -23,6 +23,7 @@ type Link struct {
 	Status     int            // status maybe 200 or 206, etc
 	FilePath   *string        // local file, return the filepath
 	Expiration *time.Duration // url expiration time
+	Method     string         `json:"method"` // http method
 }
 
 type OtherArgs struct {

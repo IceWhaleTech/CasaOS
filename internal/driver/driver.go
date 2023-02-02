@@ -9,6 +9,7 @@ import (
 type Driver interface {
 	Meta
 	Reader
+	User
 	//Writer
 	//Other
 }
@@ -37,7 +38,10 @@ type Reader interface {
 	// Link get url/filepath/reader of file
 	Link(ctx context.Context, file model.Obj, args model.LinkArgs) (*model.Link, error)
 }
-
+type User interface {
+	// GetRoot get root directory of user
+	GetUserInfo(ctx context.Context) (string, error)
+}
 type Getter interface {
 	GetRoot(ctx context.Context) (model.Obj, error)
 }

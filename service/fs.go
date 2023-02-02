@@ -6,12 +6,14 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/internal/driver"
 	"github.com/IceWhaleTech/CasaOS/model"
+	log "github.com/dsoprea/go-logging"
 	"go.uber.org/zap"
 )
 
 type FsService interface {
 	FList(ctx context.Context, path string, refresh ...bool) ([]model.Obj, error)
 	GetStorage(path string) (driver.Driver, error)
+	Link(ctx context.Context, path string, args model.LinkArgs) (*model.Link, model.Obj, error)
 }
 
 type fsService struct {
@@ -39,14 +41,14 @@ func (f *fsService) FList(ctx context.Context, path string, refresh ...bool) ([]
 // 	return res, nil
 // }
 
-// func (f *fsService) Link(ctx context.Context, path string, args model.LinkArgs) (*model.Link, model.Obj, error) {
-// 	res, file, err := link(ctx, path, args)
-// 	if err != nil {
-// 		log.Errorf("failed link %s: %+v", path, err)
-// 		return nil, nil, err
-// 	}
-// 	return res, file, nil
-// }
+func (f *fsService) Link(ctx context.Context, path string, args model.LinkArgs) (*model.Link, model.Obj, error) {
+	res, file, err := MyService.FsLinkService().Link(ctx, path, args)
+	if err != nil {
+		log.Errorf("failed link %s: %+v", path, err)
+		return nil, nil, err
+	}
+	return res, file, nil
+}
 
 // func (f *fsService) MakeDir(ctx context.Context, path string, lazyCache ...bool) error {
 // 	err := makeDir(ctx, path, lazyCache...)

@@ -12,6 +12,7 @@ package v1
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -195,7 +196,10 @@ func DeleteSambaConnections(c *gin.Context) {
 	for _, v := range mountPointList {
 		service.MyService.Connections().UnmountSmaba(v.Path)
 	}
-	os.RemoveAll(connection.MountPoint)
+	dir, _ := ioutil.ReadDir(connection.MountPoint)
+	if len(dir) == 0 {
+		os.RemoveAll(connection.MountPoint)
+	}
 	service.MyService.Connections().DeleteConnection(id)
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: id})
 }

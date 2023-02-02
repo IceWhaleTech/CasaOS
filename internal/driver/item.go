@@ -40,7 +40,7 @@ type RootPath struct {
 }
 
 type RootID struct {
-	RootFolderID string `json:"root_folder_id"`
+	RootFolderID string `json:"root_folder_id" omit:"true"`
 }
 
 func (r RootPath) GetRootPath() string {

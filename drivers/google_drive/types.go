@@ -8,6 +8,17 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type UserInfo struct {
+	User struct {
+		Kind         string `json:"kind"`
+		DisplayName  string `json:"displayName"`
+		PhotoLink    string `json:"photoLink"`
+		Me           bool   `json:"me"`
+		PermissionID string `json:"permissionId"`
+		EmailAddress string `json:"emailAddress"`
+	} `json:"user"`
+}
+
 type TokenError struct {
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description"`

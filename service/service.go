@@ -42,6 +42,7 @@ type Repository interface {
 	Storages() StoragesService
 	StoragePath() StoragePathService
 	FsListService() FsListService
+	FsLinkService() FsLinkService
 	FsService() FsService
 }
 
@@ -63,10 +64,11 @@ func NewService(db *gorm.DB, RuntimePath string, socket *socketio.Server) Reposi
 		system:       NewSystemService(),
 		shares:       NewSharesService(db),
 		connections:  NewConnectionsService(db),
-		storage:      NewStorageService(db),
+		storage:      NewStorageService(),
 		storages:     NewStoragesService(),
 		storage_path: NewStoragePathService(),
 		fs_list:      NewFsListService(),
+		fs_link:      NewFsLinkService(),
 		fs:           NewFsService(),
 	}
 }
@@ -84,9 +86,13 @@ type store struct {
 	storages     StoragesService
 	storage_path StoragePathService
 	fs_list      FsListService
+	fs_link      FsLinkService
 	fs           FsService
 }
 
+func (c *store) FsLinkService() FsLinkService {
+	return c.fs_link
+}
 func (c *store) FsService() FsService {
 	return c.fs
 }

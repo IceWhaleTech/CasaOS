@@ -13,7 +13,7 @@ import (
 type New func() driver.Driver
 
 var driverNewMap = map[string]New{}
-var driverInfoMap = map[string]driver.Info{}
+var driverInfoMap = map[string][]driver.Item{} //driver.Info{}
 
 func RegisterDriver(driver New) {
 	// log.Infof("register driver: [%s]", config.Name)
@@ -39,23 +39,26 @@ func GetDriverNames() []string {
 	return driverNames
 }
 
-func GetDriverInfoMap() map[string]driver.Info {
+//	func GetDriverInfoMap() map[string]driver.Info {
+//		return driverInfoMap
+//	}
+func GetDriverInfoMap() map[string][]driver.Item {
 	return driverInfoMap
 }
-
 func registerDriverItems(config driver.Config, addition driver.Additional) {
 	// log.Debugf("addition of %s: %+v", config.Name, addition)
 	tAddition := reflect.TypeOf(addition)
 	for tAddition.Kind() == reflect.Pointer {
 		tAddition = tAddition.Elem()
 	}
-	mainItems := getMainItems(config)
+	//mainItems := getMainItems(config)
 	additionalItems := getAdditionalItems(tAddition, config.DefaultRoot)
-	driverInfoMap[config.Name] = driver.Info{
-		Common:     mainItems,
-		Additional: additionalItems,
-		Config:     config,
-	}
+	driverInfoMap[config.Name] = additionalItems
+	// driver.Info{
+	// 	Common:     mainItems,
+	// 	Additional: additionalItems,
+	// 	Config:     config,
+	// }
 }
 
 func getMainItems(config driver.Config) []driver.Item {
@@ -128,6 +131,7 @@ func getMainItems(config driver.Config) []driver.Item {
 func getAdditionalItems(t reflect.Type, defaultRoot string) []driver.Item {
 	var items []driver.Item
 	for i := 0; i < t.NumField(); i++ {
+
 		field := t.Field(i)
 		if field.Type.Kind() == reflect.Struct {
 			items = append(items, getAdditionalItems(field.Type, defaultRoot)...)
@@ -137,6 +141,9 @@ func getAdditionalItems(t reflect.Type, defaultRoot string) []driver.Item {
 		ignore, ok1 := tag.Lookup("ignore")
 		name, ok2 := tag.Lookup("json")
 		if (ok1 && ignore == "true") || !ok2 {
+			continue
+		}
+		if tag.Get("omit") == "true" {
 			continue
 		}
 		item := driver.Item{
