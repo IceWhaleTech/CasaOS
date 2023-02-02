@@ -9,6 +9,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/drivers/google_drive"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -52,8 +53,17 @@ func ListStorages(c *gin.Context) {
 			r.MountPoints[i].Icon = dropbox.ICONURL
 		}
 	}
+	list := []httper.MountPoint{}
 
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: r})
+	for _, v := range r.MountPoints {
+		list = append(list, httper.MountPoint{
+			Fs:         v.Fs,
+			Icon:       v.Icon,
+			MountPoint: v.MountPoint,
+		})
+	}
+
+	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }
 
 func UpdateStorage(c *gin.Context) {

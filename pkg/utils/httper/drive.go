@@ -17,6 +17,11 @@ type MountList struct {
 		Icon       string `json:"Icon"`
 	} `json:"mountPoints"`
 }
+type MountPoint struct {
+	MountPoint string `json:"mount_point"`
+	Fs         string `json:"fs"`
+	Icon       string `json:"icon"`
+}
 type MountResult struct {
 	Error string `json:"error"`
 	Input struct {

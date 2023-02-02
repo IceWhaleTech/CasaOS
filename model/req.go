@@ -1,8 +1,8 @@
 package model
 
 type PageReq struct {
-	Page    int `json:"page" form:"page"`
-	PerPage int `json:"per_page" form:"per_page"`
+	Index int `json:"page" form:"index"`
+	Size  int `json:"size" form:"size"`
 }
 
 const MaxUint = ^uint(0)
@@ -11,10 +11,13 @@ const MaxInt = int(MaxUint >> 1)
 const MinInt = -MaxInt - 1
 
 func (p *PageReq) Validate() {
-	if p.Page < 1 {
-		p.Page = 1
+	if p.Index < 1 {
+		p.Index = 1
 	}
-	if p.PerPage < 1 {
-		p.PerPage = MaxInt
+	if p.Size < 1 {
+		p.Size = 100000
 	}
+	// if p.PerPage < 1 {
+	// 	p.PerPage = MaxInt
+	// }
 }

@@ -256,40 +256,23 @@ func DirPath(c *gin.Context) {
 		return
 	}
 	req.Validate()
-	storage, _, _ := service.MyService.StoragePath().GetStorageAndActualPath(req.Path)
-	if storage != nil {
-		req.Validate()
-		objs, err := service.MyService.FsService().FList(c, req.Path, req.Refresh)
-		if err != nil {
-			c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-			return
-		}
-		total, objs := pagination(objs, &req.PageReq)
-		provider := "unknown"
-		storage, err := service.MyService.FsService().GetStorage(req.Path)
-		if err == nil {
-			provider = storage.GetStorage().Driver
-		}
-		c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: FsListResp{
-			Content:  toObjsResp(objs, req.Path, false),
-			Total:    int64(total),
-			Readme:   "",
-			Write:    false,
-			Provider: provider,
-		}})
-		return
-	}
 	info := service.MyService.System().GetDirPath(req.Path)
 	shares := service.MyService.Shares().GetSharesList()
 	sharesMap := make(map[string]string)
 	for _, v := range shares {
 		sharesMap[v.Path] = fmt.Sprint(v.ID)
 	}
-
-	for i := 0; i < len(info); i++ {
+	// if len(info) <= (req.Page-1)*req.Size {
+	// 	c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: "page out of range"})
+	// 	return
+	// }
+	forEnd := req.Index * req.Size
+	if forEnd > len(info) {
+		forEnd = len(info)
+	}
+	for i := (req.Index - 1) * req.Size; i < forEnd; i++ {
 		if v, ok := sharesMap[info[i].Path]; ok {
 			ex := make(map[string]interface{})
-
 			shareEx := make(map[string]string)
 			shareEx["shared"] = "true"
 			shareEx["id"] = v
@@ -314,11 +297,10 @@ func DirPath(c *gin.Context) {
 	}
 
 	pathList := []ObjResp{}
-	for i := 0; i < len(info); i++ {
+	for i := (req.Index - 1) * req.Size; i < forEnd; i++ {
 		if info[i].Name == ".temp" && info[i].IsDir {
 			continue
 		}
-
 		if _, ok := fileQueue[info[i].Path]; !ok {
 			t := ObjResp{}
 			t.IsDir = info[i].IsDir
@@ -326,15 +308,19 @@ func DirPath(c *gin.Context) {
 			t.Modified = info[i].Date
 			t.Size = info[i].Size
 			t.Path = info[i].Path
+			t.Extensions = info[i].Extensions
 			pathList = append(pathList, t)
+
 		}
 	}
 	flist := FsListResp{
-		Content:  pathList,
-		Total:    int64(len(pathList)),
-		Readme:   "",
-		Write:    true,
-		Provider: "local",
+		Content: pathList,
+		Total:   int64(len(info)),
+		// Readme:   "",
+		// Write:    true,
+		// Provider: "local",
+		Index: req.Index,
+		Size:  req.Size,
 	}
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: flist})
 }

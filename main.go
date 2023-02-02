@@ -14,6 +14,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/model"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	"github.com/gin-gonic/gin"
 
 	util_http "github.com/IceWhaleTech/CasaOS-Common/utils/http"
 
@@ -100,6 +101,9 @@ func main() {
 	v1Router := route.InitV1Router()
 	defer service.SocketServer.Close()
 
+	v1Router.GET("/v1/socketio/*any", gin.WrapH(service.SocketServer))
+	v1Router.POST("/v1/socketio/*any", gin.WrapH(service.SocketServer))
+
 	v2Router := route.InitV2Router()
 	v2DocRouter := route.InitV2DocRouter(_docHTML, _docYAML)
 
@@ -146,7 +150,7 @@ func main() {
 		"/v1/notify",
 		"/v1/socketio",
 		"/v1/driver",
-		"/v1/storage",
+		"/v1/cloud",
 		"/v1/recover",
 		route.V2APIPath,
 		route.V2DocPath,

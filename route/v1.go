@@ -7,7 +7,6 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
-	"github.com/IceWhaleTech/CasaOS/service"
 
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
@@ -98,11 +97,11 @@ func InitV1Router() *gin.Engine {
 			// v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
 
 		}
-		v1StorageGroup := v1Group.Group("/storage")
-		v1StorageGroup.Use()
+		v1CloudGroup := v1Group.Group("/cloud")
+		v1CloudGroup.Use()
 		{
-			v1StorageGroup.GET("", v1.ListStorages)
-			v1StorageGroup.DELETE("", v1.DeleteStorage)
+			v1CloudGroup.GET("", v1.ListStorages)
+			v1CloudGroup.DELETE("", v1.DeleteStorage)
 		}
 		v1DriverGroup := v1Group.Group("/driver")
 		v1DriverGroup.Use()
@@ -162,8 +161,8 @@ func InitV1Router() *gin.Engine {
 	}
 
 	// socketio
-	v1Group.GET("/socketio/*any", gin.WrapH(service.SocketServer))
-	v1Group.POST("/socketio/*any", gin.WrapH(service.SocketServer))
+	// v1Group.GET("/socketio/*any", gin.WrapH(service.SocketServer))
+	// v1Group.POST("/socketio/*any", gin.WrapH(service.SocketServer))
 
 	return r
 }

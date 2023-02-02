@@ -13,25 +13,28 @@ import (
 
 type ListReq struct {
 	model.PageReq
-	Path    string `json:"path" form:"path"`
-	Refresh bool   `json:"refresh"`
+	Path string `json:"path" form:"path"`
+	//Refresh bool   `json:"refresh"`
 }
 type ObjResp struct {
-	Name     string    `json:"name"`
-	Size     int64     `json:"size"`
-	IsDir    bool      `json:"is_dir"`
-	Modified time.Time `json:"modified"`
-	Sign     string    `json:"sign"`
-	Thumb    string    `json:"thumb"`
-	Type     int       `json:"type"`
-	Path     string    `json:"path"`
+	Name       string                 `json:"name"`
+	Size       int64                  `json:"size"`
+	IsDir      bool                   `json:"is_dir"`
+	Modified   time.Time              `json:"modified"`
+	Sign       string                 `json:"sign"`
+	Thumb      string                 `json:"thumb"`
+	Type       int                    `json:"type"`
+	Path       string                 `json:"path"`
+	Extensions map[string]interface{} `json:"extensions"`
 }
 type FsListResp struct {
 	Content  []ObjResp `json:"content"`
 	Total    int64     `json:"total"`
-	Readme   string    `json:"readme"`
-	Write    bool      `json:"write"`
-	Provider string    `json:"provider"`
+	Readme   string    `json:"readme,omitempty"`
+	Write    bool      `json:"write,omitempty"`
+	Provider string    `json:"provider,omitempty"`
+	Index    int       `json:"index"`
+	Size     int       `json:"size"`
 }
 
 func FsList(c *gin.Context) {
@@ -41,7 +44,7 @@ func FsList(c *gin.Context) {
 		return
 	}
 	req.Validate()
-	objs, err := service.MyService.FsService().FList(c, req.Path, req.Refresh)
+	objs, err := service.MyService.FsService().FList(c, req.Path, false)
 	if err != nil {
 		c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
@@ -61,7 +64,7 @@ func FsList(c *gin.Context) {
 	}})
 }
 func pagination(objs []model.Obj, req *model.PageReq) (int, []model.Obj) {
-	pageIndex, pageSize := req.Page, req.PerPage
+	pageIndex, pageSize := req.Index, req.Size
 	total := len(objs)
 	start := (pageIndex - 1) * pageSize
 	if start > total {
