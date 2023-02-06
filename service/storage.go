@@ -3,8 +3,10 @@ package service
 import (
 	"io/ioutil"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
+	"go.uber.org/zap"
 )
 
 type StorageService interface {
@@ -23,8 +25,7 @@ type storageStruct struct {
 
 func (s *storageStruct) MountStorage(mountPoint, fs string) error {
 	file.IsNotExistMkDir(mountPoint)
-	httper.Mount(mountPoint, fs)
-	return nil
+	return httper.Mount(mountPoint, fs)
 }
 func (s *storageStruct) UnmountStorage(mountPoint string) error {
 	err := httper.Unmount(mountPoint)
@@ -57,7 +58,7 @@ func (s *storageStruct) CheckAndMountByName(name string) error {
 		}
 	}
 	if !isMount {
-		MyService.Storage().MountStorage(mountPoint, name+":")
+		return MyService.Storage().MountStorage(mountPoint, name+":")
 	}
 	return nil
 }
@@ -66,10 +67,12 @@ func (s *storageStruct) CheckAndMountAll() error {
 	if err != nil {
 		return err
 	}
+	logger.Info("when CheckAndMountAll storages", zap.Any("storages", storages))
 	section, err := httper.GetAllConfigName()
 	if err != nil {
 		return err
 	}
+	logger.Info("when CheckAndMountAll section", zap.Any("section", section))
 	for _, v := range section.Remotes {
 		currentRemote, _ := httper.GetConfigByName(v)
 		mountPoint := currentRemote["mount_point"]
@@ -84,7 +87,11 @@ func (s *storageStruct) CheckAndMountAll() error {
 			}
 		}
 		if !isMount {
-			return MyService.Storage().MountStorage(mountPoint, v+":")
+			logger.Info("when CheckAndMountAll MountStorage", zap.String("mountPoint", mountPoint), zap.String("fs", v))
+			err := MyService.Storage().MountStorage(mountPoint, v+":")
+			if err != nil {
+				logger.Error("when CheckAndMountAll then", zap.String("mountPoint", mountPoint), zap.String("fs", v), zap.Error(err))
+			}
 		}
 	}
 	return nil
