@@ -21,11 +21,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	//NotifyMsg   chan notify.Message
-	ClientCount int
-)
-
 type NotifyServer interface {
 	GetLog(id string) model.AppNotify
 	AddLog(log model.AppNotify)
@@ -64,6 +59,7 @@ func (i *notifyServer) SendNotify(name string, message map[string]interface{}) {
 	response, err := MyService.MessageBus().PublishEventWithResponse(context.Background(), common.SERVICENAME, name, msg)
 	if err != nil {
 		logger.Error("failed to publish event to message bus", zap.Error(err), zap.Any("event", msg))
+		return
 	}
 	if response.StatusCode() != http.StatusOK {
 		logger.Error("failed to publish event to message bus", zap.String("status", response.Status()), zap.Any("response", response))
