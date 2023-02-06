@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
-	github.com/IceWhaleTech/CasaOS-Common v0.4.2-alpha1
+	github.com/IceWhaleTech/CasaOS-Common v0.4.2-alpha2.0.20230206162644-6b60fd9fe992
 	github.com/Xhofe/go-cache v0.0.0-20220723083548-714439c8af9a
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/deckarep/golang-set/v2 v2.1.0
