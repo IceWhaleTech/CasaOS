@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/go-resty/resty/v2"
+	"go.uber.org/zap"
 )
 
 type MountList struct {
@@ -82,6 +84,7 @@ func Mount(mountPoint string, fs string) error {
 	if res.StatusCode() != 200 {
 		return fmt.Errorf("mount failed")
 	}
+	logger.Info("mount then", zap.Any("res", res.Body()))
 	return nil
 }
 func Unmount(mountPoint string) error {
@@ -94,6 +97,7 @@ func Unmount(mountPoint string) error {
 	if res.StatusCode() != 200 {
 		return fmt.Errorf("unmount failed")
 	}
+	logger.Info("unmount then", zap.Any("res", res.Body()))
 	return nil
 }
 
@@ -111,6 +115,7 @@ func CreateConfig(data map[string]string, name, t string) error {
 	if res.StatusCode() != 200 {
 		return fmt.Errorf("create config failed")
 	}
+	logger.Info("create config then", zap.Any("res", res.Body()))
 	return nil
 }
 
