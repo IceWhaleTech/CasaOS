@@ -116,14 +116,7 @@ func main() {
 	// every day execution
 
 	err := cron2.AddFunc("0/5 * * * * *", func() {
-		if service.ClientCount > 0 {
-			// route.SendNetINfoBySocket()
-			// route.SendCPUBySocket()
-			// route.SendMemBySocket()
-			// route.SendDiskBySocket()
-			// route.SendUSBBySocket()
-			route.SendAllHardwareStatusBySocket()
-		}
+		route.SendAllHardwareStatusBySocket()
 	})
 	if err != nil {
 		fmt.Println(err)
