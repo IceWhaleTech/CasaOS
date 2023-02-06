@@ -23,7 +23,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Code cannot be empty"
-			service.MyService.Notify().SendNotify("recover_status", notify)
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
 
@@ -38,7 +38,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Initialization failure"
-			service.MyService.Notify().SendNotify("recover_status", notify)
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
 
@@ -47,7 +47,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get user information"
-			service.MyService.Notify().SendNotify("recover_status", notify)
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
 		if len(username) > 0 {
@@ -61,7 +61,7 @@ func GetRecoverStorage(c *gin.Context) {
 			service.MyService.Storage().CheckAndMountByName(username)
 			notify["status"] = "warn"
 			notify["message"] = "The same configuration has been added"
-			service.MyService.Notify().SendNotify("recover_status", notify)
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
 		dmap := make(map[string]string)
@@ -75,7 +75,7 @@ func GetRecoverStorage(c *gin.Context) {
 		notify := make(map[string]interface{})
 		notify["status"] = "success"
 		notify["message"] = "Success"
-		service.MyService.Notify().SendNotify("recover_status", notify)
+		service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 	} else if t == "Dropbox" {
 		add := dropbox.Addition{}
 		add.Code = c.Query("code")
@@ -83,7 +83,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Code cannot be empty"
-			service.MyService.Notify().SendNotify("recover_status", notify)
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
 		add.RootFolderID = ""
@@ -96,7 +96,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Initialization failure"
-			service.MyService.Notify().SendNotify("recover_status", notify)
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
 		username, err := dropbox.GetUserInfo(c)
@@ -104,7 +104,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get user information"
-			service.MyService.Notify().SendNotify("recover_status", notify)
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
 		if len(username) > 0 {
@@ -118,7 +118,7 @@ func GetRecoverStorage(c *gin.Context) {
 			service.MyService.Storage().CheckAndMountByName(username)
 			notify["status"] = "warn"
 			notify["message"] = "The same configuration has been added"
-			service.MyService.Notify().SendNotify("recover_status", notify)
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
 		dmap := make(map[string]string)
@@ -143,7 +143,7 @@ func GetRecoverStorage(c *gin.Context) {
 
 		notify["status"] = "success"
 		notify["message"] = "Success"
-		service.MyService.Notify().SendNotify("recover_status", notify)
+		service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 	}
 
 	c.String(200, `<p>Just close the page</p><script>window.close()</script>`)

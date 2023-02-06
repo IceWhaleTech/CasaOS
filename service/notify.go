@@ -1,15 +1,20 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
 	json2 "encoding/json"
 	"fmt"
+	"net/http"
 	"time"
 
-	notifyCommon "github.com/IceWhaleTech/CasaOS-Common/model/notify"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	"github.com/IceWhaleTech/CasaOS/common"
 	model2 "github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/model/notify"
 	"github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
+	"go.uber.org/zap"
 
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/gorilla/websocket"
@@ -30,12 +35,11 @@ type NotifyServer interface {
 	GetList(c int) (list []model.AppNotify)
 	MarkRead(id string, state int)
 	//	SendText(m model.AppNotify)
-	SendUninstallAppBySocket(app notifyCommon.Application)
+	//	SendUninstallAppBySocket(app notifyCommon.Application)
 
 	SendFileOperateNotify(nowSend bool)
-	SendInstallAppBySocket(app notifyCommon.Application)
-	SendStorageBySocket(message notify.StorageMessage)
-	SendNotify(path string, message map[string]interface{})
+	//SendInstallAppBySocket(app notifyCommon.Application)
+	SendNotify(name string, message map[string]interface{})
 	SettingSystemTempData(message map[string]interface{})
 	GetSystemTempMap() map[string]interface{}
 }
@@ -51,18 +55,25 @@ func (i *notifyServer) SettingSystemTempData(message map[string]interface{}) {
 	}
 }
 
-func (i *notifyServer) SendNotify(path string, message map[string]interface{}) {
-	SocketServer.BroadcastToRoom("/", "public", path, message)
-}
-
-func (i *notifyServer) SendStorageBySocket(message notify.StorageMessage) {
-	SocketServer.BroadcastToRoom("/", "public", "storage_status", message)
+func (i *notifyServer) SendNotify(name string, message map[string]interface{}) {
+	msg := make(map[string]string)
+	for k, v := range message {
+		bt, _ := json.Marshal(v)
+		msg[k] = string(bt)
+	}
+	response, err := MyService.MessageBus().PublishEventWithResponse(context.Background(), common.SERVICENAME, name, msg)
+	if err != nil {
+		logger.Error("failed to publish event to message bus", zap.Error(err), zap.Any("event", msg))
+	}
+	if response.StatusCode() != http.StatusOK {
+		logger.Error("failed to publish event to message bus", zap.String("status", response.Status()), zap.Any("response", response))
+	}
+	// SocketServer.BroadcastToRoom("/", "public", path, message)
 }
 
 // Send periodic broadcast messages
 func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 	if nowSend {
-
 		len := 0
 		FileQueue.Range(func(k, v interface{}) bool {
 			len++
@@ -74,7 +85,18 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 		if len == 0 {
 			model.Data = []string{}
 			listMsg["file_operate"] = model
-			SocketServer.BroadcastToRoom("/", "public", "file_operate", listMsg)
+			msg := make(map[string]string)
+			for k, v := range listMsg {
+				bt, _ := json.Marshal(v)
+				msg[k] = string(bt)
+			}
+			response, err := MyService.MessageBus().PublishEventWithResponse(context.Background(), common.SERVICENAME, "casaos:file:operate", msg)
+			if err != nil {
+				logger.Error("failed to publish event to message bus", zap.Error(err), zap.Any("event", msg))
+			}
+			if response.StatusCode() != http.StatusOK {
+				logger.Error("failed to publish event to message bus", zap.String("status", response.Status()), zap.Any("response", response))
+			}
 			return
 		}
 
@@ -122,7 +144,19 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 		model.Data = list
 
 		listMsg["file_operate"] = model
-		SocketServer.BroadcastToRoom("/", "public", "file_operate", listMsg)
+		msg := make(map[string]string)
+		for k, v := range listMsg {
+			bt, _ := json.Marshal(v)
+			msg[k] = string(bt)
+		}
+		response, err := MyService.MessageBus().PublishEventWithResponse(context.Background(), common.SERVICENAME, "casaos:file:operate", msg)
+		if err != nil {
+			logger.Error("failed to publish event to message bus", zap.Error(err), zap.Any("event", msg))
+		}
+		if response.StatusCode() != http.StatusOK {
+			logger.Error("failed to publish event to message bus", zap.String("status", response.Status()), zap.Any("response", response))
+		}
+
 	} else {
 		for {
 
@@ -179,20 +213,30 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 			model.Data = list
 
 			listMsg["file_operate"] = model
-			SocketServer.BroadcastToRoom("/", "public", "file_operate", listMsg)
+			msg := make(map[string]string)
+			for k, v := range listMsg {
+				bt, _ := json.Marshal(v)
+				msg[k] = string(bt)
+			}
+			response, err := MyService.MessageBus().PublishEventWithResponse(context.Background(), common.SERVICENAME, "casaos:file:operate", msg)
+			if err != nil {
+				logger.Error("failed to publish event to message bus", zap.Error(err), zap.Any("event", msg))
+			}
+			if response.StatusCode() != http.StatusOK {
+				logger.Error("failed to publish event to message bus", zap.String("status", response.Status()), zap.Any("response", response))
+			}
 			time.Sleep(time.Second * 3)
 		}
 	}
 }
 
-func (i *notifyServer) SendInstallAppBySocket(app notifyCommon.Application) {
-	SocketServer.BroadcastToRoom("/", "public", "app_install", app)
+// func (i *notifyServer) SendInstallAppBySocket(app notifyCommon.Application) {
+// 	SocketServer.BroadcastToRoom("/", "public", "app_install", app)
+// }
 
-}
-
-func (i *notifyServer) SendUninstallAppBySocket(app notifyCommon.Application) {
-	SocketServer.BroadcastToRoom("/", "public", "app_uninstall", app)
-}
+// func (i *notifyServer) SendUninstallAppBySocket(app notifyCommon.Application) {
+// 	SocketServer.BroadcastToRoom("/", "public", "app_uninstall", app)
+// }
 
 func (i *notifyServer) SSR() {
 	server := socketio.NewServer(nil)
