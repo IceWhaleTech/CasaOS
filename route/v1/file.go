@@ -30,6 +30,8 @@ import (
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
+
+	"github.com/h2non/filetype"
 )
 
 // @Summary 读取文件
@@ -201,33 +203,32 @@ func GetDownloadSingleFile(c *gin.Context) {
 	// c.Header("Content-Disposition", "inline")
 	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
 
-	storage, _ := service.MyService.FsService().GetStorage(filePath)
-	if storage != nil {
-		if shouldProxy(storage, fileName) {
-			Proxy(c)
-			return
-		} else {
-			link, _, err := service.MyService.FsService().Link(c, filePath, model.LinkArgs{
-				IP:     c.ClientIP(),
-				Header: c.Request.Header,
-				Type:   c.Query("type"),
-			})
-			if err != nil {
-				c.JSON(common_err.SERVICE_ERROR, model.Result{
-					Success: common_err.SERVICE_ERROR,
-					Message: common_err.GetMsg(common_err.SERVICE_ERROR),
-					Data:    err.Error(),
-				})
-				return
-
-			}
-			c.Header("Referrer-Policy", "no-referrer")
-			c.Header("Cache-Control", "max-age=0, no-cache, no-store, must-revalidate")
-			c.Redirect(302, link.URL)
-			return
-		}
+	fi, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
 	}
 
+	// We only have to pass the file header = first 261 bytes
+	buffer := make([]byte, 261)
+
+	_, _ = fi.Read(buffer)
+
+	kind, _ := filetype.Match(buffer)
+	if kind != filetype.Unknown {
+		c.Header("Content-Type", kind.MIME.Value)
+	}
+	node, err := os.Stat(filePath)
+	// Set the Last-Modified header to the timestamp
+	c.Header("Last-Modified", node.ModTime().UTC().Format(http.TimeFormat))
+
+	knownSize := node.Size() >= 0
+	if knownSize {
+		c.Header("Content-Length", strconv.FormatInt(node.Size(), 10))
+	}
+	http.ServeContent(c.Writer, c.Request, fileName, node.ModTime(), fi)
+	//http.ServeFile(c.Writer, c.Request, filePath)
+	defer fi.Close()
+	return
 	fileTmp, err := os.Open(filePath)
 	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{
@@ -638,12 +639,18 @@ func PutFileContent(c *gin.Context) {
 		return
 	}
 	// err := os.Remove(path)
-	err := os.RemoveAll(fi.FilePath)
+	f, err := os.Stat(fi.FilePath)
+	if err != nil {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
+		return
+	}
+	fm := f.Mode()
 	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR), Data: err})
 		return
 	}
-	err = file.CreateFileAndWriteContent(fi.FilePath, fi.FileContent)
+	os.OpenFile(fi.FilePath, os.O_CREATE, fm)
+	err = file.WriteToFullPath([]byte(fi.FileContent), fi.FilePath, fm)
 	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
