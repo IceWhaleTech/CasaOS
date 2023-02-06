@@ -14,6 +14,7 @@ import (
 
 	http2 "github.com/IceWhaleTech/CasaOS-Common/utils/http"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/port"
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
@@ -46,7 +47,7 @@ func GetSystemCheckVersion(c *gin.Context) {
 	data := make(map[string]interface{}, 3)
 	data["need_update"] = need
 	data["version"] = version
-	data["current_version"] = types.CURRENTVERSION
+	data["current_version"] = common.VERSION
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
@@ -92,7 +93,7 @@ func GetSystemConfigDebug(c *gin.Context) {
 	 - Remote Version: %s
 	 - Browser: $Browser$ 
 	 - Version: $Version$
-`, sys.OS, types.CURRENTVERSION, disk.Total>>20, disk.Used>>20, array, version.Version)
+`, sys.OS, common.VERSION, disk.Total>>20, disk.Used>>20, array, version.Version)
 
 	//	array = append(array, fmt.Sprintf("disk,total:%v,used:%v,UsedPercent:%v", disk.Total>>20, disk.Used>>20, disk.UsedPercent))
 

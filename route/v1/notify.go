@@ -11,14 +11,14 @@ import (
 )
 
 func PostNotifyMessage(c *gin.Context) {
-	path := c.Param("path")
+	name := c.Param("name")
 	message := make(map[string]interface{})
 	if err := c.ShouldBind(&message); err != nil {
 		c.JSON(http.StatusBadRequest, model.Result{Success: common_err.INVALID_PARAMS, Message: err.Error()})
 		return
 	}
 
-	service.MyService.Notify().SendNotify(path, message)
+	service.MyService.Notify().SendNotify(name, message)
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
@@ -40,7 +40,7 @@ func PostInstallAppNotify(c *gin.Context) {
 		return
 	}
 
-	service.MyService.Notify().SendInstallAppBySocket(app)
+	//service.MyService.Notify().SendInstallAppBySocket(app)
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
@@ -51,6 +51,6 @@ func PostUninstallAppNotify(c *gin.Context) {
 		return
 	}
 
-	service.MyService.Notify().SendUninstallAppBySocket(app)
+	//service.MyService.Notify().SendUninstallAppBySocket(app)
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }

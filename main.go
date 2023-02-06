@@ -1,8 +1,9 @@
 //go:generate bash -c "mkdir -p codegen && go run github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12.4 -generate types,server,spec -package codegen api/casaos/openapi.yaml > codegen/casaos_api.go"
-
+//go:generate bash -c "mkdir -p codegen/message_bus && go run github.com/deepmap/oapi-codegen/cmd/oapi-codegen@v1.12.4 -generate types,client -package message_bus https://raw.githubusercontent.com/IceWhaleTech/CasaOS-MessageBus/main/api/message_bus/openapi.yaml > codegen/message_bus/api.go"
 package main
 
 import (
+	"context"
 	_ "embed"
 	"flag"
 	"fmt"
@@ -14,10 +15,11 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/model"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
-	"github.com/gin-gonic/gin"
 
 	util_http "github.com/IceWhaleTech/CasaOS-Common/utils/http"
 
+	"github.com/IceWhaleTech/CasaOS/codegen/message_bus"
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
@@ -25,7 +27,6 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
-	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/coreos/go-systemd/daemon"
 	"go.uber.org/zap"
 
@@ -56,7 +57,7 @@ var (
 func init() {
 	flag.Parse()
 	if *versionFlag {
-		fmt.Println("v" + types.CURRENTVERSION)
+		fmt.Println("v" + common.VERSION)
 		return
 	}
 
@@ -73,7 +74,7 @@ func init() {
 	sqliteDB = sqlite.GetDb(*dbFlag)
 	// gredis.GetRedisConn(config.RedisInfo),
 
-	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath, route.SocketIo())
+	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath)
 
 	service.Cache = cache.Init()
 
@@ -99,10 +100,6 @@ func main() {
 	}
 
 	v1Router := route.InitV1Router()
-	defer service.SocketServer.Close()
-
-	v1Router.GET("/v1/socketio/*any", gin.WrapH(service.SocketServer))
-	v1Router.POST("/v1/socketio/*any", gin.WrapH(service.SocketServer))
 
 	v2Router := route.InitV2Router()
 	v2DocRouter := route.InitV2DocRouter(_docHTML, _docYAML)
@@ -148,7 +145,6 @@ func main() {
 		"/v1/image",
 		"/v1/samba",
 		"/v1/notify",
-		"/v1/socketio",
 		"/v1/driver",
 		"/v1/cloud",
 		"/v1/recover",
@@ -166,6 +162,21 @@ func main() {
 			panic(err)
 		}
 	}
+	var events []message_bus.EventType
+	events = append(events, message_bus.EventType{Name: "casaos:system:utilization", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
+	events = append(events, message_bus.EventType{Name: "casaos:file:recover", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
+	events = append(events, message_bus.EventType{Name: "casaos:file:operate", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
+	// register at message bus
+
+	response, err := service.MyService.MessageBus().RegisterEventTypesWithResponse(context.Background(), events)
+	if err != nil {
+		logger.Error("error when trying to register one or more event types - some event type will not be discoverable", zap.Error(err))
+	}
+
+	if response != nil && response.StatusCode() != http.StatusOK {
+		logger.Error("error when trying to register one or more event types - some event type will not be discoverable", zap.String("status", response.Status()), zap.String("body", string(response.Body)))
+	}
+
 	go func() {
 		time.Sleep(time.Second * 2)
 		// v0.3.6

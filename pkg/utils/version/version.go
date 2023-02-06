@@ -14,15 +14,15 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/IceWhaleTech/CasaOS/types"
 )
 
 func IsNeedUpdate(version model.Version) (bool, model.Version) {
 
 	v1 := strings.Split(version.Version, ".")
 
-	v2 := strings.Split(types.CURRENTVERSION, ".")
+	v2 := strings.Split(common.VERSION, ".")
 
 	for len(v1) < len(v2) {
 		v1 = append(v1, "0")

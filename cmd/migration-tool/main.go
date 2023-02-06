@@ -17,10 +17,10 @@ import (
 
 	interfaces "github.com/IceWhaleTech/CasaOS-Common"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
 	"github.com/IceWhaleTech/CasaOS/service"
-	"github.com/IceWhaleTech/CasaOS/types"
 	"gorm.io/gorm"
 )
 
@@ -47,7 +47,7 @@ func init() {
 	flag.Parse()
 
 	if *versionFlag {
-		fmt.Println("v" + types.CURRENTVERSION)
+		fmt.Println("v" + common.VERSION)
 		os.Exit(0)
 	}
 
@@ -86,7 +86,7 @@ func init() {
 	sqliteDB = sqlite.GetDb(dbFlag)
 	// gredis.GetRedisConn(config.RedisInfo),
 
-	service.MyService = service.NewService(sqliteDB, "", nil)
+	service.MyService = service.NewService(sqliteDB, "")
 }
 
 func main() {

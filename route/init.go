@@ -18,13 +18,13 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
-	"github.com/IceWhaleTech/CasaOS/types"
 	"go.uber.org/zap"
 )
 
@@ -50,7 +50,7 @@ func InitInfo() {
 		logger.Error("GetMacAddress", zap.String("error", err.Error()))
 	}
 	mb.Hash = encryption.GetMD5ByStr(mac)
-	mb.Version = types.CURRENTVERSION
+	mb.Version = common.VERSION
 	os.Remove(config.AppInfo.DBPath + "/baseinfo.conf")
 	by, err := json.Marshal(mb)
 	if err != nil {
