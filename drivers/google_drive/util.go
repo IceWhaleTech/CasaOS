@@ -28,7 +28,7 @@ func (d *GoogleDrive) getRefreshToken() error {
 			"client_secret": d.ClientSecret,
 			"code":          d.Code,
 			"grant_type":    "authorization_code",
-			"redirect_uri":  "http://test-get.casaos.io",
+			"redirect_uri":  "https://test-get.casaos.io",
 		}).Post(url)
 	if err != nil {
 		return err

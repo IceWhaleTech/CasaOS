@@ -109,13 +109,14 @@ func CreateConfig(data map[string]string, name, t string) error {
 		"parameters": string(dataStr),
 		"type":       t,
 	}).Post("/config/create")
+	logger.Info("when create config then", zap.Any("res", res.Body()))
 	if err != nil {
 		return err
 	}
 	if res.StatusCode() != 200 {
 		return fmt.Errorf("create config failed")
 	}
-	logger.Info("create config then", zap.Any("res", res.Body()))
+
 	return nil
 }
 

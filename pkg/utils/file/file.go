@@ -577,3 +577,22 @@ func ReadLine(lineNumber int, path string) string {
 	defer file.Close()
 	return ""
 }
+
+func NameAccumulation(name string, dir string) string {
+	path := filepath.Join(dir, name)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return path
+	}
+	base := name
+	strings.Split(base, "_")
+	index := strings.LastIndex(base, "_")
+	if index < 0 {
+		index = len(base)
+	}
+	for i := 1; ; i++ {
+		newPath := filepath.Join(dir, fmt.Sprintf("%s_%d", base[:index], i))
+		if _, err := os.Stat(newPath); os.IsNotExist(err) {
+			return fmt.Sprintf("%s_%d", base[:index], i)
+		}
+	}
+}
