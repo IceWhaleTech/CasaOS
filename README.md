@@ -166,8 +166,46 @@ We believes that through community-driven collaborative innovation and open comm
 
 CasaOS is a community-driven open source project and the people involved are CasaOS users. That means CasaOS will always need contributions from community members just like you!
 
-- See <https://wiki.casaos.io/en/contribute> for ways of contribution to CasaOS
+<details>
+  <summary><b>How can I get involved? 🧐</b></summary>
+  <p>
+
+### Coding 💻 (WIP)
+
+We are refining documentation that can be used for effective community collaboration. Feel free to start a discussion if you have a good idea.
+
 - See <https://wiki.casaos.io/en/contribute/development> if you want to be involved in code contribution specificially
+
+### Helping Users 💬
+
+If you have extensive knowledge of CasaOS and related areas. We highly encourage you to help others as much as you can in Discord and Discussions.
+
+Discord: [https://discord.gg/knqAbbBbeX](https://discord.gg/knqAbbBbeX)
+
+GitHub Discussions: [https://github.com/IceWhaleTech/CasaOS/discussions](https://github.com/IceWhaleTech/CasaOS/discussions)
+
+### Helping with Translations 🌍 (WIP)
+
+CasaOS officially supports English and Chinese. You are welcome to help make CasaOS available in more languages. Let's make this project reach many languages as posible. 
+
+The translation is done on the website of ----> [Crowdin](https://crowdin.com/project/casaos) <----
+
+### Performing Alpha Testing ⚠️
+
+Alpha testing is quality assurance testing that is engaged and driven by the community. It's a great way to get involved in contributing and experiencing the latest features before a new release.
+
+The documentation is being refined and you can contact @JohnGuan via [Discord](https://discord.gg/knqAbbBbeX). Ask to join the #casaos-alpha channel.
+
+### Writing Documentation 📖 (WIP)
+
+Help make our documentation better by writing new content for the CasaOS Wiki, correcting existing material, or translating content into new languages.
+
+### Others
+
+- See <https://wiki.casaos.io/en/contribute> for ways of contribution to CasaOS
+
+  </p>
+</details>
 
 ## Credits
 
