@@ -82,6 +82,7 @@ read only = No
 guest ok = Yes
 create mask = 0777
 directory mask = 0777
+guest account = root
 
 `
 	}

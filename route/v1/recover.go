@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/file"
 	"github.com/IceWhaleTech/CasaOS/drivers/dropbox"
 	"github.com/IceWhaleTech/CasaOS/drivers/google_drive"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -54,7 +55,7 @@ func GetRecoverStorage(c *gin.Context) {
 			a := strings.Split(username, "@")
 			username = a[0]
 		}
-		username += "_drive"
+		username += file.NameAccumulation(username)
 		dataMap, _ := service.MyService.Storage().GetConfigByName(username)
 		if len(dataMap) > 0 {
 			c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
@@ -111,7 +112,7 @@ func GetRecoverStorage(c *gin.Context) {
 			a := strings.Split(username, "@")
 			username = a[0]
 		}
-		username += "_dropbox"
+		username += file.NameAccumulation(username)
 		dataMap, _ := service.MyService.Storage().GetConfigByName(username)
 		if len(dataMap) > 0 {
 			c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)

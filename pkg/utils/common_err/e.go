@@ -46,11 +46,12 @@ const (
 	ERROR_APP_NAME_EXIST = 50004
 
 	//file
-	FILE_DOES_NOT_EXIST = 60001
-	FILE_READ_ERROR     = 60002
-	FILE_DELETE_ERROR   = 60003
-	DIR_NOT_EXISTS      = 60004
-	SOURCE_DES_SAME     = 60005
+	FILE_DOES_NOT_EXIST  = 60001
+	FILE_READ_ERROR      = 60002
+	FILE_DELETE_ERROR    = 60003
+	DIR_NOT_EXISTS       = 60004
+	SOURCE_DES_SAME      = 60005
+	MOUNTED_DIRECTIORIES = 60006
 
 	//share
 	SHARE_ALREADY_EXISTS      = 70001
@@ -109,8 +110,9 @@ var MsgFlags = map[int]string{
 
 	DIR_NOT_EXISTS: "Directory does not exist",
 
-	FILE_READ_ERROR:   "File read error",
-	FILE_DELETE_ERROR: "Delete error",
+	FILE_READ_ERROR:      "File read error",
+	FILE_DELETE_ERROR:    "Delete error",
+	MOUNTED_DIRECTIORIES: "The directory is mounted, please unmount it first.",
 
 	COMMAND_ERROR_INVALID_OPERATION: "invalid operation",
 }

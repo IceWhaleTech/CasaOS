@@ -253,11 +253,15 @@ func GetDownloadSingleFile(c *gin.Context) {
 func DirPath(c *gin.Context) {
 	var req ListReq
 	if err := c.ShouldBind(&req); err != nil {
-		c.JSON(common_err.SUCCESS, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: err.Error()})
+		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: err.Error()})
 		return
 	}
 	req.Validate()
-	info := service.MyService.System().GetDirPath(req.Path)
+	info, err := service.MyService.System().GetDirPath(req.Path)
+	if err != nil {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return
+	}
 	shares := service.MyService.Shares().GetSharesList()
 	sharesMap := make(map[string]string)
 	for _, v := range shares {
@@ -278,6 +282,18 @@ func DirPath(c *gin.Context) {
 			shareEx["shared"] = "true"
 			shareEx["id"] = v
 			ex["share"] = shareEx
+			ex["mounted"] = false
+			info[i].Extensions = ex
+		}
+	}
+	if strings.HasPrefix(req.Path, "/mnt") || strings.HasPrefix(req.Path, "/media") {
+		for i := (req.Index - 1) * req.Size; i < forEnd; i++ {
+			ex := info[i].Extensions
+			if ex == nil {
+				ex = make(map[string]interface{})
+			}
+			mounted := service.IsMounted(info[i].Path)
+			ex["mounted"] = mounted
 			info[i].Extensions = ex
 		}
 	}
@@ -344,6 +360,12 @@ func RenamePath(c *gin.Context) {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 		return
 	}
+	mounted := service.IsMounted(op)
+	if mounted {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.MOUNTED_DIRECTIORIES, Message: common_err.GetMsg(common_err.MOUNTED_DIRECTIORIES), Data: common_err.GetMsg(common_err.MOUNTED_DIRECTIORIES)})
+		return
+	}
+
 	success, err := service.MyService.System().RenameFile(op, np)
 	c.JSON(common_err.SUCCESS, model.Result{Success: success, Message: common_err.GetMsg(success), Data: err})
 }
@@ -570,6 +592,13 @@ func PostOperateFileOrDir(c *gin.Context) {
 		}
 		list.Item[i].Size = size
 		total += size
+		if list.Type == "move" {
+			mounted := service.IsMounted(list.Item[i].From)
+			if mounted {
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.MOUNTED_DIRECTIORIES, Message: common_err.GetMsg(common_err.MOUNTED_DIRECTIORIES), Data: common_err.GetMsg(common_err.MOUNTED_DIRECTIORIES)})
+				return
+			}
+		}
 	}
 
 	list.TotalSize = total
@@ -607,6 +636,13 @@ func DeleteFile(c *gin.Context) {
 	//	path := c.Query("path")
 
 	//	paths := strings.Split(path, ",")
+	for _, v := range paths {
+		mounted := service.IsMounted(v)
+		if mounted {
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.MOUNTED_DIRECTIORIES, Message: common_err.GetMsg(common_err.MOUNTED_DIRECTIORIES), Data: common_err.GetMsg(common_err.MOUNTED_DIRECTIORIES)})
+			return
+		}
+	}
 
 	for _, v := range paths {
 		err := os.RemoveAll(v)

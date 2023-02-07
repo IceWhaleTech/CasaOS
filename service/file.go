@@ -22,6 +22,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	"github.com/moby/sys/mountinfo"
 	"go.uber.org/zap"
 )
 
@@ -171,4 +172,17 @@ func CheckFileStatus() {
 		}
 		time.Sleep(time.Second * 3)
 	}
+}
+func IsMounted(path string) bool {
+	mounted, _ := mountinfo.Mounted(path)
+	if mounted {
+		return true
+	}
+	connections := MyService.Connections().GetConnectionsList()
+	for _, v := range connections {
+		if v.MountPoint == path {
+			return true
+		}
+	}
+	return false
 }

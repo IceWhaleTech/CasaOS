@@ -1,8 +1,8 @@
 github.com/BurntSushi/toml v1.2.0 h1:Rt8g24XnyGTyglgET/PRUNlrUeu9F5L+7FilkXfZgs0=
 github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d h1:62lEBImTxZ83pgzywgDNIrPPuQ+j4ep9QjqrWBn1hrU=
 github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d/go.mod h1:lW9x+yEjqKdPbE3+cf2fGPJXCw/hChX3Omi9QHTLFsQ=
-github.com/IceWhaleTech/CasaOS-Common v0.4.2-alpha1 h1:4Z61swpEC/OUGLlzww1v/D916j7yqYnfBevdVD/dgjI=
-github.com/IceWhaleTech/CasaOS-Common v0.4.2-alpha1/go.mod h1:xcemiRsXcs1zrmQxYMyExDjZ7UHYwkJqYE71IDIV0xA=
+github.com/IceWhaleTech/CasaOS-Common v0.4.2-alpha2 h1:46wHhGnMqVtVrgMCKiR3TpJ3mOBCpoTIP54JGCILs1k=
+github.com/IceWhaleTech/CasaOS-Common v0.4.2-alpha2/go.mod h1:xcemiRsXcs1zrmQxYMyExDjZ7UHYwkJqYE71IDIV0xA=
 github.com/RaveNoX/go-jsoncommentstrip v1.0.0/go.mod h1:78ihd09MekBnJnxpICcwzCMzGrKSKYe4AqU6PDYYpjk=
 github.com/Xhofe/go-cache v0.0.0-20220723083548-714439c8af9a h1:RenIAa2q4H8UcS/cqmwdT1WCWIAH5aumP8m8RpbqVsE=
 github.com/Xhofe/go-cache v0.0.0-20220723083548-714439c8af9a/go.mod h1:sSBbaOg90XwWKtpT56kVujF0bIeVITnPlssLclogS04=
@@ -201,6 +201,8 @@ github.com/mattn/go-sqlite3 v1.14.15 h1:vfoHhTN1af61xCRSWzFIWzx2YskyMTwHLrExkBOj
 github.com/mattn/go-sqlite3 v1.14.15/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/mholt/archiver/v3 v3.5.1 h1:rDjOBX9JSF5BvoJGvjqK479aL70qh9DIpZCl+k7Clwo=
 github.com/mholt/archiver/v3 v3.5.1/go.mod h1:e3dqJ7H78uzsRSEACH1joayhuSyhnonssnDhppzS1L4=
+github.com/moby/sys/mountinfo v0.6.2 h1:BzJjoreD5BMFNmD9Rus6gdd1pLuecOFPt8wC+Vygl78=
+github.com/moby/sys/mountinfo v0.6.2/go.mod h1:IJb6JQeOklcdMU9F5xQ8ZALD+CUr5VlGpwtX+VE0rpI=
 github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd h1:TRLaZ9cD/w8PVh93nsPXa1VrQ6jlwL5oN8l14QlcNfg=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
@@ -337,6 +339,7 @@ golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211103235746-7861aae1554b/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220310020820-b874c991c1a5/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

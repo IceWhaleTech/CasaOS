@@ -19,6 +19,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"go.uber.org/zap"
 
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
@@ -42,7 +43,7 @@ type SystemService interface {
 	GetCpuPercent() float64
 	GetMemInfo() map[string]interface{}
 	GetCpuInfo() []cpu.InfoStat
-	GetDirPath(path string) []model.Path
+	GetDirPath(path string) ([]model.Path, error)
 	GetDirPathOne(path string) (m model.Path)
 	GetNetState(name string) string
 	GetDiskInfo() *disk.UsageStat
@@ -156,7 +157,7 @@ func (c *systemService) GetDirPathOne(path string) (m model.Path) {
 	return
 }
 
-func (c *systemService) GetDirPath(path string) []model.Path {
+func (c *systemService) GetDirPath(path string) ([]model.Path, error) {
 	if path == "/DATA" {
 		sysType := runtime.GOOS
 		if sysType == "windows" {
@@ -168,7 +169,11 @@ func (c *systemService) GetDirPath(path string) []model.Path {
 
 	}
 
-	ls, _ := ioutil.ReadDir(path)
+	ls, err := ioutil.ReadDir(path)
+	if err != nil {
+		logger.Error("when read dir", zap.Error(err))
+		return []model.Path{}, err
+	}
 	dirs := []model.Path{}
 	if len(path) > 0 {
 		for _, l := range ls {
@@ -187,7 +192,7 @@ func (c *systemService) GetDirPath(path string) []model.Path {
 	} else {
 		dirs = append(dirs, model.Path{Name: "DATA", Path: "/DATA/", IsDir: true, Date: time.Now()})
 	}
-	return dirs
+	return dirs, nil
 }
 
 func (c *systemService) GetCpuInfo() []cpu.InfoStat {

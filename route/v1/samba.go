@@ -197,7 +197,11 @@ func DeleteSambaConnections(c *gin.Context) {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.Record_NOT_EXIST, Message: common_err.GetMsg(common_err.Record_NOT_EXIST)})
 		return
 	}
-	mountPointList := service.MyService.System().GetDirPath(connection.MountPoint)
+	mountPointList, err := service.MyService.System().GetDirPath(connection.MountPoint)
+	if err != nil {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return
+	}
 	for _, v := range mountPointList {
 		service.MyService.Connections().UnmountSmaba(v.Path)
 	}

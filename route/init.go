@@ -73,7 +73,11 @@ func InitNetworkMount() {
 		}
 		baseHostPath := "/mnt/" + connection.Host
 
-		mountPointList := service.MyService.System().GetDirPath(baseHostPath)
+		mountPointList, err := service.MyService.System().GetDirPath(baseHostPath)
+		if err != nil {
+			logger.Error("get mount point err", zap.Any("err", err))
+			continue
+		}
 		for _, v := range mountPointList {
 			service.MyService.Connections().UnmountSmaba(v.Path)
 		}
