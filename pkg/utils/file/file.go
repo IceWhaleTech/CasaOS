@@ -581,7 +581,7 @@ func ReadLine(lineNumber int, path string) string {
 func NameAccumulation(name string, dir string) string {
 	path := filepath.Join(dir, name)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return path
+		return name
 	}
 	base := name
 	strings.Split(base, "_")
