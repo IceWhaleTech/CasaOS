@@ -103,12 +103,15 @@ func main() {
 
 	v2Router := route.InitV2Router()
 	v2DocRouter := route.InitV2DocRouter(_docHTML, _docYAML)
-
+	v3file := route.InitFile()
+	v4dir := route.InitDir()
 	mux := &util_http.HandlerMultiplexer{
 		HandlerMap: map[string]http.Handler{
 			"v1":  v1Router,
 			"v2":  v2Router,
 			"doc": v2DocRouter,
+			"v3":  v3file,
+			"v4":  v4dir,
 		},
 	}
 
@@ -143,6 +146,8 @@ func main() {
 		"/v1/recover",
 		route.V2APIPath,
 		route.V2DocPath,
+		route.V3FilePath,
+		route.V4DirPath,
 	}
 	for _, apiPath := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{
@@ -203,6 +208,12 @@ func main() {
 	} else {
 		logger.Info("This process is not running as a systemd service.")
 	}
+	// http.HandleFunc("/v1/file/test", func(w http.ResponseWriter, r *http.Request) {
+
+	// 	//http.ServeFile(w, r, r.URL.Path[1:])
+	// 	http.ServeFile(w, r, "/DATA/test.img")
+	// })
+	// go http.ListenAndServe(":8081", nil)
 
 	s := &http.Server{
 		Handler:           mux,

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -176,6 +177,7 @@ func PostKillCasaOS(c *gin.Context) {
 func GetSystemHardwareInfo(c *gin.Context) {
 	data := make(map[string]string, 1)
 	data["drive_model"] = service.MyService.System().GetDeviceTree()
+	data["arch"] = runtime.GOARCH
 	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,

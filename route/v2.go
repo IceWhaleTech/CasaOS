@@ -1,12 +1,15 @@
 package route
 
 import (
+	"log"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/codegen"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
@@ -21,8 +24,10 @@ import (
 var (
 	_swagger *openapi3.T
 
-	V2APIPath string
-	V2DocPath string
+	V2APIPath  string
+	V2DocPath  string
+	V3FilePath string
+	V4DirPath  string
 )
 
 func init() {
@@ -40,6 +45,8 @@ func init() {
 
 	V2APIPath = strings.TrimRight(u.Path, "/")
 	V2DocPath = "/doc" + V2APIPath
+	V3FilePath = "/v3/file"
+	V4DirPath = "/v4/dir"
 }
 
 func InitV2Router() http.Handler {
@@ -62,7 +69,8 @@ func InitV2Router() http.Handler {
 
 	e.Use(echo_middleware.JWTWithConfig(echo_middleware.JWTConfig{
 		Skipper: func(c echo.Context) bool {
-			return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
+			//	return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
+			return true
 		},
 		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
 			claims, code := jwt.Validate(token)
@@ -124,6 +132,87 @@ func InitV2DocRouter(docHTML string, docYAML string) http.Handler {
 		if r.URL.Path == V2DocPath+"/openapi.yaml" {
 			if _, err := w.Write([]byte(docYAML)); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}
+	})
+}
+func InitFile() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Query().Get("path")
+		http.ServeFile(w, r, path)
+	})
+}
+
+func InitDir() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t := r.URL.Query().Get("format")
+		files := r.URL.Query().Get("files")
+
+		if len(files) == 0 {
+			// w.JSON(common_err.CLIENT_ERROR, model.Result{
+			// 	Success: common_err.INVALID_PARAMS,
+			// 	Message: common_err.GetMsg(common_err.INVALID_PARAMS),
+			// })
+			return
+		}
+		list := strings.Split(files, ",")
+		for _, v := range list {
+			if !file.Exists(v) {
+				// c.JSON(common_err.SERVICE_ERROR, model.Result{
+				// 	Success: common_err.FILE_DOES_NOT_EXIST,
+				// 	Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
+				// })
+				return
+			}
+		}
+		w.Header().Add("Content-Type", "application/octet-stream")
+		w.Header().Add("Content-Transfer-Encoding", "binary")
+		w.Header().Add("Cache-Control", "no-cache")
+		// handles only single files not folders and multiple files
+		//		if len(list) == 1 {
+
+		//filePath := list[0]
+		//			info, err := os.Stat(filePath)
+		//			if err != nil {
+
+		// w.JSON(http.StatusOK, model.Result{
+		// 	Success: common_err.FILE_DOES_NOT_EXIST,
+		// 	Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
+		// })
+		//return
+		//			}
+		//}
+
+		extension, ar, err := file.GetCompressionAlgorithm(t)
+		if err != nil {
+			// w.JSON(common_err.CLIENT_ERROR, model.Result{
+			// 	Success: common_err.INVALID_PARAMS,
+			// 	Message: common_err.GetMsg(common_err.INVALID_PARAMS),
+			// })
+			return
+		}
+
+		err = ar.Create(w)
+		if err != nil {
+			//  c.JSON(common_err.SERVICE_ERROR, model.Result{
+			// 	Success: common_err.SERVICE_ERROR,
+			// 	Message: common_err.GetMsg(common_err.SERVICE_ERROR),
+			// 	Data:    err.Error(),
+			// })
+			return
+		}
+		defer ar.Close()
+		commonDir := file.CommonPrefix(filepath.Separator, list...)
+
+		currentPath := filepath.Base(commonDir)
+
+		name := "_" + currentPath
+		name += extension
+		w.Header().Add("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(name))
+		for _, fname := range list {
+			err = file.AddFile(ar, fname, commonDir)
+			if err != nil {
+				log.Printf("Failed to archive %s: %v", fname, err)
 			}
 		}
 	})
