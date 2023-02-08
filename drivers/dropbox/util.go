@@ -19,7 +19,7 @@ func (d *Dropbox) getRefreshToken() error {
 		SetFormData(map[string]string{
 			"code":         d.Code,
 			"grant_type":   "authorization_code",
-			"redirect_uri": "https://test-get.casaos.io",
+			"redirect_uri": "https://cloudoauth.files.casaos.app",
 		}).SetBasicAuth(d.Addition.AppKey, d.Addition.AppSecret).SetHeader("Content-Type", "application/x-www-form-urlencoded").Post(url)
 	if err != nil {
 		return err

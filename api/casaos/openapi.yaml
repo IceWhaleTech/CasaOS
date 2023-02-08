@@ -21,6 +21,9 @@ tags:
   - name: Health methods
     description: |-
       (TODO)
+  - name: File methods
+    description: |-
+      (TODO)
 
 x-tagGroups:
   - name: Methods
@@ -44,7 +47,19 @@ paths:
           $ref: "#/components/responses/GetHealthServicesOK"
         "500":
           $ref: "#/components/responses/ResponseInternalServerError"
-
+  /file/test:
+    get:
+      tags:
+        - File methods
+      summary: Test file methods
+      description: |-
+        Test file methods.
+      operationId: getFileTest
+      responses:
+        "200":
+          $ref: "#/components/responses/ResponseOK"
+        "500":
+          $ref: "#/components/responses/ResponseInternalServerError"
 components:
   securitySchemes:
     access_token:
