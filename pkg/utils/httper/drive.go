@@ -92,9 +92,11 @@ func Unmount(mountPoint string) error {
 		"mountPoint": mountPoint,
 	}).Post("/mount/unmount")
 	if err != nil {
+		logger.Error("when unmount", zap.Error(err))
 		return err
 	}
 	if res.StatusCode() != 200 {
+		logger.Error("then unmount failed", zap.Any("res", res.Body()))
 		return fmt.Errorf("unmount failed")
 	}
 	logger.Info("unmount then", zap.Any("res", res.Body()))
