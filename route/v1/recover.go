@@ -58,12 +58,8 @@ func GetRecoverStorage(c *gin.Context) {
 		username = fileutil.NameAccumulation(username, "/mnt")
 		dataMap, _ := service.MyService.Storage().GetConfigByName(username)
 		if len(dataMap) > 0 {
-			c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
-			service.MyService.Storage().CheckAndMountByName(username)
-			notify["status"] = "warn"
-			notify["message"] = "The same configuration has been added"
-			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
-			return
+			service.MyService.Storage().UnmountStorage("/mnt/" + username)
+			service.MyService.Storage().DeleteConfigByName(username)
 		}
 		dmap := make(map[string]string)
 		dmap["client_id"] = add.ClientID
@@ -115,12 +111,8 @@ func GetRecoverStorage(c *gin.Context) {
 		username = fileutil.NameAccumulation(username, "/mnt")
 		dataMap, _ := service.MyService.Storage().GetConfigByName(username)
 		if len(dataMap) > 0 {
-			c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
-			service.MyService.Storage().CheckAndMountByName(username)
-			notify["status"] = "warn"
-			notify["message"] = "The same configuration has been added"
-			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
-			return
+			service.MyService.Storage().UnmountStorage("/mnt/" + username)
+			service.MyService.Storage().DeleteConfigByName(username)
 		}
 		dmap := make(map[string]string)
 		dmap["client_id"] = add.AppKey
