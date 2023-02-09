@@ -15,6 +15,7 @@ import (
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/service/model"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
+	"github.com/moby/sys/mount"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +27,7 @@ type ConnectionsService interface {
 	DeleteConnection(id string)
 	UpdateConnection(connection *model2.ConnectionsDBModel)
 	MountSmaba(username, host, directory, port, mountPoint, password string) string
-	UnmountSmaba(mountPoint string) string
+	UnmountSmaba(mountPoint string) error
 }
 
 type connectionsStruct struct {
@@ -59,9 +60,8 @@ func (s *connectionsStruct) MountSmaba(username, host, directory, port, mountPoi
 	str := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;MountCIFS " + username + " " + host + " " + directory + " " + port + " " + mountPoint + " " + password)
 	return str
 }
-func (s *connectionsStruct) UnmountSmaba(mountPoint string) string {
-	str := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;UMountPorintAndRemoveDir " + mountPoint)
-	return str
+func (s *connectionsStruct) UnmountSmaba(mountPoint string) error {
+	return mount.Unmount(mountPoint)
 }
 
 func NewConnectionsService(db *gorm.DB) ConnectionsService {
