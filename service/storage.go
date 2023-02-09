@@ -18,6 +18,7 @@ type StorageService interface {
 	CheckAndMountAll() error
 	GetConfigByName(name string) (map[string]string, error)
 	DeleteConfigByName(name string) error
+	GetConfig() (httper.RemotesResult, error)
 }
 
 type storageStruct struct {
@@ -101,6 +102,13 @@ func (s *storageStruct) GetConfigByName(name string) (map[string]string, error) 
 }
 func (s *storageStruct) DeleteConfigByName(name string) error {
 	return httper.DeleteConfigByName(name)
+}
+func (s *storageStruct) GetConfig() (httper.RemotesResult, error) {
+	section, err := httper.GetAllConfigName()
+	if err != nil {
+		return httper.RemotesResult{}, err
+	}
+	return section, nil
 }
 func NewStorageService() StorageService {
 	return &storageStruct{}
