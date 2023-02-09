@@ -1,5 +1,6 @@
 [Unit]
 After=casaos-message-bus.service
+After=rclone.service
 ConditionFileNotEmpty=/etc/casaos/casaos.conf
 Description=CasaOS Main Service
 

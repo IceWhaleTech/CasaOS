@@ -66,9 +66,10 @@ func SendAllHardwareStatusBySocket() {
 
 	body["sys_net"] = newNet
 	systemTempMap := service.MyService.Notify().GetSystemTempMap()
-	for k, v := range systemTempMap {
-		body[k] = v
-	}
+	systemTempMap.Range(func(key, value interface{}) bool {
+		body[key.(string)] = value
+		return true
+	})
 	service.MyService.Notify().SendNotify("casaos:system:utilization", body)
 }
 

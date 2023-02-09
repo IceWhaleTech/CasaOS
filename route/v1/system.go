@@ -232,9 +232,11 @@ func GetSystemUtilization(c *gin.Context) {
 	}
 
 	data["net"] = newNet
-	for k, v := range service.MyService.Notify().GetSystemTempMap() {
-		data[k] = v
-	}
+	systemMap := service.MyService.Notify().GetSystemTempMap()
+	systemMap.Range(func(key, value interface{}) bool {
+		data[key.(string)] = value
+		return true
+	})
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 

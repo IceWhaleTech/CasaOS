@@ -147,7 +147,6 @@ func main() {
 		route.V2APIPath,
 		route.V2DocPath,
 		route.V3FilePath,
-		route.V4DirPath,
 	}
 	for _, apiPath := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{

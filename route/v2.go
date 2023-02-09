@@ -69,8 +69,8 @@ func InitV2Router() http.Handler {
 
 	e.Use(echo_middleware.JWTWithConfig(echo_middleware.JWTConfig{
 		Skipper: func(c echo.Context) bool {
-			//	return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
-			return true
+			return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
+			//return true
 		},
 		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
 			claims, code := jwt.Validate(token)

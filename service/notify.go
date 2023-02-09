@@ -15,6 +15,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"go.uber.org/zap"
+	"golang.org/x/sync/syncmap"
 
 	socketio "github.com/googollee/go-socket.io"
 	"github.com/gorilla/websocket"
@@ -36,17 +37,18 @@ type NotifyServer interface {
 	//SendInstallAppBySocket(app notifyCommon.Application)
 	SendNotify(name string, message map[string]interface{})
 	SettingSystemTempData(message map[string]interface{})
-	GetSystemTempMap() map[string]interface{}
+	GetSystemTempMap() syncmap.Map
 }
 
 type notifyServer struct {
 	db            *gorm.DB
-	SystemTempMap map[string]interface{}
+	SystemTempMap syncmap.Map //[string]interface{}
 }
 
 func (i *notifyServer) SettingSystemTempData(message map[string]interface{}) {
 	for k, v := range message {
-		i.SystemTempMap[k] = v
+		i.SystemTempMap.Store(k, v)
+		//i.SystemTempMap[k] = v
 	}
 }
 
@@ -340,10 +342,10 @@ func SendMeg() {
 // 	}
 
 // }
-func (i *notifyServer) GetSystemTempMap() map[string]interface{} {
+func (i *notifyServer) GetSystemTempMap() syncmap.Map {
 	return i.SystemTempMap
 }
 
 func NewNotifyService(db *gorm.DB) NotifyServer {
-	return &notifyServer{db: db, SystemTempMap: make(map[string]interface{})}
+	return &notifyServer{db: db, SystemTempMap: syncmap.Map{}}
 }
