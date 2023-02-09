@@ -19,7 +19,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
+	"go.uber.org/zap"
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
@@ -203,7 +205,12 @@ func DeleteSambaConnections(c *gin.Context) {
 		return
 	}
 	for _, v := range mountPointList {
-		service.MyService.Connections().UnmountSmaba(v.Path)
+		err := service.MyService.Connections().UnmountSmaba(v.Path)
+		if err != nil {
+			logger.Error("unmount smaba error", zap.Error(err), zap.Any("path", v.Path))
+			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+			return
+		}
 	}
 	dir, _ := ioutil.ReadDir(connection.MountPoint)
 	if len(dir) == 0 {

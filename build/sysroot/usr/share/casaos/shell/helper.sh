@@ -66,18 +66,6 @@ GetLocalJoinNetworks() {
   zerotier-cli listnetworks -j
 }
 
-#移除挂载点,删除已挂在的文件夹
-UMountPorintAndRemoveDir() {
-  DEVICE=$1
-  MOUNT_POINT=$(mount | grep ${DEVICE} | awk '{ print $3 }')
-  if [[ -z ${MOUNT_POINT} ]]; then
-    ${log} "Warning: ${DEVICE} is not mounted"
-  else
-    umount -lf ${DEVICE}
-    /bin/rmdir "${MOUNT_POINT}"
-  fi
-}
-
 #格式化fat32磁盘
 #param 需要格式化的目录 /dev/sda1
 #param 格式
