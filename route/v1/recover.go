@@ -4,11 +4,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/drivers/dropbox"
 	"github.com/IceWhaleTech/CasaOS/drivers/google_drive"
 	fileutil "github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func GetRecoverStorage(c *gin.Context) {
@@ -51,17 +53,42 @@ func GetRecoverStorage(c *gin.Context) {
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
+		dmap := make(map[string]string)
+		dmap["username"] = username
+		configs, err := service.MyService.Storage().GetConfig()
+		if err != nil {
+			c.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			notify["status"] = "fail"
+			notify["message"] = "Failed to get user information"
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
+			return
+		}
+		for _, v := range configs.Remotes {
+			cf, err := service.MyService.Storage().GetConfigByName(v)
+			if err != nil {
+				logger.Error("then get config by name error: ", zap.Error(err), zap.Any("name", v))
+				continue
+			}
+			if cf["type"] == "drive" && cf["username"] == dmap["username"] {
+				c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
+				service.MyService.Storage().CheckAndMountByName(cf["username"])
+				notify["status"] = "warn"
+				notify["message"] = "The same configuration has been added"
+				service.MyService.Notify().SendNotify("casaos:file:recover", notify)
+				return
+			}
+		}
 		if len(username) > 0 {
 			a := strings.Split(username, "@")
 			username = a[0]
 		}
 		username = fileutil.NameAccumulation(username, "/mnt")
+
 		dataMap, _ := service.MyService.Storage().GetConfigByName(username)
 		if len(dataMap) > 0 {
 			service.MyService.Storage().UnmountStorage("/mnt/" + username)
 			service.MyService.Storage().DeleteConfigByName(username)
 		}
-		dmap := make(map[string]string)
 		dmap["client_id"] = add.ClientID
 		dmap["client_secret"] = add.ClientSecret
 		dmap["scope"] = "drive"
@@ -104,6 +131,32 @@ func GetRecoverStorage(c *gin.Context) {
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
+		dmap := make(map[string]string)
+		dmap["username"] = username
+
+		configs, err := service.MyService.Storage().GetConfig()
+		if err != nil {
+			c.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			notify["status"] = "fail"
+			notify["message"] = "Failed to get user information"
+			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
+			return
+		}
+		for _, v := range configs.Remotes {
+			cf, err := service.MyService.Storage().GetConfigByName(v)
+			if err != nil {
+				logger.Error("then get config by name error: ", zap.Error(err), zap.Any("name", v))
+				continue
+			}
+			if cf["type"] == "dropbox" && cf["username"] == dmap["username"] {
+				c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
+				service.MyService.Storage().CheckAndMountByName(cf["username"])
+				notify["status"] = "warn"
+				notify["message"] = "The same configuration has been added"
+				service.MyService.Notify().SendNotify("casaos:file:recover", notify)
+				return
+			}
+		}
 		if len(username) > 0 {
 			a := strings.Split(username, "@")
 			username = a[0]
@@ -111,10 +164,11 @@ func GetRecoverStorage(c *gin.Context) {
 		username = fileutil.NameAccumulation(username, "/mnt")
 		dataMap, _ := service.MyService.Storage().GetConfigByName(username)
 		if len(dataMap) > 0 {
+
 			service.MyService.Storage().UnmountStorage("/mnt/" + username)
 			service.MyService.Storage().DeleteConfigByName(username)
 		}
-		dmap := make(map[string]string)
+
 		dmap["client_id"] = add.AppKey
 		dmap["client_secret"] = add.AppSecret
 		dmap["token"] = `{"access_token":"` + dropbox.AccessToken + `","token_type":"bearer","refresh_token":"` + dropbox.Addition.RefreshToken + `","expiry":"` + currentDate + `T` + currentTime.Add(time.Hour*3).Add(time.Minute*50).Format("15:04:05") + `.780385354Z"}`
