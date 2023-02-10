@@ -1,13 +1,13 @@
 package v1
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/drivers/dropbox"
 	"github.com/IceWhaleTech/CasaOS/drivers/google_drive"
-	fileutil "github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -82,13 +82,10 @@ func GetRecoverStorage(c *gin.Context) {
 			a := strings.Split(username, "@")
 			username = a[0]
 		}
-		username = fileutil.NameAccumulation(username, "/mnt")
 
-		dataMap, _ := service.MyService.Storage().GetConfigByName(username)
-		if len(dataMap) > 0 {
-			service.MyService.Storage().UnmountStorage("/mnt/" + username)
-			service.MyService.Storage().DeleteConfigByName(username)
-		}
+		//username = fileutil.NameAccumulation(username, "/mnt")
+		username += "_google_drive_" + strconv.FormatInt(time.Now().Unix(), 10)
+
 		dmap["client_id"] = add.ClientID
 		dmap["client_secret"] = add.ClientSecret
 		dmap["scope"] = "drive"
@@ -161,13 +158,7 @@ func GetRecoverStorage(c *gin.Context) {
 			a := strings.Split(username, "@")
 			username = a[0]
 		}
-		username = fileutil.NameAccumulation(username, "/mnt")
-		dataMap, _ := service.MyService.Storage().GetConfigByName(username)
-		if len(dataMap) > 0 {
-
-			service.MyService.Storage().UnmountStorage("/mnt/" + username)
-			service.MyService.Storage().DeleteConfigByName(username)
-		}
+		username += "_dropbox_" + strconv.FormatInt(time.Now().Unix(), 10)
 
 		dmap["client_id"] = add.AppKey
 		dmap["client_secret"] = add.AppSecret

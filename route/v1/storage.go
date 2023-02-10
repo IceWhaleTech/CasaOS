@@ -52,6 +52,7 @@ func ListStorages(c *gin.Context) {
 		if dataMap["type"] == "dropbox" {
 			r.MountPoints[i].Icon = dropbox.ICONURL
 		}
+		r.MountPoints[i].Name = dataMap["username"]
 	}
 	list := []httper.MountPoint{}
 
@@ -60,6 +61,7 @@ func ListStorages(c *gin.Context) {
 			Fs:         v.Fs,
 			Icon:       v.Icon,
 			MountPoint: v.MountPoint,
+			Name:       v.Name,
 		})
 	}
 
