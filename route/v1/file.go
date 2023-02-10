@@ -323,6 +323,7 @@ func DirPath(c *gin.Context) {
 			t.IsDir = info[i].IsDir
 			t.Name = info[i].Name
 			t.Modified = info[i].Date
+			t.Date = info[i].Date
 			t.Size = info[i].Size
 			t.Path = info[i].Path
 			t.Extensions = info[i].Extensions

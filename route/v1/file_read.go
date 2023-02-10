@@ -25,6 +25,7 @@ type ObjResp struct {
 	Thumb      string                 `json:"thumb"`
 	Type       int                    `json:"type"`
 	Path       string                 `json:"path"`
+	Date       time.Time              `json:"date"`
 	Extensions map[string]interface{} `json:"extensions"`
 }
 type FsListResp struct {
