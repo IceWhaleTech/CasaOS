@@ -17,12 +17,14 @@ type MountList struct {
 		MountPoint string `json:"MountPoint"`
 		Fs         string `json:"Fs"`
 		Icon       string `json:"Icon"`
+		Name       string `json:"Name"`
 	} `json:"mountPoints"`
 }
 type MountPoint struct {
 	MountPoint string `json:"mount_point"`
 	Fs         string `json:"fs"`
 	Icon       string `json:"icon"`
+	Name       string `json:"name"`
 }
 type MountResult struct {
 	Error string `json:"error"`
@@ -77,6 +79,7 @@ func Mount(mountPoint string, fs string) error {
 	res, err := NewRestyClient().R().SetFormData(map[string]string{
 		"mountPoint": mountPoint,
 		"fs":         fs,
+		"mountOpt":   `{"AllowOther": true}`,
 	}).Post("/mount/mount")
 	if err != nil {
 		return err

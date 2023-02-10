@@ -97,6 +97,7 @@ func (s *storageStruct) CheckAndMountAll() error {
 	}
 	return nil
 }
+
 func (s *storageStruct) GetConfigByName(name string) (map[string]string, error) {
 	return httper.GetConfigByName(name)
 }
