@@ -71,7 +71,10 @@ func GetRecoverStorage(c *gin.Context) {
 			}
 			if cf["type"] == "drive" && cf["username"] == dmap["username"] {
 				c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
-				service.MyService.Storage().CheckAndMountByName(cf["username"])
+				err := service.MyService.Storage().CheckAndMountByName(v)
+				if err != nil {
+					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", cf["username"]))
+				}
 				notify["status"] = "warn"
 				notify["message"] = "The same configuration has been added"
 				service.MyService.Notify().SendNotify("casaos:file:recover", notify)
@@ -147,7 +150,11 @@ func GetRecoverStorage(c *gin.Context) {
 			}
 			if cf["type"] == "dropbox" && cf["username"] == dmap["username"] {
 				c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
-				service.MyService.Storage().CheckAndMountByName(cf["username"])
+				err := service.MyService.Storage().CheckAndMountByName(v)
+				if err != nil {
+					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", cf["username"]))
+				}
+
 				notify["status"] = "warn"
 				notify["message"] = "The same configuration has been added"
 				service.MyService.Notify().SendNotify("casaos:file:recover", notify)
