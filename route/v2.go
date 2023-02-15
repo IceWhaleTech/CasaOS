@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -138,8 +139,10 @@ func InitV2DocRouter(docHTML string, docYAML string) http.Handler {
 }
 func InitFile() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Query().Get("path")
-		http.ServeFile(w, r, path)
+		filePath := r.URL.Query().Get("path")
+		fileName := path.Base(filePath)
+		w.Header().Add("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(fileName))
+		http.ServeFile(w, r, filePath)
 	})
 }
 
