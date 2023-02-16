@@ -2,8 +2,8 @@
 Description=rclone
 
 [Service]
-ExecStartPre=/usr/bin/rm -f /tmp/rclone.sock
-ExecStart=/usr/bin/rclone rcd --rc-addr unix:///tmp/rclone.sock --rc-no-auth --rc-allow-origin "*"
+ExecStartPre=/usr/bin/rm -f /var/run/rclone/rclone.sock
+ExecStart=/usr/bin/rclone rcd --rc-addr unix:///var/run/rclone/rclone.sock --rc-no-auth --rc-allow-origin "*"
 Restart=always
 RestartSec=10
 
