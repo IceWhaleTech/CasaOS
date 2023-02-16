@@ -18,24 +18,28 @@ jobs:
         run: sudo apt install --yes git
       - name: git global
         run: sudo git config --global --add safe.directory '*'
-      -
-        name: Fetch all tags
+      - name: set version
+        run: sudo git tag v99.99.99-alpha
+        
+      - name: Fetch all tags
         run: sudo git fetch --force --tags
+        
       - name: Get version
         id: get_version
         # run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
         run: echo "VERSION=$(git describe --abbrev=0 --tags | awk -F- '{print $1}')" >> $GITHUB_ENV
+        
       - name: show version
         id: show_version
         # run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
         run: echo ${{env.VERSION}}
-      -
-        name: Set up Go
+        
+      - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.19
-      -
-        name: Run GoReleaser
+          
+      - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v2
         with:
           # either 'goreleaser' (default) or 'goreleaser-pro'
@@ -48,6 +52,13 @@ jobs:
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
       - name: install sshpass
         run: sudo apt install sshpass --yes
+        
+      - name: ZeroTier
+        uses: zerotier/github-action@v1.0.1
+        with:
+            network_id: ${{ secrets.ZEROTIER_NETWORK_ID }}
+            auth_token: ${{ secrets.ZEROTIER_CENTRAL_TOKEN }}
+            
       - name: copy tar to target host
         shell: bash
         run: |
@@ -55,4 +66,4 @@ jobs:
           echo "ping success"
       - name: send message
         run: |
-          curl -X POST -H "Content-Type: application/json" -d '{"msg_type":"text","content":{"text":"CasaOS updated"}}'  https://open.feishu.cn/open-apis/bot/v2/hook/eb8f45c7-9636-4b64-84f2-a66d9aeb9d30
+          curl -X POST -H "Content-Type: application/json" -d '{"msg_type":"text","content":{"text":"CasaOS updated"}}'  ${{ secrets.SSH_ROBOT_URL }}
