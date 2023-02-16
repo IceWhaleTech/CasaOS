@@ -26,6 +26,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Code cannot be empty"
+			logger.Error("Then code is empty: ", zap.String("code", add.Code), zap.Any("name", "google_drive"))
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
@@ -41,6 +42,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Initialization failure"
+			logger.Error("Then init error: ", zap.Error(err), zap.Any("name", "google_drive"))
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
@@ -50,6 +52,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get user information"
+			logger.Error("Then get user info error: ", zap.Error(err), zap.Any("name", "google_drive"))
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
@@ -57,9 +60,10 @@ func GetRecoverStorage(c *gin.Context) {
 		dmap["username"] = username
 		configs, err := service.MyService.Storage().GetConfig()
 		if err != nil {
-			c.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			c.String(200, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
-			notify["message"] = "Failed to get user information"
+			notify["message"] = "Failed to get rclone config"
+			logger.Error("Then get config error: ", zap.Error(err), zap.Any("name", "google_drive"))
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
@@ -107,6 +111,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Code cannot be empty"
+			logger.Error("Then code is empty error: ", zap.String("code", add.Code), zap.Any("name", "dropbox"))
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
@@ -120,6 +125,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Initialization failure"
+			logger.Error("Then init error: ", zap.Error(err), zap.Any("name", "dropbox"))
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
@@ -128,6 +134,7 @@ func GetRecoverStorage(c *gin.Context) {
 			c.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get user information"
+			logger.Error("Then get user information: ", zap.Error(err), zap.Any("name", "dropbox"))
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
@@ -136,9 +143,10 @@ func GetRecoverStorage(c *gin.Context) {
 
 		configs, err := service.MyService.Storage().GetConfig()
 		if err != nil {
-			c.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			c.String(200, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
-			notify["message"] = "Failed to get user information"
+			notify["message"] = "Failed to get rclone config"
+			logger.Error("Then get config error: ", zap.Error(err), zap.Any("name", "dropbox"))
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
