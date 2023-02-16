@@ -45,7 +45,7 @@ var DefaultTimeout = time.Second * 30
 
 func NewRestyClient() *resty.Client {
 
-	unixSocket := "/tmp/rclone.sock"
+	unixSocket := "/var/run/rclone/rclone.sock"
 
 	transport := http.Transport{
 		Dial: func(_, _ string) (net.Conn, error) {

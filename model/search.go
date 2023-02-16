@@ -1,7 +1,9 @@
 package model
 
-type SearchFileInfo struct {
-	Path string `json:"path"`
-	Name string `json:"name"`
-	Type int    `json:"type"`
+type SearchEngine struct {
+	Name      string   `json:"name"`
+	Icon      string   `json:"icon"`
+	SearchUrl string   `json:"search_url"`
+	RecoUrl   string   `json:"reco_url"`
+	Data      []string `json:"data"`
 }

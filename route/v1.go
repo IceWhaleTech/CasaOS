@@ -156,6 +156,12 @@ func InitV1Router() *gin.Engine {
 			// merge to system
 			v1NotifyGroup.POST("/system_status", v1.PostSystemStatusNotify)
 		}
+		v1OtherGroup := v1Group.Group("/other")
+		v1OtherGroup.Use()
+		{
+			v1OtherGroup.GET("/search", v1.GetSearchResult)
+
+		}
 	}
 
 	return r

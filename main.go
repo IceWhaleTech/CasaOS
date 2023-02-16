@@ -144,6 +144,7 @@ func main() {
 		"/v1/driver",
 		"/v1/cloud",
 		"/v1/recover",
+		"/v1/other",
 		route.V2APIPath,
 		route.V2DocPath,
 		route.V3FilePath,

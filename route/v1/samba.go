@@ -199,15 +199,17 @@ func DeleteSambaConnections(c *gin.Context) {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.Record_NOT_EXIST, Message: common_err.GetMsg(common_err.Record_NOT_EXIST)})
 		return
 	}
-	mountPointList, err := service.MyService.System().GetDirPath(connection.MountPoint)
+	mountPointList, err := samba.GetSambaSharesList(connection.Host, connection.Port, connection.Username, connection.Password)
+	//mountPointList, err := service.MyService.System().GetDirPath(connection.MountPoint)
 	if err != nil {
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 		return
 	}
+	baseHostPath := "/mnt/" + connection.Host
 	for _, v := range mountPointList {
-		err := service.MyService.Connections().UnmountSmaba(v.Path)
+		err := service.MyService.Connections().UnmountSmaba(baseHostPath + "/" + v)
 		if err != nil {
-			logger.Error("unmount smaba error", zap.Error(err), zap.Any("path", v.Path))
+			logger.Error("unmount smaba error", zap.Error(err), zap.Any("path", baseHostPath+"/"+v))
 			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 			return
 		}
