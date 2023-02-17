@@ -165,14 +165,18 @@ func main() {
 	events = append(events, message_bus.EventType{Name: "casaos:file:recover", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
 	events = append(events, message_bus.EventType{Name: "casaos:file:operate", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
 	// register at message bus
-
-	response, err := service.MyService.MessageBus().RegisterEventTypesWithResponse(context.Background(), events)
-	if err != nil {
-		logger.Error("error when trying to register one or more event types - some event type will not be discoverable", zap.Error(err))
-	}
-
-	if response != nil && response.StatusCode() != http.StatusOK {
-		logger.Error("error when trying to register one or more event types - some event type will not be discoverable", zap.String("status", response.Status()), zap.String("body", string(response.Body)))
+	for i := 0; i < 10; i++ {
+		response, err := service.MyService.MessageBus().RegisterEventTypesWithResponse(context.Background(), events)
+		if err != nil {
+			logger.Error("error when trying to register one or more event types - some event type will not be discoverable", zap.Error(err))
+		}
+		if response != nil && response.StatusCode() != http.StatusOK {
+			logger.Error("error when trying to register one or more event types - some event type will not be discoverable", zap.String("status", response.Status()), zap.String("body", string(response.Body)))
+		}
+		if response.StatusCode() == http.StatusOK {
+			break
+		}
+		time.Sleep(time.Second)
 	}
 
 	go func() {
