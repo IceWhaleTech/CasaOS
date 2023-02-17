@@ -45,11 +45,15 @@ jobs:
           # either 'goreleaser' (default) or 'goreleaser-pro'
           distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --rm-dist --snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+       
+      - name: remove migration file
+        run: sudo find . -type f  \( -name '*migration*' \) -delete
+        
       - name: install sshpass
         run: sudo apt install sshpass --yes
         
@@ -62,7 +66,7 @@ jobs:
       - name: copy tar to target host
         shell: bash
         run: |
-          sshpass -p "${{ secrets.ssh_password }}" scp -r -o StrictHostKeyChecking=no -P ${{ secrets.ZEROTIER_PORT }} ./dist/*.gz root@${{ secrets.ZEROTIER_IP }}:/var/www/download
+          sshpass -p "${{ secrets.ssh_password }}" scp -r -o StrictHostKeyChecking=no -P 22 ./dist/*.gz root@10.147.18.11:/var/www/download
           echo "ping success"
       - name: send message
         run: |
