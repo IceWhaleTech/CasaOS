@@ -15,6 +15,7 @@ import (
 
 type OtherService interface {
 	Search(key string) ([]model.SearchEngine, error)
+	AgentSearch(url string) ([]byte, error)
 }
 
 type otherService struct{}
@@ -97,6 +98,17 @@ func (s *otherService) Search(key string) ([]model.SearchEngine, error) {
 
 	return engines, nil
 
+}
+
+func (s *otherService) AgentSearch(url string) ([]byte, error) {
+	client := resty.New()
+	client.SetTimeout(3 * time.Second) // 设置全局超时时间
+	resp, err := client.R().Get(url)
+	if err != nil {
+		logger.Error("Then get search result error: %v", zap.Error(err), zap.String("url", url))
+		return nil, err
+	}
+	return resp.Body(), nil
 }
 
 func NewOtherService() OtherService {

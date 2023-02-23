@@ -10,12 +10,16 @@ import (
 )
 
 func GetSearchResult(c *gin.Context) {
-	key := c.Query("key")
-	if key == "" {
+	json := make(map[string]string)
+	c.ShouldBind(&json)
+	url := json["url"]
+
+	if url == "" {
 		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS), Data: "key is empty"})
 		return
 	}
-	data, err := service.MyService.Other().Search(key)
+	//data, err := service.MyService.Other().Search(key)
+	data, err := service.MyService.Other().AgentSearch(url)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
