@@ -207,12 +207,15 @@ func DeleteSambaConnections(c *gin.Context) {
 	}
 	baseHostPath := "/mnt/" + connection.Host
 	for _, v := range mountPointList {
-		err := service.MyService.Connections().UnmountSmaba(baseHostPath + "/" + v)
-		if err != nil {
-			logger.Error("unmount smaba error", zap.Error(err), zap.Any("path", baseHostPath+"/"+v))
-			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-			return
+		if service.IsMounted(baseHostPath + "/" + v) {
+			err := service.MyService.Connections().UnmountSmaba(baseHostPath + "/" + v)
+			if err != nil {
+				logger.Error("unmount smaba error", zap.Error(err), zap.Any("path", baseHostPath+"/"+v))
+				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+				return
+			}
 		}
+
 	}
 	dir, _ := ioutil.ReadDir(connection.MountPoint)
 	if len(dir) == 0 {
