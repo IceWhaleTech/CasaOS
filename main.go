@@ -15,6 +15,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/model"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	"github.com/rclone/rclone/fs/config/configfile"
 
 	util_http "github.com/IceWhaleTech/CasaOS-Common/utils/http"
 
@@ -81,6 +82,7 @@ func init() {
 	service.GetCPUThermalZone()
 	service.MyService.Storages().InitStorages()
 	route.InitFunction()
+	configfile.Install()
 }
 
 // @title casaOS API
