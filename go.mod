@@ -10,6 +10,7 @@ require (
 	github.com/deckarep/golang-set/v2 v2.1.0
 	github.com/deepmap/oapi-codegen v1.12.4
 	github.com/disintegration/imaging v1.6.2
+	github.com/docker/docker v23.0.1+incompatible
 	github.com/dsoprea/go-exif/v3 v3.0.0-20221012082141-d21ac8e2de85
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd
 	github.com/getkin/kin-openapi v0.113.0
@@ -29,11 +30,13 @@ require (
 	github.com/labstack/echo/v4 v4.10.0
 	github.com/maruel/natural v1.1.0
 	github.com/mholt/archiver/v3 v3.5.1
+	github.com/mileusna/useragent v1.2.1
 	github.com/moby/sys/mount v0.3.3
 	github.com/moby/sys/mountinfo v0.6.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil/v3 v3.22.11
 	github.com/sirupsen/logrus v1.9.0
@@ -42,7 +45,7 @@ require (
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.5.0
 	golang.org/x/oauth2 v0.3.0
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
+	golang.org/x/sync v0.1.0
 	gorm.io/gorm v1.24.3
 	gotest.tools v2.2.0+incompatible
 )
@@ -83,6 +86,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.15.13 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect

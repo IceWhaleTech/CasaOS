@@ -46,6 +46,7 @@ type Repository interface {
 	FsLinkService() FsLinkService
 	FsService() FsService
 	MessageBus() *message_bus.ClientWithResponses
+	Peer() PeerService
 	Other() OtherService
 }
 
@@ -70,6 +71,7 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 		fs_list:      NewFsListService(),
 		fs_link:      NewFsLinkService(),
 		fs:           NewFsService(),
+		peer:         NewPeerService(db),
 		other:        NewOtherService(),
 	}
 }
@@ -90,7 +92,12 @@ type store struct {
 	fs_link      FsLinkService
 	fs           FsService
 	health       HealthService
+	peer         PeerService
 	other        OtherService
+}
+
+func (c *store) Peer() PeerService {
+	return c.peer
 }
 
 func (c *store) Other() OtherService {

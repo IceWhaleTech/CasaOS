@@ -95,7 +95,8 @@ func InitV1Router() *gin.Engine {
 			v1FileGroup.POST("/upload", v1.PostFileUpload)
 			v1FileGroup.GET("/upload", v1.GetFileUpload)
 			// v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
-
+			v1FileGroup.GET("/ws", v1.ConnectWebSocket)
+			v1FileGroup.GET("/peers", v1.GetPeers)
 		}
 		v1CloudGroup := v1Group.Group("/cloud")
 		v1CloudGroup.Use()
@@ -156,6 +157,7 @@ func InitV1Router() *gin.Engine {
 			// merge to system
 			v1NotifyGroup.POST("/system_status", v1.PostSystemStatusNotify)
 		}
+
 		v1OtherGroup := v1Group.Group("/other")
 		v1OtherGroup.Use()
 		{
