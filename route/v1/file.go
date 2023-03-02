@@ -30,6 +30,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
+	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 
 	"github.com/IceWhaleTech/CasaOS/internal/sign"
 	"github.com/gin-gonic/gin"
@@ -971,6 +972,7 @@ type Client struct {
 	RtcSupported bool         `json:"rtcSupported"`
 	TimerId      int          `json:"timerId"`
 	LastBeat     time.Time    `json:"lastBeat"`
+	Offline      bool         `json:"offline"`
 }
 
 func ConnectWebSocket(c *gin.Context) {
@@ -978,8 +980,8 @@ func ConnectWebSocket(c *gin.Context) {
 	writer := c.Writer
 	request := c.Request
 	key := uuid.NewV4().String()
-	peerModel := service.MyService.Peer().GetPeerByUserAgent(c.Request.UserAgent())
-	//peerModel := model2.PeerDriveDBModel{}
+	//peerModel := service.MyService.Peer().GetPeerByUserAgent(c.Request.UserAgent())
+	peerModel := model2.PeerDriveDBModel{}
 	name := service.GetName(request)
 	if conn, err = upgraderFile.Upgrade(writer, request, writer.Header()); err != nil {
 		log.Println(err)
@@ -996,6 +998,7 @@ func ConnectWebSocket(c *gin.Context) {
 			client.Name = service.GetNameByDB(peerModel)
 		}
 	}
+	var list = service.MyService.Peer().GetPeers()
 	if len(peerModel.ID) == 0 {
 		peerModel.ID = key
 		peerModel.DisplayName = name.DisplayName
@@ -1005,7 +1008,9 @@ func ConnectWebSocket(c *gin.Context) {
 		peerModel.UserAgent = c.Request.UserAgent()
 		peerModel.IP = client.IP
 		service.MyService.Peer().CreatePeer(&peerModel)
+		list = append(list, peerModel)
 	}
+
 	cookie := http.Cookie{
 		Name:  "peerid",
 		Value: key,
@@ -1020,11 +1025,31 @@ func ConnectWebSocket(c *gin.Context) {
 	fmt.Println(err)
 	client.handler.broadcast <- pby
 
+	// 推给监控中心注册到用户集合中
+	handler.register <- client
+	if len(list) > 10 {
+		fmt.Println("有溢出", list)
+	}
+	if len(list) > 10 {
+		count := len(list) - 10
+		for i := len(list) - 1; count > 0 && i > -1; i-- {
+			if _, ok := handler.clients[list[i].ID]; !ok {
+				count--
+				service.MyService.Peer().DeletePeer(list[i].ID)
+			}
+		}
+	}
+	list = service.MyService.Peer().GetPeers()
+	if len(list) > 10 {
+		fmt.Println("解决完后依然有溢出", list)
+	}
 	clients := []Client{}
-	for _, v := range handler.clients {
-
-		clients = append(clients, *v)
-
+	for _, v := range list {
+		if _, ok := handler.clients[v.ID]; ok {
+			clients = append(clients, *handler.clients[v.ID])
+		} else {
+			clients = append(clients, Client{ID: v.ID, Name: service.GetNameByDB(v), IP: v.IP, Offline: true})
+		}
 	}
 
 	other := make(map[string]interface{})
@@ -1032,14 +1057,12 @@ func ConnectWebSocket(c *gin.Context) {
 	other["peers"] = clients
 	otherBy, err := json.Marshal(other)
 	fmt.Println(err)
-	client.send <- otherBy
-
-	// 推给监控中心注册到用户集合中
-	handler.register <- client
+	client.handler.broadcast <- otherBy
 
 	data := make(map[string]string)
 	data["displayName"] = client.Name.DisplayName
 	data["deviceName"] = client.Name.DeviceName
+	data["id"] = client.ID
 	msg := make(map[string]interface{})
 	msg["type"] = "display-name"
 	msg["message"] = data
@@ -1110,7 +1133,22 @@ func (c *Client) readPump() {
 		if t.String() == "disconnect" {
 			c.handler.unregister <- c
 			c.conn.Close()
+			clients := []Client{}
+			list := service.MyService.Peer().GetPeers()
+			for _, v := range list {
+				if _, ok := handler.clients[v.ID]; ok {
+					clients = append(clients, *handler.clients[v.ID])
+				} else {
+					clients = append(clients, Client{ID: v.ID, Name: service.GetNameByDB(v), IP: v.IP, Offline: true})
+				}
+			}
+			other := make(map[string]interface{})
+			other["type"] = "peers"
+			other["peers"] = clients
+			otherBy, err := json.Marshal(other)
+			fmt.Println(err)
 			c.handler.broadcast <- []byte(`{"type":"peer-left","peerId":"` + c.ID + `"}`)
+			c.handler.broadcast <- otherBy
 			break
 		} else if t.String() == "pong" {
 			c.LastBeat = time.Now()

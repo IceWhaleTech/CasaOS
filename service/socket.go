@@ -2,6 +2,7 @@ package service
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -13,9 +14,8 @@ type Name struct {
 	Model       string `json:"model"`
 	OS          string `json:"os"`
 	Browser     string `json:"browser"`
-	Type        string `json:"type"`
 	DeviceName  string `json:"deviceName"`
-	DisplayName string `json:"displayName"` //随机生成
+	DisplayName string `json:"displayName"`
 }
 
 func GetPeerId(request *http.Request, id string) string {
@@ -47,7 +47,6 @@ func GetIP(request *http.Request) string {
 
 func GetName(request *http.Request) Name {
 	us := useragent.Parse(request.Header.Get("user-agent"))
-
 	device := ""
 	if len(us.Device) > 0 {
 		device += us.Device
@@ -55,12 +54,37 @@ func GetName(request *http.Request) Name {
 		device += us.Name
 	}
 
+	display := ""
+	if len(us.Device) > 0 {
+		display = us.Device + " " + us.Name
+	} else {
+		display = us.OS + " " + us.Name
+	}
+
+	model := "desktop"
+	if us.Mobile {
+		model = "mobile"
+	}
+	if us.Tablet {
+		model = "tablet"
+	}
+	peer := MyService.Peer().GetPeerByName(display)
+	if len(peer.ID) > 0 {
+		for i := 0; true; i++ {
+			peer = MyService.Peer().GetPeerByName(display + "_" + strconv.Itoa(i+1))
+			if len(peer.ID) == 0 {
+				display = display + "_" + strconv.Itoa(i+1)
+				break
+			}
+		}
+	}
+
 	return Name{
-		Model:       us.Device,
+		Model:       model,
 		OS:          us.OS,
 		Browser:     us.Name,
 		DeviceName:  device,
-		DisplayName: Generate(),
+		DisplayName: display,
 	}
 }
 func GetNameByDB(m model2.PeerDriveDBModel) Name {
