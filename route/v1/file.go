@@ -1031,12 +1031,22 @@ func ConnectWebSocket(c *gin.Context) {
 		fmt.Println("有溢出", list)
 	}
 	if len(list) > 10 {
+		kickoutList := []Client{}
 		count := len(list) - 10
 		for i := len(list) - 1; count > 0 && i > -1; i-- {
 			if _, ok := handler.clients[list[i].ID]; !ok {
 				count--
+				kickoutList = append(kickoutList, Client{ID: list[i].ID, Name: service.GetNameByDB(list[i]), IP: list[i].IP, Offline: true})
 				service.MyService.Peer().DeletePeer(list[i].ID)
 			}
+		}
+		if len(kickoutList) > 0 {
+			other := make(map[string]interface{})
+			other["type"] = "kickout"
+			other["peers"] = kickoutList
+			otherBy, err := json.Marshal(other)
+			fmt.Println(err)
+			client.handler.broadcast <- otherBy
 		}
 	}
 	list = service.MyService.Peer().GetPeers()
