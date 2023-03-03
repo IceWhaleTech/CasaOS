@@ -15,6 +15,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/model"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	"github.com/rclone/rclone/cmd/mountlib"
 	"github.com/rclone/rclone/fs/config/configfile"
 
 	util_http "github.com/IceWhaleTech/CasaOS-Common/utils/http"
@@ -83,6 +84,7 @@ func init() {
 	service.MyService.Storages().InitStorages()
 	route.InitFunction()
 	configfile.Install()
+	service.MountLists = make(map[string]*mountlib.MountPoint)
 }
 
 // @title casaOS API
@@ -97,6 +99,7 @@ func init() {
 // @name Authorization
 // @BasePath /v1
 func main() {
+
 	if *versionFlag {
 		return
 	}
@@ -227,7 +230,7 @@ func main() {
 	}
 
 	logger.Info("CasaOS main service is listening...", zap.Any("address", listener.Addr().String()))
-
+	//defer service.MyService.Storage().UnmountAllStorage()
 	err = s.Serve(listener) // not using http.serve() to fix G114: Use of net/http serve function that has no support for setting timeouts (see https://github.com/securego/gosec)
 	if err != nil {
 		panic(err)

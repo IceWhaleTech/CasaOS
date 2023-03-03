@@ -4,7 +4,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/drivers/dropbox"
 	"github.com/IceWhaleTech/CasaOS/drivers/google_drive"
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -12,7 +11,6 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 func ListStorages(c *gin.Context) {
@@ -41,18 +39,14 @@ func ListStorages(c *gin.Context) {
 	}
 
 	for i := 0; i < len(r.MountPoints); i++ {
-		dataMap, err := service.MyService.Storage().GetConfigByName(r.MountPoints[i].Fs)
-		if err != nil {
-			logger.Error("GetConfigByName", zap.Any("err", err))
-			continue
-		}
-		if dataMap["type"] == "drive" {
+		t := service.MyService.Storage().GetAttributeValueByName(r.MountPoints[i].Fs, "type")
+		if t == "drive" {
 			r.MountPoints[i].Icon = google_drive.ICONURL
 		}
-		if dataMap["type"] == "dropbox" {
+		if t == "dropbox" {
 			r.MountPoints[i].Icon = dropbox.ICONURL
 		}
-		r.MountPoints[i].Name = dataMap["username"]
+		r.MountPoints[i].Name = service.MyService.Storage().GetAttributeValueByName(r.MountPoints[i].Fs, "username")
 	}
 	list := []httper.MountPoint{}
 

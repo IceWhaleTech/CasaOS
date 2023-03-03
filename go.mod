@@ -3,6 +3,7 @@ module github.com/IceWhaleTech/CasaOS
 go 1.19
 
 require (
+	bazil.org/fuse v0.0.0-20200524192727-fb710f7dfd05
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
 	github.com/IceWhaleTech/CasaOS-Common v0.4.2-alpha3
 	github.com/Xhofe/go-cache v0.0.0-20220723083548-714439c8af9a
@@ -49,7 +50,6 @@ require (
 )
 
 require (
-	bazil.org/fuse v0.0.0-20230120002735-62a210ff1fd5 // indirect
 	cloud.google.com/go/compute v1.12.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.1.4 // indirect

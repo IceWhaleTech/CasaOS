@@ -56,7 +56,7 @@ func GetRecoverStorage(c *gin.Context) {
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
-		dmap := make(map[string]string)
+		dmap := make(map[string]interface{})
 		dmap["username"] = username
 		configs, err := service.MyService.Storage().GetConfig()
 		if err != nil {
@@ -68,16 +68,17 @@ func GetRecoverStorage(c *gin.Context) {
 			return
 		}
 		for _, v := range configs.Remotes {
-			cf, err := service.MyService.Storage().GetConfigByName(v)
+			t := service.MyService.Storage().GetAttributeValueByName(v, "type")
+			username := service.MyService.Storage().GetAttributeValueByName(v, "username")
 			if err != nil {
 				logger.Error("then get config by name error: ", zap.Error(err), zap.Any("name", v))
 				continue
 			}
-			if cf["type"] == "drive" && cf["username"] == dmap["username"] {
+			if t == "drive" && username == dmap["username"] {
 				c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
 				err := service.MyService.Storage().CheckAndMountByName(v)
 				if err != nil {
-					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", cf["username"]))
+					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", username))
 				}
 				notify["status"] = "warn"
 				notify["message"] = "The same configuration has been added"
@@ -138,7 +139,7 @@ func GetRecoverStorage(c *gin.Context) {
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
-		dmap := make(map[string]string)
+		dmap := make(map[string]interface{})
 		dmap["username"] = username
 
 		configs, err := service.MyService.Storage().GetConfig()
@@ -151,16 +152,18 @@ func GetRecoverStorage(c *gin.Context) {
 			return
 		}
 		for _, v := range configs.Remotes {
-			cf, err := service.MyService.Storage().GetConfigByName(v)
+
+			t := service.MyService.Storage().GetAttributeValueByName(v, "type")
+			username := service.MyService.Storage().GetAttributeValueByName(v, "username")
 			if err != nil {
 				logger.Error("then get config by name error: ", zap.Error(err), zap.Any("name", v))
 				continue
 			}
-			if cf["type"] == "dropbox" && cf["username"] == dmap["username"] {
+			if t == "dropbox" && username == dmap["username"] {
 				c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
 				err := service.MyService.Storage().CheckAndMountByName(v)
 				if err != nil {
-					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", cf["username"]))
+					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", username))
 				}
 
 				notify["status"] = "warn"
