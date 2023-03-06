@@ -1018,13 +1018,6 @@ func ConnectWebSocket(c *gin.Context) {
 	}
 	http.SetCookie(writer, &cookie)
 
-	pmsg := make(map[string]interface{})
-	pmsg["type"] = "peer-joined"
-	pmsg["peer"] = client
-	pby, err := json.Marshal(pmsg)
-	fmt.Println(err)
-	client.handler.broadcast <- pby
-
 	// 推给监控中心注册到用户集合中
 	handler.register <- client
 	if len(list) > 10 {
@@ -1054,11 +1047,9 @@ func ConnectWebSocket(c *gin.Context) {
 		fmt.Println("解决完后依然有溢出", list)
 	}
 	clients := []Client{}
-	for _, v := range list {
+	for _, v := range client.handler.clients {
 		if _, ok := handler.clients[v.ID]; ok {
 			clients = append(clients, *handler.clients[v.ID])
-		} else {
-			clients = append(clients, Client{ID: v.ID, Name: service.GetNameByDB(v), IP: v.IP, Offline: true})
 		}
 	}
 
@@ -1068,6 +1059,13 @@ func ConnectWebSocket(c *gin.Context) {
 	otherBy, err := json.Marshal(other)
 	fmt.Println(err)
 	client.handler.broadcast <- otherBy
+
+	pmsg := make(map[string]interface{})
+	pmsg["type"] = "peer-joined"
+	pmsg["peer"] = client
+	pby, err := json.Marshal(pmsg)
+	fmt.Println(err)
+	client.handler.broadcast <- pby
 
 	data := make(map[string]string)
 	data["displayName"] = client.Name.DisplayName
@@ -1143,22 +1141,22 @@ func (c *Client) readPump() {
 		if t.String() == "disconnect" {
 			c.handler.unregister <- c
 			c.conn.Close()
-			clients := []Client{}
-			list := service.MyService.Peer().GetPeers()
-			for _, v := range list {
-				if _, ok := handler.clients[v.ID]; ok {
-					clients = append(clients, *handler.clients[v.ID])
-				} else {
-					clients = append(clients, Client{ID: v.ID, Name: service.GetNameByDB(v), IP: v.IP, Offline: true})
-				}
-			}
-			other := make(map[string]interface{})
-			other["type"] = "peers"
-			other["peers"] = clients
-			otherBy, err := json.Marshal(other)
-			fmt.Println(err)
+			// clients := []Client{}
+			// list := service.MyService.Peer().GetPeers()
+			// for _, v := range list {
+			// 	if _, ok := handler.clients[v.ID]; ok {
+			// 		clients = append(clients, *handler.clients[v.ID])
+			// 	} else {
+			// 		clients = append(clients, Client{ID: v.ID, Name: service.GetNameByDB(v), IP: v.IP, Offline: true})
+			// 	}
+			// }
+			// other := make(map[string]interface{})
+			// other["type"] = "peers"
+			// other["peers"] = clients
+			// otherBy, err := json.Marshal(other)
+			// fmt.Println(err)
 			c.handler.broadcast <- []byte(`{"type":"peer-left","peerId":"` + c.ID + `"}`)
-			c.handler.broadcast <- otherBy
+			//c.handler.broadcast <- otherBy
 			break
 		} else if t.String() == "pong" {
 			c.LastBeat = time.Now()
