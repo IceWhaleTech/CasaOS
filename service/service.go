@@ -60,37 +60,14 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 		system:      NewSystemService(),
 		health:      NewHealthService(),
 		shares:      NewSharesService(db),
-		storage:     NewStorageService(),
 
 		peer:  NewPeerService(db),
-		other: NewOtherService(),
-		casa:  NewCasaService(),
-
-		gateway: gatewayManagement,
-		notify:  NewNotifyService(db),
-		rely:    NewRelyService(db),
-		system:  NewSystemService(),
-		health:  NewHealthService(),
-		shares:  NewSharesService(db),
-
 		other: NewOtherService(),
 	}
 }
 
 type store struct {
-	db          *gorm.DB
-	casa        CasaService
-	notify      NotifyServer
-	rely        RelyService
-	system      SystemService
-	shares      SharesService
-	connections ConnectionsService
-	gateway     external.ManagementService
-	storage     StorageService
-
-	health      HealthService
 	peer        PeerService
-	other       OtherService
 	db          *gorm.DB
 	casa        CasaService
 	notify      NotifyServer
