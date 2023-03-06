@@ -15,7 +15,6 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/model"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
-	"github.com/rclone/rclone/cmd/mountlib"
 
 	util_http "github.com/IceWhaleTech/CasaOS-Common/utils/http"
 
@@ -31,7 +30,6 @@ import (
 	"github.com/coreos/go-systemd/daemon"
 	"go.uber.org/zap"
 
-	_ "github.com/IceWhaleTech/CasaOS/drivers"
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
 )
@@ -80,10 +78,8 @@ func init() {
 	service.Cache = cache.Init()
 
 	service.GetCPUThermalZone()
-	service.MyService.Storages().InitStorages()
+
 	route.InitFunction()
-	//configfile.Install()
-	service.MountLists = make(map[string]*mountlib.MountPoint)
 }
 
 // @title casaOS API

@@ -1,7 +1,6 @@
 package v1
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,24 +14,48 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
-	"github.com/IceWhaleTech/CasaOS/internal/conf"
-	"github.com/IceWhaleTech/CasaOS/internal/driver"
 	"github.com/IceWhaleTech/CasaOS/model"
 
-	"github.com/IceWhaleTech/CasaOS/pkg/utils"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
 
-	"github.com/IceWhaleTech/CasaOS/internal/sign"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/satori/go.uuid"
 	"go.uber.org/zap"
 
 	"github.com/h2non/filetype"
 )
+
+type ListReq struct {
+	model.PageReq
+	Path string `json:"path" form:"path"`
+	//Refresh bool   `json:"refresh"`
+}
+type ObjResp struct {
+	Name       string                 `json:"name"`
+	Size       int64                  `json:"size"`
+	IsDir      bool                   `json:"is_dir"`
+	Modified   time.Time              `json:"modified"`
+	Sign       string                 `json:"sign"`
+	Thumb      string                 `json:"thumb"`
+	Type       int                    `json:"type"`
+	Path       string                 `json:"path"`
+	Date       time.Time              `json:"date"`
+	Extensions map[string]interface{} `json:"extensions"`
+}
+type FsListResp struct {
+	Content  []ObjResp `json:"content"`
+	Total    int64     `json:"total"`
+	Readme   string    `json:"readme,omitempty"`
+	Write    bool      `json:"write,omitempty"`
+	Provider string    `json:"provider,omitempty"`
+	Index    int       `json:"index"`
+	Size     int       `json:"size"`
+}
 
 // @Summary 读取文件
 // @Produce  application/json
@@ -765,169 +788,4 @@ func GetSize(c *gin.Context) {
 		return
 	}
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: size})
-}
-func Proxy(c *gin.Context) {
-	rawPath := c.Query("path")
-	filename := filepath.Base(rawPath)
-	storage, err := service.MyService.FsService().GetStorage(rawPath)
-	if err != nil {
-		c.JSON(500, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-		return
-	}
-	if canProxy(storage, filename) {
-		downProxyUrl := storage.GetStorage().DownProxyUrl
-		if downProxyUrl != "" {
-			_, ok := c.GetQuery("d")
-			if !ok {
-				URL := fmt.Sprintf("%s%s?sign=%s",
-					strings.Split(downProxyUrl, "\n")[0],
-					utils.EncodePath(rawPath, true),
-					sign.Sign(rawPath))
-				c.Redirect(302, URL)
-				return
-			}
-		}
-		link, file, err := service.MyService.FsService().Link(c, rawPath, model.LinkArgs{
-			Header: c.Request.Header,
-			Type:   c.Query("type"),
-		})
-		if err != nil {
-			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-
-			return
-		}
-		err = CommonProxy(c.Writer, c.Request, link, file)
-		if err != nil {
-			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-			return
-		}
-	} else {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: "proxy not allowed"})
-		return
-	}
-}
-
-// TODO need optimize
-// when should be proxy?
-// 1. config.MustProxy()
-// 2. storage.WebProxy
-// 3. proxy_types
-func shouldProxy(storage driver.Driver, filename string) bool {
-	if storage.Config().MustProxy() || storage.GetStorage().WebProxy {
-		return true
-	}
-	if utils.SliceContains(conf.SlicesMap[conf.ProxyTypes], utils.Ext(filename)) {
-		return true
-	}
-	return false
-}
-
-// TODO need optimize
-// when can be proxy?
-// 1. text file
-// 2. config.MustProxy()
-// 3. storage.WebProxy
-// 4. proxy_types
-// solution: text_file + shouldProxy()
-func canProxy(storage driver.Driver, filename string) bool {
-	if storage.Config().MustProxy() || storage.GetStorage().WebProxy || storage.GetStorage().WebdavProxy() {
-		return true
-	}
-	if utils.SliceContains(conf.SlicesMap[conf.ProxyTypes], utils.Ext(filename)) {
-		return true
-	}
-	if utils.SliceContains(conf.SlicesMap[conf.TextTypes], utils.Ext(filename)) {
-		return true
-	}
-	return false
-}
-
-var HttpClient = &http.Client{}
-
-func CommonProxy(w http.ResponseWriter, r *http.Request, link *model.Link, file model.Obj) error {
-	// read data with native
-	var err error
-	if link.Data != nil {
-		defer func() {
-			_ = link.Data.Close()
-		}()
-		w.Header().Set("Content-Type", "application/octet-stream")
-		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"; filename*=UTF-8''%s`, file.GetName(), url.QueryEscape(file.GetName())))
-		w.Header().Set("Content-Length", strconv.FormatInt(file.GetSize(), 10))
-		if link.Header != nil {
-			// TODO clean header with blacklist or whitelist
-			link.Header.Del("set-cookie")
-			for h, val := range link.Header {
-				w.Header()[h] = val
-			}
-		}
-		if link.Status == 0 {
-			w.WriteHeader(http.StatusOK)
-		} else {
-			w.WriteHeader(link.Status)
-		}
-		_, err = io.Copy(w, link.Data)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-	// local file
-	if link.FilePath != nil && *link.FilePath != "" {
-		f, err := os.Open(*link.FilePath)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			_ = f.Close()
-		}()
-		fileStat, err := os.Stat(*link.FilePath)
-		if err != nil {
-			return err
-		}
-		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"; filename*=UTF-8''%s`, file.GetName(), url.QueryEscape(file.GetName())))
-		http.ServeContent(w, r, file.GetName(), fileStat.ModTime(), f)
-		return nil
-	} else {
-		req, err := http.NewRequest(link.Method, link.URL, nil)
-		if err != nil {
-			return err
-		}
-		for h, val := range r.Header {
-			if utils.SliceContains(conf.SlicesMap[conf.ProxyIgnoreHeaders], strings.ToLower(h)) {
-				continue
-			}
-			req.Header[h] = val
-		}
-		for h, val := range link.Header {
-			req.Header[h] = val
-		}
-		res, err := HttpClient.Do(req)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			_ = res.Body.Close()
-		}()
-		logger.Info("proxy status", zap.Any("status", res.StatusCode))
-		// TODO clean header with blacklist or whitelist
-		res.Header.Del("set-cookie")
-		for h, v := range res.Header {
-			w.Header()[h] = v
-		}
-		w.WriteHeader(res.StatusCode)
-		w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"; filename*=UTF-8''%s`, file.GetName(), url.QueryEscape(file.GetName())))
-		if res.StatusCode >= 400 {
-			all, _ := ioutil.ReadAll(res.Body)
-			msg := string(all)
-			logger.Info("msg", zap.Any("msg", msg))
-
-			return errors.New(msg)
-		}
-		_, err = io.Copy(w, res.Body)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
 }
