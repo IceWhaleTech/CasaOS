@@ -25,7 +25,7 @@ GetNetCard() {
     fi
   else
     if [ -d "/sys/devices/virtual/net" ] && [ -d "/sys/class/net" ]; then
-      ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)"
+      ls /sys/class/net/ | grep -v "$(ls /sys/devices/virtual/net/)" -w
     fi
   fi
 }

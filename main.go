@@ -30,7 +30,6 @@ import (
 	"github.com/coreos/go-systemd/daemon"
 	"go.uber.org/zap"
 
-	_ "github.com/IceWhaleTech/CasaOS/drivers"
 	"github.com/robfig/cron"
 	"gorm.io/gorm"
 )
@@ -79,7 +78,7 @@ func init() {
 	service.Cache = cache.Init()
 
 	service.GetCPUThermalZone()
-	service.MyService.Storages().InitStorages()
+
 	route.InitFunction()
 }
 
@@ -95,6 +94,7 @@ func init() {
 // @name Authorization
 // @BasePath /v1
 func main() {
+
 	if *versionFlag {
 		return
 	}
@@ -141,9 +141,9 @@ func main() {
 		"/v1/image",
 		"/v1/samba",
 		"/v1/notify",
-		"/v1/driver",
-		"/v1/cloud",
-		"/v1/recover",
+		//"/v1/driver",
+		//"/v1/cloud",
+		//"/v1/recover",
 		"/v1/other",
 		route.V2APIPath,
 		route.V2DocPath,
@@ -162,7 +162,6 @@ func main() {
 	}
 	var events []message_bus.EventType
 	events = append(events, message_bus.EventType{Name: "casaos:system:utilization", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
-	events = append(events, message_bus.EventType{Name: "casaos:file:recover", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
 	events = append(events, message_bus.EventType{Name: "casaos:file:operate", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
 	// register at message bus
 	for i := 0; i < 10; i++ {
@@ -225,7 +224,7 @@ func main() {
 	}
 
 	logger.Info("CasaOS main service is listening...", zap.Any("address", listener.Addr().String()))
-
+	//defer service.MyService.Storage().UnmountAllStorage()
 	err = s.Serve(listener) // not using http.serve() to fix G114: Use of net/http serve function that has no support for setting timeouts (see https://github.com/securego/gosec)
 	if err != nil {
 		panic(err)

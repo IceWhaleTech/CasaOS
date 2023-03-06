@@ -11,8 +11,11 @@
 package main
 
 import (
+	"os"
+
 	interfaces "github.com/IceWhaleTech/CasaOS-Common"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/version"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 )
 
 type migrationTool struct{}
@@ -31,15 +34,15 @@ func (u *migrationTool) IsMigrationNeeded() (bool, error) {
 		return false, nil
 	}
 
-	if minorVersion > 3 {
+	if minorVersion > 4 {
 		return false, nil
 	}
 
-	if minorVersion == 3 && patchVersion > 5 {
+	if minorVersion == 4 && patchVersion != 2 {
 		return false, nil
 	}
 
-	_logger.Info("Migration is needed for a CasaOS version 0.3.5 and older...")
+	_logger.Info("Migration is needed for a CasaOS version 0.4.2 ")
 	return true, nil
 }
 
@@ -48,6 +51,10 @@ func (u *migrationTool) PreMigrate() error {
 }
 
 func (u *migrationTool) Migrate() error {
+	_logger.Info("Migration is started for a CasaOS version 0.4.2 ")
+	command.OnlyExec("systemctl stop rclone.service")
+	os.Remove("/usr/lib/systemd/system/rclone.service")
+	command.OnlyExec("systemctl daemon-reload")
 	return nil
 }
 
