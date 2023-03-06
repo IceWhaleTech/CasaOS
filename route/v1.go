@@ -36,7 +36,7 @@ func InitV1Router() *gin.Engine {
 	r.GET("/ping", func(ctx *gin.Context) {
 		ctx.String(200, "pong")
 	})
-	r.GET("/v1/recover/:type", v1.GetRecoverStorage)
+
 	v1Group := r.Group("/v1")
 
 	v1Group.Use(jwt.ExceptLocalhost())

@@ -68,9 +68,9 @@ func (s *storageStruct) MountStorage(mountPoint, deviceName string) error {
 		DirCacheTime:       5 * 60 * time.Second,
 		PollInterval:       time.Minute,
 		ReadOnly:           false,
-		Umask:              0,
-		UID:                ^uint32(0), // these values instruct WinFSP-FUSE to use the current user
-		GID:                ^uint32(0), // overridden for non windows in mount_unix.go
+		Umask:              18,
+		UID:                0,
+		GID:                0,
 		DirPerms:           os.FileMode(0777),
 		FilePerms:          os.FileMode(0666),
 		CacheMode:          3,
