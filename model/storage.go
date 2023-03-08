@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-type Storage struct {
+type StorageA struct {
 	ID              uint      `json:"id" gorm:"primaryKey"`                        // unique key
 	MountPath       string    `json:"mount_path" gorm:"unique" binding:"required"` // must be standardized
 	Order           int       `json:"order"`                                       // use to sort
@@ -29,15 +29,15 @@ type Proxy struct {
 	DownProxyUrl string `json:"down_proxy_url"`
 }
 
-func (s *Storage) GetStorage() *Storage {
+func (s *StorageA) GetStorage() *StorageA {
 	return s
 }
 
-func (s *Storage) SetStorage(storage Storage) {
+func (s *StorageA) SetStorage(storage StorageA) {
 	*s = storage
 }
 
-func (s *Storage) SetStatus(status string) {
+func (s *StorageA) SetStatus(status string) {
 	s.Status = status
 }
 

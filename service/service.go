@@ -39,7 +39,7 @@ type Repository interface {
 	Rely() RelyService
 	Shares() SharesService
 	System() SystemService
-
+	Storage() StorageService
 	MessageBus() *message_bus.ClientWithResponses
 	Other() OtherService
 }
@@ -59,8 +59,8 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 		system:      NewSystemService(),
 		health:      NewHealthService(),
 		shares:      NewSharesService(db),
-
-		other: NewOtherService(),
+		storage:     NewStorageService(),
+		other:       NewOtherService(),
 	}
 }
 
@@ -73,9 +73,13 @@ type store struct {
 	shares      SharesService
 	connections ConnectionsService
 	gateway     external.ManagementService
+	storage     StorageService
+	health      HealthService
+	other       OtherService
+}
 
-	health HealthService
-	other  OtherService
+func (c *store) Storage() StorageService {
+	return c.storage
 }
 
 func (c *store) Other() OtherService {

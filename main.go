@@ -80,6 +80,11 @@ func init() {
 	service.GetCPUThermalZone()
 
 	route.InitFunction()
+
+	/////
+	// service.MountLists = make(map[string]*mountlib.MountPoint)
+	// configfile.Install()
+	// service.MyService.Storage().CheckAndMountAll()
 }
 
 // @title casaOS API
@@ -141,9 +146,9 @@ func main() {
 		"/v1/image",
 		"/v1/samba",
 		"/v1/notify",
-		//"/v1/driver",
-		//"/v1/cloud",
-		//"/v1/recover",
+		// "/v1/driver",
+		// "/v1/cloud",
+		// "/v1/recover",
 		"/v1/other",
 		route.V2APIPath,
 		route.V2DocPath,
