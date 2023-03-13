@@ -807,6 +807,18 @@ func GetSize(c *gin.Context) {
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: size})
 }
 
+func GetFileCount(c *gin.Context) {
+	json := make(map[string]string)
+	c.ShouldBind(&json)
+	path := json["path"]
+	list, err := ioutil.ReadDir(path)
+	if err != nil {
+		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return
+	}
+	c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: len(list)})
+}
+
 type CenterHandler struct {
 	// 广播通道，有数据则循环每个用户广播出去
 	broadcast chan []byte
