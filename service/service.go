@@ -41,6 +41,7 @@ type Repository interface {
 	System() SystemService
 
 	MessageBus() *message_bus.ClientWithResponses
+	Peer() PeerService
 	Other() OtherService
 }
 
@@ -60,11 +61,13 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 		health:      NewHealthService(),
 		shares:      NewSharesService(db),
 
+		peer:  NewPeerService(db),
 		other: NewOtherService(),
 	}
 }
 
 type store struct {
+	peer        PeerService
 	db          *gorm.DB
 	casa        CasaService
 	notify      NotifyServer
@@ -76,6 +79,10 @@ type store struct {
 
 	health HealthService
 	other  OtherService
+}
+
+func (c *store) Peer() PeerService {
+	return c.peer
 }
 
 func (c *store) Other() OtherService {
