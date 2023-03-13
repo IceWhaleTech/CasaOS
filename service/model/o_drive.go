@@ -7,8 +7,10 @@ type PeerDriveDBModel struct {
 	UserAgent   string `json:"user_agent"`
 	DisplayName string `json:"display_name"`
 	DeviceName  string `json:"device_name"`
-	IP          string `json:"ip"`
-	OS          string `json:"os"`
-	Browser     string `json:"browser"`
-	Online      bool   `gorm:"-" json:"online"`
+	Model       string `json:"model"`
+
+	IP      string `json:"ip"`
+	OS      string `json:"os"`
+	Browser string `json:"browser"`
+	Online  bool   `gorm:"-" json:"online"`
 }

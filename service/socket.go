@@ -95,7 +95,7 @@ func GetNameByDB(m model2.PeerDriveDBModel) Name {
 		device += m.Browser
 	}
 	return Name{
-		Model:       m.DeviceName,
+		Model:       m.Model,
 		OS:          m.OS,
 		Browser:     m.Browser,
 		DeviceName:  device,

@@ -829,7 +829,12 @@ type Client struct {
 	RtcSupported bool         `json:"rtcSupported"`
 	TimerId      int          `json:"timerId"`
 	LastBeat     time.Time    `json:"lastBeat"`
-	Offline      bool         `json:"offline"`
+}
+
+type PeerModel struct {
+	ID           string       `json:"id"`
+	Name         service.Name `json:"name"`
+	RtcSupported bool         `json:"rtcSupported"`
 }
 
 func ConnectWebSocket(c *gin.Context) {
@@ -860,6 +865,7 @@ func ConnectWebSocket(c *gin.Context) {
 		peerModel.ID = key
 		peerModel.DisplayName = name.DisplayName
 		peerModel.DeviceName = name.DeviceName
+		peerModel.Model = name.Model
 		peerModel.OS = name.OS
 		peerModel.Browser = name.Browser
 		peerModel.UserAgent = c.Request.UserAgent()
@@ -874,39 +880,43 @@ func ConnectWebSocket(c *gin.Context) {
 		Path:  "/",
 	}
 	http.SetCookie(writer, &cookie)
-
-	// 推给监控中心注册到用户集合中
-	handler.register <- client
-	if len(list) > 10 {
-		fmt.Println("有溢出", list)
-	}
 	if len(list) > 10 {
 		kickoutList := []Client{}
 		count := len(list) - 10
 		for i := len(list) - 1; count > 0 && i > -1; i-- {
 			if _, ok := handler.clients[list[i].ID]; !ok {
 				count--
-				kickoutList = append(kickoutList, Client{ID: list[i].ID, Name: service.GetNameByDB(list[i]), IP: list[i].IP, Offline: true})
+				kickoutList = append(kickoutList, Client{ID: list[i].ID, Name: service.GetNameByDB(list[i]), IP: list[i].IP})
 				service.MyService.Peer().DeletePeer(list[i].ID)
 			}
 		}
-		if len(kickoutList) > 0 {
-			other := make(map[string]interface{})
-			other["type"] = "kickout"
-			other["peers"] = kickoutList
-			otherBy, err := json.Marshal(other)
-			fmt.Println(err)
-			client.handler.broadcast <- otherBy
-		}
+		// if len(kickoutList) > 0 {
+		// 	other := make(map[string]interface{})
+		// 	other["type"] = "kickout"
+		// 	other["peers"] = kickoutList
+		// 	otherBy, err := json.Marshal(other)
+		// 	fmt.Println(err)
+		// 	client.handler.broadcast <- otherBy
+		// }
 	}
 	list = service.MyService.Peer().GetPeers()
 	if len(list) > 10 {
 		fmt.Println("解决完后依然有溢出", list)
 	}
-	clients := []Client{}
+	currentPeer := PeerModel{ID: client.ID, Name: client.Name, RtcSupported: client.RtcSupported}
+	pmsg := make(map[string]interface{})
+	pmsg["type"] = "peer-joined"
+	pmsg["peer"] = currentPeer
+	pby, err := json.Marshal(pmsg)
+	fmt.Println(err)
+	for _, v := range handler.clients {
+		v.send <- pby
+	}
+	//client.handler.broadcast <- pby
+	clients := []PeerModel{}
 	for _, v := range client.handler.clients {
 		if _, ok := handler.clients[v.ID]; ok {
-			clients = append(clients, *handler.clients[v.ID])
+			clients = append(clients, PeerModel{ID: v.ID, Name: v.Name, RtcSupported: v.RtcSupported})
 		}
 	}
 
@@ -915,14 +925,12 @@ func ConnectWebSocket(c *gin.Context) {
 	other["peers"] = clients
 	otherBy, err := json.Marshal(other)
 	fmt.Println(err)
-	client.handler.broadcast <- otherBy
+	client.send <- otherBy
 
-	pmsg := make(map[string]interface{})
-	pmsg["type"] = "peer-joined"
-	pmsg["peer"] = client
-	pby, err := json.Marshal(pmsg)
-	fmt.Println(err)
-	client.handler.broadcast <- pby
+	// 推给监控中心注册到用户集合中
+	handler.register <- client
+
+	client.send <- []byte(`{"type":"ping"}`)
 
 	data := make(map[string]string)
 	data["displayName"] = client.Name.DisplayName
@@ -956,7 +964,7 @@ func init() {
 		handler.broadcast <- []byte(`{"type":"ping"}`)
 	}
 	//定时任务
-	spec := "*/20 * * * * ?" //cron表达式，每五秒一次
+	spec := "*/30 * * * * ?" //cron表达式，每五秒一次
 	// 添加定时任务,
 	crontab.AddFunc(spec, task)
 	// 启动定时器
@@ -970,6 +978,7 @@ func (c *Client) writePump() {
 	for {
 		// 广播推过来的新消息，马上通过websocket推给自己
 		message, _ := <-c.send
+		fmt.Println("推送消息", string(message), "1")
 		if err := c.conn.WriteMessage(websocket.TextMessage, message); err != nil {
 			return
 		}
@@ -1032,6 +1041,7 @@ func (c *Client) readPump() {
 			delete(data, "to")
 			message, err = json.Marshal(data)
 			toC.send <- message
+			continue
 		}
 
 		c.handler.broadcast <- message
