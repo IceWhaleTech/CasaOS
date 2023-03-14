@@ -16,6 +16,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.4.3]
+
+### Added
+
+- [Disk] Now usb also supports merging to
+
+
+### Changed
+
+- [File] Solve the installation dependency problem, make the installation more smoothly
+- [File] Change the default permissions of the sharing folder
+
+### Fixed
+
+- [System] Fixed  not see wlan iface ([#909](https://github.com/IceWhaleTech/CasaOS/issues/909))
+- [System] Terminal font issue fix ([#929](https://github.com/IceWhaleTech/CasaOS/issues/929))
+- [File] Fixed the problem of not being able to launch after mounting
+
+### Removed
+
 
 ## [0.4.2]
 
