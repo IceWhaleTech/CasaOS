@@ -24,6 +24,7 @@ import (
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/tools/go/analysis/passes/ifaceassert"
 )
 
 // @Summary check version
@@ -177,7 +178,14 @@ func PostKillCasaOS(c *gin.Context) {
 func GetSystemHardwareInfo(c *gin.Context) {
 	data := make(map[string]string, 1)
 	data["drive_model"] = service.MyService.System().GetDeviceTree()
-	data["arch"] = runtime.GOARCH
+	if runtime.GOARCH == "arm" {
+		data["arch"]= "arm-7"
+	}else{
+		data["arch"]= runtime.GOARCH
+	}
+	
+	if cpu := service.MyService.System().GetCpuInfo(); len(cpu) > 0 {
+
 	c.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
