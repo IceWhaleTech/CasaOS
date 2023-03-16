@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: App Request
+    url: https://github.com/IceWhaleTech/CasaOS-AppStore/issues/new?assignees=&labels=App+Request&template=app_request.yml&title=%5BApp+Request%5D+AppName
+    about: Request to add an app to the app store.
   - name: Feature/Enhancement Ideas
     url: https://github.com/IceWhaleTech/CasaOS/discussions/164
     about: Have an idea for a new feature/enhancement?
