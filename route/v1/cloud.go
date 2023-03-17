@@ -1,16 +1,17 @@
 package v1
 
 import (
-	"os"
 	"strings"
 
-	"github.com/IceWhaleTech/CasaOS-Common/model"
-	"github.com/IceWhaleTech/CasaOS-Common/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/drivers/dropbox"
 	"github.com/IceWhaleTech/CasaOS/drivers/google_drive"
+	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func ListStorages(c *gin.Context) {
@@ -39,14 +40,18 @@ func ListStorages(c *gin.Context) {
 	}
 
 	for i := 0; i < len(r.MountPoints); i++ {
-		t := service.MyService.Storage().GetAttributeValueByName(r.MountPoints[i].Fs, "type")
-		if t == "drive" {
+		dataMap, err := service.MyService.Storage().GetConfigByName(r.MountPoints[i].Fs)
+		if err != nil {
+			logger.Error("GetConfigByName", zap.Any("err", err))
+			continue
+		}
+		if dataMap["type"] == "drive" {
 			r.MountPoints[i].Icon = google_drive.ICONURL
 		}
-		if t == "dropbox" {
+		if dataMap["type"] == "dropbox" {
 			r.MountPoints[i].Icon = dropbox.ICONURL
 		}
-		r.MountPoints[i].Name = service.MyService.Storage().GetAttributeValueByName(r.MountPoints[i].Fs, "username")
+		r.MountPoints[i].Name = dataMap["username"]
 	}
 	list := []httper.MountPoint{}
 
@@ -76,8 +81,21 @@ func UmountStorage(c *gin.Context) {
 		return
 	}
 	service.MyService.Storage().DeleteConfigByName(strings.ReplaceAll(mountPoint, "/mnt/", ""))
-	if fs, err := os.ReadDir(mountPoint); err == nil && len(fs) == 0 {
-		os.RemoveAll(mountPoint)
-	}
 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: "success"})
+}
+
+func GetStorage(c *gin.Context) {
+
+	// idStr := c.Query("id")
+	// id, err := strconv.Atoi(idStr)
+	// if err != nil {
+	// 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: err.Error()})
+	// 	return
+	// }
+	// storage, err := service.MyService.Storage().GetStorageById(uint(id))
+	// if err != nil {
+	// 	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+	// 	return
+	// }
+	// c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: storage})
 }

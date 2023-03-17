@@ -56,7 +56,7 @@ func GetRecoverStorage(c *gin.Context) {
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
-		dmap := make(map[string]interface{})
+		dmap := make(map[string]string)
 		dmap["username"] = username
 		configs, err := service.MyService.Storage().GetConfig()
 		if err != nil {
@@ -68,17 +68,16 @@ func GetRecoverStorage(c *gin.Context) {
 			return
 		}
 		for _, v := range configs.Remotes {
-			t := service.MyService.Storage().GetAttributeValueByName(v, "type")
-			username := service.MyService.Storage().GetAttributeValueByName(v, "username")
+			cf, err := service.MyService.Storage().GetConfigByName(v)
 			if err != nil {
 				logger.Error("then get config by name error: ", zap.Error(err), zap.Any("name", v))
 				continue
 			}
-			if t == "drive" && username == dmap["username"] {
+			if cf["type"] == "drive" && cf["username"] == dmap["username"] {
 				c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
 				err := service.MyService.Storage().CheckAndMountByName(v)
 				if err != nil {
-					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", username))
+					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", cf["username"]))
 				}
 				notify["status"] = "warn"
 				notify["message"] = "The same configuration has been added"
@@ -100,10 +99,11 @@ func GetRecoverStorage(c *gin.Context) {
 		dmap["mount_point"] = "/mnt/" + username
 		dmap["token"] = `{"access_token":"` + google_drive.AccessToken + `","token_type":"Bearer","refresh_token":"` + google_drive.RefreshToken + `","expiry":"` + currentDate + `T` + currentTime.Add(time.Hour*1).Add(time.Minute*50).Format("15:04:05") + `Z"}`
 		service.MyService.Storage().CreateConfig(dmap, username, "drive")
-		service.MyService.Storage().MountStorage("/mnt/"+username, username)
+		service.MyService.Storage().MountStorage("/mnt/"+username, username+":")
 		notify := make(map[string]interface{})
 		notify["status"] = "success"
 		notify["message"] = "Success"
+		notify["driver"] = "GoogleDrive"
 		service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 	} else if t == "Dropbox" {
 		add := dropbox.Addition{}
@@ -139,7 +139,7 @@ func GetRecoverStorage(c *gin.Context) {
 			service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 			return
 		}
-		dmap := make(map[string]interface{})
+		dmap := make(map[string]string)
 		dmap["username"] = username
 
 		configs, err := service.MyService.Storage().GetConfig()
@@ -152,18 +152,16 @@ func GetRecoverStorage(c *gin.Context) {
 			return
 		}
 		for _, v := range configs.Remotes {
-
-			t := service.MyService.Storage().GetAttributeValueByName(v, "type")
-			username := service.MyService.Storage().GetAttributeValueByName(v, "username")
+			cf, err := service.MyService.Storage().GetConfigByName(v)
 			if err != nil {
 				logger.Error("then get config by name error: ", zap.Error(err), zap.Any("name", v))
 				continue
 			}
-			if t == "dropbox" && username == dmap["username"] {
+			if cf["type"] == "dropbox" && cf["username"] == dmap["username"] {
 				c.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
 				err := service.MyService.Storage().CheckAndMountByName(v)
 				if err != nil {
-					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", username))
+					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", cf["username"]))
 				}
 
 				notify["status"] = "warn"
@@ -195,12 +193,12 @@ func GetRecoverStorage(c *gin.Context) {
 		// 	return
 		// }
 		service.MyService.Storage().CreateConfig(dmap, username, "dropbox")
-		service.MyService.Storage().MountStorage("/mnt/"+username, username)
+		service.MyService.Storage().MountStorage("/mnt/"+username, username+":")
 
 		notify["status"] = "success"
 		notify["message"] = "Success"
+		notify["driver"] = "Dropbox"
 		service.MyService.Notify().SendNotify("casaos:file:recover", notify)
-
 	}
 
 	c.String(200, `<p>Just close the page</p><script>window.close()</script>`)
