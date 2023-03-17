@@ -169,7 +169,7 @@ func (c *systemService) GetDirPath(path string) ([]model.Path, error) {
 
 	}
 
-	ls, err := ioutil.ReadDir(path)
+	ls, err := os.ReadDir(path)
 	if err != nil {
 		logger.Error("when read dir", zap.Error(err))
 		return []model.Path{}, err
@@ -182,7 +182,12 @@ func (c *systemService) GetDirPath(path string) ([]model.Path, error) {
 			if err != nil {
 				link = filePath
 			}
-			temp := model.Path{Name: l.Name(), Path: filePath, IsDir: l.IsDir(), Date: l.ModTime(), Size: l.Size()}
+			tempFile, err := l.Info()
+			if err != nil {
+				logger.Error("when read dir", zap.Error(err))
+				return []model.Path{}, err
+			}
+			temp := model.Path{Name: l.Name(), Path: filePath, IsDir: l.IsDir(), Date: tempFile.ModTime(), Size: tempFile.Size()}
 			if filePath != link {
 				file, _ := os.Stat(link)
 				temp.IsDir = file.IsDir()

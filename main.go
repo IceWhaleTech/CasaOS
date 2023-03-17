@@ -80,6 +80,11 @@ func init() {
 	service.GetCPUThermalZone()
 
 	route.InitFunction()
+
+	///
+	// service.MountLists = make(map[string]*mountlib.MountPoint)
+	// configfile.Install()
+	service.MyService.Storage().CheckAndMountAll()
 }
 
 // @title casaOS API
@@ -141,9 +146,9 @@ func main() {
 		"/v1/image",
 		"/v1/samba",
 		"/v1/notify",
-		//"/v1/driver",
-		//"/v1/cloud",
-		//"/v1/recover",
+		"/v1/driver",
+		"/v1/cloud",
+		"/v1/recover",
 		"/v1/other",
 		route.V2APIPath,
 		route.V2DocPath,
@@ -162,6 +167,7 @@ func main() {
 	}
 	var events []message_bus.EventType
 	events = append(events, message_bus.EventType{Name: "casaos:system:utilization", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
+	events = append(events, message_bus.EventType{Name: "casaos:file:recover", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
 	events = append(events, message_bus.EventType{Name: "casaos:file:operate", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
 	// register at message bus
 	for i := 0; i < 10; i++ {
