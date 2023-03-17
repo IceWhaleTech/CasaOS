@@ -177,13 +177,21 @@ func PostKillCasaOS(c *gin.Context) {
 func GetSystemHardwareInfo(c *gin.Context) {
 	data := make(map[string]string, 1)
 	data["drive_model"] = service.MyService.System().GetDeviceTree()
-	data["arch"] = runtime.GOARCH
-	c.JSON(common_err.SUCCESS,
-		model.Result{
-			Success: common_err.SUCCESS,
-			Message: common_err.GetMsg(common_err.SUCCESS),
-			Data:    data,
-		})
+	if runtime.GOARCH == "arm" {
+		data["arch"] = "arm-7"
+	} else {
+		data["arch"] = runtime.GOARCH
+	}
+
+	if cpu := service.MyService.System().GetCpuInfo(); len(cpu) > 0 {
+
+		c.JSON(common_err.SUCCESS,
+			model.Result{
+				Success: common_err.SUCCESS,
+				Message: common_err.GetMsg(common_err.SUCCESS),
+				Data:    data,
+			})
+	}
 }
 
 // @Summary system utilization
