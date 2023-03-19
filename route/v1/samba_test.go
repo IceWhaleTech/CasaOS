@@ -8,16 +8,17 @@
  * @Website: https://www.casaos.io
  * Copyright (c) 2022 by icewhale, All Rights Reserved.
  */
-package v1
+package v1_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
+	"gotest.tools/assert"
 )
 
 func performRequest(r http.Handler, method, path string) *httptest.ResponseRecorder {
@@ -62,7 +63,7 @@ func TestGetSambaSharesList(t *testing.T) {
 
 		requestUrl := "/v1/samba/shares"
 		httpRequest, _ := http.NewRequest("GET", requestUrl, nil)
-		GetSambaSharesList(con)
+		v1.GetSambaSharesList(con)
 		ginEngine.ServeHTTP(response, httpRequest)
 		return response
 	}
