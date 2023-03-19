@@ -30,7 +30,7 @@ import (
 	"github.com/coreos/go-systemd/daemon"
 	"go.uber.org/zap"
 
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 )
 
@@ -99,7 +99,6 @@ func init() {
 // @name Authorization
 // @BasePath /v1
 func main() {
-
 	if *versionFlag {
 		return
 	}
@@ -120,18 +119,13 @@ func main() {
 		},
 	}
 
-	cron2 := cron.New()
-	// every day execution
-
-	err := cron2.AddFunc("0/5 * * * * *", func() {
-		route.SendAllHardwareStatusBySocket()
-	})
-	if err != nil {
-		fmt.Println(err)
+	crontab := cron.New(cron.WithSeconds())
+	if _, err := crontab.AddFunc("@every 5s", route.SendAllHardwareStatusBySocket); err != nil {
+		logger.Error("add crontab error", zap.Error(err))
 	}
-	cron2.Start()
 
-	defer cron2.Stop()
+	crontab.Start()
+	defer crontab.Stop()
 
 	listener, err := net.Listen("tcp", net.JoinHostPort(LOCALHOST, "0"))
 	if err != nil {
@@ -230,7 +224,7 @@ func main() {
 	}
 
 	logger.Info("CasaOS main service is listening...", zap.Any("address", listener.Addr().String()))
-	//defer service.MyService.Storage().UnmountAllStorage()
+	// defer service.MyService.Storage().UnmountAllStorage()
 	err = s.Serve(listener) // not using http.serve() to fix G114: Use of net/http serve function that has no support for setting timeouts (see https://github.com/securego/gosec)
 	if err != nil {
 		panic(err)

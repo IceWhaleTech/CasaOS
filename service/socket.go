@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
-	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/mileusna/useragent"
 )
 
@@ -19,7 +18,6 @@ type Name struct {
 }
 
 func GetPeerId(request *http.Request, id string) string {
-
 	cookiePree, err := request.Cookie("peerid")
 	if err != nil {
 		return id
@@ -28,7 +26,6 @@ func GetPeerId(request *http.Request, id string) string {
 		return cookiePree.Value
 	}
 	return id
-
 }
 
 func GetIP(request *http.Request) string {
@@ -87,6 +84,7 @@ func GetName(request *http.Request) Name {
 		DisplayName: display,
 	}
 }
+
 func GetNameByDB(m model2.PeerDriveDBModel) Name {
 	device := ""
 	if len(m.DeviceName) > 0 {
@@ -101,22 +99,4 @@ func GetNameByDB(m model2.PeerDriveDBModel) Name {
 		DeviceName:  device,
 		DisplayName: m.DisplayName,
 	}
-}
-func Generate() string {
-	nameParts := strings.Split(namesgenerator.GetRandomName(0), "_")
-
-	for i := 0; i < len(nameParts); i++ {
-		nameParts[i] = strings.Title(nameParts[i])
-	}
-
-	return strings.Join(nameParts, " ")
-}
-
-func GenerateMultiple(count int) []string {
-	s := make([]string, count)
-	for i := 0; i <= count; i++ {
-		s[i] = Generate()
-	}
-
-	return s
 }

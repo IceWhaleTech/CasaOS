@@ -11,13 +11,12 @@
 package sqlite
 
 import (
+	"fmt"
 	"time"
 
-	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/glebarez/sqlite"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -32,23 +31,24 @@ func GetDb(dbPath string) *gorm.DB {
 	// db, err := gorm.Open(mysql2.Open(dsn), &gorm.Config{})
 	file.IsNotExistMkDir(dbPath)
 	db, err := gorm.Open(sqlite.Open(dbPath+"/casaOS.db"), &gorm.Config{})
+	if err != nil {
+		panic("sqlite connect error")
+	}
+
 	c, _ := db.DB()
 	c.SetMaxIdleConns(10)
 	c.SetMaxOpenConns(1)
 	c.SetConnMaxIdleTime(time.Second * 1000)
-	if err != nil {
-		logger.Error("sqlite connect error", zap.Any("db connect error", err))
-		panic("sqlite connect error")
-	}
 	gdb = db
 
 	err = db.AutoMigrate(&model2.AppNotify{}, model2.SharesDBModel{}, model2.ConnectionsDBModel{}, model2.PeerDriveDBModel{})
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	db.Exec("DROP TABLE IF EXISTS o_application")
 	db.Exec("DROP TABLE IF EXISTS o_friend")
 	db.Exec("DROP TABLE IF EXISTS o_person_download")
 	db.Exec("DROP TABLE IF EXISTS o_person_down_record")
-	if err != nil {
-		logger.Error("check or create db error", zap.Any("error", err))
-	}
 	return db
 }

@@ -14,14 +14,18 @@ func OnlyExec(cmdStr string) {
 	cmd := exec.Command("/bin/bash", "-c", cmdStr)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	defer stdout.Close()
 	if err := cmd.Start(); err != nil {
+		fmt.Println(err)
 		return
 	}
-	cmd.Wait()
-	return
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println(err)
+	}
 }
 
 func ExecResultStrArray(cmdStr string) []string {
@@ -49,7 +53,11 @@ func ExecResultStrArray(cmdStr string) []string {
 		}
 		networklist = append(networklist, string(output))
 	}
-	cmd.Wait()
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println(err)
+	}
+
 	return networklist
 }
 
@@ -68,11 +76,15 @@ func ExecResultStr(cmdStr string) string {
 		return ""
 	}
 	str, err := ioutil.ReadAll(stdout)
-	cmd.Wait()
 	if err != nil {
 		fmt.Println(err)
 		return ""
 	}
+
+	if err := cmd.Wait(); err != nil {
+		fmt.Println(err)
+	}
+
 	return string(str)
 }
 
