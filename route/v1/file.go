@@ -985,6 +985,7 @@ func init() {
 func (c *Client) writePump() {
 	defer func() {
 		c.handler.unregister <- c
+
 		c.conn.Close()
 	}()
 	for {
@@ -1011,6 +1012,7 @@ func (c *Client) readPump() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
+			c.handler.broadcast <- []byte(`{"type":"peer-left","peerId":"` + c.ID + `"}`)
 			break
 		}
 		// 要的话，推给广播中心，广播中心再推给每个用户
