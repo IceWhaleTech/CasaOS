@@ -603,6 +603,71 @@ func PostFileUpload(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
+func PostFileOctet(c *gin.Context) {
+
+	content_length := c.Request.ContentLength
+	if content_length <= 0 || content_length > 1024*1024*1024*2*1024 {
+		log.Printf("content_length error\n")
+		c.JSON(http.StatusBadRequest, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: "content_length error"})
+		return
+	}
+	content_type_, has_key := c.Request.Header["Content-Type"]
+	if !has_key {
+		log.Printf("Content-Type error\n")
+		c.JSON(http.StatusBadRequest, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: "Content-Type error"})
+		return
+	}
+	if len(content_type_) != 1 {
+		log.Printf("Content-Type count error\n")
+		c.JSON(http.StatusBadRequest, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: "Content-Type count error"})
+		return
+	}
+	content_type := content_type_[0]
+	const BOUNDARY string = "; boundary="
+	loc := strings.Index(content_type, BOUNDARY)
+	if -1 == loc {
+		log.Printf("Content-Type error, no boundary\n")
+		c.JSON(http.StatusBadRequest, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: "Content-Type error, no boundary"})
+		return
+	}
+	boundary := []byte(content_type[(loc + len(BOUNDARY)):])
+	log.Printf("[%s]\n\n", boundary)
+	//
+	read_data := make([]byte, 1024*24)
+	var read_total int = 0
+	for {
+		file_header, file_data, err := file.ParseFromHead(read_data, read_total, append(boundary, []byte("\r\n")...), c.Request.Body)
+		if err != nil {
+			log.Printf("%v", err)
+			return
+		}
+		log.Printf("file :%s\n", file_header)
+		//
+		f, err := os.Create(file_header["path"] + "/" + file_header["filename"])
+		if err != nil {
+			log.Printf("create file fail:%v\n", err)
+			return
+		}
+		f.Write(file_data)
+		file_data = nil
+		//需要反复搜索boundary
+		temp_data, reach_end, err := file.ReadToBoundary(boundary, c.Request.Body, f)
+		f.Close()
+		if err != nil {
+			log.Printf("%v\n", err)
+			return
+		}
+		if reach_end {
+			break
+		} else {
+			copy(read_data[0:], temp_data)
+			read_total = len(temp_data)
+			continue
+		}
+	}
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+}
+
 // @Summary copy or move file
 // @Produce  application/json
 // @Accept  application/json

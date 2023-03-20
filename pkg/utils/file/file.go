@@ -2,6 +2,7 @@ package file
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -595,4 +596,172 @@ func NameAccumulation(name string, dir string) string {
 			return fmt.Sprintf("%s_%d", base[:index], i)
 		}
 	}
+}
+
+// / 解析多个文件上传中，每个具体的文件的信息
+// type FileHeader struct {
+// 	ContentDisposition string
+// 	Name               string
+// 	FileName           string
+// 	///< 文件名
+// 	ContentType   string
+// 	ContentLength int64
+// }
+
+// / 解析描述文件信息的头部
+// / @return FileHeader 文件名等信息的结构体
+// / @return bool 解析成功还是失败
+func ParseFileHeader(h []byte, boundary []byte) (map[string]string, bool) {
+	arr := bytes.Split(h, boundary)
+	//var out_header FileHeader
+	//out_header.ContentLength = -1
+	const (
+		CONTENT_DISPOSITION = "Content-Disposition: "
+		NAME                = "name=\""
+		FILENAME            = "filename=\""
+		CONTENT_TYPE        = "Content-Type: "
+		CONTENT_LENGTH      = "Content-Length: "
+	)
+	result := make(map[string]string)
+	for _, item := range arr {
+
+		tarr := bytes.Split(item, []byte(";"))
+		if len(tarr) != 2 {
+			continue
+		}
+
+		tbyte := tarr[1]
+		fmt.Println(string(tbyte))
+		tbyte = bytes.ReplaceAll(tbyte, []byte("\r\n--"), []byte(""))
+		tbyte = bytes.ReplaceAll(tbyte, []byte("name=\""), []byte(""))
+		tempArr := bytes.Split(tbyte, []byte("\"\r\n\r\n"))
+		if len(tempArr) != 2 {
+			continue
+		}
+		bytes.HasPrefix(item, []byte("name="))
+		result[strings.TrimSpace(string(tempArr[0]))] = strings.TrimSpace(string(tempArr[1]))
+	}
+	// for _, item := range arr {
+	// 	if bytes.HasPrefix(item, []byte(CONTENT_DISPOSITION)) {
+	// 		l := len(CONTENT_DISPOSITION)
+	// 		arr1 := bytes.Split(item[l:], []byte("; "))
+	// 		out_header.ContentDisposition = string(arr1[0])
+	// 		if bytes.HasPrefix(arr1[1], []byte(NAME)) {
+	// 			out_header.Name = string(arr1[1][len(NAME) : len(arr1[1])-1])
+	// 		}
+	// 		l = len(arr1[2])
+	// 		if bytes.HasPrefix(arr1[2], []byte(FILENAME)) && arr1[2][l-1] == 0x22 {
+	// 			out_header.FileName = string(arr1[2][len(FILENAME) : l-1])
+	// 		}
+	// 	} else if bytes.HasPrefix(item, []byte(CONTENT_TYPE)) {
+	// 		l := len(CONTENT_TYPE)
+	// 		out_header.ContentType = string(item[l:])
+	// 	} else if bytes.HasPrefix(item, []byte(CONTENT_LENGTH)) {
+	// 		l := len(CONTENT_LENGTH)
+	// 		s := string(item[l:])
+	// 		content_length, err := strconv.ParseInt(s, 10, 64)
+	// 		if err != nil {
+	// 			log.Printf("content length error:%s", string(item))
+	// 			return out_header, false
+	// 		} else {
+	// 			out_header.ContentLength = content_length
+	// 		}
+	// 	} else {
+	// 		log.Printf("unknown:%s\n", string(item))
+	// 	}
+	// }
+	//fmt.Println(result)
+	// if len(out_header.FileName) == 0 {
+	// 	return out_header, false
+	// }
+	return result, true
+}
+
+// / 从流中一直读到文件的末位
+// / @return []byte 没有写到文件且又属于下一个文件的数据
+// / @return bool 是否已经读到流的末位了
+// / @return error 是否发生错误
+func ReadToBoundary(boundary []byte, stream io.ReadCloser, target io.WriteCloser) ([]byte, bool, error) {
+	read_data := make([]byte, 1024*8)
+	read_data_len := 0
+	buf := make([]byte, 1024*4)
+	b_len := len(boundary)
+	reach_end := false
+	for !reach_end {
+		read_len, err := stream.Read(buf)
+		if err != nil {
+			if err != io.EOF && read_len <= 0 {
+				return nil, true, err
+			}
+			reach_end = true
+		}
+		//todo: 下面这一句很蠢，值得优化
+		copy(read_data[read_data_len:], buf[:read_len]) //追加到另一块buffer，仅仅只是为了搜索方便
+		read_data_len += read_len
+		if read_data_len < b_len+4 {
+			continue
+		}
+		loc := bytes.Index(read_data[:read_data_len], boundary)
+		if loc >= 0 {
+			//找到了结束位置
+			target.Write(read_data[:loc-4])
+			return read_data[loc:read_data_len], reach_end, nil
+		}
+		target.Write(read_data[:read_data_len-b_len-4])
+		copy(read_data[0:], read_data[read_data_len-b_len-4:])
+		read_data_len = b_len + 4
+	}
+	target.Write(read_data[:read_data_len])
+	return nil, reach_end, nil
+}
+
+// / 解析表单的头部
+// / @param read_data 已经从流中读到的数据
+// / @param read_total 已经从流中读到的数据长度
+// / @param boundary 表单的分割字符串
+// / @param stream 输入流
+// / @return FileHeader 文件名等信息头
+// /[]byte 已经从流中读到的部分
+// /error 是否发生错误
+func ParseFromHead(read_data []byte, read_total int, boundary []byte, stream io.ReadCloser) (map[string]string, []byte, error) {
+
+	buf := make([]byte, 1024*8)
+	found_boundary := false
+	boundary_loc := -1
+
+	for {
+		read_len, err := stream.Read(buf)
+		if err != nil {
+			if err != io.EOF {
+				return nil, nil, err
+			}
+			break
+		}
+		if read_total+read_len > cap(read_data) {
+			return nil, nil, fmt.Errorf("not found boundary")
+		}
+		copy(read_data[read_total:], buf[:read_len])
+		read_total += read_len
+		if !found_boundary {
+			boundary_loc = bytes.LastIndex(read_data[:read_total], boundary)
+			if boundary_loc == -1 {
+				continue
+			}
+			found_boundary = true
+		}
+		start_loc := boundary_loc + len(boundary)
+		fmt.Println(string(read_data))
+		file_head_loc := bytes.Index(read_data[start_loc:read_total], []byte("\r\n\r\n"))
+		if file_head_loc == -1 {
+			continue
+		}
+		file_head_loc += start_loc
+		ret := false
+		headMap, ret := ParseFileHeader(read_data, boundary)
+		if !ret {
+			return headMap, nil, fmt.Errorf("ParseFileHeader fail:%s", string(read_data[start_loc:file_head_loc]))
+		}
+		return headMap, read_data[file_head_loc+4 : read_total], nil
+	}
+	return nil, nil, fmt.Errorf("reach to sream EOF")
 }
