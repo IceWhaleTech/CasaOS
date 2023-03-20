@@ -92,7 +92,8 @@ func InitV1Router() *gin.Engine {
 			v1FileGroup.GET("/content", v1.GetFilerContent) // file/read
 
 			// File uploads need to be handled separately, and will not be modified here
-			v1FileGroup.POST("/upload", v1.PostFileUpload)
+			//v1FileGroup.POST("/upload", v1.PostFileUpload)
+			v1FileGroup.POST("/upload", v1.PostFileOctet)
 			v1FileGroup.GET("/upload", v1.GetFileUpload)
 			// v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
 			v1FileGroup.GET("/ws", v1.ConnectWebSocket)
