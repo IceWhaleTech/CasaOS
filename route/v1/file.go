@@ -651,7 +651,7 @@ func PostFileOctet(c *gin.Context) {
 		}
 		f.Write(file_data)
 		file_data = nil
-		//需要反复搜索boundary
+
 		temp_data, reach_end, err := file.ReadToBoundary(boundary, c.Request.Body, f)
 		f.Close()
 		if err != nil {
