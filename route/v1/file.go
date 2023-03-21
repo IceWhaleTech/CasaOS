@@ -643,14 +643,15 @@ func PostFileOctet(c *gin.Context) {
 		}
 		log.Printf("file :%s\n", file_header)
 		//
-		f, err := os.Create(file_header["path"] + "/" + file_header["filename"])
+		//os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
+		f, err := os.OpenFile(file_header["path"]+"/"+file_header["filename"], os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
 			log.Printf("create file fail:%v\n", err)
 			return
 		}
 		f.Write(file_data)
 		file_data = nil
-		//需要反复搜索boundary
+
 		temp_data, reach_end, err := file.ReadToBoundary(boundary, c.Request.Body, f)
 		f.Close()
 		if err != nil {
