@@ -643,7 +643,8 @@ func PostFileOctet(c *gin.Context) {
 		}
 		log.Printf("file :%s\n", file_header)
 		//
-		f, err := os.Create(file_header["path"] + "/" + file_header["filename"])
+		//os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
+		f, err := os.OpenFile(file_header["path"]+"/"+file_header["filename"], os.O_WRONLY|os.O_CREATE, 0o644)
 		if err != nil {
 			log.Printf("create file fail:%v\n", err)
 			return
