@@ -82,6 +82,7 @@ func Mount(mountPoint string, fs string) error {
 		"mountPoint": mountPoint,
 		"fs":         fs,
 		"mountOpt":   `{"AllowOther": true}`,
+		"vfsOpt":     `{"CacheMode": 3}`,
 	}).Post("/mount/mount")
 	if err != nil {
 		return err
