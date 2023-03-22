@@ -625,14 +625,13 @@ func PostFileOctet(c *gin.Context) {
 	content_type := content_type_[0]
 	const BOUNDARY string = "; boundary="
 	loc := strings.Index(content_type, BOUNDARY)
-	if -1 == loc {
+	if loc == -1 {
 		log.Printf("Content-Type error, no boundary\n")
 		c.JSON(http.StatusBadRequest, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: "Content-Type error, no boundary"})
 		return
 	}
 	boundary := []byte(content_type[(loc + len(BOUNDARY)):])
 	log.Printf("[%s]\n\n", boundary)
-	//
 	read_data := make([]byte, 1024*24)
 	var read_total int = 0
 	for {
