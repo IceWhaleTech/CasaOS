@@ -92,5 +92,6 @@ func InitNetworkMount() {
 		}
 		connection.Directories = strings.Join(directories, ",")
 		service.MyService.Connections().UpdateConnection(&connection)
+		service.MyService.Storage().CheckAndMountAll()
 	}
 }

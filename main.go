@@ -84,7 +84,6 @@ func init() {
 	///
 	// service.MountLists = make(map[string]*mountlib.MountPoint)
 	// configfile.Install()
-	service.MyService.Storage().CheckAndMountAll()
 }
 
 // @title casaOS API
