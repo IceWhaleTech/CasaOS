@@ -2,6 +2,6 @@ package common
 
 const (
 	SERVICENAME = "casaos"
-	VERSION     = "0.4.2"
+	VERSION     = "0.4.3"
 	BODY        = " "
 )
