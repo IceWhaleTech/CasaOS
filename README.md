@@ -1,6 +1,4 @@
-# CasaOS - Your Home Cloud OS
-
-
+# CasaOS - Your Personal Cloud 
 <!-- Readme i18n links -->
 <!-- > English | [中文](#) | [Français](#) -->
 
@@ -12,7 +10,7 @@
         <img alt="CasaOS" src="https://raw.githubusercontent.com/IceWhaleTech/logo/main/casaos/casaos_banner_twilight_blue_800x300.png">
     </picture>
     <br/>
-    <i>Connect with the community developing HOME CLOUD, creating self-sovereign, and defining the future of the distributed cloud.</i>
+    <i>Connect with the community, establish autonomy, reduce the cost of SaaS, and MAXIMIZE the potential for a personalized copilot.</i>
     <br/>
     <br/>
     <!-- CasaOS Badges -->
@@ -65,18 +63,16 @@
     </kbd>
 </p>
 
-## Why do we need Home Cloud?
+## Why do you need Personal Cloud?
 
-Think about it seriously. Is control of our data, smart devices and digital assets now only in the hands of some big company?
+In 2020, the team noticed three important trends:
+- The cost of computing power and storage was decreasing fast.
+- A part of cloud computing was moving towards edge computing.
+- The issue of consumer data asset ownership and attribution had been ignored.
 
-- Is your photo album saved in their cloud service?
-- Do your thermostats, monitors, lamps need to be used through their cloud services?
-- Do your personal documents, memos, contacts, passwords, etc. reside in their cloud storage services?
-- Are you just going to have to accept their decisions when they decide to change prices, review content or even discontinue services?
+Based on these trends, the team proposed a thought experiment internally: what if personal clouds were available under $100 in next five years? This personal cloud would provide a low-cost data collaboration solution as a personal data center, storing and managing data for creators and small organizations. A distributed collaborative computing network can be formed by personal servers located around the world. It could also control and connect all smart devices, providing cross-ecosystem local intelligent services.
 
-It sounds ridiculous, doesn't it? We are losing control of our own data!
-
-Our ideal home cloud is one where you can manage all your data, devices and data assets very easily. In your own home, you have absolute control.
+Furthermore, the personal cloud could combine personal data to train personalized AI assistants. The idea is that this technology would be an effective way to solve the issue of consumer data asset ownership and , as well as provide a more affordable and efficient computing solution for individuals and small organizations.
 
 > If you think what we are doing is valuable. Please **give us a star ⭐** and **fork it 🤞**!
 
