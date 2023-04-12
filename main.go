@@ -82,8 +82,8 @@ func init() {
 	route.InitFunction()
 
 	///
-	// service.MountLists = make(map[string]*mountlib.MountPoint)
-	// configfile.Install()
+	//service.MountLists = make(map[string]*mountlib.MountPoint)
+	//configfile.Install()
 }
 
 // @title casaOS API
