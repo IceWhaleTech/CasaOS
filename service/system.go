@@ -57,9 +57,53 @@ type SystemService interface {
 	GetMacAddress() (string, error)
 	SystemReboot() error
 	SystemShutdown() error
+	GetSystemEntry() string
+	GenreateSystemEntry()
 }
 type systemService struct{}
 
+func (c *systemService) GenreateSystemEntry() {
+	modelsPath := "/var/lib/casaos/www/modules"
+	entryFileName := "entry.json"
+	entryFilePath := filepath.Join(config.AppInfo.DBPath, "db", entryFileName)
+	file.IsNotExistCreateFile(entryFilePath)
+
+	dir, err := os.ReadDir(modelsPath)
+	if err != nil {
+		logger.Error("read dir error", zap.Error(err))
+		return
+	}
+	json := "["
+	for _, v := range dir {
+		data, err := os.ReadFile(filepath.Join(modelsPath, v.Name(), entryFileName))
+		if err != nil {
+			logger.Error("read entry file error", zap.Error(err))
+			continue
+		}
+		json += string(data) + ","
+	}
+	json = strings.TrimRight(json, ",")
+	json += "]"
+	err = os.WriteFile(entryFilePath, []byte(json), 0666)
+	if err != nil {
+		logger.Error("write entry file error", zap.Error(err))
+		return
+	}
+
+}
+func (c *systemService) GetSystemEntry() string {
+	entryFilePath := filepath.Join(config.AppInfo.DBPath, "db", "entry.json")
+	_, err := os.Open(entryFilePath)
+	if os.IsNotExist(err) {
+		return ""
+	}
+	by, err := os.ReadFile(entryFilePath)
+	if err != nil {
+		logger.Error("read entry file error", zap.Error(err))
+		return ""
+	}
+	return string(by)
+}
 func (c *systemService) GetMacAddress() (string, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {

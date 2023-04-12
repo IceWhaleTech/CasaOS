@@ -80,7 +80,7 @@ func init() {
 	service.GetCPUThermalZone()
 
 	route.InitFunction()
-
+	service.MyService.System().GenreateSystemEntry()
 	///
 	// service.MountLists = make(map[string]*mountlib.MountPoint)
 	// configfile.Install()
