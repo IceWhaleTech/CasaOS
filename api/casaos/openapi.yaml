@@ -47,6 +47,19 @@ paths:
           $ref: "#/components/responses/GetHealthServicesOK"
         "500":
           $ref: "#/components/responses/ResponseInternalServerError"
+
+  /health/ports:
+    get:
+      tags:
+        - Health methods
+      summary: Get port in use
+      operationId: getHealthPorts
+      responses:
+        "200":
+          $ref: "#/components/responses/GetHealthPortsOK"
+        "500":
+          $ref: "#/components/responses/ResponseInternalServerError"
+
   /file/test:
     get:
       tags:
@@ -93,6 +106,17 @@ components:
                   data:
                     $ref: "#/components/schemas/HealthServices"
 
+    GetHealthPortsOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/BaseResponse"
+              - properties:
+                  data:
+                    $ref: "#/components/schemas/HealthPorts"
+
   schemas:
     BaseResponse:
       properties:
@@ -114,3 +138,18 @@ components:
           items:
             type: string
             example: "casaos.service"
+
+    HealthPorts:
+      properties:
+        tcp:
+          type: array
+          items:
+            type: integer
+            example: 80
+          x-go-name: TCP
+        udp:
+          type: array
+          items:
+            type: integer
+            example: 53
+          x-go-name: UDP
