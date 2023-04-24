@@ -71,10 +71,10 @@ func InitV2Router() http.Handler {
 	e.Use(echo_middleware.JWTWithConfig(echo_middleware.JWTConfig{
 		Skipper: func(c echo.Context) bool {
 			return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
-			//return true
+			// return true
 		},
 		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
-			claims, code := jwt.Validate(token)
+			claims, code := jwt.Validate(token) // TODO - needs JWT validation
 			if code != common_err.SUCCESS {
 				return nil, echo.ErrUnauthorized
 			}
@@ -137,6 +137,7 @@ func InitV2DocRouter(docHTML string, docYAML string) http.Handler {
 		}
 	})
 }
+
 func InitFile() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		filePath := r.URL.Query().Get("path")
@@ -174,7 +175,7 @@ func InitDir() http.Handler {
 		// handles only single files not folders and multiple files
 		//		if len(list) == 1 {
 
-		//filePath := list[0]
+		// filePath := list[0]
 		//			info, err := os.Stat(filePath)
 		//			if err != nil {
 
