@@ -1,6 +1,7 @@
 package route
 
 import (
+	"crypto/ecdsa"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,9 +11,10 @@ import (
 	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/codegen"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 
-	"github.com/IceWhaleTech/CasaOS-Common/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS-Common/external"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
 	v2Route "github.com/IceWhaleTech/CasaOS/route/v2"
 	"github.com/deepmap/oapi-codegen/pkg/middleware"
@@ -74,11 +76,14 @@ func InitV2Router() http.Handler {
 			// return true
 		},
 		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
-			claims, code := jwt.Validate(token) // TODO - needs JWT validation
-			if code != common_err.SUCCESS {
+			// claims, code := jwt.Validate(token) // TODO - needs JWT validation
+			// if code != common_err.SUCCESS {
+			// 	return nil, echo.ErrUnauthorized
+			// }
+			valid, claims, err := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
+			if err != nil || !valid {
 				return nil, echo.ErrUnauthorized
 			}
-
 			c.Request().Header.Set("user_id", strconv.Itoa(claims.ID))
 
 			return claims, nil
