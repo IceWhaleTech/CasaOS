@@ -1,6 +1,7 @@
 package ip_helper
 
 import (
+	"fmt"
 	"net"
 	"strings"
 
@@ -56,7 +57,31 @@ func GetDeviceAllIP(port string) []string {
 	}
 	return address
 }
+func GetDeviceAllIPv4() []string {
+	var address []string
+	addrs, err := net.Interfaces()
+	if err != nil {
+		return address
+	}
+	for _, a := range addrs {
+		if a.Flags&net.FlagLoopback != 0 || a.Flags&net.FlagUp == 0 {
+			continue
+		}
+		addrs, err := a.Addrs()
+		if err != nil {
+			fmt.Println("Error:", err)
+			continue
+		}
 
+		for _, addr := range addrs {
+			// 检查 IPv4 地址
+			if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
+				address = append(address, ipnet.IP.String())
+			}
+		}
+	}
+	return address
+}
 func HasLocalIP(ip net.IP) bool {
 	if ip.IsLoopback() {
 		return true

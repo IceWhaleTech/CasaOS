@@ -15,10 +15,14 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/file"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
+	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 
 	"github.com/shirou/gopsutil/v3/cpu"
@@ -49,6 +53,7 @@ type SystemService interface {
 	GetDiskInfo() *disk.UsageStat
 	GetSysInfo() host.InfoStat
 	GetDeviceTree() string
+	GetDeviceInfo() model.DeviceInfo
 	CreateFile(path string) (int, error)
 	RenameFile(oldF, newF string) (int, error)
 	MkdirAll(path string) (int, error)
@@ -62,6 +67,40 @@ type SystemService interface {
 }
 type systemService struct{}
 
+func (c *systemService) GetDeviceInfo() model.DeviceInfo {
+	m := model.DeviceInfo{}
+	m.OS_Version = common.VERSION
+	err, portStr := MyService.Gateway().GetPort()
+	if err != nil {
+		m.Port = 80
+	} else {
+		port := gjson.Get(portStr, "data")
+		if len(port.Raw) == 0 {
+			m.Port = 80
+		} else {
+			p, err := strconv.Atoi(port.Raw)
+			if err != nil {
+				m.Port = 80
+			} else {
+				m.Port = p
+			}
+		}
+	}
+
+	m.LanIpv4 = ip_helper.GetDeviceAllIPv4()
+	h, err := host.Info() /*  */
+	if err == nil {
+		m.DeviceName = h.Hostname
+	}
+	osRelease, _ := file.ReadOSRelease()
+	m.DeviceModel = osRelease["MODEL"]
+	m.DeviceSN = osRelease["SN"]
+	res := httper.Get("http://127.0.0.1："+strconv.Itoa(m.Port)+"/v1/users/status", nil)
+	init := gjson.Get(res, "data.initialized")
+	m.Initialized, _ = strconv.ParseBool(init.Raw)
+
+	return m
+}
 func (c *systemService) GenreateSystemEntry() {
 	modelsPath := "/var/lib/casaos/www/modules"
 	entryFileName := "entry.json"

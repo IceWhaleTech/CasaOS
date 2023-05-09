@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net"
@@ -101,7 +102,7 @@ func main() {
 	if *versionFlag {
 		return
 	}
-
+	go Special(service.MyService)
 	v1Router := route.InitV1Router()
 
 	v2Router := route.InitV2Router()
@@ -228,4 +229,22 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+func Special(myservice service.Repository) {
+	http.HandleFunc("/v1/icewhale", func(w http.ResponseWriter, r *http.Request) {
+		m := myservice.System().GetDeviceInfo()
+		jsonData, err := json.Marshal(m)
+		if err != nil {
+			fmt.Println("Error:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintln(w, string(jsonData))
+	})
+
+	if err := http.ListenAndServe(":9527", nil); err != nil {
+		fmt.Println("Error:", err)
+	}
+
 }
