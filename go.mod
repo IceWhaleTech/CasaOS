@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
-	github.com/IceWhaleTech/CasaOS-Common v0.4.4-alpha7
+	github.com/IceWhaleTech/CasaOS-Common v0.4.4-alpha8
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/deckarep/golang-set/v2 v2.3.0
 	github.com/deepmap/oapi-codegen v1.12.4
@@ -36,13 +36,14 @@ require (
 	github.com/satori/go.uuid v1.2.0
 	github.com/shirou/gopsutil/v3 v3.23.2
 	github.com/sirupsen/logrus v1.9.0
+	github.com/stretchr/testify v1.8.2
 	github.com/tidwall/gjson v1.14.4
 	go.uber.org/goleak v1.2.1
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.8.0
-	golang.org/x/net v0.9.0
 	golang.org/x/oauth2 v0.6.0
 	golang.org/x/sync v0.1.0
+	golang.org/x/sys v0.7.0
 	gorm.io/gorm v1.24.6
 	gotest.tools v2.2.0+incompatible
 )
@@ -54,6 +55,7 @@ require (
 	github.com/bytedance/sonic v1.8.5 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/dsoprea/go-logging v0.0.0-20200710184922-b02d349568dd // indirect
 	github.com/dsoprea/go-utility/v2 v2.0.0-20221003172846-a3e1774ef349 // indirect
@@ -101,6 +103,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
 	github.com/perimeterx/marshmallow v1.1.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.17 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20221212215047-62379fc7944b // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/samber/lo v1.38.1 // indirect
@@ -120,7 +123,7 @@ require (
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect
 	golang.org/x/image v0.6.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
+	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

@@ -165,6 +165,10 @@ CasaOS is a community-driven open source project and the people involved are Cas
 - See <https://wiki.casaos.io/en/contribute> for ways of contribution to CasaOS
 - See <https://wiki.casaos.io/en/contribute/development> if you want to be involved in code contribution specificially
 
+## Donate
+<p ><a href="https://www.buymeacoffee.com/icewhaletech"> <img align="center" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" height="50" width="210" alt="bappi2097" target="_blank" /></a></p>
+
+
 ## Credits
 
 Many thanks to everyone who has helped CasaOS so far!

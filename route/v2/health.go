@@ -24,3 +24,20 @@ func (s *CasaOS) GetHealthServices(ctx echo.Context) error {
 		},
 	})
 }
+
+func (s *CasaOS) GetHealthPorts(ctx echo.Context) error {
+	tcpPorts, udpPorts, err := service.MyService.Health().Ports()
+	if err != nil {
+		message := err.Error()
+		return ctx.JSON(http.StatusInternalServerError, codegen.ResponseInternalServerError{
+			Message: &message,
+		})
+	}
+
+	return ctx.JSON(http.StatusOK, codegen.GetHealthPortsOK{
+		Data: &codegen.HealthPorts{
+			TCP: &tcpPorts,
+			UDP: &udpPorts,
+		},
+	})
+}

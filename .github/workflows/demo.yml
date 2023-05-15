@@ -35,7 +35,7 @@ jobs:
         run: | 
           echo "OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "updateto_to_0.4.1-1676285322' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')" >> $GITHUB_ENV
           echo "OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')" >> $GITHUB_ENV
-          echo "NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)" >> $GITHUB_ENV
+          echo "NEW_INSTANCE_NAME= CasaOS-Demo-$(date +%s)" >> $GITHUB_ENV
           
       - name: Create instances from snapshot
         run: | 

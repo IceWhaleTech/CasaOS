@@ -89,8 +89,8 @@ func init() {
 	go SendToSocket(service.MyService.System().GetDeviceInfo())
 	service.MyService.System().GenreateSystemEntry()
 	///
-	// service.MountLists = make(map[string]*mountlib.MountPoint)
-	// configfile.Install()
+	//service.MountLists = make(map[string]*mountlib.MountPoint)
+	//configfile.Install()
 }
 
 // @title casaOS API

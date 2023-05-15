@@ -1,11 +1,13 @@
 package service
 
 import (
+	"github.com/IceWhaleTech/CasaOS-Common/utils/port"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
 )
 
 type HealthService interface {
 	Services() (map[bool]*[]string, error)
+	Ports() ([]int, []int, error)
 }
 
 type service struct{}
@@ -32,6 +34,10 @@ func (s *service) Services() (map[bool]*[]string, error) {
 	}
 
 	return result, nil
+}
+
+func (s *service) Ports() ([]int, []int, error) {
+	return port.ListPortsInUse()
 }
 
 func NewHealthService() HealthService {
