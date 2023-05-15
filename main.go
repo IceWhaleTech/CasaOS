@@ -5,21 +5,27 @@ package main
 import (
 	"context"
 	_ "embed"
+	"encoding/base64"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Common/model"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
+	"github.com/tidwall/gjson"
+	"golang.org/x/net/websocket"
 
 	util_http "github.com/IceWhaleTech/CasaOS-Common/utils/http"
 
 	"github.com/IceWhaleTech/CasaOS/codegen/message_bus"
 	"github.com/IceWhaleTech/CasaOS/common"
+	model2 "github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
@@ -80,7 +86,8 @@ func init() {
 	service.GetCPUThermalZone()
 
 	route.InitFunction()
-
+	go SendToSocket(service.MyService.System().GetDeviceInfo())
+	service.MyService.System().GenreateSystemEntry()
 	///
 	//service.MountLists = make(map[string]*mountlib.MountPoint)
 	//configfile.Install()
@@ -101,7 +108,7 @@ func main() {
 	if *versionFlag {
 		return
 	}
-
+	go Special(service.MyService)
 	v1Router := route.InitV1Router()
 
 	v2Router := route.InitV2Router()
@@ -228,4 +235,64 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+func Special(myservice service.Repository) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		m := myservice.System().GetDeviceInfo()
+		jsonData, err := json.Marshal(m)
+		if err != nil {
+			fmt.Println("Error:", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintln(w, string(jsonData))
+	})
+
+	if err := http.ListenAndServe(":9527", nil); err != nil {
+		fmt.Println("Error:", err)
+	}
+
+}
+
+func SendToSocket(m model2.DeviceInfo) {
+	if len(m.DeviceSN) == 0 {
+		//TODO:需要更换socket地址,需要放开sn的判断
+		//return
+	}
+	by, _ := json.Marshal(m)
+	base64Str := base64.StdEncoding.EncodeToString(by)
+	var count int = 1
+	for i := 0; i < 10; i++ {
+		wsURL := fmt.Sprintf("ws://%s/server/zima%s", "52.193.63.104:3060", "?device="+base64Str)
+		ws, err := websocket.Dial(wsURL, "", "http://localhost")
+		if err != nil {
+			logger.Error("connect websocket err"+strconv.Itoa(i), zap.Any("error", err))
+			time.Sleep(time.Second * 1)
+			continue
+		}
+		defer ws.Close()
+
+		logger.Info("subscribed to", zap.Any("url", wsURL))
+		for {
+			msg := make([]byte, 1024)
+			n, err := ws.Read(msg)
+			if err != nil {
+				logger.Error("err", zap.Any("err", err.Error()))
+				break
+			}
+			message := msg[:n]
+			t := gjson.GetBytes(message, "type")
+			if t.Str == "ping" {
+				ws.Write([]byte(`{"type":"pong"}`))
+				count++
+			}
+			if count > 600 {
+				return
+			}
+		}
+	}
+	logger.Error("error when try to connect to message bus")
+
 }

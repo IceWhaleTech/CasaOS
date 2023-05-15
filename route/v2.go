@@ -76,10 +76,6 @@ func InitV2Router() http.Handler {
 			// return true
 		},
 		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
-			// claims, code := jwt.Validate(token) // TODO - needs JWT validation
-			// if code != common_err.SUCCESS {
-			// 	return nil, echo.ErrUnauthorized
-			// }
 			valid, claims, err := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
 			if err != nil || !valid {
 				return nil, echo.ErrUnauthorized
