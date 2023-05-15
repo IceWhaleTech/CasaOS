@@ -57,8 +57,8 @@ func GetDeviceAllIP(port string) []string {
 	}
 	return address
 }
-func GetDeviceAllIPv4() []string {
-	var address []string
+func GetDeviceAllIPv4() map[string]string {
+	address := make(map[string]string)
 	addrs, err := net.Interfaces()
 	if err != nil {
 		return address
@@ -74,9 +74,8 @@ func GetDeviceAllIPv4() []string {
 		}
 
 		for _, addr := range addrs {
-			// 检查 IPv4 地址
 			if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
-				address = append(address, ipnet.IP.String())
+				address[a.Name] = ipnet.IP.String()
 			}
 		}
 	}

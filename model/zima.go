@@ -32,4 +32,5 @@ type DeviceInfo struct {
 	DeviceSN    string   `json:"device_sn"`
 	Initialized bool     `json:"initialized"`
 	OS_Version  string   `json:"os_version"`
+	Hash        string   `json:"hash"`
 }

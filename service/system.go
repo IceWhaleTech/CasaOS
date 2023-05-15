@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -86,12 +87,29 @@ func (c *systemService) GetDeviceInfo() model.DeviceInfo {
 			}
 		}
 	}
+	allIpv4 := ip_helper.GetDeviceAllIPv4()
+	ip := []string{}
+	nets := MyService.System().GetNet(true)
+	for _, n := range nets {
+		if v, ok := allIpv4[n]; ok {
+			{
+				ip = append(ip, v)
+			}
+		}
+	}
 
-	m.LanIpv4 = ip_helper.GetDeviceAllIPv4()
+	m.LanIpv4 = ip
 	h, err := host.Info() /*  */
 	if err == nil {
 		m.DeviceName = h.Hostname
 	}
+	mb := model.BaseInfo{}
+
+	err = json.Unmarshal(file.ReadFullFile(config.AppInfo.DBPath+"/baseinfo.conf"), &mb)
+	if err == nil {
+		m.Hash = mb.Hash
+	}
+
 	osRelease, _ := file.ReadOSRelease()
 	m.DeviceModel = osRelease["MODEL"]
 	m.DeviceSN = osRelease["SN"]
