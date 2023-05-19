@@ -431,7 +431,9 @@ func AddFile(ar archiver.Writer, path, commonPath string) error {
 	defer file.Close()
 
 	if path != commonPath {
-		filename := info.Name()
+		//filename := info.Name()
+		filename := strings.TrimPrefix(path, commonPath)
+		filename = strings.TrimPrefix(filename, string(filepath.Separator))
 		err = ar.Write(archiver.File{
 			FileInfo: archiver.FileInfo{
 				FileInfo:   info,
