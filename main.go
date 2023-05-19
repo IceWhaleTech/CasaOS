@@ -150,6 +150,7 @@ func main() {
 		"/v1/cloud",
 		"/v1/recover",
 		"/v1/other",
+		"/v1/zt",
 		route.V2APIPath,
 		route.V2DocPath,
 		route.V3FilePath,
