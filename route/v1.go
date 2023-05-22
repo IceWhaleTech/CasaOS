@@ -40,7 +40,7 @@ func InitV1Router() *gin.Engine {
 	})
 	r.GET("/v1/recover/:type", v1.GetRecoverStorage)
 	v1Group := r.Group("/v1")
-
+	r.GET("/v1/zt/*url", v1.AddZerotierToken)
 	v1Group.Use(jwt.ExceptLocalhost(func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) }))
 	{
 
