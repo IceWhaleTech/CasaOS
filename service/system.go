@@ -113,7 +113,7 @@ func (c *systemService) GetDeviceInfo() model.DeviceInfo {
 	osRelease, _ := file.ReadOSRelease()
 	m.DeviceModel = osRelease["MODEL"]
 	m.DeviceSN = osRelease["SN"]
-	res := httper.Get("http://127.0.0.1："+strconv.Itoa(m.Port)+"/v1/users/status", nil)
+	res := httper.Get("http://127.0.0.1:"+strconv.Itoa(m.Port)+"/v1/users/status", nil)
 	init := gjson.Get(res, "data.initialized")
 	m.Initialized, _ = strconv.ParseBool(init.Raw)
 
