@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "declaration": true,
+        "lib": [
+            "es2017",
+            "DOM"
+        ],
+        "module": "commonjs",
+        "target": "es6",
+        "skipLibCheck": true,
+        "sourceMap": false,
+        "strict": true,
+        "useUnknownInCatchVariables": false,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "outDir": "dist",
+        "types": [
+            "node"
+        ],
+    },
+    "exclude": [
+        "node_modules"
+    ],
+    "main": "generate/index"
+}
