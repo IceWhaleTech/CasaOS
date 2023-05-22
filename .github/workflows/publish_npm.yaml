@@ -1,0 +1,38 @@
+name: publish npm
+
+on:
+  push:
+    tags:
+      - v*.*.*
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+      - name: Get version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Set version
+        run: |
+          sudo apt-get install jq
+          jq '.version="${{ steps.get_version.outputs.VERSION }}"' package.json > package.json.new
+          mv package.json.new package.json
+      - name: Generate SDK
+        run: |
+          npm cache clean --force
+          npm install @openapitools/openapi-generator-cli -g
+          make build
+      - run: npm i
+      - run: npm run start
+      - run: npm publish -W
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
