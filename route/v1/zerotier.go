@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
@@ -91,7 +92,7 @@ func CheckNetwork(c *gin.Context) {
 			return
 		}
 		name := gjson.GetBytes(res, "name").Str
-		if name == "icewhale-casaos" {
+		if name == common.RANW_NAME {
 			fmt.Println(string(res))
 			networkId = gjson.GetBytes(res, "id").Str
 			break
@@ -156,7 +157,7 @@ func JoinAndUpdateNet(address, networkId string) {
 }
 func CreateNet(address string) string {
 	body := `{
-		"name": "icewhale-casaos",
+		"name": "` + common.RANW_NAME + `",
 		"private": false,
 		"v4AssignMode": {
 		"zt": true

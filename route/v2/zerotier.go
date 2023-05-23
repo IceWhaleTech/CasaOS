@@ -6,6 +6,7 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils"
 	"github.com/IceWhaleTech/CasaOS/codegen"
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/labstack/echo/v4"
 	"github.com/tidwall/gjson"
@@ -55,7 +56,7 @@ func (s *CasaOS) GetZerotierInfo(ctx echo.Context) error {
 			return ctx.JSON(http.StatusInternalServerError, codegen.BaseResponse{Message: utils.Ptr(err.Error())})
 		}
 		name := gjson.GetBytes(res, "name").Str
-		if name == "icewhale-casaos" {
+		if name == common.RANW_NAME {
 			via := gjson.GetBytes(res, "routes.0.via").Str
 			info.Id = utils.Ptr(gjson.GetBytes(res, "id").Str)
 			info.Name = &name
