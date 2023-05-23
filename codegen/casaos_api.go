@@ -8,16 +8,24 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"fmt"
+	"net/http"
 	"net/url"
 	"path"
 	"strings"
 
+	"github.com/deepmap/oapi-codegen/pkg/runtime"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/labstack/echo/v4"
 )
 
 const (
 	Access_tokenScopes = "access_token.Scopes"
+)
+
+// Defines values for SetZerotierNetworkStatusJSONBodyStatus.
+const (
+	Offline SetZerotierNetworkStatusJSONBodyStatus = "offline"
+	Online  SetZerotierNetworkStatusJSONBodyStatus = "online"
 )
 
 // BaseResponse defines model for BaseResponse.
@@ -38,6 +46,13 @@ type HealthServices struct {
 	Running    *[]string `json:"running,omitempty"`
 }
 
+// ZTInfo defines model for ZTInfo.
+type ZTInfo struct {
+	Id     *string `json:"id,omitempty"`
+	Name   *string `json:"name,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
+
 // GetHealthPortsOK defines model for GetHealthPortsOK.
 type GetHealthPortsOK struct {
 	Data *HealthPorts `json:"data,omitempty"`
@@ -54,11 +69,25 @@ type GetHealthServicesOK struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// GetZTInfoOK defines model for GetZTInfoOK.
+type GetZTInfoOK = ZTInfo
+
 // ResponseInternalServerError defines model for ResponseInternalServerError.
 type ResponseInternalServerError = BaseResponse
 
 // ResponseOK defines model for ResponseOK.
 type ResponseOK = BaseResponse
+
+// SetZerotierNetworkStatusJSONBody defines parameters for SetZerotierNetworkStatus.
+type SetZerotierNetworkStatusJSONBody struct {
+	Status *SetZerotierNetworkStatusJSONBodyStatus `json:"status,omitempty"`
+}
+
+// SetZerotierNetworkStatusJSONBodyStatus defines parameters for SetZerotierNetworkStatus.
+type SetZerotierNetworkStatusJSONBodyStatus string
+
+// SetZerotierNetworkStatusJSONRequestBody defines body for SetZerotierNetworkStatus for application/json ContentType.
+type SetZerotierNetworkStatusJSONRequestBody SetZerotierNetworkStatusJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -74,6 +103,12 @@ type ServerInterface interface {
 	// Get service status
 	// (GET /health/services)
 	GetHealthServices(ctx echo.Context) error
+	// Get Zerotier info
+	// (GET /zt/info)
+	GetZerotierInfo(ctx echo.Context) error
+	// Set Zerotier network status
+	// (PUT /zt/{network_id}/status)
+	SetZerotierNetworkStatus(ctx echo.Context, networkId string) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -125,6 +160,35 @@ func (w *ServerInterfaceWrapper) GetHealthServices(ctx echo.Context) error {
 	return err
 }
 
+// GetZerotierInfo converts echo context to params.
+func (w *ServerInterfaceWrapper) GetZerotierInfo(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(Access_tokenScopes, []string{""})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.GetZerotierInfo(ctx)
+	return err
+}
+
+// SetZerotierNetworkStatus converts echo context to params.
+func (w *ServerInterfaceWrapper) SetZerotierNetworkStatus(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "network_id" -------------
+	var networkId string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "network_id", runtime.ParamLocationPath, ctx.Param("network_id"), &networkId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter network_id: %s", err))
+	}
+
+	ctx.Set(Access_tokenScopes, []string{""})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.SetZerotierNetworkStatus(ctx, networkId)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -157,31 +221,36 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/health/logs", wrapper.GetHealthlogs)
 	router.GET(baseURL+"/health/ports", wrapper.GetHealthPorts)
 	router.GET(baseURL+"/health/services", wrapper.GetHealthServices)
+	router.GET(baseURL+"/zt/info", wrapper.GetZerotierInfo)
+	router.PUT(baseURL+"/zt/:network_id/status", wrapper.SetZerotierNetworkStatus)
 
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/8xX3W7bRhN9lcV+30VcUKIQI0BAIBf5aRwjKGQ0LlrAMpTVckRuQu5uZ4aKVYPvXuyS",
-	"smhJEeykKXola3/OnHM8szO6ldrV3lmwTDK7lQjknSWIX86A34GquLxwyDR9H9a0swyWw5/K+8poxcbZ",
-	"9BM5G9ZIl1CruFtV06XMrm7l/xGWMpP/S7eh0u4cpa8Uwa99TNkmt9Kj84BsOga54gh2DGJAUbZte922",
-	"bSJzII3GB24yk9P3sk22cj4AroyG/7iiDcvjojahzi0DWlWFW4A/Izp8lLiHS9pnsoktuuCiiz4g90ij",
-	"v4dLcKVNerDo+L0b2e7/owYiVcSN+0D9hkDgBi3kYrEW1Okjk4MwS8ElIAhDQtm1TCTcqNpXIDMpE4mg",
-	"8qmt1jJjbCCRvPZhhxiNLTriw8Td48Xahw/DUMfvd+DPJ3dgxjIUEJ3uVxSiClRuRoUbWVWHtcvXF+FE",
-	"k38F8NnpIwF/e3MxFHCXp3sarOM5NtYGxQdDS61IORpTByH3bNrh0SbyIXijQjF8UeuH40Y5BLpBw+sP",
-	"IXc6BUprIJqz+wwxR03IjBJUDigT2fvxsuHSofkrpvM2lvLmPaw7p4xduv0UmzWTyan2RnODEL/AzAoh",
-	"RLdBrkENoobcqBcz+cQjLAFppF3lcBQzHDKRK/x8MpOCUBPwi5ksmT1laYrqy7gwXDaLhgD74htrV6fn",
-	"Gn4vVQWXoMu0coVLa2Vs2pnXf8wXylrAeYCfW1OUPH8+mfibsbfFTH4r2SoA/UC2/MXEEPNF1cBxwqYu",
-	"hKoChdeK1PRDR+rfZ9SxSXeyYGY7VuLlxbnw6FYmBxK1IQ1VpSy4hkQNXLqcxNKhyM1yCQiWBWmwCo2j",
-	"cUB561AYogbCI5WL3JBuiIyzlAhfgSIQK0OGw1smrs4Mv2sWAsE7Muxwff1k40bnxL78juaJcCg+OWPF",
-	"lWtQvDGkHebb23m3MC6K9LP98+Vi8WoBf5yMZ7FcDMfa3QqWiVwBUlckq6ehXJ0Hq7yRmTwdT8anMpFe",
-	"cRlrNF2aClIGip2lAN4vtEsgFuHYxrOxjJAYS/Y8l1kYDt6aoIk4vt6DMejpZPK1rnR3Lh20ujaRzx5z",
-	"5VDrju9RU9cK14f4B9tUQTK7km+Hy9fhXlrGdzlkJg0s2dPbPd/x1GHFX2nYTjPwiBhB1fcb99JhrVhm",
-	"cmFsYH6w7R2aYv5hv86AReWKgUud1sM++U0HPm5U16i/JTf25ugfozjoEMaKhuCBymnQug8WToDtO64g",
-	"VtyQcEsBSpfiY99rf/ooepiDRbUzI3yXfYO5/cc42AvppR41cTAvxJ8E9yeFq+v2OhwIwSjuN1jJTKar",
-	"p31/kOFAD7/r+pPL6ZvpyXbA2IkeflQcv3DvTQiBbkasijN0je/i9ed+2XtN9oRet38HAAD///s5WXsj",
-	"DgAA",
+	"H4sIAAAAAAAC/8xX72/bNhD9VwhuH5pBsbxk3ToB/dAfaxoUW4Ilw4bGhktLZ4mNRKp3pyRuoP99oCjb",
+	"sq386pqhn2xRp7v3Hnnk47WMbVFaA4ZJRtcSgUprCJqHA+C3oHLOji0yHb1zY7E1DIbdX1WWuY4Va2vC",
+	"j2SNG6M4g0I1b/P8aCajs2v5PcJMRvK7cFUq9HEUvlQEf7Y1ZR1cyxJtCcjaI0gUN8luS9GBKOu6Htd1",
+	"HcgEKEZdOmwykkfvZB2s6JwAXugYvnFGC5R3knp/emhm9oFkbqvvE8obay7oHRoGNCp3SAF/Q7T41TCs",
+	"y7iNZFFb+OLCV++A+4p63IXFqVIHbbJmlte+iDbXQAFEKm1erCdqXwgErtBAIqZzQZ4f6QSEngnOAEFo",
+	"EsrMZSDhShVlDjKSMpAIKjky+VxGjBUEkuele0OM2qQeeLdZtnBxXLofzVA0z8vkz4bLZNowpNAo3Y4o",
+	"ROWgXO2mdteowo2dvjp2EVVyQ8Kn+w9M+Nfr4y6BZW9scTCWJ1gZ4xj3lpaxImVpQD6F3JJpA0cdyPvk",
+	"200Vw6Wa3z+vY9N22hYLnazX+HFv/6enP//y7NdhX16vUTf+lSJ1dNIXS6y42mBgTa5ND+IGIkFcoeb5",
+	"iVvdHp2KYyCasD2Hpou0W7sZqARQLtDIFxVnFvXnpuFWuVWp30HLXrfc15tgVA2H+3GpY64QmgcYGSGE",
+	"8C/IVhiDKCDR6vlIPikRZoC0G9vc4m7TgxCJROH5zkgKwpiAn49kxlxSFIaoLgep5qyaVgTYbg+D2Bbh",
+	"YQx/ZyqHU4izMLepDQulTeint/2ZTJUxgBOXfmJ0mvHk2XBYXg1Kk47kl4LNXaJHRMuXuikxmeYV3A5Y",
+	"F6lQuYPgl5AH9f8j8mjCjVUwMh6VeHF8KEq0FzoBEoWmGPJcGbAViQI4swmJmUWR6NkMEAwLisEo1JYG",
+	"Lssbi0ITVeC20UQkmuKKSFtDgShzUATiQpNmt9uKswPNb6upQCgtabY4Hz9ZqOGV2KbvYe4Ii+Kj1Uac",
+	"2QrFa02xxWT1deIHBmkanptPL6bTl1P4Z2cwatpFc6eTHWEZyAtA8k1yseea2ZZgVKllJPcHw8G+DGSp",
+	"OGt6NJzpHEIGas6+FHi70U6BWLiwhWYD2aTEpmUPExk5d/FGO07EzfnSMYd7w+FN5+YyLuwcxnUgnz7k",
+	"kz5z0exHVVEonPfhd7KplGR0Jt90h8fuuzBrTg63MqkjyRZff8A0Uf2Mb7AUNmbgXWIEVaxbi5nFQrGM",
+	"5FQbh7z3YO7zWV9ZrwNgkdu0o5Ln2q9TufAItwvlrcSXrI2t28XjMHY8hDaiIrgnc+qYi97GcWlbTyD8",
+	"eSrsTICKM/GhdQM/fBBtmt6m2nAx/0m+zm3mcRRsibRU7xLxM4eLc/1G8d4DWtaAwkX2CrSIaOzRF8qz",
+	"vBc9jixrJDqqLMe3dLk2wJcWzyc6qcOVESurHplOuhXa79oZ2BbsZCXYHz70ZDFXpUJVAANSc3NdL7LI",
+	"qxMZeBfnzo+Vh1vhbebgU6URksXtYrXBbW5nYx8MxC9tMn/QNWzdBnfMqqkKJ+7SqtrZrPk3Du5jZJcj",
+	"dvoRYm6t7be2qm6Z8zvWV8enN9O87tDPxm5K/EXSL4MKcxnJ8GKv9WXSBbQFNhfJk9Oj10c7q0Wx0fV1",
+	"cNcHa2exK3S1yyo9QFuVvl4b9/vWKb61wYzrfwMAAP//9tkexLESAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

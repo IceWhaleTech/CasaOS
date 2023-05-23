@@ -151,6 +151,7 @@ func main() {
 		"/v1/recover",
 		"/v1/other",
 		"/v1/zt",
+		"/v1/test",
 		route.V2APIPath,
 		route.V2DocPath,
 		route.V3FilePath,
