@@ -25,7 +25,7 @@ jobs:
         id: get_commit_id
         run: echo "COMMIT_ID=$( git rev-parse --short "$GITHUB_SHA" )" >> $GITHUB_OUTPUT
         
-      - run: echo ${ steps.get_version.outputs.VERSION }-${ steps.get_version.outputs.COMMIT_ID }
+      - run: $(echo "${{ steps.get_version.outputs.VERSION }}-${{ steps.get_version.outputs.COMMIT_ID }}")
       - name: Set version
         run: |
           sudo apt-get install jq
