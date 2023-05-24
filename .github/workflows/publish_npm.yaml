@@ -18,6 +18,8 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
+          
+      - run: git describe --abbrev=0
       - name: Get version
         id: get_version
         run: echo "VERSION=$( git describe --abbrev=0 )" >> $GITHUB_OUTPUT
@@ -25,11 +27,11 @@ jobs:
         id: get_commit_id
         run: echo "COMMIT_ID=$( git rev-parse --short "$GITHUB_SHA" )" >> $GITHUB_OUTPUT
         
-      - run: $(echo "${{ steps.get_version.outputs.VERSION }}-${{ steps.get_version.outputs.COMMIT_ID }}")
+      - run: $(echo "${{ steps.get_version.outputs.VERSION }}-${{ steps.get_commit_id.outputs.COMMIT_ID }}")
       - name: Set version
         run: |
           sudo apt-get install jq
-          jq '.version="${{ steps.get_version.outputs.VERSION }}-${{ steps.get_version.outputs.COMMIT_ID }}"' package.json > package.json.new
+          jq '.version="${{ steps.get_version.outputs.VERSION }}-${{ steps.get_commit_id.outputs.COMMIT_ID }}"' package.json > package.json.new
           mv package.json.new package.json
       - name: Generate SDK
         run: |
