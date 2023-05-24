@@ -41,6 +41,6 @@ jobs:
           npm install @openapitools/openapi-generator-cli -g
       - run: npm i
       - run: npm run start
-      - run: npm publish
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
