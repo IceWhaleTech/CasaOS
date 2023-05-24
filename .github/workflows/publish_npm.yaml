@@ -22,7 +22,7 @@ jobs:
       - run: git describe --abbrev=0
       - name: Get version
         id: get_version
-        run: echo "VERSION=$( git describe --abbrev=0 )" >> $GITHUB_OUTPUT
+        run: echo "VERSION=$( git describe --tags `git rev-list --tags --max-count=1` )" >> $GITHUB_OUTPUT
       - name: Get commit id
         id: get_commit_id
         run: echo "COMMIT_ID=$( git rev-parse --short "$GITHUB_SHA" )" >> $GITHUB_OUTPUT
