@@ -19,7 +19,7 @@ jobs:
           node-version: 16
           registry-url: https://registry.npmjs.org/
           
-      - run: git describe --abbrev=0
+      - run:  git describe --tags `git rev-list --tags --max-count=1` 
       - name: Get version
         id: get_version
         run: echo "VERSION=$( git describe --tags `git rev-list --tags --max-count=1` )" >> $GITHUB_OUTPUT
