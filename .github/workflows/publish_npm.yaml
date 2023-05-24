@@ -21,10 +21,13 @@ jobs:
       - name: Get version
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Get commit id
+        id: get_commit_id
+        run: echo ::set-output name=COMMIT_ID::$(git rev-parse --short "$GITHUB_SHA")
       - name: Set version
         run: |
           sudo apt-get install jq
-          jq '.version="${{ steps.get_version.outputs.VERSION }}"' package.json > package.json.new
+          jq '.version="${{ steps.get_version.outputs.VERSION }}-${{ steps.get_version.outputs.COMMIT_ID }}"' package.json > package.json.new
           mv package.json.new package.json
       - name: Generate SDK
         run: |
