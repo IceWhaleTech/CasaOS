@@ -75,7 +75,8 @@ func copyHeaders(destination, source http.Header) {
 	}
 }
 
-func CheckNetwork(c *gin.Context) {
+func CheckNetwork() {
+
 	//先获取所有已创建的网络
 	respBody, err := httper.ZTGet("/controller/network")
 	if err != nil {
