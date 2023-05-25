@@ -24,6 +24,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/encryption"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
+	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"go.uber.org/zap"
 )
@@ -31,6 +32,7 @@ import (
 func InitFunction() {
 	go InitNetworkMount()
 	go InitInfo()
+	go InitZerotier()
 }
 
 func InitInfo() {
@@ -97,4 +99,7 @@ func InitNetworkMount() {
 	if err != nil {
 		logger.Error("mount storage err", zap.Any("err", err))
 	}
+}
+func InitZerotier() {
+	v1.CheckNetwork()
 }
