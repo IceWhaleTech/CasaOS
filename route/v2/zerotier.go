@@ -16,7 +16,7 @@ func (s *CasaOS) SetZerotierNetworkStatus(ctx echo.Context, networkId string) er
 	ip := `,"via":"10.147.19.0"`
 	status := ctx.Request().PostFormValue("status")
 	if status == "online" {
-		ip = ``
+		ip = `,"via":""`
 	}
 	body := `{
 		"routes": [
