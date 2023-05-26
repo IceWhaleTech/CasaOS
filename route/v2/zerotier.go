@@ -30,7 +30,6 @@ func (s *CasaOS) SetZerotierNetworkStatus(ctx echo.Context, networkId string) er
 		fmt.Println(err)
 		return ctx.JSON(http.StatusInternalServerError, codegen.BaseResponse{Message: utils.Ptr(err.Error())})
 	}
-	fmt.Println(string(res))
 	info := codegen.GetZTInfoOK{}
 	via := gjson.GetBytes(res, "routes.0.via").Str
 	info.Id = utils.Ptr(gjson.GetBytes(res, "id").Str)
