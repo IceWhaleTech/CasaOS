@@ -13,7 +13,7 @@ import (
 )
 
 func (s *CasaOS) SetZerotierNetworkStatus(ctx echo.Context, networkId string) error {
-	ip := `,"via":"10.147.20.256"`
+	ip := `,"via":"10.147.19.0"`
 	status := ctx.Request().PostFormValue("status")
 	if status == "online" {
 		ip = ``
@@ -30,11 +30,12 @@ func (s *CasaOS) SetZerotierNetworkStatus(ctx echo.Context, networkId string) er
 		fmt.Println(err)
 		return ctx.JSON(http.StatusInternalServerError, codegen.BaseResponse{Message: utils.Ptr(err.Error())})
 	}
+	fmt.Println(string(res))
 	info := codegen.GetZTInfoOK{}
 	via := gjson.GetBytes(res, "routes.0.via").Str
 	info.Id = utils.Ptr(gjson.GetBytes(res, "id").Str)
 	info.Name = utils.Ptr(gjson.GetBytes(res, "name").Str)
-	if len(via) != 0 {
+	if len(via) == 0 {
 		info.Status = utils.Ptr("online")
 	} else {
 		info.Status = utils.Ptr("offline")
