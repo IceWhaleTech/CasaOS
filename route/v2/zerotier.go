@@ -14,7 +14,9 @@ import (
 
 func (s *CasaOS) SetZerotierNetworkStatus(ctx echo.Context, networkId string) error {
 	ip := `,"via":"10.147.19.0"`
-	status := ctx.Request().PostFormValue("status")
+	m := make(map[string]string)
+	ctx.Bind(&m)
+	status := m["status"]
 	if status == "online" {
 		ip = `,"via":""`
 	}
