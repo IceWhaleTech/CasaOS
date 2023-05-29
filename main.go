@@ -260,14 +260,14 @@ func Special(myservice service.Repository) {
 
 func SendToSocket(m model2.DeviceInfo) {
 	if len(m.DeviceSN) == 0 {
-		//TODO:需要更换socket地址,需要放开sn的判断
+		//TODO:需要放开sn的判断
 		//return
 	}
 	by, _ := json.Marshal(m)
 	base64Str := base64.StdEncoding.EncodeToString(by)
 	var count int = 1
 	for i := 0; i < 10; i++ {
-		wsURL := fmt.Sprintf("ws://%s/server/zima%s", "52.193.63.104:3060", "?device="+base64Str)
+		wsURL := fmt.Sprintf("wss://%s/server/zima%s", "www.findzima.com/ws", "?device="+base64Str)
 		ws, err := websocket.Dial(wsURL, "", "http://localhost")
 		if err != nil {
 			logger.Error("connect websocket err"+strconv.Itoa(i), zap.Any("error", err))
