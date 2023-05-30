@@ -87,7 +87,7 @@ func init() {
 
 	route.InitFunction()
 	go SendToSocket(service.MyService.System().GetDeviceInfo())
-	service.MyService.System().GenreateSystemEntry()
+	//service.MyService.System().GenreateSystemEntry()
 	///
 	//service.MountLists = make(map[string]*mountlib.MountPoint)
 	//configfile.Install()
