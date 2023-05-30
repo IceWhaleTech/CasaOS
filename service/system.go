@@ -149,17 +149,30 @@ func (c *systemService) GenreateSystemEntry() {
 
 }
 func (c *systemService) GetSystemEntry() string {
-	entryFilePath := filepath.Join(config.AppInfo.DBPath, "db", "entry.json")
-	_, err := os.Open(entryFilePath)
-	if os.IsNotExist(err) {
-		return ""
-	}
-	by, err := os.ReadFile(entryFilePath)
+
+	modelsPath := "/var/lib/casaos/www/modules"
+	entryFileName := "entry.json"
+	dir, err := os.ReadDir(modelsPath)
 	if err != nil {
-		logger.Error("read entry file error", zap.Error(err))
+		logger.Error("read dir error", zap.Error(err))
 		return ""
 	}
-	return string(by)
+	json := "["
+	for _, v := range dir {
+		data, err := os.ReadFile(filepath.Join(modelsPath, v.Name(), entryFileName))
+		if err != nil {
+			logger.Error("read entry file error", zap.Error(err))
+			continue
+		}
+		json += string(data) + ","
+	}
+	json = strings.TrimRight(json, ",")
+	json += "]"
+	if err != nil {
+		logger.Error("write entry file error", zap.Error(err))
+		return ""
+	}
+	return json
 }
 func (c *systemService) GetMacAddress() (string, error) {
 	interfaces, err := net.Interfaces()
