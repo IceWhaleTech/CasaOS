@@ -170,7 +170,8 @@ func CreateNet(address string) string {
 		],
 		"routes": [
 		{
-		"target": "10.147.20.0/24"
+		"target": "10.147.20.0/24",
+		"via": "",
 		}
 		],
 		"rules": [
