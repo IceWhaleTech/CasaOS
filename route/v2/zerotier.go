@@ -62,7 +62,7 @@ func (s *CasaOS) GetZerotierInfo(ctx echo.Context) error {
 			via := gjson.GetBytes(res, "routes.0.via").Str
 			info.Id = utils.Ptr(gjson.GetBytes(res, "id").Str)
 			info.Name = &name
-			if len(via) != 0 {
+			if len(via) == 0 {
 				info.Status = utils.Ptr("online")
 			} else {
 				info.Status = utils.Ptr("offline")
