@@ -3,13 +3,18 @@ package v1
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
+	"net"
 	"net/http"
 	"strings"
+	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/gin-gonic/gin"
 	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
 )
 
 func ZerotierProxy(c *gin.Context) {
@@ -76,7 +81,6 @@ func copyHeaders(destination, source http.Header) {
 }
 
 func CheckNetwork() {
-	//先获取所有已创建的网络
 	respBody, err := httper.ZTGet("/controller/network")
 	if err != nil {
 		fmt.Println(err)
@@ -85,12 +89,14 @@ func CheckNetwork() {
 	networkId := ""
 	address := ""
 	networkNames := gjson.ParseBytes(respBody).Array()
+
 	for _, v := range networkNames {
 		res, err := httper.ZTGet("/controller/network/" + v.Str)
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
+		fmt.Println(string(res))
 		name := gjson.GetBytes(res, "name").Str
 		if name == common.RANW_NAME {
 			fmt.Println(string(res))
@@ -98,11 +104,12 @@ func CheckNetwork() {
 			break
 		}
 	}
+	ip, s, e, c := getZTIP()
 	if len(networkId) == 0 {
 		if len(address) == 0 {
 			address = GetAddress()
 		}
-		networkId = CreateNet(address)
+		networkId = CreateNet(address, s, e, c)
 	}
 	res, err := httper.ZTGet("/network")
 	if err != nil {
@@ -113,17 +120,15 @@ func CheckNetwork() {
 	networks := gjson.GetBytes(res, "#.id").Array()
 	for _, v := range networks {
 		if v.Str == networkId {
-			fmt.Println("已加入网络")
 			joined = true
 			break
 		}
 	}
 	if !joined {
-		JoinAndUpdateNet(address, networkId)
+		JoinAndUpdateNet(address, networkId, ip)
 	}
 }
 func GetAddress() string {
-	//获取nodeId
 	nodeRes, err := httper.ZTGet("/status")
 	if err != nil {
 		fmt.Println(err)
@@ -131,7 +136,7 @@ func GetAddress() string {
 	}
 	return gjson.GetBytes(nodeRes, "address").String()
 }
-func JoinAndUpdateNet(address, networkId string) {
+func JoinAndUpdateNet(address, networkId, ip string) {
 	res, err := httper.ZTPost("/network/"+networkId, "")
 	if err != nil {
 		fmt.Println(err)
@@ -145,7 +150,7 @@ func JoinAndUpdateNet(address, networkId string) {
 		"authorized": true,
 		"activeBridge": true,
 		"ipAssignments": [
-		  "10.147.20.1"
+		  "` + ip + `"
 		]
 	  }`
 	r, err := httper.ZTPost("/controller/network/"+networkId+"/member/"+address, b)
@@ -155,7 +160,7 @@ func JoinAndUpdateNet(address, networkId string) {
 	}
 	fmt.Println(string(r))
 }
-func CreateNet(address string) string {
+func CreateNet(address, s, e, c string) string {
 	body := `{
 		"name": "` + common.RANW_NAME + `",
 		"private": false,
@@ -164,13 +169,13 @@ func CreateNet(address string) string {
 		},
 		"ipAssignmentPools": [
 		{
-		"ipRangeStart": "10.147.20.1",
-		"ipRangeEnd": "10.147.20.254"
+		"ipRangeStart": "` + s + `",
+		"ipRangeEnd": "` + e + `"
 		}
 		],
 		"routes": [
 		{
-		"target": "10.147.20.0/24"
+		"target": "` + c + `"
 		}
 		],
 		"rules": [
@@ -206,4 +211,91 @@ func CreateNet(address string) string {
 		return ""
 	}
 	return gjson.GetBytes(createRes, "id").Str
+}
+
+func GetZTIPs() []gjson.Result {
+	res, err := httper.ZTGet("/network")
+	if err != nil {
+		fmt.Println(err)
+		return []gjson.Result{}
+	}
+	a := gjson.GetBytes(res, "#.routes.0.target")
+	return a.Array()
+}
+
+func getZTIP() (ip, start, end, cidr string) {
+	excluded := GetZTIPs()
+	cidrs := []string{
+		"10.147.11.0/24",
+		"10.147.12.0/24",
+		"10.147.13.0/24",
+		"10.147.14.0/24",
+		"10.147.15.0/24",
+		"10.147.16.0/24",
+		"10.147.17.0/24",
+		"10.147.18.0/24",
+		"10.147.19.0/24",
+		"10.147.20.0/24",
+		"10.240.0.0/16",
+		"10.241.0.0/16",
+		"10.242.0.0/16",
+		"10.243.0.0/16",
+		"10.244.0.0/16",
+		"10.245.0.0/16",
+		"10.246.0.0/16",
+		"10.247.0.0/16",
+		"10.248.0.0/16",
+		"10.249.0.0/16",
+		"172.21.0.0/16",
+		"172.22.0.0/16",
+		"172.23.0.0/16",
+		"172.24.0.0/16",
+		"172.25.0.0/16",
+		"172.26.0.0/16",
+		"172.27.0.0/16",
+		"172.28.0.0/16",
+		"172.29.0.0/16",
+		"172.30.0.0/16",
+	}
+	filteredCidrs := make([]string, 0)
+	for _, cidr := range cidrs {
+		isExcluded := false
+		for _, excludedIP := range excluded {
+			if cidr == excludedIP.Str {
+				isExcluded = true
+				break
+			}
+		}
+		if !isExcluded {
+			filteredCidrs = append(filteredCidrs, cidr)
+		}
+	}
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
+	ip = ""
+	if len(filteredCidrs) > 0 {
+		randomIndex := rnd.Intn(len(filteredCidrs))
+		selectedCIDR := filteredCidrs[randomIndex]
+		_, ipNet, err := net.ParseCIDR(selectedCIDR)
+		if err != nil {
+			logger.Error("ParseCIDR error", zap.Error(err))
+			return
+		}
+		cidr = selectedCIDR
+		startIP := ipNet.IP
+		endIP := make(net.IP, len(startIP))
+		copy(endIP, startIP)
+
+		for i := range startIP {
+			endIP[i] |= ^ipNet.Mask[i]
+		}
+		start = startIP.String()
+		end = endIP.String()
+		ipt := ipNet
+		ipt.IP[3] = 1
+		ip = ipt.IP.String()
+		return
+	} else {
+		logger.Error("No available CIDR found")
+	}
+	return
 }
