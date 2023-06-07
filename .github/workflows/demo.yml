@@ -75,5 +75,9 @@ jobs:
         run: | 
           aws lightsail delete-instance \
             --instance-name ${{ env.OLD_INSTANCE_NAME }}
+      - name: Demo Reset Error Handling
+        if: ${{ failure() }}
+        run: |
+          curl -X POST -H "Content-Type: application/json" -d '{"msg_type":"text","content":{"text":"Demo Reset Error"}}' ${{ secrets.SSH_ROBOT_URL }} 
             
             
