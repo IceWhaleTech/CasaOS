@@ -378,7 +378,7 @@ func GetSystemEntry(c *gin.Context) {
 	entry := service.MyService.System().GetSystemEntry()
 	str := json.RawMessage(entry)
 	if !gjson.ValidBytes(str) {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: entry, Data: "[]"})
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: entry, Data: json.RawMessage("[]")})
 		return
 	}
 	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: str})
