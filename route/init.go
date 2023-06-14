@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	file1 "github.com/IceWhaleTech/CasaOS-Common/utils/file"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -53,6 +54,12 @@ func InitInfo() {
 	}
 	mb.Hash = encryption.GetMD5ByStr(mac)
 	mb.Version = common.VERSION
+	osRelease, _ := file1.ReadOSRelease()
+
+	mb.DriveModel = osRelease["MODEL"]
+	if len(mb.DriveModel) == 0 {
+		mb.DriveModel = "Casa"
+	}
 	os.Remove(config.AppInfo.DBPath + "/baseinfo.conf")
 	by, err := json.Marshal(mb)
 	if err != nil {

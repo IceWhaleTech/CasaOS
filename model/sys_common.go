@@ -70,7 +70,8 @@ type FileSetting struct {
 	DownloadDir string   `json:"download_dir"`
 }
 type BaseInfo struct {
-	Hash    string `json:"i"`
-	Version string `json:"v"`
-	Channel string `json:"c,omitempty"`
+	Hash       string `json:"i"`
+	Version    string `json:"v"`
+	Channel    string `json:"c,omitempty"`
+	DriveModel string `json:"m,omitempty"`
 }
