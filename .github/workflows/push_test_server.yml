@@ -19,7 +19,7 @@ jobs:
       - name: git global
         run: sudo git config --global --add safe.directory '*'
       - name: set version
-        run: sudo git tag v99.99.99-alpha
+        run: sudo git tag v00.00.00-alpha
         
       - name: Fetch all tags
         run: sudo git fetch --force --tags
