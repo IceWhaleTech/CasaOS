@@ -2,7 +2,7 @@ name: Auto Publish Website
 on:
   push:
     branches:
-      - main
+      - community
 permissions:
   contents: write
 jobs:
