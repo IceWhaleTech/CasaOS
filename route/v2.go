@@ -152,6 +152,7 @@ func InitFile() http.Handler {
 		fileName := path.Base(filePath)
 		w.Header().Add("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(fileName))
 		http.ServeFile(w, r, filePath)
+		//http.ServeFile(w, r, filePath)
 	})
 }
 
