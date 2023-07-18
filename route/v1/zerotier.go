@@ -81,9 +81,10 @@ func copyHeaders(destination, source http.Header) {
 }
 
 func CheckNetwork() {
+	logger.Info("start check network")
 	respBody, err := httper.ZTGet("/controller/network")
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("get network error", zap.Error(err))
 		return
 	}
 	networkId := ""
@@ -93,18 +94,17 @@ func CheckNetwork() {
 	for _, v := range networkNames {
 		res, err := httper.ZTGet("/controller/network/" + v.Str)
 		if err != nil {
-			fmt.Println(err)
+			logger.Error("get network error", zap.Error(err))
 			return
 		}
-		fmt.Println(string(res))
 		name := gjson.GetBytes(res, "name").Str
 		if name == common.RANW_NAME {
-			fmt.Println(string(res))
 			networkId = gjson.GetBytes(res, "id").Str
 			break
 		}
 	}
 	ip, s, e, c := getZTIP()
+	logger.Info("ip", zap.Any("ip", ip))
 	if len(networkId) == 0 {
 		if len(address) == 0 {
 			address = GetAddress()
@@ -113,7 +113,7 @@ func CheckNetwork() {
 	}
 	res, err := httper.ZTGet("/network")
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("get network error", zap.Error(err))
 		return
 	}
 	joined := false
@@ -124,6 +124,7 @@ func CheckNetwork() {
 			break
 		}
 	}
+	logger.Info("joined", zap.Any("joined", joined))
 	if !joined {
 		JoinAndUpdateNet(address, networkId, ip)
 	}
@@ -131,18 +132,19 @@ func CheckNetwork() {
 func GetAddress() string {
 	nodeRes, err := httper.ZTGet("/status")
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("get status error", zap.Error(err))
 		return ""
 	}
 	return gjson.GetBytes(nodeRes, "address").String()
 }
 func JoinAndUpdateNet(address, networkId, ip string) {
-	res, err := httper.ZTPost("/network/"+networkId, "")
+	logger.Info("start join network", zap.Any("ip", ip))
+	_, err := httper.ZTPost("/network/"+networkId, "")
 	if err != nil {
-		fmt.Println(err)
+		logger.Error(" get network error", zap.Error(err))
 		return
 	}
-	fmt.Println(string(res))
+
 	if len(address) == 0 {
 		address = GetAddress()
 	}
@@ -153,12 +155,11 @@ func JoinAndUpdateNet(address, networkId, ip string) {
 		  "` + ip + `"
 		]
 	  }`
-	r, err := httper.ZTPost("/controller/network/"+networkId+"/member/"+address, b)
+	_, err = httper.ZTPost("/controller/network/"+networkId+"/member/"+address, b)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("join network error", zap.Error(err))
 		return
 	}
-	fmt.Println(string(r))
 }
 func CreateNet(address, s, e, c string) string {
 	body := `{
@@ -207,7 +208,7 @@ func CreateNet(address, s, e, c string) string {
 		}`
 	createRes, err := httper.ZTPost("/controller/network/"+address+"______", body)
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("post network error", zap.Error(err))
 		return ""
 	}
 	return gjson.GetBytes(createRes, "id").Str
@@ -216,7 +217,7 @@ func CreateNet(address, s, e, c string) string {
 func GetZTIPs() []gjson.Result {
 	res, err := httper.ZTGet("/network")
 	if err != nil {
-		fmt.Println(err)
+		logger.Error("get network error", zap.Error(err))
 		return []gjson.Result{}
 	}
 	a := gjson.GetBytes(res, "#.routes.0.target")
