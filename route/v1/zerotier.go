@@ -90,7 +90,7 @@ func CheckNetwork() {
 	networkId := ""
 	address := ""
 	networkNames := gjson.ParseBytes(respBody).Array()
-
+	routers := ""
 	for _, v := range networkNames {
 		res, err := httper.ZTGet("/controller/network/" + v.Str)
 		if err != nil {
@@ -100,10 +100,11 @@ func CheckNetwork() {
 		name := gjson.GetBytes(res, "name").Str
 		if name == common.RANW_NAME {
 			networkId = gjson.GetBytes(res, "id").Str
+			routers = gjson.GetBytes(res, "routes.0.target").Str
 			break
 		}
 	}
-	ip, s, e, c := getZTIP()
+	ip, s, e, c := getZTIP(routers)
 	logger.Info("ip", zap.Any("ip", ip))
 	if len(networkId) == 0 {
 		if len(address) == 0 {
@@ -224,7 +225,7 @@ func GetZTIPs() []gjson.Result {
 	return a.Array()
 }
 
-func getZTIP() (ip, start, end, cidr string) {
+func getZTIP(routes string) (ip, start, end, cidr string) {
 	excluded := GetZTIPs()
 	cidrs := []string{
 		"10.147.11.0/24",
@@ -259,18 +260,23 @@ func getZTIP() (ip, start, end, cidr string) {
 		"172.30.0.0/16",
 	}
 	filteredCidrs := make([]string, 0)
-	for _, cidr := range cidrs {
-		isExcluded := false
-		for _, excludedIP := range excluded {
-			if cidr == excludedIP.Str {
-				isExcluded = true
-				break
+	if len(routes) > 0 {
+		filteredCidrs = append(filteredCidrs, routes)
+	} else {
+		for _, cidr := range cidrs {
+			isExcluded := false
+			for _, excludedIP := range excluded {
+				if cidr == excludedIP.Str {
+					isExcluded = true
+					break
+				}
+			}
+			if !isExcluded {
+				filteredCidrs = append(filteredCidrs, cidr)
 			}
 		}
-		if !isExcluded {
-			filteredCidrs = append(filteredCidrs, cidr)
-		}
 	}
+
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	ip = ""
 	if len(filteredCidrs) > 0 {
