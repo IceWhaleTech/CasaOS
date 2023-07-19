@@ -295,7 +295,9 @@ func getZTIP(routes string) (ip, start, end, cidr string) {
 		for i := range startIP {
 			endIP[i] |= ^ipNet.Mask[i]
 		}
+		startIP[3] = 1
 		start = startIP.String()
+		endIP[3] = 254
 		end = endIP.String()
 		ipt := ipNet
 		ipt.IP[3] = 1
