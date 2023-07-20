@@ -7,6 +7,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/external"
 	"github.com/IceWhaleTech/CasaOS-Common/middleware"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
 
@@ -35,6 +36,9 @@ func InitV1Router() *gin.Engine {
 	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
 
 	r.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
+	r.GET("/v1/sys/version/current", func(ctx *gin.Context) {
+		ctx.String(200, common.VERSION)
+	})
 	r.GET("/ping", func(ctx *gin.Context) {
 		ctx.String(200, "pong")
 	})
