@@ -205,7 +205,10 @@ func CreateNet(address, s, e, c string) string {
 		{
 		"type": "ACTION_ACCEPT"
 		}
-		]
+		],
+		"v6AssignMode": {
+			"rfc4193": true
+		   }
 		}`
 	createRes, err := httper.ZTPost("/controller/network/"+address+"______", body)
 	if err != nil {
