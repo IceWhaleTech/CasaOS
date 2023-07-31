@@ -14,80 +14,72 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
-	"runtime"
-	"strings"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
+	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/go-ini/ini"
 )
 
-// 系统配置
-var SysInfo = &model.SysInfoModel{}
+var (
+	SysInfo = &model.SysInfoModel{}
+	AppInfo = &model.APPModel{
+		DBPath:       constants.DefaultDataPath,
+		LogPath:      constants.DefaultLogPath,
+		LogSaveName:  common.SERVICENAME,
+		LogFileExt:   "log",
+		ShellPath:    "/usr/share/casaos/shell",
+		UserDataPath: filepath.Join(constants.DefaultDataPath, "conf"),
+	}
+	CommonInfo = &model.CommonModel{
+		RuntimePath: constants.DefaultRuntimePath,
+	}
+	ServerInfo       = &model.ServerModel{}
+	SystemConfigInfo = &model.SystemConfig{}
+	FileSettingInfo  = &model.FileSetting{}
 
-// 用户相关
-var AppInfo = &model.APPModel{}
-
-var CommonInfo = &model.CommonModel{}
-
-// var RedisInfo = &model.RedisModel{}
-
-// server相关
-var ServerInfo = &model.ServerModel{}
-
-var SystemConfigInfo = &model.SystemConfig{}
-
-var FileSettingInfo = &model.FileSetting{}
-
-var Cfg *ini.File
+	Cfg            *ini.File
+	ConfigFilePath string
+)
 
 // 初始化设置，获取系统的部分信息。
-func InitSetup(config string) {
-	configDir := USERCONFIGURL
+func InitSetup(config string, sample string) {
+	ConfigFilePath = CasaOSConfigFilePath
 	if len(config) > 0 {
-		configDir = config
+		ConfigFilePath = config
 	}
-	if runtime.GOOS == "darwin" {
-		configDir = "./conf/conf.conf"
-	}
-	var err error
-	// 读取文件
-	Cfg, err = ini.Load(configDir)
-	if err != nil {
-		Cfg, err = ini.Load("/etc/casaos.conf")
+
+	// create default config file if not exist
+	if _, err := os.Stat(ConfigFilePath); os.IsNotExist(err) {
+		fmt.Println("config file not exist, create it")
+		// create config file
+		file, err := os.Create(ConfigFilePath)
 		if err != nil {
-			Cfg, err = ini.Load("/casaOS/server/conf/conf.ini")
-			if err != nil {
-				fmt.Printf("Fail to read file: %v", err)
-				os.Exit(1)
-			}
+			panic(err)
+		}
+		defer file.Close()
+
+		// write default config
+		_, err = file.WriteString(sample)
+		if err != nil {
+			panic(err)
 		}
 	}
+
+	var err error
+
+	// 读取文件
+	Cfg, err = ini.Load(ConfigFilePath)
+	if err != nil {
+		panic(err)
+	}
+
 	mapTo("app", AppInfo)
-	// mapTo("redis", RedisInfo)
 	mapTo("server", ServerInfo)
 	mapTo("system", SystemConfigInfo)
 	mapTo("file", FileSettingInfo)
 	mapTo("common", CommonInfo)
-	SystemConfigInfo.ConfigPath = configDir
-	if len(AppInfo.DBPath) == 0 {
-		AppInfo.DBPath = "/var/lib/casaos"
-	}
-	if len(AppInfo.LogPath) == 0 {
-		AppInfo.LogPath = "/var/log/casaos/"
-	}
-	if len(AppInfo.ShellPath) == 0 {
-		AppInfo.ShellPath = "/usr/share/casaos/shell"
-	}
-	if len(AppInfo.UserDataPath) == 0 {
-		AppInfo.UserDataPath = "/var/lib/casaos/conf"
-	}
-	if len(CommonInfo.RuntimePath) == 0 {
-		CommonInfo.RuntimePath = "/var/run/casaos"
-	}
-	Cfg.SaveTo(configDir)
-	//	AppInfo.ProjectPath = getCurrentDirectory() //os.Getwd()
 }
 
 // 映射
@@ -96,22 +88,4 @@ func mapTo(section string, v interface{}) {
 	if err != nil {
 		log.Fatalf("Cfg.MapTo %s err: %v", section, err)
 	}
-}
-
-// 获取当前执行文件绝对路径（go run）
-func getCurrentAbPathByCaller() string {
-	var abPath string
-	_, filename, _, ok := runtime.Caller(0)
-	if ok {
-		abPath = path.Dir(filename)
-	}
-	return abPath
-}
-
-func getCurrentDirectory() string {
-	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return strings.Replace(dir, "\\", "/", -1)
 }

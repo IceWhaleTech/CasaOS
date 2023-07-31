@@ -77,7 +77,7 @@ func init() {
 		}
 	}
 
-	config.InitSetup(configFlag)
+	config.InitSetup(configFlag, "")
 
 	if len(dbFlag) == 0 {
 		dbFlag = config.AppInfo.DBPath + "/db"

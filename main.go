@@ -48,6 +48,9 @@ var (
 	//go:embed api/casaos/openapi.yaml
 	_docYAML string
 
+	//go:embed build/sysroot/etc/casaos/casaos.conf.sample
+	_confSample string
+
 	configFlag  = flag.String("c", "", "config address")
 	dbFlag      = flag.String("db", "", "db path")
 	versionFlag = flag.Bool("v", false, "version")
@@ -63,7 +66,7 @@ func init() {
 	println("git commit:", commit)
 	println("build date:", date)
 
-	config.InitSetup(*configFlag)
+	config.InitSetup(*configFlag, _confSample)
 
 	logger.LogInit(config.AppInfo.LogPath, config.AppInfo.LogSaveName, config.AppInfo.LogFileExt)
 	if len(*dbFlag) == 0 {
