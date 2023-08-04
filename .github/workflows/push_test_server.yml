@@ -48,6 +48,12 @@ jobs:
           args: release --rm-dist --snapshot
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GoogleID: ${{ secrets.GoogleID }} 
+          GoogleSecret: ${{ secrets.GoogleSecret }}
+          DropboxKey: ${{ secrets.DropboxKey }}
+          DropboxSecret: ${{ secrets.DropboxSecret }}
+          OneDreiveID: ${{ secrets.OneDreiveID }}
+          OneDeriveSecret: ${{ secrets.OneDeriveSecret }}
           # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
        
