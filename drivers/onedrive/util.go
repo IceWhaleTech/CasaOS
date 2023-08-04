@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
-	"github.com/IceWhaleTech/IceWhale-Files/driver/base"
+	"github.com/IceWhaleTech/CasaOS/drivers/base"
 	"go.uber.org/zap"
 )
 
