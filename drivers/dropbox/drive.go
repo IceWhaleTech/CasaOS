@@ -96,5 +96,8 @@ func (d *Dropbox) Remove(ctx context.Context, obj model.Obj) error {
 func (d *Dropbox) Put(ctx context.Context, dstDir model.Obj, stream model.FileStreamer, up driver.UpdateProgress) error {
 	return nil
 }
+func (d *Dropbox) GetInfo(ctx context.Context) (string, string, string, error) {
+	return "", "", "", nil
+}
 
 var _ driver.Driver = (*Dropbox)(nil)

@@ -19,6 +19,12 @@ builds:
     ldflags:
       - -X main.commit={{.Commit}}
       - -X main.date={{.Date}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/google_drive.client_id={{.Env.GoogleID}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/google_drive.client_secret={{.Env.GoogleSecret}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/onedrive.client_id={{.Env.OneDreiveID}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/onedrive.client_secret={{.Env.OneDeriveSecret}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/dropbox.app_key={{.Env.DropboxKey}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/dropbox.app_secret={{.Env.DropboxSecret}}
       - -s
       - -w
       - -extldflags "-static"

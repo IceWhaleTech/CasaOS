@@ -10,6 +10,11 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	app_key    = "private build"
+	app_secret = "private build"
+)
+
 func (d *Dropbox) getRefreshToken() error {
 	url := "https://api.dropbox.com/oauth2/token"
 	var resp base.TokenResp
@@ -99,4 +104,13 @@ func (d *Dropbox) getFiles(path string) ([]File, error) {
 	res = append(res, resp.Files...)
 
 	return res, nil
+}
+func GetConfig() Dropbox {
+	dp := Dropbox{}
+	dp.RootFolderID = ""
+	dp.AuthUrl = "https://www.dropbox.com/oauth2/authorize?client_id=" + app_key + "&redirect_uri=https://cloudoauth.files.casaos.app&response_type=code&token_access_type=offline&state=${HOST}%2Fv2%2Frecover%2FDropbox&&force_reapprove=true&force_reauthentication=true"
+	dp.AppKey = app_key
+	dp.AppSecret = app_secret
+	dp.Icon = "./img/driver/Dropbox.svg"
+	return dp
 }

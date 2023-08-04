@@ -34,14 +34,16 @@ type Reader interface {
 	// List files in the path
 	// if identify files by path, need to set ID with path,like path.Join(dir.GetID(), obj.GetName())
 	// if identify files by id, need to set ID with corresponding id
-	List(ctx context.Context, dir model.Obj, args model.ListArgs) ([]model.Obj, error)
+	// List(ctx context.Context, dir model.Obj, args model.ListArgs) ([]model.Obj, error)
 	// Link get url/filepath/reader of file
-	Link(ctx context.Context, file model.Obj, args model.LinkArgs) (*model.Link, error)
+	// Link(ctx context.Context, file model.Obj, args model.LinkArgs) (*model.Link, error)
 }
 type User interface {
 	// GetRoot get root directory of user
 	GetUserInfo(ctx context.Context) (string, error)
+	GetInfo(ctx context.Context) (string, string, string, error)
 }
+
 type Getter interface {
 	GetRoot(ctx context.Context) (model.Obj, error)
 }
