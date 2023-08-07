@@ -46,8 +46,8 @@ jobs:
           GoogleSecret: ${{ secrets.GoogleSecret }}
           DropboxKey: ${{ secrets.DropboxKey }}
           DropboxSecret: ${{ secrets.DropboxSecret }}
-          OneDreiveID: ${{ secrets.OneDreiveID }}
-          OneDeriveSecret: ${{ secrets.OneDeriveSecret }}
+          OneDreiveID: ${{ secrets.OneDriveID }}
+          OneDeriveSecret: ${{ secrets.OneDriveSecret }}
           # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
           # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
 
