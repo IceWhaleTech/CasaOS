@@ -2,7 +2,6 @@ package dropbox
 
 import (
 	"github.com/IceWhaleTech/CasaOS/internal/driver"
-	"github.com/IceWhaleTech/CasaOS/internal/op"
 )
 
 const ICONURL = "./img/driver/Dropbox.svg"
@@ -22,11 +21,4 @@ var config = driver.Config{
 	Name:        "Dropbox",
 	OnlyProxy:   true,
 	DefaultRoot: "root",
-}
-
-func init() {
-	op.RegisterDriver(func() driver.Driver {
-		dropbox := GetConfig()
-		return &dropbox
-	})
 }

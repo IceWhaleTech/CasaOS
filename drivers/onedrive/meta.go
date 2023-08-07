@@ -2,7 +2,6 @@ package onedrive
 
 import (
 	"github.com/IceWhaleTech/CasaOS/internal/driver"
-	"github.com/IceWhaleTech/CasaOS/internal/op"
 )
 
 type Host struct {
@@ -65,11 +64,4 @@ var config = driver.Config{
 	Name:        "Onedrive",
 	LocalSort:   true,
 	DefaultRoot: "/",
-}
-
-func init() {
-	op.RegisterDriver(func() driver.Driver {
-		one := GetConfig()
-		return &one
-	})
 }

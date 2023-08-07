@@ -2,7 +2,6 @@ package google_drive
 
 import (
 	"github.com/IceWhaleTech/CasaOS/internal/driver"
-	"github.com/IceWhaleTech/CasaOS/internal/op"
 )
 
 const ICONURL = "./img/driver/GoogleDrive.svg"
@@ -24,11 +23,4 @@ var config = driver.Config{
 	Name:        "GoogleDrive",
 	OnlyProxy:   true,
 	DefaultRoot: "root",
-}
-
-func init() {
-	op.RegisterDriver(func() driver.Driver {
-		google := GetConfig()
-		return &google
-	})
 }
