@@ -12,8 +12,7 @@ import (
 )
 
 var (
-	client_id = "private build"
-
+	client_id     = "private build"
 	client_secret = "private build"
 )
 var onedriveHostMap = map[string]Host{
