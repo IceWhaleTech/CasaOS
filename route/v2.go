@@ -27,10 +27,8 @@ import (
 var (
 	_swagger *openapi3.T
 
-	V2APIPath  string
-	V2DocPath  string
-	V3FilePath string
-	V4DirPath  string
+	V2APIPath string
+	V2DocPath string
 )
 
 func init() {
@@ -48,8 +46,6 @@ func init() {
 
 	V2APIPath = strings.TrimRight(u.Path, "/")
 	V2DocPath = "/doc" + V2APIPath
-	V3FilePath = "/v3/file"
-	V4DirPath = "/v4/dir"
 }
 
 func InitV2Router() http.Handler {
@@ -73,13 +69,10 @@ func InitV2Router() http.Handler {
 	e.Use(echo_middleware.JWTWithConfig(echo_middleware.JWTConfig{
 		Skipper: func(c echo.Context) bool {
 			return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
-			// return true
+			//return true
+
 		},
 		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
-			// claims, code := jwt.Validate(token) // TODO - needs JWT validation
-			// if code != common_err.SUCCESS {
-			// 	return nil, echo.ErrUnauthorized
-			// }
 			valid, claims, err := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
 			if err != nil || !valid {
 				return nil, echo.ErrUnauthorized

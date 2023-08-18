@@ -59,6 +59,22 @@ paths:
           $ref: "#/components/responses/GetHealthPortsOK"
         "500":
           $ref: "#/components/responses/ResponseInternalServerError"
+  /health/logs:
+    get:
+      tags:
+        - Health methods
+      summary: Get log
+      operationId: getHealthlogs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "500":
+          $ref: "#/components/responses/ResponseInternalServerError"
 
   /health/logs:
     get:
@@ -89,6 +105,52 @@ paths:
           $ref: "#/components/responses/ResponseOK"
         "500":
           $ref: "#/components/responses/ResponseInternalServerError"
+  /zt/info:
+    get:
+      tags:
+        - Zerotier methods
+      summary: Get Zerotier info
+      description: |-
+        Get Zerotier info.
+      operationId: getZerotierInfo
+      responses:
+        "200":
+          $ref: "#/components/responses/GetZTInfoOK"
+        "500":
+          $ref: "#/components/responses/ResponseInternalServerError"
+  /zt/{network_id}/status:
+    put:  
+      tags:
+        - Zerotier methods
+      summary: Set Zerotier network status
+      description: |-
+        Set Zerotier network status.
+      operationId: setZerotierNetworkStatus
+      parameters:
+        - name: network_id
+          in: path
+          description: network id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  enum:
+                    - online
+                    - offline
+                  type: string
+                  example: "online"
+      responses:
+        "200":
+          $ref: "#/components/responses/GetZTInfoOK"
+        "500":
+          $ref: "#/components/responses/ResponseInternalServerError"
+
 components:
   securitySchemes:
     access_token:
@@ -132,6 +194,13 @@ components:
               - properties:
                   data:
                     $ref: "#/components/schemas/HealthPorts"
+    GetZTInfoOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ZTInfo"
+
 
   schemas:
     BaseResponse:
@@ -169,3 +238,14 @@ components:
             type: integer
             example: 53
           x-go-name: UDP
+    ZTInfo:
+      properties:
+        id:
+          type: string
+          example: "1234567890"
+        name:
+          type: string
+          example: "CasaOS"
+        status:
+          type: string
+          example: "online"

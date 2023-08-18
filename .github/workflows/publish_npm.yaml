@@ -1,0 +1,46 @@
+name: publish npm
+
+on:
+  push:
+    tags:
+      - v*.*.*
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-npm:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+          
+      - run: git tag --sort=-creatordate | head -n 1
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=$(git tag --sort=-creatordate | head -n 1)" >> $GITHUB_OUTPUT
+      - name: Get commit id
+        id: get_commit_id
+        run: echo "COMMIT_ID=$( git rev-parse --short "$GITHUB_SHA" )" >> $GITHUB_OUTPUT
+        
+      - run: echo "${{ steps.get_version.outputs.VERSION }}-${{ steps.get_commit_id.outputs.COMMIT_ID }}"
+      - name: Set version
+        run: |
+          sudo apt-get install jq
+          jq '.version="${{ steps.get_version.outputs.VERSION }}-${{ steps.get_commit_id.outputs.COMMIT_ID }}"' package.json > package.json.new
+          mv package.json.new package.json
+      - name: Generate SDK
+        run: |
+          npm cache clean --force
+          npm install @openapitools/openapi-generator-cli -g
+      - run: npm i
+      - run: npm run start
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.npm_token}}

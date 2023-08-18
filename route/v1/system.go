@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -24,6 +25,7 @@ import (
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
 )
 
 // @Summary check version
@@ -370,4 +372,14 @@ func PortCheck(c *gin.Context) {
 	p, _ := strconv.Atoi(c.Param("port"))
 	t := c.DefaultQuery("type", "tcp")
 	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: port.IsPortAvailable(p, t)})
+}
+
+func GetSystemEntry(c *gin.Context) {
+	entry := service.MyService.System().GetSystemEntry()
+	str := json.RawMessage(entry)
+	if !gjson.ValidBytes(str) {
+		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: entry, Data: json.RawMessage("[]")})
+		return
+	}
+	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: str})
 }
