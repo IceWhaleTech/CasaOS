@@ -80,6 +80,9 @@ func (d *GoogleDrive) GetUserInfo(ctx context.Context) (string, error) {
 	return user.User.EmailAddress, nil
 }
 
+func (d *GoogleDrive) GetInfo(ctx context.Context) (string, string, string, error) {
+	return "", "", "", nil
+}
 func (d *GoogleDrive) MakeDir(ctx context.Context, parentDir model.Obj, dirName string) error {
 	data := base.Json{
 		"name":     dirName,

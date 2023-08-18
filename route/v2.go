@@ -2,13 +2,17 @@ package route
 
 import (
 	"crypto/ecdsa"
+	"log"
 	"net/http"
 	"net/url"
+	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/codegen"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 
 	"github.com/IceWhaleTech/CasaOS-Common/external"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
@@ -130,6 +134,121 @@ func InitV2DocRouter(docHTML string, docYAML string) http.Handler {
 		if r.URL.Path == V2DocPath+"/openapi.yaml" {
 			if _, err := w.Write([]byte(docYAML)); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
+			}
+		}
+	})
+}
+
+func InitFile() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.URL.Query().Get("token")
+		if len(token) == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"message": "token not found"}`))
+			return
+		}
+
+		valid, _, errs := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
+		if errs != nil || !valid {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"message": "validation failure"}`))
+			return
+		}
+		filePath := r.URL.Query().Get("path")
+		fileName := path.Base(filePath)
+		w.Header().Add("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(fileName))
+		http.ServeFile(w, r, filePath)
+		//http.ServeFile(w, r, filePath)
+	})
+}
+
+func InitDir() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := r.URL.Query().Get("token")
+		if len(token) == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"message": "token not found"}`))
+			return
+		}
+
+		valid, _, errs := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
+		if errs != nil || !valid {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"message": "validation failure"}`))
+			return
+		}
+		t := r.URL.Query().Get("format")
+		files := r.URL.Query().Get("files")
+
+		if len(files) == 0 {
+			// w.JSON(common_err.CLIENT_ERROR, model.Result{
+			// 	Success: common_err.INVALID_PARAMS,
+			// 	Message: common_err.GetMsg(common_err.INVALID_PARAMS),
+			// })
+			return
+		}
+		list := strings.Split(files, ",")
+		for _, v := range list {
+			if !file.Exists(v) {
+				// c.JSON(common_err.SERVICE_ERROR, model.Result{
+				// 	Success: common_err.FILE_DOES_NOT_EXIST,
+				// 	Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
+				// })
+				return
+			}
+		}
+		w.Header().Add("Content-Type", "application/octet-stream")
+		w.Header().Add("Content-Transfer-Encoding", "binary")
+		w.Header().Add("Cache-Control", "no-cache")
+		// handles only single files not folders and multiple files
+		//		if len(list) == 1 {
+
+		// filePath := list[0]
+		//			info, err := os.Stat(filePath)
+		//			if err != nil {
+
+		// w.JSON(http.StatusOK, model.Result{
+		// 	Success: common_err.FILE_DOES_NOT_EXIST,
+		// 	Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
+		// })
+		//return
+		//			}
+		//}
+
+		extension, ar, err := file.GetCompressionAlgorithm(t)
+		if err != nil {
+			// w.JSON(common_err.CLIENT_ERROR, model.Result{
+			// 	Success: common_err.INVALID_PARAMS,
+			// 	Message: common_err.GetMsg(common_err.INVALID_PARAMS),
+			// })
+			return
+		}
+
+		err = ar.Create(w)
+		if err != nil {
+			//  c.JSON(common_err.SERVICE_ERROR, model.Result{
+			// 	Success: common_err.SERVICE_ERROR,
+			// 	Message: common_err.GetMsg(common_err.SERVICE_ERROR),
+			// 	Data:    err.Error(),
+			// })
+			return
+		}
+		defer ar.Close()
+		commonDir := file.CommonPrefix(filepath.Separator, list...)
+
+		currentPath := filepath.Base(commonDir)
+
+		name := "_" + currentPath
+		name += extension
+		w.Header().Add("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(name))
+		for _, fname := range list {
+			err = file.AddFile(ar, fname, commonDir)
+			if err != nil {
+				log.Printf("Failed to archive %s: %v", fname, err)
 			}
 		}
 	})

@@ -46,7 +46,6 @@ func (s *CasaOS) GetHealthPorts(ctx echo.Context) error {
 		},
 	})
 }
-
 func (c *CasaOS) GetHealthlogs(ctx echo.Context) error {
 	var name, currentPath, commonDir, extension string
 	var err error
