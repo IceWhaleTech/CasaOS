@@ -48,6 +48,9 @@ var (
 	//go:embed api/casaos/openapi.yaml
 	_docYAML string
 
+	//go:embed build/sysroot/etc/casaos/casaos.conf.sample
+	_confSample string
+
 	configFlag  = flag.String("c", "", "config address")
 	dbFlag      = flag.String("db", "", "db path")
 	versionFlag = flag.Bool("v", false, "version")
@@ -63,7 +66,7 @@ func init() {
 	println("git commit:", commit)
 	println("build date:", date)
 
-	config.InitSetup(*configFlag)
+	config.InitSetup(*configFlag, _confSample)
 
 	logger.LogInit(config.AppInfo.LogPath, config.AppInfo.LogSaveName, config.AppInfo.LogFileExt)
 	if len(*dbFlag) == 0 {
@@ -81,6 +84,7 @@ func init() {
 
 	route.InitFunction()
 
+	//service.MyService.System().GenreateSystemEntry()
 	///
 	//service.MountLists = make(map[string]*mountlib.MountPoint)
 	//configfile.Install()
@@ -101,20 +105,15 @@ func main() {
 	if *versionFlag {
 		return
 	}
-
 	v1Router := route.InitV1Router()
 
 	v2Router := route.InitV2Router()
 	v2DocRouter := route.InitV2DocRouter(_docHTML, _docYAML)
-	v3file := route.InitFile()
-	v4dir := route.InitDir()
 	mux := &util_http.HandlerMultiplexer{
 		HandlerMap: map[string]http.Handler{
 			"v1":  v1Router,
 			"v2":  v2Router,
 			"doc": v2DocRouter,
-			"v3":  v3file,
-			"v4":  v4dir,
 		},
 	}
 
@@ -143,9 +142,10 @@ func main() {
 		"/v1/cloud",
 		"/v1/recover",
 		"/v1/other",
+		"/v1/zt",
+		"/v1/test",
 		route.V2APIPath,
 		route.V2DocPath,
-		route.V3FilePath,
 	}
 	for _, apiPath := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{
