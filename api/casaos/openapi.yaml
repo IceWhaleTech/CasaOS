@@ -76,22 +76,6 @@ paths:
         "500":
           $ref: "#/components/responses/ResponseInternalServerError"
 
-  /health/logs:
-    get:
-      tags:
-        - Health methods
-      summary: Get log
-      operationId: getHealthlogs
-      responses:
-        "200":
-          description: OK
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-        "500":
-          $ref: "#/components/responses/ResponseInternalServerError"
   /file/test:
     get:
       tags:
