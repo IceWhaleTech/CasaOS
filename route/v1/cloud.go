@@ -6,6 +6,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/drivers/dropbox"
 	"github.com/IceWhaleTech/CasaOS/drivers/google_drive"
+	"github.com/IceWhaleTech/CasaOS/drivers/onedrive"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
@@ -50,6 +51,10 @@ func ListStorages(c *gin.Context) {
 		}
 		if dataMap["type"] == "dropbox" {
 			r.MountPoints[i].Icon = dropbox.ICONURL
+		}
+		if dataMap["type"] == "onedrive" {
+
+			r.MountPoints[i].Icon = onedrive.ICONURL
 		}
 		r.MountPoints[i].Name = dataMap["username"]
 	}

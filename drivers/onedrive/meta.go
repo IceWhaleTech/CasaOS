@@ -4,6 +4,8 @@ import (
 	"github.com/IceWhaleTech/CasaOS/internal/driver"
 )
 
+const ICONURL = "./img/driver/OneDrive.svg"
+
 type Host struct {
 	Oauth string
 	Api   string
