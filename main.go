@@ -18,7 +18,6 @@ import (
 
 	util_http "github.com/IceWhaleTech/CasaOS-Common/utils/http"
 
-	"github.com/IceWhaleTech/CasaOS/codegen/message_bus"
 	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
@@ -161,13 +160,10 @@ func main() {
 			panic(err)
 		}
 	}
-	var events []message_bus.EventType
-	events = append(events, message_bus.EventType{Name: "casaos:system:utilization", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
-	events = append(events, message_bus.EventType{Name: "casaos:file:recover", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
-	events = append(events, message_bus.EventType{Name: "casaos:file:operate", SourceID: common.SERVICENAME, PropertyTypeList: []message_bus.PropertyType{}})
+
 	// register at message bus
 	for i := 0; i < 10; i++ {
-		response, err := service.MyService.MessageBus().RegisterEventTypesWithResponse(context.Background(), events)
+		response, err := service.MyService.MessageBus().RegisterEventTypesWithResponse(context.Background(), common.EventTypes)
 		if err != nil {
 			logger.Error("error when trying to register one or more event types - some event type will not be discoverable", zap.Error(err))
 		}
