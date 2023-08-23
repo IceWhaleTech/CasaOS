@@ -109,10 +109,12 @@ func main() {
 
 	v2Router := route.InitV2Router()
 	v2DocRouter := route.InitV2DocRouter(_docHTML, _docYAML)
+	v3File := route.InitFile()
 	mux := &util_http.HandlerMultiplexer{
 		HandlerMap: map[string]http.Handler{
 			"v1":  v1Router,
 			"v2":  v2Router,
+			"v3":  v3File,
 			"doc": v2DocRouter,
 		},
 	}
@@ -146,6 +148,7 @@ func main() {
 		"/v1/test",
 		route.V2APIPath,
 		route.V2DocPath,
+		route.V3FilePath,
 	}
 	for _, apiPath := range routers {
 		err = service.MyService.Gateway().CreateRoute(&model.Route{

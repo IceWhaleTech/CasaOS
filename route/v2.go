@@ -27,8 +27,9 @@ import (
 var (
 	_swagger *openapi3.T
 
-	V2APIPath string
-	V2DocPath string
+	V2APIPath  string
+	V2DocPath  string
+	V3FilePath string
 )
 
 func init() {
@@ -46,6 +47,7 @@ func init() {
 
 	V2APIPath = strings.TrimRight(u.Path, "/")
 	V2DocPath = "/doc" + V2APIPath
+	V3FilePath = "/v3/file"
 }
 
 func InitV2Router() http.Handler {
