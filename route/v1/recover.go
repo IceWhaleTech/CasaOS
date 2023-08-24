@@ -255,7 +255,7 @@ func GetRecoverStorage(c *gin.Context) {
 			a := strings.Split(username, "@")
 			username = a[0]
 		}
-		username += "_dropbox_" + strconv.FormatInt(time.Now().Unix(), 10)
+		username += "_onedrive_" + strconv.FormatInt(time.Now().Unix(), 10)
 
 		dmap["client_id"] = onedrive.ClientID
 		dmap["client_secret"] = onedrive.ClientSecret
