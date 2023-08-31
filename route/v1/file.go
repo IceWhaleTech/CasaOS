@@ -480,6 +480,10 @@ func GetFileUpload(c *gin.Context) {
 	path := c.Query("path")
 	dirPath := ""
 	hash := file.GetHashByContent([]byte(fileName))
+	if file.Exists(path + "/" + relative) {
+		c.JSON(http.StatusConflict, model.Result{Success: http.StatusConflict, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
+		return
+	}
 	tempDir := filepath.Join(path, ".temp", hash+strconv.Itoa(totalChunks)) + "/"
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
