@@ -104,7 +104,7 @@ CasaOS fully supports ZimaBoard, Intel NUC, and Raspberry Pi. Also, more compute
 ### System Compatibility
 
 Official Support
-- Debian 11 (✅ Tested, Recommended)
+- Debian 12 (✅ Tested, Recommended)
 - Ubuntu Server 20.04 (✅ Tested)
 - Raspberry Pi OS (✅ Tested)
 
