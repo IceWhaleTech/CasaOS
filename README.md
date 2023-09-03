@@ -152,7 +152,7 @@ After looking at many systems and software on the market, the team found no serv
 
 So, we set out to build this open source project to develop CasaOS with our own hands, everyone in the community, and you.
 
-We believes that through community-driven collaborative innovation and open communication with global developers, we can reshape the digital home experience like never before.
+We believe that through community-driven collaborative innovation and open communication with global developers, we can reshape the digital home experience like never before.
 
 **A warm welcome for you to get help or share great ideas in the [Discord](https://discord.gg/knqAbbBbeX)!**
 
@@ -163,7 +163,7 @@ We believes that through community-driven collaborative innovation and open comm
 CasaOS is a community-driven open source project and the people involved are CasaOS users. That means CasaOS will always need contributions from community members just like you!
 
 - See <https://wiki.casaos.io/en/contribute> for ways of contribution to CasaOS
-- See <https://wiki.casaos.io/en/contribute/development> if you want to be involved in code contribution specificially
+- See <https://wiki.casaos.io/en/contribute/development> if you want to be involved in code contribution specifically
 
 ## Donate
 <p ><a href="https://www.buymeacoffee.com/icewhaletech"> <img align="center" src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" height="50" width="210" alt="bappi2097" target="_blank" /></a></p>
