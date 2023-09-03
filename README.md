@@ -146,11 +146,11 @@ curl -fsSL https://get.icewhale.io/casaos-uninstall.sh | sudo bash
 
 ## Community 
 
-The word Casa comes from the Spanish word for "home". Project CasaOS originated as a pre-installed system for crowdfunded product [ZimaBoard](https://www.zimaboard.com) on Kickstarter.
+The word Casa comes from the Spanish word for "home". Project CasaOS originated as a pre-installed system for the crowdfunded product [ZimaBoard](https://www.zimaboard.com) on Kickstarter.
 
 After looking at many systems and software on the market, the team found no server system designed for home scenarios, sadly true.
 
-So, we set out to build this open source project to develop CasaOS with our own hands, everyone in the community, and you.
+So, we set out to build this open-source project to develop CasaOS with our own hands, everyone in the community, and you.
 
 We believe that through community-driven collaborative innovation and open communication with global developers, we can reshape the digital home experience like never before.
 
@@ -162,7 +162,7 @@ We believe that through community-driven collaborative innovation and open commu
 
 CasaOS is a community-driven open source project and the people involved are CasaOS users. That means CasaOS will always need contributions from community members just like you!
 
-- See <https://wiki.casaos.io/en/contribute> for ways of contribution to CasaOS
+- See <https://wiki.casaos.io/en/contribute> for ways of contributing to CasaOS
 - See <https://wiki.casaos.io/en/contribute/development> if you want to be involved in code contribution specifically
 
 ## Donate
@@ -209,7 +209,7 @@ Everyone's contribution is greatly appreciated. ([Emoji Key](https://allcontribu
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome!
 
 ## Changelog
 
