@@ -83,7 +83,7 @@ Furthermore, the personal cloud could combine personal data to train personalize
 - Multiple hardware and base system support
   - ZimaBoard, NUC, RPi, old computers, whatever is available.
 - Selected apps in the app store, one-click installation
-  - Nextcloud, HomeAssiant, AdGuard, Jellyfin, *arr and more!
+  - Nextcloud, HomeAssistant, AdGuard, Jellyfin, *arr and more!
 - Easily install numerous Docker apps
   - Over 100,000 apps from the Docker ecosystem can be easily installed
 - Elegant drive and file management
