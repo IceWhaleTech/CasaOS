@@ -473,6 +473,7 @@ func GetCPUThermalZone() string {
 			break
 		}
 	}
+
 	Cache.SetDefault(keyName, path)
 	return path
 }
@@ -483,7 +484,10 @@ func (s *systemService) GetCPUTemperature() int {
 	if len(path) > 0 {
 		outPut = string(file.ReadFullFile(path + "/temp"))
 	} else {
-		outPut = "0"
+		outPut = string(file.ReadFullFile("/sys/class/hwmon/hwmon0/temp1_input"))
+		if len(outPut) == 0 {
+			outPut = "0"
+		}
 	}
 
 	celsius, _ := strconv.Atoi(strings.TrimSpace(outPut))
