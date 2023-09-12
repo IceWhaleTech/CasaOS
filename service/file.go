@@ -102,16 +102,20 @@ func FileOperate(k string) {
 					os.RemoveAll(temp.To + "/" + lastPath)
 				}
 			}
-			err := os.Rename(v.From, temp.To+"/"+lastPath)
-			if err != nil {
-				logger.Error("file move error", zap.Any("err", err))
-				err = file.MoveFile(v.From, temp.To+"/"+lastPath)
+			err := file.CopyDir(v.From, temp.To, temp.Style)
+			if err == nil {
+				err = os.RemoveAll(v.From)
 				if err != nil {
-					logger.Error("MoveFile error", zap.Any("err", err))
-					continue
-				}
+					logger.Error("file move error", zap.Any("err", err))
+					err = file.MoveFile(v.From, temp.To+"/"+lastPath)
+					if err != nil {
+						logger.Error("MoveFile error", zap.Any("err", err))
+						continue
+					}
 
+				}
 			}
+
 		} else if temp.Type == "copy" {
 			err := file.CopyDir(v.From, temp.To, temp.Style)
 			if err != nil {
