@@ -20,10 +20,11 @@ servers:
 tags:
   - name: Health methods
     description: |-
-      (TODO)
-  - name: File methods
+       These methods are used to check the health and status of the CasaOS API and associated services. 
+
+  - name: File methods 
     description: |-
-      (TODO)
+      The File methods allow you to interact with files and directories on the CasaOS system.
 
 x-tagGroups:
   - name: Methods
