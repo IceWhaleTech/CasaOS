@@ -33,7 +33,7 @@ import (
 func InitFunction() {
 	go InitNetworkMount()
 	go InitInfo()
-	go InitZerotier()
+	//go InitZerotier()
 }
 
 func InitInfo() {
