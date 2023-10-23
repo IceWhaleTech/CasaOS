@@ -581,12 +581,12 @@ func PostFileUpload(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 				return
 			}
-
-			if err := file.RMDir(tempDir); err != nil {
-				logger.Error("error when trying to remove `"+tempDir+"`", zap.Error(err))
-				c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
-				return
-			}
+			go func() {
+				time.Sleep(11 * time.Second)
+				if err := file.RMDir(tempDir); err != nil {
+					logger.Error("error when trying to remove `"+tempDir+"`", zap.Error(err))
+				}
+			}()
 		}
 	} else {
 		out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)

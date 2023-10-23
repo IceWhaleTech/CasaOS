@@ -77,6 +77,22 @@ func RMDir(src string) error {
 	return nil
 }
 
+func RemoveAll(dir string) error {
+	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			return os.Remove(path)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return os.Remove(dir)
+}
+
 // Open a file according to a specific mode
 func Open(name string, flag int, perm os.FileMode) (*os.File, error) {
 	f, err := os.OpenFile(name, flag, perm)
