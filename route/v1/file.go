@@ -582,6 +582,7 @@ func PostFileUpload(c *gin.Context) {
 				return
 			}
 			go func() {
+
 				time.Sleep(11 * time.Second)
 				if err := file.RMDir(tempDir); err != nil {
 					logger.Error("error when trying to remove `"+tempDir+"`", zap.Error(err))
