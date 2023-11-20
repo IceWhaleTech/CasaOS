@@ -7,10 +7,6 @@ on:
 
 permissions:
   contents: write
-
-
-permissions:
-  contents: write
 jobs:
   call-workflow-passing-data:
     uses: IceWhaleTech/github/.github/workflows/go_release.yml@main
