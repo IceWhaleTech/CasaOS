@@ -8,62 +8,12 @@ on:
 permissions:
   contents: write
 
+
+permissions:
+  contents: write
 jobs:
-  goreleaser:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Install dependencies for cross-compiling
-        run: |
-          sudo apt update 
-          sudo apt-get --no-install-recommends --yes install \
-            upx libc6-dev-amd64-cross \
-            gcc-aarch64-linux-gnu libc6-dev-arm64-cross \
-            gcc-arm-linux-gnueabihf libc6-dev-armhf-cross
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Fetch all tags
-        run: git fetch --force --tags
-
-      - name: Get version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.20"
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4
-        with:
-          # either 'goreleaser' (default) or 'goreleaser-pro'
-          distribution: goreleaser
-          version: latest
-          args: release --rm-dist
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GoogleID: ${{ secrets.GoogleID }} 
-          GoogleSecret: ${{ secrets.GoogleSecret }}
-          DropboxKey: ${{ secrets.DropboxKey }}
-          DropboxSecret: ${{ secrets.DropboxSecret }}
-          OneDriveID: ${{ secrets.OneDriveID }}
-          OneDriveSecret: ${{ secrets.OneDriveSecret }}
-          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
-          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
-
-      - name: Upload to oss
-        id: upload_to_oss
-        uses: tvrcgo/upload-to-oss@master
-        with:
-          key-id: ${{ secrets.OSS_KEY_ID }}
-          key-secret: ${{ secrets.OSS_KEY_SECRET }}
-          region: oss-cn-shanghai
-          bucket: casaos
-          assets: |
-            dist/checksums.txt:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/checksums.txt
-            dist/linux-arm-7-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-arm-7-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz
-            dist/linux-arm64-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-arm64-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz
-            dist/linux-amd64-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-amd64-casaos-${{ steps.get_version.outputs.VERSION }}.tar.gz
-            dist/linux-arm-7-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-arm-7-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz
-            dist/linux-arm64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-arm64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz
-            dist/linux-amd64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz:/IceWhaleTech/CasaOS/releases/download/${{ steps.get_version.outputs.VERSION }}/linux-amd64-casaos-migration-tool-${{ steps.get_version.outputs.VERSION }}.tar.gz
+  call-workflow-passing-data:
+    uses: IceWhaleTech/github/.github/workflows/go_release.yml@main
+    with:
+      project-name: CasaOS
+      file-name: casaos

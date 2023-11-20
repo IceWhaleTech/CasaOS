@@ -38,9 +38,9 @@ builds:
       - amd64
   - id: casaos-arm64
     binary: build/sysroot/usr/bin/casaos
-    hooks:
-      post:
-        - upx --best --lzma -v --no-progress "{{ .Path }}"
+    # hooks:
+    #   post:
+    #     - upx --best --lzma -v --no-progress "{{ .Path }}"
     env:
       - CC=aarch64-linux-gnu-gcc
     ldflags:
