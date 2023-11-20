@@ -13,3 +13,6 @@ jobs:
     with:
       project-name: CasaOS
       file-name: casaos
+    secrets:
+      OSS_KEY_ID: ${{ secrets.OSS_KEY_ID }}
+      OSS_KEY_SECRET: ${{ secrets.OSS_KEY_SECRET }}
