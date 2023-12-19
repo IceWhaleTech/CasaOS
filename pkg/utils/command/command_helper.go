@@ -138,7 +138,7 @@ func ExecuteScripts(scriptDirectory string) {
 		scanner.Scan()
 		shebang := scanner.Text()
 
-		interpreter := "/bin/sh"
+		interpreter := "/bin/bash"
 		if strings.HasPrefix(shebang, "#!") {
 			interpreter = shebang[2:]
 		}
