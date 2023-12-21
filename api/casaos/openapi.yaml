@@ -90,6 +90,107 @@ paths:
           $ref: "#/components/responses/ResponseOK"
         "500":
           $ref: "#/components/responses/ResponseInternalServerError"
+  
+  /file/upload:
+    get:
+      tags:
+        - File
+      summary: Check upload chunk
+      parameters:
+        - name: path
+          in: query
+          description: File path
+          required: true
+          example: "/DATA/test.log"
+          schema:
+            type: string
+        - name: relativePath
+          in: query
+          description: File path
+          required: true
+          example: "/DATA/test.log"
+          schema:
+            type: string
+        - name: filename
+          in: query
+          description: File name
+          required: true
+          example: "test.log"
+          schema:
+            type: string
+        - name: chunkNumber
+          in: query
+          description: chunk number
+          required: true
+          example: 1
+          schema:
+            type: string
+        - name: totalChunks
+          in: query
+          description: total chunks
+          example: 2
+          required: true
+          schema:
+            type: integer
+      description: Check if the file block has been uploaded (needs to be modified later)
+      operationId: checkUploadChunk
+      responses:
+        "200":
+          $ref: "#/components/responses/ResponseStringOK"
+        "400":
+          $ref: "#/components/responses/ResponseClientError"
+        "500":
+          $ref: "#/components/responses/ResponseInternalServerError"
+    post:
+      tags:
+        - File
+      summary: Upload file
+      description: Upload file
+      operationId: postUploadFile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                relativePath:
+                  type: string
+                  example: "/DATA/test.log"
+                filename:
+                  type: string
+                  example: "/DATA/test2.log"
+                totalChunks:
+                  type: string
+                  example: "2"
+                chunkNumber:
+                  type: string
+                  example: "20"
+                path:
+                  type: string
+                  example: "/DATA"
+                file:
+                  type: string
+                  format: binary
+                chunkSize:
+                  type: string
+                  example: "1024"
+                currentChunkSize:
+                  type: string
+                  example: "1024"
+                totalSize:
+                  type: string
+                  example: "1024"
+                identifier:
+                  type: string
+                  example: "test.log"
+      responses:
+        "200":
+          $ref: "#/components/responses/ResponseStringOK"
+        "400":
+          $ref: "#/components/responses/ResponseClientError"
+        "500":
+          $ref: "#/components/responses/ResponseInternalServerError"
+  
   /zt/info:
     get:
       tags:
@@ -151,6 +252,20 @@ components:
           schema:
             $ref: "#/components/schemas/BaseResponse"
 
+    ResponseStringOK:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessResponseString"
+
+    ResponseClientError:
+      description: Client Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BaseResponse"
+
     ResponseInternalServerError:
       description: Internal Server Error
       content:
@@ -195,6 +310,14 @@ components:
           description: message returned by server side if there is any
           type: string
           example: ""
+          
+    SuccessResponseString:
+      allOf:
+        - $ref: "#/components/schemas/BaseResponse"
+        - properties:
+            data:
+              type: string
+              description: When the interface returns success, this field is the specific success information
 
     HealthServices:
       properties:
