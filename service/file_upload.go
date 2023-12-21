@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
 	"sync"
 
@@ -61,7 +60,7 @@ func (s *FileUploadService) TestChunk(c echo.Context) error {
 }
 
 func (s *FileUploadService) UploadFile(c echo.Context) error {
-	path := filepath.Join(c.FormValue("path"), c.FormValue("relativePath"))
+	path := c.FormValue("path")
 
 	// handle the request
 	chunkNumber, err := strconv.ParseInt(c.FormValue("chunkNumber"), 10, 64)
