@@ -2,6 +2,7 @@ package v2
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS/codegen"
 	"github.com/labstack/echo/v4"
@@ -18,9 +19,66 @@ func (s *CasaOS) GetFileTest(ctx echo.Context) error {
 }
 
 func (c *CasaOS) CheckUploadChunk(ctx echo.Context, params codegen.CheckUploadChunkParams) error {
-	return c.fileUploadService.TestChunk(ctx)
+	identifier := ctx.QueryParam("identifier")
+	chunkNumber, err := strconv.ParseInt(ctx.QueryParam("chunkNumber"), 10, 64)
+	if err != nil {
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+
+	err = c.fileUploadService.TestChunk(ctx, identifier, chunkNumber)
+	if err != nil {
+		return ctx.NoContent(http.StatusNoContent)
+	}
+	return ctx.NoContent(http.StatusOK)
 }
 
 func (c *CasaOS) PostUploadFile(ctx echo.Context) error {
-	return c.fileUploadService.UploadFile(ctx)
+	path := ctx.FormValue("path")
+
+	// handle the request
+	chunkNumber, err := strconv.ParseInt(ctx.FormValue("chunkNumber"), 10, 64)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+	chunkSize, err := strconv.ParseInt(ctx.FormValue("chunkSize"), 10, 64)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+	currentChunkSize, err := strconv.ParseInt(ctx.FormValue("currentChunkSize"), 10, 64)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+	totalChunks, err := strconv.ParseInt(ctx.FormValue("totalChunks"), 10, 64)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+	totalSize, err := strconv.ParseInt(ctx.FormValue("totalSize"), 10, 64)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+
+	identifier := ctx.FormValue("identifier")
+	fileName := ctx.FormValue("filename")
+	bin, err := ctx.FormFile("file")
+
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+
+	err = c.fileUploadService.UploadFile(
+		ctx,
+		path,
+		chunkNumber,
+		chunkSize,
+		currentChunkSize,
+		totalChunks,
+		totalSize,
+		identifier,
+		fileName,
+		bin,
+	)
+	if err != nil {
+		return ctx.JSON(http.StatusInternalServerError, err)
+	}
+	return ctx.NoContent(http.StatusOK)
 }
