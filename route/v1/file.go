@@ -29,7 +29,7 @@ import (
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 
 	"github.com/gin-gonic/gin"
-	uuid "github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/h2non/filetype"
@@ -715,7 +715,7 @@ func PostOperateFileOrDir(c *gin.Context) {
 	list.TotalSize = total
 	list.ProcessedSize = 0
 
-	uid := uuid.NewV4().String()
+	uid := uuid.NewString()
 	service.FileQueue.Store(uid, list)
 	service.OpStrArr = append(service.OpStrArr, uid)
 	if len(service.OpStrArr) == 1 {
@@ -923,7 +923,7 @@ func ConnectWebSocket(c *gin.Context) {
 	peerId := c.Query("peer")
 	writer := c.Writer
 	request := c.Request
-	key := uuid.NewV4().String()
+	key := uuid.NewString()
 	//peerModel := service.MyService.Peer().GetPeerByUserAgent(c.Request.UserAgent())
 	peerModel := model2.PeerDriveDBModel{}
 	name := service.GetName(request)
