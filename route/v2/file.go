@@ -59,6 +59,7 @@ func (c *CasaOS) PostUploadFile(ctx echo.Context) error {
 
 	identifier := ctx.FormValue("identifier")
 	fileName := ctx.FormValue("filename")
+	relativePath := ctx.FormValue("relativePath")
 	bin, err := ctx.FormFile("file")
 
 	if err != nil {
@@ -74,6 +75,7 @@ func (c *CasaOS) PostUploadFile(ctx echo.Context) error {
 		totalChunks,
 		totalSize,
 		identifier,
+		relativePath,
 		fileName,
 		bin,
 	)
