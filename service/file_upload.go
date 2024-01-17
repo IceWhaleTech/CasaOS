@@ -5,6 +5,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -63,6 +64,7 @@ func (s *FileUploadService) UploadFile(
 	totalChunks int64,
 	totalSize int64,
 	identifier string,
+	relativePath string,
 	fileName string,
 	bin *multipart.FileHeader,
 ) error {
@@ -70,7 +72,15 @@ func (s *FileUploadService) UploadFile(
 	fileInfoTemp, ok := s.uploadStatus.Load(identifier)
 	var fileInfo *FileInfo
 
-	file, err := os.OpenFile(path+"/"+fileName+".tmp", os.O_WRONLY|os.O_CREATE, 0644)
+	if relativePath != fileName {
+		// uploaded file is folder
+		folderPath := filepath.Dir(path + "/" + relativePath)
+		if _, err := os.Stat(folderPath); os.IsNotExist(err) {
+			os.MkdirAll(folderPath, os.ModePerm)
+		}
+	}
+
+	file, err := os.OpenFile(path+"/"+relativePath+".tmp", os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		s.lock.Unlock()
 		return err
