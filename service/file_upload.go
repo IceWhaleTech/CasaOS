@@ -8,7 +8,9 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 )
 
 type FileInfo struct {
@@ -76,7 +78,11 @@ func (s *FileUploadService) UploadFile(
 		// uploaded file is folder
 		folderPath := filepath.Dir(path + "/" + relativePath)
 		if _, err := os.Stat(folderPath); os.IsNotExist(err) {
-			os.MkdirAll(folderPath, os.ModePerm)
+			err := os.MkdirAll(folderPath, os.ModePerm)
+			if err != nil {
+				s.lock.Unlock()
+				return err
+			}
 		}
 	}
 
@@ -124,8 +130,7 @@ func (s *FileUploadService) UploadFile(
 	}
 	defer src.Close()
 
-	buf := make([]byte, int(currentChunkSize))
-	_, err = io.CopyBuffer(file, src, buf)
+	_, err = io.Copy(file, src)
 
 	if err != nil {
 		fmt.Println(err)
@@ -142,9 +147,17 @@ func (s *FileUploadService) UploadFile(
 
 	// handle file after write all chunk
 	if fileInfo.uploadedChunkNum == totalChunks {
-		file.Close()
-		os.Rename(path+"/"+fileName+".tmp", path+"/"+fileName)
+		err := file.Close()
+		if err != nil {
+			s.lock.Unlock()
+			logger.Error("close file error: ", zap.Error(err))
+		}
 
+		err = os.Rename(path+"/"+relativePath+".tmp", path+"/"+relativePath)
+		if err != nil {
+			s.lock.Unlock()
+			logger.Error("rename file error: ", zap.Error(err))
+		}
 		// remove upload status info after upload complete
 		s.uploadStatus.Delete(identifier)
 	}
