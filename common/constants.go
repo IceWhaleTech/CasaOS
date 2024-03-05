@@ -2,7 +2,7 @@ package common
 
 const (
 	SERVICENAME = "casaos"
-	VERSION     = "0.4.6"
+	VERSION     = "0.4.7"
 	BODY        = " "
 	RANW_NAME   = "IceWhale-RemoteAccess"
 )
