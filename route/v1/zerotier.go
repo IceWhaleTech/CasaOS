@@ -12,19 +12,18 @@ import (
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 )
 
-func ZerotierProxy(c *gin.Context) {
+func ZerotierProxy(ctx echo.Context) error {
 	// Read the port number from the file
-	w := c.Writer
-	r := c.Request
+	w := ctx.Response().Writer
+	r := ctx.Request()
 	port, err := ioutil.ReadFile("/var/lib/zerotier-one/zerotier-one.port")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 
 	// Get the request path and remove "/zt"
@@ -38,14 +37,12 @@ func ZerotierProxy(c *gin.Context) {
 	req, err := http.NewRequest(r.Method, targetURL, r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 
 	// Add the X-ZT1-AUTH header
 	authToken, err := ioutil.ReadFile("/var/lib/zerotier-one/authtoken.secret")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 	req.Header.Set("X-ZT1-AUTH", strings.TrimSpace(string(authToken)))
 
@@ -55,7 +52,6 @@ func ZerotierProxy(c *gin.Context) {
 	resp, err := client.Do(req)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 	defer resp.Body.Close()
 
@@ -64,12 +60,13 @@ func ZerotierProxy(c *gin.Context) {
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 
 	// Return the response to the client
 	w.WriteHeader(resp.StatusCode)
 	w.Write(respBody)
+	// TODO
+	return nil
 }
 
 func copyHeaders(destination, source http.Header) {
@@ -130,6 +127,7 @@ func CheckNetwork() {
 		JoinAndUpdateNet(address, networkId, ip)
 	}
 }
+
 func GetAddress() string {
 	nodeRes, err := httper.ZTGet("/status")
 	if err != nil {
@@ -138,6 +136,7 @@ func GetAddress() string {
 	}
 	return gjson.GetBytes(nodeRes, "address").String()
 }
+
 func JoinAndUpdateNet(address, networkId, ip string) {
 	logger.Info("start join network", zap.Any("ip", ip))
 	_, err := httper.ZTPost("/network/"+networkId, "")
@@ -162,6 +161,7 @@ func JoinAndUpdateNet(address, networkId, ip string) {
 		return
 	}
 }
+
 func CreateNet(address, s, e, c string) string {
 	body := `{
 		"name": "` + common.RANW_NAME + `",

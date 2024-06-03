@@ -6,10 +6,10 @@ import (
 	"github.com/IceWhaleTech/CasaOS/drivers/google_drive"
 	"github.com/IceWhaleTech/CasaOS/drivers/onedrive"
 	"github.com/IceWhaleTech/CasaOS/model"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func ListDriverInfo(c *gin.Context) {
+func ListDriverInfo(ctx echo.Context) error {
 	list := []model.Drive{}
 
 	google := google_drive.GetConfig()
@@ -30,5 +30,5 @@ func ListDriverInfo(c *gin.Context) {
 		Icon:    od.Icon,
 		AuthUrl: od.AuthUrl,
 	})
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})
 }

@@ -2,50 +2,68 @@ package route
 
 import (
 	"crypto/ecdsa"
-	"os"
+	"net/http"
+	"strconv"
 
 	"github.com/IceWhaleTech/CasaOS-Common/external"
-	"github.com/IceWhaleTech/CasaOS-Common/middleware"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/jwt"
 	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	v1 "github.com/IceWhaleTech/CasaOS/route/v1"
-
-	"github.com/gin-contrib/gzip"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	echo_middleware "github.com/labstack/echo/v4/middleware"
 )
 
-func InitV1Router() *gin.Engine {
-	ginMode := gin.ReleaseMode
-	if config.ServerInfo.RunMode != "" {
-		ginMode = config.ServerInfo.RunMode
-	}
-	if os.Getenv(gin.EnvGinMode) != "" {
-		ginMode = os.Getenv(gin.EnvGinMode)
-	}
-	gin.SetMode(ginMode)
+func InitV1Router() http.Handler {
+	e := echo.New()
 
-	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(middleware.Cors())
-	r.Use(gzip.Gzip(gzip.DefaultCompression))
-	if ginMode != gin.ReleaseMode {
-		r.Use(middleware.WriteLog())
-	}
+	e.Use((echo_middleware.CORSWithConfig(echo_middleware.CORSConfig{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{echo.POST, echo.GET, echo.OPTIONS, echo.PUT, echo.DELETE},
+		AllowHeaders:     []string{echo.HeaderAuthorization, echo.HeaderContentLength, echo.HeaderXCSRFToken, echo.HeaderContentType, echo.HeaderAccessControlAllowOrigin, echo.HeaderAccessControlAllowHeaders, echo.HeaderAccessControlAllowMethods, echo.HeaderConnection, echo.HeaderOrigin, echo.HeaderXRequestedWith},
+		ExposeHeaders:    []string{echo.HeaderContentLength, echo.HeaderAccessControlAllowOrigin, echo.HeaderAccessControlAllowHeaders},
+		MaxAge:           172800,
+		AllowCredentials: true,
+	})))
+	e.Use(echo_middleware.Gzip())
+	e.Use(echo_middleware.Recover())
+	e.Use(echo_middleware.Logger())
 
-	r.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
+	e.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
 
-	r.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
-	r.GET("/v1/sys/version/current", func(ctx *gin.Context) {
-		ctx.String(200, common.VERSION)
+	e.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
+	e.GET("/v1/sys/version/current", func(ctx echo.Context) error {
+		return ctx.String(200, common.VERSION)
 	})
-	r.GET("/ping", func(ctx *gin.Context) {
-		ctx.String(200, "pong")
+	e.GET("/ping", func(ctx echo.Context) error {
+		return ctx.String(200, "pong")
 	})
-	r.GET("/v1/recover/:type", v1.GetRecoverStorage)
-	v1Group := r.Group("/v1")
-	//	r.Any("/v1/test", v1.CheckNetwork)
-	v1Group.Use(jwt.ExceptLocalhost(func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) }))
+	e.GET("/v1/recover/:type", v1.GetRecoverStorage)
+	v1Group := e.Group("/v1")
+	//	e.Any("/v1/test", v1.CheckNetwork)
+	v1Group.Use(echo_middleware.JWTWithConfig(echo_middleware.JWTConfig{
+		Skipper: func(c echo.Context) bool {
+			return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
+		},
+		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
+			valid, claims, err := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
+			if err != nil || !valid {
+				return nil, echo.ErrUnauthorized
+			}
+
+			c.Request().Header.Set("user_id", strconv.Itoa(claims.ID))
+
+			return claims, nil
+		},
+		TokenLookupFuncs: []echo_middleware.ValuesExtractor{
+			func(ctx echo.Context) ([]string, error) {
+				if len(ctx.Request().Header.Get(echo.HeaderAuthorization)) > 0 {
+					return []string{ctx.Request().Header.Get(echo.HeaderAuthorization)}, nil
+				}
+				return []string{ctx.QueryParam("token")}, nil
+			},
+		},
+	}))
 	{
 
 		v1SysGroup := v1Group.Group("/sys")
@@ -98,7 +116,7 @@ func InitV1Router() *gin.Engine {
 			v1FileGroup.GET("/content", v1.GetFilerContent) // file/read
 
 			// File uploads need to be handled separately, and will not be modified here
-			//v1FileGroup.POST("/upload", v1.PostFileUpload)
+			// v1FileGroup.POST("/upload", v1.PostFileUpload)
 			v1FileGroup.POST("/upload", v1.PostFileUpload)
 			v1FileGroup.GET("/upload", v1.GetFileUpload)
 			// v1FileGroup.GET("/download", v1.UserFileDownloadCommonService)
@@ -171,7 +189,6 @@ func InitV1Router() *gin.Engine {
 		v1OtherGroup.Use()
 		{
 			v1OtherGroup.GET("/search", v1.GetSearchResult)
-
 		}
 		v1ZerotierGroup := v1Group.Group("/zt")
 		v1ZerotierGroup.Use()
@@ -180,5 +197,5 @@ func InitV1Router() *gin.Engine {
 		}
 	}
 
-	return r
+	return e
 }
