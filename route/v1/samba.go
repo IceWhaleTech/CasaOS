@@ -20,6 +20,7 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 
 	"github.com/IceWhaleTech/CasaOS/model"
@@ -28,18 +29,16 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
-	"github.com/gin-gonic/gin"
 )
 
 // service
 
-func GetSambaStatus(c *gin.Context) {
+func GetSambaStatus(ctx echo.Context) error {
 	if status, err := systemctl.IsServiceRunning("smbd"); err != nil || !status {
-		c.JSON(http.StatusInternalServerError, model.Result{
+		return ctx.JSON(http.StatusInternalServerError, model.Result{
 			Success: common_err.SERVICE_NOT_RUNNING,
 			Message: common_err.GetMsg(common_err.SERVICE_NOT_RUNNING),
 		})
-		return
 	}
 
 	needInit := true
@@ -51,10 +50,10 @@ func GetSambaStatus(c *gin.Context) {
 	}
 	data := make(map[string]string, 1)
 	data["need_init"] = fmt.Sprintf("%v", needInit)
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
-func GetSambaSharesList(c *gin.Context) {
+func GetSambaSharesList(ctx echo.Context) error {
 	shares := service.MyService.Shares().GetSharesList()
 	shareList := []model.Shares{}
 	for _, v := range shares {
@@ -64,28 +63,24 @@ func GetSambaSharesList(c *gin.Context) {
 			ID:        v.ID,
 		})
 	}
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: shareList})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: shareList})
 }
 
-func PostSambaSharesCreate(c *gin.Context) {
+func PostSambaSharesCreate(ctx echo.Context) error {
 	shares := []model.Shares{}
-	c.ShouldBindJSON(&shares)
+	ctx.Bind(&shares)
 	for _, v := range shares {
 		if v.Path == "" {
-			c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INSUFFICIENT_PERMISSIONS, Message: common_err.GetMsg(common_err.INSUFFICIENT_PERMISSIONS)})
-			return
+			return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INSUFFICIENT_PERMISSIONS, Message: common_err.GetMsg(common_err.INSUFFICIENT_PERMISSIONS)})
 		}
 		if !file.Exists(v.Path) {
-			c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DIR_NOT_EXISTS, Message: common_err.GetMsg(common_err.DIR_NOT_EXISTS)})
-			return
+			return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.DIR_NOT_EXISTS, Message: common_err.GetMsg(common_err.DIR_NOT_EXISTS)})
 		}
 		if len(service.MyService.Shares().GetSharesByPath(v.Path)) > 0 {
-			c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.SHARE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.SHARE_ALREADY_EXISTS)})
-			return
+			return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.SHARE_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.SHARE_ALREADY_EXISTS)})
 		}
 		if len(service.MyService.Shares().GetSharesByPath(filepath.Base(v.Path))) > 0 {
-			c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.SHARE_NAME_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.SHARE_NAME_ALREADY_EXISTS)})
-			return
+			return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.SHARE_NAME_ALREADY_EXISTS, Message: common_err.GetMsg(common_err.SHARE_NAME_ALREADY_EXISTS)})
 		}
 	}
 	for _, v := range shares {
@@ -97,21 +92,20 @@ func PostSambaSharesCreate(c *gin.Context) {
 		service.MyService.Shares().CreateShare(shareDBModel)
 	}
 
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: shares})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: shares})
 }
 
-func DeleteSambaShares(c *gin.Context) {
-	id := c.Param("id")
+func DeleteSambaShares(ctx echo.Context) error {
+	id := ctx.Param("id")
 	if id == "" {
-		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INSUFFICIENT_PERMISSIONS, Message: common_err.GetMsg(common_err.INSUFFICIENT_PERMISSIONS)})
-		return
+		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INSUFFICIENT_PERMISSIONS, Message: common_err.GetMsg(common_err.INSUFFICIENT_PERMISSIONS)})
 	}
 	service.MyService.Shares().DeleteShare(id)
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: id})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: id})
 }
 
 // client
-func GetSambaConnectionsList(c *gin.Context) {
+func GetSambaConnectionsList(ctx echo.Context) error {
 	connections := service.MyService.Connections().GetConnectionsList()
 	connectionList := []model.Connections{}
 	for _, v := range connections {
@@ -123,34 +117,33 @@ func GetSambaConnectionsList(c *gin.Context) {
 			MountPoint: v.MountPoint,
 		})
 	}
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: connectionList})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: connectionList})
 }
 
-func PostSambaConnectionsCreate(c *gin.Context) {
+func PostSambaConnectionsCreate(ctx echo.Context) error {
 	connection := model.Connections{}
-	c.ShouldBindJSON(&connection)
+	ctx.Bind(&connection)
 	if connection.Port == "" {
 		connection.Port = "445"
 	}
 	if connection.Username == "" || connection.Host == "" {
-		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CHARACTER_LIMIT, Message: common_err.GetMsg(common_err.CHARACTER_LIMIT)})
-		return
+		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CHARACTER_LIMIT, Message: common_err.GetMsg(common_err.CHARACTER_LIMIT)})
 	}
 
 	// if ok, _ := regexp.MatchString(`^[\w@#*.]{4,30}$`, connection.Password); !ok {
-	// 	c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CHARACTER_LIMIT, Message: common_err.GetMsg(common_err.CHARACTER_LIMIT)})
+	// 	return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CHARACTER_LIMIT, Message: common_err.GetMsg(common_err.CHARACTER_LIMIT)})
 	// 	return
 	// }
 	// if ok, _ := regexp.MatchString(`^[\w@#*.]{4,30}$`, connection.Username); !ok {
-	// 	c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+	// 	return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	// 	return
 	// }
 	// if !ip_helper.IsIPv4(connection.Host) && !ip_helper.IsIPv6(connection.Host) {
-	// 	c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+	// 	return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	// 	return
 	// }
 	// if ok, _ := regexp.MatchString("^[0-9]{1,6}$", connection.Port); !ok {
-	// 	c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+	// 	return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	// 	return
 	// }
 
@@ -158,14 +151,12 @@ func PostSambaConnectionsCreate(c *gin.Context) {
 	// check is exists
 	connections := service.MyService.Connections().GetConnectionByHost(connection.Host)
 	if len(connections) > 0 {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.Record_ALREADY_EXIST, Message: common_err.GetMsg(common_err.Record_ALREADY_EXIST), Data: common_err.GetMsg(common_err.Record_ALREADY_EXIST)})
-		return
+		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.Record_ALREADY_EXIST, Message: common_err.GetMsg(common_err.Record_ALREADY_EXIST), Data: common_err.GetMsg(common_err.Record_ALREADY_EXIST)})
 	}
 	// check connect is ok
 	directories, err := samba.GetSambaSharesList(connection.Host, connection.Port, connection.Username, connection.Password)
 	if err != nil {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-		return
+		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 	}
 
 	connectionDBModel := model2.ConnectionsDBModel{}
@@ -187,21 +178,19 @@ func PostSambaConnectionsCreate(c *gin.Context) {
 	service.MyService.Connections().CreateConnection(&connectionDBModel)
 
 	connection.ID = connectionDBModel.ID
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: connection})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: connection})
 }
 
-func DeleteSambaConnections(c *gin.Context) {
-	id := c.Param("id")
+func DeleteSambaConnections(ctx echo.Context) error {
+	id := ctx.Param("id")
 	connection := service.MyService.Connections().GetConnectionByID(id)
 	if connection.Username == "" {
-		c.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.Record_NOT_EXIST, Message: common_err.GetMsg(common_err.Record_NOT_EXIST)})
-		return
+		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.Record_NOT_EXIST, Message: common_err.GetMsg(common_err.Record_NOT_EXIST)})
 	}
 	mountPointList, err := samba.GetSambaSharesList(connection.Host, connection.Port, connection.Username, connection.Password)
-	//mountPointList, err := service.MyService.System().GetDirPath(connection.MountPoint)
+	// mountPointList, err := service.MyService.System().GetDirPath(connection.MountPoint)
 	if err != nil {
-		c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-		return
+		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 	}
 	baseHostPath := "/mnt/" + connection.Host
 	for _, v := range mountPointList {
@@ -209,16 +198,14 @@ func DeleteSambaConnections(c *gin.Context) {
 			err := service.MyService.Connections().UnmountSmaba(baseHostPath + "/" + v)
 			if err != nil {
 				logger.Error("unmount smaba error", zap.Error(err), zap.Any("path", baseHostPath+"/"+v))
-				c.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-				return
+				return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
 			}
 		}
-
 	}
 	dir, _ := ioutil.ReadDir(connection.MountPoint)
 	if len(dir) == 0 {
 		os.RemoveAll(connection.MountPoint)
 	}
 	service.MyService.Connections().DeleteConnection(id)
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: id})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: id})
 }

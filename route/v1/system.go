@@ -19,12 +19,13 @@ import (
 	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/IceWhaleTech/CasaOS/types"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tidwall/gjson"
 )
 
@@ -35,7 +36,7 @@ import (
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/version/check [get]
-func GetSystemCheckVersion(c *gin.Context) {
+func GetSystemCheckVersion(ctx echo.Context) error {
 	need, version := version.IsNeedUpdate(service.MyService.Casa().GetCasaosVersion())
 	if need {
 		installLog := model2.AppNotify{}
@@ -51,7 +52,7 @@ func GetSystemCheckVersion(c *gin.Context) {
 	data["need_update"] = need
 	data["version"] = version
 	data["current_version"] = common.VERSION
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary 系统信息
@@ -61,12 +62,12 @@ func GetSystemCheckVersion(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/update [post]
-func SystemUpdate(c *gin.Context) {
+func SystemUpdate(ctx echo.Context) error {
 	need, version := version.IsNeedUpdate(service.MyService.Casa().GetCasaosVersion())
 	if need {
 		service.MyService.System().UpdateSystemVersion(version.Version)
 	}
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS)})
 }
 
 // @Summary  get logs
@@ -76,13 +77,13 @@ func SystemUpdate(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/error/logs [get]
-func GetCasaOSErrorLogs(c *gin.Context) {
-	line, _ := strconv.Atoi(c.DefaultQuery("line", "100"))
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: service.MyService.System().GetCasaOSLogs(line)})
+func GetCasaOSErrorLogs(ctx echo.Context) error {
+	line, _ := strconv.Atoi(utils.DefaultQuery(ctx, "line", "100"))
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: service.MyService.System().GetCasaOSLogs(line)})
 }
 
 // 系统配置
-func GetSystemConfigDebug(c *gin.Context) {
+func GetSystemConfigDebug(ctx echo.Context) error {
 	array := service.MyService.System().GetSystemConfigDebug()
 	disk := service.MyService.System().GetDiskInfo()
 	sys := service.MyService.System().GetSysInfo()
@@ -100,7 +101,7 @@ func GetSystemConfigDebug(c *gin.Context) {
 
 	//	array = append(array, fmt.Sprintf("disk,total:%v,used:%v,UsedPercent:%v", disk.Total>>20, disk.Used>>20, disk.UsedPercent))
 
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: bugContent})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: bugContent})
 }
 
 // @Summary get casaos server port
@@ -110,8 +111,8 @@ func GetSystemConfigDebug(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/port [get]
-func GetCasaOSPort(c *gin.Context) {
-	c.JSON(common_err.SUCCESS,
+func GetCasaOSPort(ctx echo.Context) error {
+	return ctx.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
@@ -127,31 +128,29 @@ func GetCasaOSPort(c *gin.Context) {
 // @Param port json string true "port"
 // @Success 200 {string} string "ok"
 // @Router /sys/port [put]
-func PutCasaOSPort(c *gin.Context) {
+func PutCasaOSPort(ctx echo.Context) error {
 	json := make(map[string]string)
-	c.ShouldBind(&json)
+	ctx.Bind(&json)
 	portStr := json["port"]
 	portNumber, err := strconv.Atoi(portStr)
 	if err != nil {
-		c.JSON(common_err.SERVICE_ERROR,
+		return ctx.JSON(common_err.SERVICE_ERROR,
 			model.Result{
 				Success: common_err.SERVICE_ERROR,
 				Message: err.Error(),
 			})
-		return
 	}
 
 	isAvailable := port.IsPortAvailable(portNumber, "tcp")
 	if !isAvailable {
-		c.JSON(common_err.SERVICE_ERROR,
+		return ctx.JSON(common_err.SERVICE_ERROR,
 			model.Result{
 				Success: common_err.PORT_IS_OCCUPIED,
 				Message: common_err.GetMsg(common_err.PORT_IS_OCCUPIED),
 			})
-		return
 	}
 	service.MyService.System().UpSystemPort(strconv.Itoa(portNumber))
-	c.JSON(common_err.SUCCESS,
+	return ctx.JSON(common_err.SUCCESS,
 		model.Result{
 			Success: common_err.SUCCESS,
 			Message: common_err.GetMsg(common_err.SUCCESS),
@@ -165,8 +164,9 @@ func PutCasaOSPort(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/restart [post]
-func PostKillCasaOS(c *gin.Context) {
+func PostKillCasaOS(ctx echo.Context) error {
 	os.Exit(0)
+	return nil
 }
 
 // @Summary get system hardware info
@@ -176,20 +176,20 @@ func PostKillCasaOS(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/hardware/info [get]
-func GetSystemHardwareInfo(c *gin.Context) {
+func GetSystemHardwareInfo(ctx echo.Context) error {
 	data := make(map[string]string, 1)
 	data["drive_model"] = service.MyService.System().GetDeviceTree()
 	data["arch"] = runtime.GOARCH
 
 	if cpu := service.MyService.System().GetCpuInfo(); len(cpu) > 0 {
-
-		c.JSON(common_err.SUCCESS,
+		return ctx.JSON(common_err.SUCCESS,
 			model.Result{
 				Success: common_err.SUCCESS,
 				Message: common_err.GetMsg(common_err.SUCCESS),
 				Data:    data,
 			})
 	}
+	return nil
 }
 
 // @Summary system utilization
@@ -199,7 +199,7 @@ func GetSystemHardwareInfo(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/utilization [get]
-func GetSystemUtilization(c *gin.Context) {
+func GetSystemUtilization(ctx echo.Context) error {
 	data := make(map[string]interface{})
 	cpu := service.MyService.System().GetCpuPercent()
 	num := service.MyService.System().GetCpuCoreNum()
@@ -243,7 +243,7 @@ func GetSystemUtilization(c *gin.Context) {
 		data[key.(string)] = value
 		return true
 	})
-	c.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary get cpu info
@@ -253,13 +253,13 @@ func GetSystemUtilization(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/cpu [get]
-func GetSystemCupInfo(c *gin.Context) {
+func GetSystemCupInfo(ctx echo.Context) error {
 	cpu := service.MyService.System().GetCpuPercent()
 	num := service.MyService.System().GetCpuCoreNum()
 	data := make(map[string]interface{})
 	data["percent"] = cpu
 	data["num"] = num
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
+	return ctx.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: data})
 }
 
 // @Summary get mem info
@@ -269,9 +269,9 @@ func GetSystemCupInfo(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/mem [get]
-func GetSystemMemInfo(c *gin.Context) {
+func GetSystemMemInfo(ctx echo.Context) error {
 	mem := service.MyService.System().GetMemInfo()
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: mem})
+	return ctx.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: mem})
 }
 
 // @Summary get disk info
@@ -281,9 +281,9 @@ func GetSystemMemInfo(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/disk [get]
-func GetSystemDiskInfo(c *gin.Context) {
+func GetSystemDiskInfo(ctx echo.Context) error {
 	disk := service.MyService.System().GetDiskInfo()
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: disk})
+	return ctx.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: disk})
 }
 
 // @Summary get Net info
@@ -293,7 +293,7 @@ func GetSystemDiskInfo(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /sys/net [get]
-func GetSystemNetInfo(c *gin.Context) {
+func GetSystemNetInfo(ctx echo.Context) error {
 	netList := service.MyService.System().GetNetInfo()
 	newNet := []model.IOCountersStat{}
 	for _, n := range netList {
@@ -308,35 +308,36 @@ func GetSystemNetInfo(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: newNet})
+	return ctx.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: newNet})
 }
 
-func GetSystemProxy(c *gin.Context) {
-	url := c.Query("url")
+func GetSystemProxy(ctx echo.Context) error {
+	url := ctx.QueryParam("url")
 	resp, err := http2.Get(url, 30*time.Second)
 	if err != nil {
-		return
+		return ctx.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 	}
 	defer resp.Body.Close()
-	for k, v := range c.Request.Header {
-		c.Header(k, v[0])
+	for k, v := range ctx.Request().Header {
+		ctx.Request().Header.Add(k, v[0])
 	}
 	rda, _ := ioutil.ReadAll(resp.Body)
 	//	json.NewEncoder(c.Writer).Encode(json.RawMessage(string(rda)))
 	// 响应状态码
-	c.Writer.WriteHeader(resp.StatusCode)
+	ctx.Response().Writer.WriteHeader(resp.StatusCode)
 	// 复制转发的响应Body到响应Body
-	io.Copy(c.Writer, ioutil.NopCloser(bytes.NewBuffer(rda)))
+	io.Copy(ctx.Response().Writer, ioutil.NopCloser(bytes.NewBuffer(rda)))
+	return nil
 }
 
-func PutSystemState(c *gin.Context) {
-	state := c.Param("state")
+func PutSystemState(ctx echo.Context) error {
+	state := ctx.Param("state")
 	if strings.ToLower(state) == "off" {
 		service.MyService.System().SystemShutdown()
 	} else if strings.ToLower(state) == "restart" {
 		service.MyService.System().SystemReboot()
 	}
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: "The operation will be completed shortly."})
+	return ctx.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: "The operation will be completed shortly."})
 }
 
 // @Summary 获取一个可用端口
@@ -347,8 +348,8 @@ func PutSystemState(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /app/getport [get]
-func GetPort(c *gin.Context) {
-	t := c.DefaultQuery("type", "tcp")
+func GetPort(ctx echo.Context) error {
+	t := utils.DefaultQuery(ctx, "type", "tcp")
 	var p int
 	ok := true
 	for ok {
@@ -356,7 +357,7 @@ func GetPort(c *gin.Context) {
 		ok = !port.IsPortAvailable(p, t)
 	}
 	// @tiger 这里最好封装成 {'port': ...} 的形式，来体现出参的上下文
-	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: p})
+	return ctx.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: p})
 }
 
 // @Summary 检查端口是否可用
@@ -368,18 +369,17 @@ func GetPort(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Success 200 {string} string "ok"
 // @Router /app/check/{port} [get]
-func PortCheck(c *gin.Context) {
-	p, _ := strconv.Atoi(c.Param("port"))
-	t := c.DefaultQuery("type", "tcp")
-	c.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: port.IsPortAvailable(p, t)})
+func PortCheck(ctx echo.Context) error {
+	p, _ := strconv.Atoi(ctx.Param("port"))
+	t := utils.DefaultQuery(ctx, "type", "tcp")
+	return ctx.JSON(common_err.SUCCESS, &model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: port.IsPortAvailable(p, t)})
 }
 
-func GetSystemEntry(c *gin.Context) {
+func GetSystemEntry(ctx echo.Context) error {
 	entry := service.MyService.System().GetSystemEntry()
 	str := json.RawMessage(entry)
 	if !gjson.ValidBytes(str) {
-		c.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: entry, Data: json.RawMessage("[]")})
-		return
+		return ctx.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: entry, Data: json.RawMessage("[]")})
 	}
-	c.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: str})
+	return ctx.JSON(http.StatusOK, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: str})
 }
