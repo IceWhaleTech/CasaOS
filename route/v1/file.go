@@ -281,9 +281,8 @@ func GetDownloadSingleFile(ctx echo.Context) error {
 // @Router /file/dirpath [get]
 func DirPath(ctx echo.Context) error {
 	var req ListReq
-	if err := ctx.Bind(&req); err != nil {
-		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: err.Error()})
-	}
+	path := ctx.QueryParam("path")
+	req.Path = path
 	req.Validate()
 	info, err := service.MyService.System().GetDirPath(req.Path)
 	if err != nil {
