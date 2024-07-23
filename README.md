@@ -49,7 +49,7 @@
     <br/>
     <!-- CasaOS YouTube -->
     <a href="https://www.youtube.com/channel/UC2zMrUYT17AJhIl9XWZzT8g" target="_blank">
-        <img alt="YouTube Tutoial Views" src="https://img.shields.io/youtube/channel/views/UC2zMrUYT17AJhIl9XWZzT8g?style=for-the-badge&logo=youtube&logoColor=red&label=YouTube%20Tutoial%20Views" />
+        <img alt="YouTube Tutorial Views" src="https://img.shields.io/youtube/channel/views/UC2zMrUYT17AJhIl9XWZzT8g?style=for-the-badge&logo=youtube&logoColor=red&label=YouTube%20Tutorial%20Views" />
     </a>
     <br/>
     <!-- CasaOS Links -->
