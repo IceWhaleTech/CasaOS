@@ -4,22 +4,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	net2 "net"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/command"
+	exec2 "github.com/IceWhaleTech/CasaOS-Common/utils/exec"
+
 	"github.com/IceWhaleTech/CasaOS-Common/utils/file"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/common"
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
-	command2 "github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/httper"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/ip_helper"
@@ -119,6 +120,7 @@ func (c *systemService) GetDeviceInfo() model.DeviceInfo {
 
 	return m
 }
+
 func (c *systemService) GenreateSystemEntry() {
 	modelsPath := "/var/lib/casaos/www/modules"
 	entryFileName := "entry.json"
@@ -141,15 +143,14 @@ func (c *systemService) GenreateSystemEntry() {
 	}
 	json = strings.TrimRight(json, ",")
 	json += "]"
-	err = os.WriteFile(entryFilePath, []byte(json), 0666)
+	err = os.WriteFile(entryFilePath, []byte(json), 0o666)
 	if err != nil {
 		logger.Error("write entry file error", zap.Error(err))
 		return
 	}
-
 }
-func (c *systemService) GetSystemEntry() string {
 
+func (c *systemService) GetSystemEntry() string {
 	modelsPath := "/var/lib/casaos/www/modules"
 	entryFileName := "entry.json"
 	dir, err := os.ReadDir(modelsPath)
@@ -174,6 +175,7 @@ func (c *systemService) GetSystemEntry() string {
 	}
 	return json
 }
+
 func (c *systemService) GetMacAddress() (string, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {
@@ -235,7 +237,11 @@ func (c *systemService) CreateFile(path string) (int, error) {
 }
 
 func (c *systemService) GetDeviceTree() string {
-	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDeviceTree")
+	if output, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;GetDeviceTree"); err != nil {
+		return ""
+	} else {
+		return output
+	}
 }
 
 func (c *systemService) GetSysInfo() host.InfoStat {
@@ -255,7 +261,11 @@ func (c *systemService) GetDiskInfo() *disk.UsageStat {
 }
 
 func (c *systemService) GetNetState(name string) string {
-	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;CatNetCardState " + name)
+	if output, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;CatNetCardState " + name); err != nil {
+		return ""
+	} else {
+		return output
+	}
 }
 
 func (c *systemService) GetDirPathOne(path string) (m model.Path) {
@@ -352,7 +362,12 @@ func (c *systemService) GetNet(physics bool) []string {
 	if physics {
 		t = "2"
 	}
-	return command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetNetCard " + t)
+
+	if output, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;GetNetCard " + t); err != nil {
+		return []string{}
+	} else {
+		return strings.Split(output, "\n")
+	}
 }
 
 func (s *systemService) UpdateSystemVersion(version string) {
@@ -364,10 +379,10 @@ func (s *systemService) UpdateSystemVersion(version string) {
 	file.CreateFile(config.AppInfo.LogPath + "/upgrade.log")
 	// go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/update.sh | bash")
 	if len(config.ServerInfo.UpdateUrl) > 0 {
-		go command2.OnlyExec("curl -fsSL " + config.ServerInfo.UpdateUrl + " | bash")
+		go command.OnlyExec("curl -fsSL " + config.ServerInfo.UpdateUrl + " | bash")
 	} else {
 		osRelease, _ := file.ReadOSRelease()
-		go command2.OnlyExec("curl -fsSL https://get.casaos.io/update?t=" + osRelease["MANUFACTURER"] + " | bash")
+		go command.OnlyExec("curl -fsSL https://get.casaos.io/update?t=" + osRelease["MANUFACTURER"] + " | bash")
 	}
 
 	// s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
@@ -375,15 +390,23 @@ func (s *systemService) UpdateSystemVersion(version string) {
 }
 
 func (s *systemService) UpdateAssist() {
-	command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/assist.sh")
+	command.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/assist.sh")
 }
 
 func (s *systemService) GetTimeZone() string {
-	return command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;GetTimeZone")
+	if output, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;GetTimeZone"); err != nil {
+		return ""
+	} else {
+		return output
+	}
 }
 
 func (s *systemService) GetSystemConfigDebug() []string {
-	return command2.ExecResultStrArray("source " + config.AppInfo.ShellPath + "/helper.sh ;GetSysInfo")
+	if output, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;GetSysInfo"); err != nil {
+		return []string{}
+	} else {
+		return strings.Split(output, "\n")
+	}
 }
 
 func (s *systemService) UpAppOrderFile(str, id string) {
@@ -411,7 +434,7 @@ func (s *systemService) GetCasaOSLogs(lineNumber int) string {
 		return err.Error()
 	}
 	defer file.Close()
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		return err.Error()
 	}
@@ -510,9 +533,8 @@ func (s *systemService) GetCPUPower() map[string]string {
 }
 
 func (s *systemService) SystemReboot() error {
-	// cmd := exec.Command("/bin/bash", "-c", "reboot")
 	arg := []string{"6"}
-	cmd := exec.Command("init", arg...)
+	cmd := exec2.Command("init", arg...)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
@@ -522,7 +544,7 @@ func (s *systemService) SystemReboot() error {
 
 func (s *systemService) SystemShutdown() error {
 	arg := []string{"0"}
-	cmd := exec.Command("init", arg...)
+	cmd := exec2.Command("init", arg...)
 	_, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
