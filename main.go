@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Common/model"
+	"github.com/IceWhaleTech/CasaOS-Common/utils/command"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/constants"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 
@@ -22,7 +23,6 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/cache"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/sqlite"
-	"github.com/IceWhaleTech/CasaOS/pkg/utils/command"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/route"
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -154,7 +154,6 @@ func main() {
 			Path:   apiPath,
 			Target: "http://" + listener.Addr().String(),
 		})
-
 		if err != nil {
 			fmt.Println("err", err)
 			panic(err)
