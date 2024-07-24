@@ -2,8 +2,6 @@ module github.com/IceWhaleTech/CasaOS
 
 go 1.21
 
-toolchain go1.22.3
-
 require (
 	github.com/Curtis-Milo/nat-type-identifier-go v0.0.0-20220215191915-18d42168c63d
 	github.com/IceWhaleTech/CasaOS-Common v0.4.9-alpha6
