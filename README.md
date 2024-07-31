@@ -134,6 +134,30 @@ or
 curl -fsSL https://get.casaos.io | sudo bash
 ```
 
+### Update CasaOS
+
+CasaOS can be updated from the User Interface (UI), via `Settings ... Update`.  
+
+Alternatively it can be updated from a terminal session.  To update from a terminal session, it must be done either from a secure shell (ssh) session to the device or from a directly attached terminal and keyboard to the device running CasaOS, this cannot be done from the terminal via the CasaOS User Interface (UI).  To update to the latest release of CasaOS from a terminal session run this command:
+
+```sh
+wget -qO- https://get.casaos.io/update | sudo bash
+```
+
+or
+
+```sh
+curl -fsSL https://get.casaos.io/update | sudo bash
+```
+
+To determine version of CasaOS from a terminal session run this command:
+
+```sh
+casaos -v
+```
+
+
+
 ### Uninstall CasaOS
 
 
