@@ -1,0 +1,19 @@
+name: Sync OpenAPI
+
+on:
+  workflow_call:
+    inputs:
+      project-name:
+        required: true
+        type: string
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    uses: IceWhaleTech/github/.github/workflows/sync_openapi.yml@main
+    with:
+      project-name: casaos
+    secrets:
+      API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
