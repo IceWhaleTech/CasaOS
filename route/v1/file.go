@@ -257,7 +257,6 @@ func GetDownloadSingleFile(ctx echo.Context) error {
 		ctx.Request().Header.Add("Content-Length", strconv.FormatInt(node.Size(), 10))
 	}
 	http.ServeContent(ctx.Response().Writer, ctx.Request(), fileName, node.ModTime(), fi)
-	// http.ServeFile(c.Writer, ctx.Request(), filePath)
 	defer fi.Close()
 	fileTmp, err := os.Open(filePath)
 	if err != nil {
@@ -268,7 +267,7 @@ func GetDownloadSingleFile(ctx echo.Context) error {
 	}
 	defer fileTmp.Close()
 
-	return ctx.File(filePath)
+	return nil
 }
 
 // @Summary 获取目录列表
