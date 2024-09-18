@@ -179,7 +179,7 @@ func CreateFileAndWriteContent(path string, content string) error {
 	return nil
 }
 
-// IsNotExistMkDir create a directory if it does not exist
+// IsNotExistCreateFile create a file if it does not exist
 func IsNotExistCreateFile(src string) error {
 	if notExist := CheckNotExist(src); notExist {
 		if err := CreateFile(src); err != nil {
