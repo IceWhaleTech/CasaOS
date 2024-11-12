@@ -1,4 +1,5 @@
 # CasaOS - Your Personal Cloud 
+## By Mudassir Alam
 <!-- Readme i18n links -->
 <!-- > English | [中文](#) | [Français](#) -->
 
