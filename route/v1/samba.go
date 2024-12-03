@@ -60,6 +60,7 @@ func GetSambaSharesList(ctx echo.Context) error {
 		shareList = append(shareList, model.Shares{
 			Anonymous: v.Anonymous,
 			Path:      v.Path,
+			Valid_users:	v.Valid_users,
 			ID:        v.ID,
 		})
 	}
