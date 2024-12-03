@@ -17,15 +17,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"os/exec"
-	"strings"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/command"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -60,37 +60,39 @@ func GetSambaSharesList(ctx echo.Context) error {
 	shareList := []model.Shares{}
 	for _, v := range shares {
 		shareList = append(shareList, model.Shares{
-			Anonymous: v.Anonymous,
-			Path:      v.Path,
-			Valid_users:	v.Valid_users,
-			ID:        v.ID,
+			Anonymous:   v.Anonymous,
+			Path:        v.Path,
+			Valid_users: v.Valid_users,
+			ID:          v.ID,
 		})
 	}
 	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: shareList})
 }
 
 func ListSambaUsers(ctx echo.Context) error {
-	out, err := exec.Command("pdbedit -L").Output()
+	out, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;ListSambaUsers ")
 
 	if err != nil {
-        return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
-    }
+		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
+	}
 
-	users := strings.Split("\n")
+	users := strings.Split(out, "\n")
 
 	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: users})
 }
 
 func AddSambaUser(ctx echo.Context) error {
-	users := []mode.SMBUsers{}
+	users := []model.SMBUsers{}
 	ctx.Bind(&users)
+	out, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;ListSambaUsers ")
+
+	if err != nil {
+		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
+	}
 
 	for _, v := range users {
-		out, err := exec.Command("echo " + v.Password + " | smbpasswd -s -a " + v.User).Output()
-
-		if (err != null) {
-			if (v.User == "" || v.Password == "") return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR)})
-			else return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
+		if !strings.Contains(out, v.Name) {
+			command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;EditSmabaUserPasswordSTDIN " + v.Name + " " + v.Password)
 		}
 	}
 
