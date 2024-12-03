@@ -17,6 +17,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"os/exec"
+	"strings"
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
@@ -65,6 +67,18 @@ func GetSambaSharesList(ctx echo.Context) error {
 		})
 	}
 	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: shareList})
+}
+
+func ListSambaUsers(ctx echo.Context) error {
+	out, err := exec.Command("pdbedit -L").Output()
+
+	if err != nil {
+        return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.Failed, Message: common_err.GetMsg(common_err.Failed)})
+    }
+
+	users := strings.Split("\n")
+
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: users})
 }
 
 func PostSambaSharesCreate(ctx echo.Context) error {
