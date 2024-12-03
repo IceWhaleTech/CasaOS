@@ -1,12 +1,12 @@
 /*
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-26 11:08:48
- * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-17 18:25:42
+ * @LastEditors: Drew Fitzgerald/Sheep26
+ * @LastEditTime: 2024-12-03
  * @FilePath: /CasaOS/route/v1/samba.go
  * @Description:
  * @Website: https://www.casaos.io
- * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ * Copyright (c) 2024 by icewhale, All Rights Reserved.
  */
 package v1
 
@@ -73,10 +73,26 @@ func ListSambaUsers(ctx echo.Context) error {
 	out, err := exec.Command("pdbedit -L").Output()
 
 	if err != nil {
-        return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.Failed, Message: common_err.GetMsg(common_err.Failed)})
+        return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
     }
 
 	users := strings.Split("\n")
+
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: users})
+}
+
+func AddSambaUser(ctx echo.Context) error {
+	users := []mode.SMBUsers{}
+	ctx.Bind(&users)
+
+	for _, v := range users {
+		out, err := exec.Command("echo " + v.Password + " | smbpasswd -a -s " + v.User).Output()
+
+		if (err != null) {
+			if (v.User == "" || v.Password == "") return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR)})
+			else return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
+		}
+	}
 
 	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: users})
 }

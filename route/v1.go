@@ -179,7 +179,8 @@ func InitV1Router() http.Handler {
 			v1SharesGroup := v1SambaGroup.Group("/users")
 			v1SharesGroup.Use()
 			{
-				v1SharesGroup.GET("", v1.ListSambaUsers)
+				v1SharesGroup.GET("/list", v1.ListSambaUsers)
+				v1SharesGroup.POST("/add", v1.AddSambaUser)
 			}
 		}
 		v1NotifyGroup := v1Group.Group("/notify")
