@@ -92,7 +92,7 @@ func AddSambaUser(ctx echo.Context) error {
 
 	for _, v := range users {
 		if !strings.Contains(out, v.Name) {
-			command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;EditSmabaUserPasswordSTDIN " + v.Name + " " + v.Password)
+			command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;AddSmabaUser " + v.Name + " " + v.Password)
 		}
 	}
 
