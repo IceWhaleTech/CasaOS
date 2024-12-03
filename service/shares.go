@@ -79,16 +79,20 @@ func (s *sharesStruct) UpdateConfigFile() {
 		configStr += `
 [` + dirName + `]
 comment = CasaOS share ` + dirName + `
-public = Yes
+public = ` + if (share.Anonymous){`Yes`} else {`No`} + `
 path = ` + share.Path + `
 browseable = Yes
 read only = No
-guest ok = Yes
+guest ok = ` + if (share.Anonymous){`Yes`} else {`No`} + `
 create mask = 0777
 directory mask = 0777
-force user = root
+` + if (share.Anonymous){`force user = root`} else {`#force user = root`} +
+	if (!share.Anonymous) {`valid users` + 
+		for _, user := range share.Valid_users {
+			user
+		}
+	}
 
-`
 	}
 	// write config file
 	file.WriteToPath([]byte(configStr), "/etc/samba", "smb.casa.conf")

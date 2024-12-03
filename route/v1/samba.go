@@ -85,8 +85,9 @@ func PostSambaSharesCreate(ctx echo.Context) error {
 	}
 	for _, v := range shares {
 		shareDBModel := model2.SharesDBModel{}
-		shareDBModel.Anonymous = true
+		shareDBModel.Anonymous = v.Anonymous
 		shareDBModel.Path = v.Path
+		shareDBModel.Valid_users = v.Valid_users
 		shareDBModel.Name = filepath.Base(v.Path)
 		os.Chmod(v.Path, 0o777)
 		service.MyService.Shares().CreateShare(shareDBModel)
