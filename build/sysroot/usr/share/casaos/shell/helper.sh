@@ -341,6 +341,19 @@ EditSmabaUserPassword(){
   $sudo_cmd smbpasswd $1
 }
 
+EditSmabaUserPassword(){
+  $sudo_cmd smbpasswd $1
+}
+
+
+EditSambaUserPasswordSTDIN(){
+  $sudo_cmd smbpasswd -s $2 $1
+}
+
+ListSambaUsers(){
+  $sudo_cmd pdbedit -L
+}
+
 AddSmabaUser(){
   $sudo_cmd useradd $1
   $sudo_cmd smbpasswd -a $1 <<EOF
