@@ -86,7 +86,7 @@ func AddSambaUser(ctx echo.Context) error {
 	ctx.Bind(&users)
 
 	for _, v := range users {
-		out, err := exec.Command("echo " + v.Password + " | smbpasswd -a -s " + v.User).Output()
+		out, err := exec.Command("echo " + v.Password + " | smbpasswd -s -a " + v.User).Output()
 
 		if (err != null) {
 			if (v.User == "" || v.Password == "") return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR)})
