@@ -24,7 +24,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 		google_drive := google_drive.GetConfig()
 		google_drive.Code = ctx.QueryParam("code")
 		if len(google_drive.Code) == 0 {
-			ctx.String(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Code cannot be empty"
 			logger.Error("Then code is empty: ", zap.String("code", google_drive.Code), zap.Any("name", "google_drive"))
@@ -33,7 +33,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 
 		err := google_drive.Init(ctx.Request().Context())
 		if err != nil {
-			ctx.String(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Initialization failure"
 			logger.Error("Then init error: ", zap.Error(err), zap.Any("name", "google_drive"))
@@ -43,7 +43,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 
 		username, err := google_drive.GetUserInfo(ctx.Request().Context())
 		if err != nil {
-			ctx.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get user information"
 			logger.Error("Then get user info error: ", zap.Error(err), zap.Any("name", "google_drive"))
@@ -53,7 +53,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 		dmap["username"] = username
 		configs, err := service.MyService.Storage().GetConfig()
 		if err != nil {
-			ctx.String(200, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get rclone config"
 			logger.Error("Then get config error: ", zap.Error(err), zap.Any("name", "google_drive"))
@@ -66,7 +66,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 				continue
 			}
 			if cf["type"] == "drive" && cf["username"] == dmap["username"] {
-				ctx.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
+				ctx.HTML(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
 				err := service.MyService.Storage().CheckAndMountByName(v)
 				if err != nil {
 					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", cf["username"]))
@@ -100,7 +100,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 		dropbox := dropbox.GetConfig()
 		dropbox.Code = ctx.QueryParam("code")
 		if len(dropbox.Code) == 0 {
-			ctx.String(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Code cannot be empty"
 			logger.Error("Then code is empty error: ", zap.String("code", dropbox.Code), zap.Any("name", "dropbox"))
@@ -109,7 +109,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 
 		err := dropbox.Init(ctx.Request().Context())
 		if err != nil {
-			ctx.String(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Initialization failure"
 			logger.Error("Then init error: ", zap.Error(err), zap.Any("name", "dropbox"))
@@ -117,7 +117,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 		}
 		username, err := dropbox.GetUserInfo(ctx.Request().Context())
 		if err != nil {
-			ctx.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get user information"
 			logger.Error("Then get user information: ", zap.Error(err), zap.Any("name", "dropbox"))
@@ -128,7 +128,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 
 		configs, err := service.MyService.Storage().GetConfig()
 		if err != nil {
-			ctx.String(200, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get rclone config"
 			logger.Error("Then get config error: ", zap.Error(err), zap.Any("name", "dropbox"))
@@ -141,7 +141,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 				continue
 			}
 			if cf["type"] == "dropbox" && cf["username"] == dmap["username"] {
-				ctx.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
+				ctx.HTML(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
 				err := service.MyService.Storage().CheckAndMountByName(v)
 				if err != nil {
 					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", cf["username"]))
@@ -185,7 +185,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 		onedrive := onedrive.GetConfig()
 		onedrive.Code = ctx.QueryParam("code")
 		if len(onedrive.Code) == 0 {
-			ctx.String(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Code cannot be empty</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Code cannot be empty"
 			logger.Error("Then code is empty error: ", zap.String("code", onedrive.Code), zap.Any("name", "onedrive"))
@@ -194,7 +194,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 
 		err := onedrive.Init(ctx.Request().Context())
 		if err != nil {
-			ctx.String(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Initialization failure"
 			logger.Error("Then init error: ", zap.Error(err), zap.Any("name", "onedrive"))
@@ -202,7 +202,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 		}
 		username, driveId, driveType, err := onedrive.GetInfo(ctx.Request().Context())
 		if err != nil {
-			ctx.String(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get user information"
 			logger.Error("Then get user information: ", zap.Error(err), zap.Any("name", "onedrive"))
@@ -213,7 +213,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 
 		configs, err := service.MyService.Storage().GetConfig()
 		if err != nil {
-			ctx.String(200, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
+			ctx.HTML(200, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
 			notify["status"] = "fail"
 			notify["message"] = "Failed to get rclone config"
 			logger.Error("Then get config error: ", zap.Error(err), zap.Any("name", "onedrive"))
@@ -226,7 +226,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 				continue
 			}
 			if cf["type"] == "onedrive" && cf["username"] == dmap["username"] {
-				ctx.String(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
+				ctx.HTML(200, `<p>The same configuration has been added</p><script>window.close()</script>`)
 				err := service.MyService.Storage().CheckAndMountByName(v)
 				if err != nil {
 					logger.Error("check and mount by name error: ", zap.Error(err), zap.Any("name", cf["username"]))
@@ -270,5 +270,5 @@ func GetRecoverStorage(ctx echo.Context) error {
 		service.MyService.Notify().SendNotify("casaos:file:recover", notify)
 	}
 
-	return ctx.String(200, `<p>Just close the page</p><script>window.close()</script>`)
+	return ctx.HTML(200, `<p>Just close the page</p><script>window.close()</script>`)
 }
