@@ -162,7 +162,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 		dmap["token"] = `{"access_token":"` + dropbox.AccessToken + `","token_type":"bearer","refresh_token":"` + dropbox.Addition.RefreshToken + `","expiry":"` + currentDate + `T` + currentTime.Add(time.Hour*3).Add(time.Minute*50).Format("15:04:05") + `.780385354Z"}`
 		dmap["mount_point"] = "/mnt/" + username
 		service.MyService.Storage().CreateConfig(dmap, username, "dropbox")
-		service.MyService.Storage().MountStorage("/media/"+username, username+":")
+		service.MyService.Storage().MountStorage("/mnt/"+username, username+":")
 
 		notify["status"] = "success"
 		notify["message"] = "Success"
