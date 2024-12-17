@@ -17,7 +17,7 @@ import (
 )
 
 func GetRecoverStorage(ctx echo.Context) error {
-	t := ctx.Param("type")
+	t := strings.TrimSuffix(ctx.Param("type"), "/")
 	currentTime := time.Now().UTC()
 	currentDate := time.Now().UTC().Format("2006-01-02")
 	notify := make(map[string]interface{})
