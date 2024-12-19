@@ -43,19 +43,12 @@ type About struct {
 }
 
 type Info struct {
-	LastModifiedBy struct {
-		Application struct {
-			DisplayName string `json:"displayName"`
-			ID          string `json:"id"`
-		} `json:"application"`
-		Device struct {
-			ID string `json:"id"`
-		} `json:"device"`
+	CreatedBy struct {
 		User struct {
+			Email       string `json:"email"`
 			DisplayName string `json:"displayName"`
-			ID          string `json:"id"`
 		} `json:"user"`
-	} `json:"lastModifiedBy"`
+	} `json:"createdBy"`
 	ParentReference struct {
 		DriveID   string `json:"driveId"`
 		DriveType string `json:"driveType"`

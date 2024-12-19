@@ -16,23 +16,6 @@ import (
 )
 
 func ListStorages(ctx echo.Context) error {
-	// var req model.PageReq
-	// if err := ctx.Bind(&req); err != nil {
-	// 	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.CLIENT_ERROR, Message: common_err.GetMsg(common_err.CLIENT_ERROR), Data: err.Error()})
-	// 	return
-	// }
-	// req.Validate()
-
-	// logger.Info("ListStorages", zap.Any("req", req))
-	// storages, total, err := service.MyService.Storage().GetStorages(req.Page, req.PerPage)
-	// if err != nil {
-	// 	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
-	// 	return
-	// }
-	// return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: model.PageResp{
-	// 	Content: storages,
-	// 	Total:   total,
-	// }})
 	r, err := service.MyService.Storage().GetStorages()
 	if err != nil {
 		return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
@@ -58,12 +41,7 @@ func ListStorages(ctx echo.Context) error {
 	list := []httper.MountPoint{}
 
 	for _, v := range r.MountPoints {
-		list = append(list, httper.MountPoint{
-			Fs:         v.Fs,
-			Icon:       v.Icon,
-			MountPoint: v.MountPoint,
-			Name:       v.Name,
-		})
+		list = append(list, httper.MountPoint(v))
 	}
 
 	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: list})

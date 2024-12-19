@@ -26,6 +26,7 @@ func (d *Onedrive) Config() driver.Config {
 func (d *Onedrive) GetAddition() driver.Additional {
 	return &d.Addition
 }
+
 func (d *Onedrive) Init(ctx context.Context) error {
 	if d.ChunkSize < 1 {
 		d.ChunkSize = 5
@@ -35,19 +36,20 @@ func (d *Onedrive) Init(ctx context.Context) error {
 	}
 	return d.refreshToken()
 }
+
 func (d *Onedrive) GetUserInfo(ctx context.Context) (string, error) {
 	return "", nil
 }
+
 func (d *Onedrive) GetInfo(ctx context.Context) (string, string, string, error) {
 	url := d.GetMetaUrl(false, "/")
 	user := Info{}
-	resp, err := d.Request(url, http.MethodGet, nil, &user)
+	_, err := d.Request(url, http.MethodGet, nil, &user)
 	if err != nil {
 		return "", "", "", err
 	}
 
-	logger.Info("resp", zap.Any("resp", resp))
-	return user.LastModifiedBy.User.DisplayName, user.ParentReference.DriveID, user.ParentReference.DriveType, nil
+	return user.CreatedBy.User.Email, user.ParentReference.DriveID, user.ParentReference.DriveType, nil
 }
 
 func (d *Onedrive) GetSpaceSize(ctx context.Context) (used string, total string, err error) {
@@ -63,6 +65,7 @@ func (d *Onedrive) GetSpaceSize(ctx context.Context) (used string, total string,
 	total = strconv.Itoa(size.Total)
 	return
 }
+
 func (d *Onedrive) Drop(ctx context.Context) error {
 	return nil
 }
