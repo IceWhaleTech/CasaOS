@@ -71,7 +71,7 @@ func (s *sharesStruct) DeleteShare(id string) {
 
 func (s *sharesStruct) UpdateConfigFile() {
 	shares := []model2.SharesDBModel{}
-	s.db.Select("anonymous,path").Find(&shares)
+	s.db.Select("anonymous,path,valid_users").Find(&shares)
 	// generated config file
 	configStr := ""
 	for _, share := range shares {
@@ -79,16 +79,40 @@ func (s *sharesStruct) UpdateConfigFile() {
 		configStr += `
 [` + dirName + `]
 comment = CasaOS share ` + dirName + `
-public = Yes
+public = ` + func() string {
+			if share.Anonymous {
+				return "Yes"
+			}
+			return "No"
+		}() + `
 path = ` + share.Path + `
 browseable = Yes
 read only = No
-guest ok = Yes
+guest ok = ` + func() string {
+			if share.Anonymous {
+				return "Yes"
+			}
+			return "No"
+		}() + `
 create mask = 0777
 directory mask = 0777
-force user = root
-
+` + func() string {
+			if share.Anonymous {
+				return `force user = root
 `
+			}
+			return `#force user = root
+`
+		}() + func() string {
+			if !share.Anonymous && len(share.Valid_users) > 0 {
+				users := `valid users =`
+				for _, user := range share.Valid_users {
+					users += " " + user
+				}
+				return users + "\n"
+			}
+			return ""
+		}()
 	}
 	// write config file
 	file.WriteToPath([]byte(configStr), "/etc/samba", "smb.casa.conf")
