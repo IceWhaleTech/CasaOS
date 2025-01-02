@@ -3,11 +3,10 @@ package onedrive
 import (
 	"errors"
 	"fmt"
-	"net/url"
-	"strings"
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/drivers/base"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils"
 	"go.uber.org/zap"
 )
 
@@ -15,6 +14,7 @@ var (
 	client_id     = "private build"
 	client_secret = "private build"
 )
+
 var onedriveHostMap = map[string]Host{
 	"global": {
 		Oauth: "https://login.microsoftonline.com",
@@ -34,31 +34,9 @@ var onedriveHostMap = map[string]Host{
 	},
 }
 
-func EncodePath(path string, all ...bool) string {
-	seg := strings.Split(path, "/")
-	toReplace := []struct {
-		Src string
-		Dst string
-	}{
-		{Src: "%", Dst: "%25"},
-		{"%", "%25"},
-		{"?", "%3F"},
-		{"#", "%23"},
-	}
-	for i := range seg {
-		if len(all) > 0 && all[0] {
-			seg[i] = url.PathEscape(seg[i])
-		} else {
-			for j := range toReplace {
-				seg[i] = strings.ReplaceAll(seg[i], toReplace[j].Src, toReplace[j].Dst)
-			}
-		}
-	}
-	return strings.Join(seg, "/")
-}
 func (d *Onedrive) GetMetaUrl(auth bool, path string) string {
 	host := onedriveHostMap[d.Region]
-	path = EncodePath(path, true)
+	path = utils.EncodePath(path, true)
 	if auth {
 		return host.Oauth
 	}
