@@ -69,6 +69,31 @@ func (s *sharesStruct) DeleteShare(id string) {
 	s.UpdateConfigFile()
 }
 
+func getAnonymous(share model2.SharesDBModel) string {
+	if share.Anonymous {
+		return `Yes`
+	}
+	return `No`
+}
+
+func forceRoot(share model2.SharesDBModel) string {
+	if share.Anonymous {
+		return `force user = root`
+	}
+	return `#force user = root`
+}
+
+func getValidUsers(share model2.SharesDBModel) string {
+	if !share.Anonymous && len(share.Valid_users) > 0 {
+		users := `valid users =`
+		for _, user := range share.Valid_users {
+			users += " " + user
+		}
+		return users + "\n"
+	}
+	return ""
+}
+
 func (s *sharesStruct) UpdateConfigFile() {
 	shares := []model2.SharesDBModel{}
 	s.db.Select("anonymous,path,valid_users").Find(&shares)
@@ -79,41 +104,15 @@ func (s *sharesStruct) UpdateConfigFile() {
 		configStr += `
 [` + dirName + `]
 comment = CasaOS share ` + dirName + `
-public = ` + func() string {
-			if share.Anonymous {
-				return "Yes"
-			}
-			return "No"
-		}() + `
+public = ` + getAnonymous(share) + `
 path = ` + share.Path + `
 browseable = Yes
 read only = No
-guest ok = ` + func() string {
-			if share.Anonymous {
-				return "Yes"
-			}
-			return "No"
-		}() + `
+guest ok = ` + getAnonymous(share) + `
 create mask = 0777
 directory mask = 0777
-` + func() string {
-			if share.Anonymous {
-				return `force user = root
-`
-			}
-			return `#force user = root
-`
-		}() + func() string {
-			if !share.Anonymous && len(share.Valid_users) > 0 {
-				users := `valid users =`
-				for _, user := range share.Valid_users {
-					users += " " + user
-				}
-				return users + "\n"
-			}
-			return ""
-		}()
-	}
+` + forceRoot(share) + `
+` + getValidUsers(share)
 	// write config file
 	file.WriteToPath([]byte(configStr), "/etc/samba", "smb.casa.conf")
 	// restart samba

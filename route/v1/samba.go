@@ -69,22 +69,11 @@ func GetSambaSharesList(ctx echo.Context) error {
 	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: shareList})
 }
 
-func ListSambaUsers(ctx echo.Context) error {
-	out, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;ListSambaUsers ")
-
-	if err != nil {
-		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
-	}
-
-	users := strings.Split(out, "\n")
-
-	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: users})
-}
-
 func AddSambaUser(ctx echo.Context) error {
+	source := "source " + config.AppInfo.ShellPath
 	users := []model.SMBUsers{}
 	ctx.Bind(&users)
-	out, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;ListSambaUsers ")
+	out, err := command.OnlyExec(source + "/helper.sh ;ListSambaUsers ")
 
 	if err != nil {
 		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
@@ -92,7 +81,7 @@ func AddSambaUser(ctx echo.Context) error {
 
 	for _, v := range users {
 		if !strings.Contains(out, v.Name) {
-			command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;AddSmabaUser " + v.Name + " " + v.Password)
+			command.OnlyExec(source + "/helper.sh ;AddSmabaUser " + v.Name + " " + v.Password)
 		}
 	}
 
