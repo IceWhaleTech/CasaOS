@@ -87,7 +87,7 @@ func getValidUsers(share model2.SharesDBModel) string {
 	if !share.Anonymous && len(share.Valid_users) > 0 {
 		users := `valid users =`
 		for _, user := range share.Valid_users {
-			users += " " + user
+			users = " " + user
 		}
 		return users + "\n"
 	}
@@ -113,6 +113,7 @@ create mask = 0777
 directory mask = 0777
 ` + forceRoot(share) + `
 ` + getValidUsers(share)
+	}
 	// write config file
 	file.WriteToPath([]byte(configStr), "/etc/samba", "smb.casa.conf")
 	// restart samba
