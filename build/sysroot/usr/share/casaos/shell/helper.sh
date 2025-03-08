@@ -336,9 +336,16 @@ RestartSMBD(){
   $sudo_cmd systemctl restart smbd
 }
 
-# edit user password $1:username
+# edit user password
 EditSmabaUserPassword(){
-  $sudo_cmd smbpasswd $1
+  $sudo_cmd smbpasswd -a $1 <<EOF
+    $2
+    $2
+EOF
+}
+
+ListSambaUsers(){
+  $sudo_cmd pdbedit -L
 }
 
 AddSmabaUser(){
