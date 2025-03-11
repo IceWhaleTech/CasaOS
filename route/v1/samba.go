@@ -1,12 +1,12 @@
 /*
  * @Author: LinkLeong link@icewhale.com
  * @Date: 2022-07-26 11:08:48
- * @LastEditors: LinkLeong
- * @LastEditTime: 2022-08-17 18:25:42
+ * @LastEditors: Drew Fitzgerald/Sheep26
+ * @LastEditTime: 2024-12-03
  * @FilePath: /CasaOS/route/v1/samba.go
  * @Description:
  * @Website: https://www.casaos.io
- * Copyright (c) 2022 by icewhale, All Rights Reserved.
+ * Copyright (c) 2024 by icewhale, All Rights Reserved.
  */
 package v1
 
@@ -18,12 +18,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/command"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/systemctl"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 
 	"github.com/IceWhaleTech/CasaOS/model"
+	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/samba"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -58,12 +60,32 @@ func GetSambaSharesList(ctx echo.Context) error {
 	shareList := []model.Shares{}
 	for _, v := range shares {
 		shareList = append(shareList, model.Shares{
-			Anonymous: v.Anonymous,
-			Path:      v.Path,
-			ID:        v.ID,
+			Anonymous:   v.Anonymous,
+			Path:        v.Path,
+			Valid_users: v.Valid_users,
+			ID:          v.ID,
 		})
 	}
 	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: shareList})
+}
+
+func AddSambaUser(ctx echo.Context) error {
+	source := "source " + config.AppInfo.ShellPath
+	users := []model.SMBUsers{}
+	ctx.Bind(&users)
+	out, err := command.OnlyExec(source + "/helper.sh ;ListSambaUsers ")
+
+	if err != nil {
+		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
+	}
+
+	for _, v := range users {
+		if !strings.Contains(out, v.Name) {
+			command.OnlyExec(source + "/helper.sh ;AddSmabaUser " + v.Name + " " + v.Password)
+		}
+	}
+
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: common_err.GetMsg(common_err.SUCCESS), Data: users})
 }
 
 func PostSambaSharesCreate(ctx echo.Context) error {
@@ -85,8 +107,9 @@ func PostSambaSharesCreate(ctx echo.Context) error {
 	}
 	for _, v := range shares {
 		shareDBModel := model2.SharesDBModel{}
-		shareDBModel.Anonymous = true
+		shareDBModel.Anonymous = v.Anonymous
 		shareDBModel.Path = v.Path
+		shareDBModel.Valid_users = v.Valid_users
 		shareDBModel.Name = filepath.Base(v.Path)
 		os.Chmod(v.Path, 0o777)
 		service.MyService.Shares().CreateShare(shareDBModel)

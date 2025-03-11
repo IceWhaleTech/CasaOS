@@ -176,6 +176,12 @@ func InitV1Router() http.Handler {
 				v1SharesGroup.DELETE("/:id", v1.DeleteSambaShares)
 				v1SharesGroup.GET("/status", v1.GetSambaStatus)
 			}
+			v1SharesGroup = v1SambaGroup.Group("/shares")
+			v1SharesGroup.Use()
+			{
+				v1SharesGroup.GET("/list", v1.ListSambaUsers)
+				v1SharesGroup.POST("/add", v1.AddSambaUser)
+			}
 		}
 		v1NotifyGroup := v1Group.Group("/notify")
 		v1NotifyGroup.Use()
