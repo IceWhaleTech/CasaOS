@@ -92,6 +92,30 @@ builds:
       - arm
     goarm:
       - "7"
+  - id: casaos-riscv64
+    binary: build/sysroot/usr/bin/casaos
+    env:
+      - CC=riscv64-linux-gnu-gcc
+    ldflags:
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/google_drive.client_id={{.Env.GoogleID}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/google_drive.client_secret={{.Env.GoogleSecret}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/onedrive.client_id={{.Env.OneDriveID}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/onedrive.client_secret={{.Env.OneDriveSecret}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/dropbox.app_key={{.Env.DropboxKey}}
+      - -X github.com/IceWhaleTech/CasaOS/drivers/dropbox.app_secret={{.Env.DropboxSecret}}
+      - -s
+      - -w
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+      - osusergo
+    goos:
+      - linux
+    goarch:
+      - riscv64
   - id: casaos-migration-tool-amd64
     binary: build/sysroot/usr/bin/casaos-migration-tool
     hooks:
@@ -160,6 +184,25 @@ builds:
       - arm
     goarm:
       - "7"
+  - id: casaos-migration-tool-riscv64
+    binary: build/sysroot/usr/bin/casaos-migration-tool
+    main: ./cmd/migration-tool
+    env:
+      - CC=riscv64-linux-gnu-gcc
+    ldflags:
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+      - -s
+      - -w
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+      - osusergo
+    goos:
+      - linux
+    goarch:
+      - riscv64
 archives:
   - name_template:  >- 
       {{ .Os }}-{{- if eq .Arch "arm" }}arm-7{{- else }}{{ .Arch }}{{- end }}-{{ .ProjectName }}-v{{ .Version }}
@@ -168,6 +211,7 @@ archives:
       - casaos-amd64
       - casaos-arm64
       - casaos-arm-7
+      - casaos-riscv64
     files:
       - build/**/*
   - name_template: >-
@@ -177,6 +221,7 @@ archives:
       - casaos-migration-tool-amd64
       - casaos-migration-tool-arm64
       - casaos-migration-tool-arm-7
+      - casaos-migration-tool-riscv64
     files:
       - build/sysroot/etc/**/*
 checksum:

@@ -59,6 +59,22 @@ builds:
       - arm
     goarm:
       - "7"
+  - id: casaos-riscv64
+    binary: build/sysroot/usr/bin/casaos
+    env:
+      - CC=riscv64-linux-gnu-gcc
+    gcflags:
+      - all=-N -l
+    ldflags:
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+      - osusergo
+    goos:
+      - linux
+    goarch:
+      - riscv64
   - id: casaos-migration-tool-amd64
     binary: build/sysroot/usr/bin/casaos-migration-tool
     main: ./cmd/migration-tool
@@ -112,6 +128,23 @@ builds:
       - arm
     goarm:
       - "7"
+  - id: casaos-migration-tool-riscv64
+    binary: build/sysroot/usr/bin/casaos-migration-tool
+    main: ./cmd/migration-tool
+    env:
+      - CC=riscv64-linux-gnu-gcc
+    gcflags:
+      - all=-N -l
+    ldflags:
+      - -extldflags "-static"
+    tags:
+      - musl
+      - netgo
+      - osusergo
+    goos:
+      - linux
+    goarch:
+      - riscv64
 archives:
   - name_template: >-
       {{ .Os }}-{{- if eq .Arch "arm" }}arm-7{{- else }}{{ .Arch }}{{- end }}-{{ .ProjectName }}-v{{ .Version }}
@@ -120,6 +153,7 @@ archives:
       - casaos-amd64
       - casaos-arm64
       - casaos-arm-7
+      - casaos-riscv64
     files:
       - build/**/*
   - name_template: >-
@@ -129,6 +163,7 @@ archives:
       - casaos-migration-tool-amd64
       - casaos-migration-tool-arm64
       - casaos-migration-tool-arm-7
+      - casaos-migration-tool-riscv64
     files:
       - build/sysroot/etc/**/*
 checksum:
