@@ -482,7 +482,7 @@ func GetCPUThermalZone() string {
 			name = strings.TrimSuffix(string(file.ReadFullFile(path+"/type")), "\n")
 			for _, s := range cpu_types {
 				if strings.HasPrefix(name, s) {
-					logger.Info(fmt.Sprintf("CPU thermal zone found: %s, path: %s.", name, path))
+					//logger.Info(fmt.Sprintf("CPU thermal zone found: %s, path: %s.", name, path))
 					Cache.SetDefault(keyName, path)
 					return path
 				}
