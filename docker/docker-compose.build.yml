@@ -1,0 +1,50 @@
+# Docker Build tabanlı CasaOS konfigürasyonu
+version: '3.8'
+
+services:
+  casaos-custom:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: casaos-custom
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    volumes:
+      # CasaOS verileri
+      - casaos_data:/var/lib/casaos
+      - casaos_config:/etc/casaos
+      - casaos_share:/usr/share/casaos
+      # Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Sistem dosyaları
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      # Kullanıcı verileri
+      - ./data:/DATA
+      - ./logs:/var/log/casaos
+    environment:
+      - TZ=Europe/Istanbul
+    devices:
+      - /dev/fuse:/dev/fuse:rwm
+    cap_add:
+      - SYS_ADMIN
+      - DAC_OVERRIDE
+      - NET_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    tmpfs:
+      - /tmp
+      - /run
+      - /run/lock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  casaos_data:
+  casaos_config:
+  casaos_share:

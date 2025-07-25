@@ -1,0 +1,88 @@
+# CasaOS Docker Compose Configuration
+# NOTE: CasaOS does not have an official Docker image
+# This configuration runs a Linux distribution in Docker container and installs CasaOS
+
+version: '3.8'
+
+services:
+  # CasaOS installation in Ubuntu container
+  casaos-ubuntu:
+    image: ubuntu:22.04
+    container_name: casaos-ubuntu
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    volumes:
+      # CasaOS configuration and data directories
+      - casaos_data:/var/lib/casaos
+      - casaos_config:/etc/casaos
+      - casaos_share:/usr/share/casaos
+      # Docker socket (for CasaOS to manage other containers)
+      - /var/run/docker.sock:/var/run/docker.sock
+      # System files (for system monitoring)
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      # User data
+      - ./data:/DATA
+      - ./logs:/var/log/casaos
+      # Install script
+      - ./install-casaos.sh:/install-casaos.sh:ro
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - TZ=Europe/Istanbul
+    command: >
+      bash -c "
+        apt-get update && 
+        apt-get install -y curl wget sudo systemd systemctl docker.io &&
+        chmod +x /install-casaos.sh &&
+        /install-casaos.sh &&
+        tail -f /dev/null
+      "
+    devices:
+      - /dev/fuse:/dev/fuse:rwm
+    cap_add:
+      - SYS_ADMIN
+      - DAC_OVERRIDE
+      - NET_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    tmpfs:
+      - /tmp
+      - /run
+      - /run/lock
+
+  # Alternative: Debian-based
+  casaos-debian:
+    image: debian:12
+    container_name: casaos-debian
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    profiles: ["debian"]  # Run with: docker-compose --profile debian up
+    volumes:
+      - casaos_data_debian:/var/lib/casaos
+      - casaos_config_debian:/etc/casaos
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/DATA
+      - ./install-casaos.sh:/install-casaos.sh:ro
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - TZ=Europe/Istanbul # Timezone setting
+    command: >
+      bash -c "
+        apt-get update && 
+        apt-get install -y curl wget sudo systemd docker.io &&
+        chmod +x /install-casaos.sh &&
+        /install-casaos.sh &&
+        tail -f /dev/null
+      "
+    cap_add:
+      - SYS_ADMIN
+      - DAC_OVERRIDE
+
+volumes:
+  casaos_data:
+  casaos_config:
+  casaos_share:
+  casaos_data_debian:
+  casaos_config_debian:
