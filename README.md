@@ -47,6 +47,9 @@
 <a href="#credits"><img alt="All Contributors" src="https://img.shields.io/static/v1?label=All%20Contributors&message=15&color=162453&style=flat-square&logo=Handshake&logoColor=fff" /></a>
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
     <br/>
+    <!-- CasaOS twitter -->
+    ![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/ZimaSpace?style=flat-square&logo=X&labelColor=555&color=555&link=http%3A%2F%2Fbit.ly%2F45JQIiL)
+    
     <!-- CasaOS YouTube -->
     <a href="https://www.youtube.com/channel/UC2zMrUYT17AJhIl9XWZzT8g" target="_blank">
         <img alt="YouTube Tutorial Views" src="https://img.shields.io/youtube/channel/views/UC2zMrUYT17AJhIl9XWZzT8g?style=for-the-badge&logo=youtube&logoColor=red&label=YouTube%20Tutorial%20Views" />
