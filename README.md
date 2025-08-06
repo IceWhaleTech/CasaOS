@@ -44,24 +44,16 @@
         <img alt="CasaOS GitHub Discussions" src="https://img.shields.io/github/discussions/IceWhaleTech/CasaOS?color=162453&style=flat-square&label=Discussions&logo=github" />
     </a>
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-<a href="#credits"><img alt="All Contributors" src="https://img.shields.io/static/v1?label=All%20Contributors&message=15&color=162453&style=flat-square&logo=Handshake&logoColor=fff" /></a>
-
-<a href="http://bit.ly/45JQIiL" target="_blank">
+    <a href="#credits">
+        <img alt="All Contributors" src="https://img.shields.io/static/v1?label=All%20Contributors&message=15&color=162453&style=flat-square&logo=Handshake&logoColor=fff" />
+    </a>
+    <a href="http://bit.ly/45JQIiL" target="_blank">
         <img alt="twitter ZimaSpace" src="https://img.shields.io/twitter/follow/ZimaSpace?style=flat-square&logo=X&labelColor=555&color=555&link=http%3A%2F%2Fbit.ly%2F45JQIiL" />
     </a>
-
-
-<a href="http://bit.ly/4lgHj7V" target="_blank">
+    <a href="http://bit.ly/4lgHj7V" target="_blank">
         <img alt="facebook ZimaSpace" src="https://img.shields.io/badge/Facebook-1877F2?style=flat-square&logoColor=fff&label=ZimaSpace&labelColor=555&color=162453" />
-
     </a> 
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-    <br/>
-
-
-   
-
-    
+    <br/>    
     <!-- CasaOS YouTube -->
     <a href="https://www.youtube.com/channel/UC2zMrUYT17AJhIl9XWZzT8g" target="_blank">
         <img alt="YouTube Tutorial Views" src="https://img.shields.io/youtube/channel/views/UC2zMrUYT17AJhIl9XWZzT8g?style=for-the-badge&logo=youtube&logoColor=red&label=YouTube%20Tutorial%20Views" />
