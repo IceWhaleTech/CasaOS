@@ -54,12 +54,12 @@
 <a href="http://bit.ly/4lgHj7V" target="_blank">
         <img alt="facebook ZimaSpace" src="https://img.shields.io/badge/Facebook-1877F2?style=flat-square&logoColor=fff&label=ZimaSpace&labelColor=555&color=162453" />
 
-    
+    </a> 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
     <br/>
 
 
-    </a>
+   
 
     
     <!-- CasaOS YouTube -->
