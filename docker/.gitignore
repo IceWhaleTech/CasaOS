@@ -1,0 +1,28 @@
+# CasaOS Docker Environment
+
+# Data directories
+data/
+logs/
+config/
+
+# Docker volumes
+.volumes/
+
+# Temporary files
+*.tmp
+*.log
+
+# macOS
+.DS_Store
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.local
+
+# Backup files
+*.bak
+*.backup
