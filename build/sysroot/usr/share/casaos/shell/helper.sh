@@ -337,11 +337,11 @@ RestartSMBD(){
 }
 
 # edit user password $1:username
-EditSmabaUserPassword(){
+EditSambaUserPassword(){
   $sudo_cmd smbpasswd $1
 }
 
-AddSmabaUser(){
+AddSambaUser(){
   $sudo_cmd useradd $1
   $sudo_cmd smbpasswd -a $1 <<EOF
     $2
