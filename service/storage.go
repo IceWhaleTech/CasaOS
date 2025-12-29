@@ -1,7 +1,7 @@
 package service
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
@@ -31,7 +31,7 @@ func (s *storageStruct) MountStorage(mountPoint, fs string) error {
 func (s *storageStruct) UnmountStorage(mountPoint string) error {
 	err := httper.Unmount(mountPoint)
 	if err == nil {
-		dir, _ := ioutil.ReadDir(mountPoint)
+		dir, _ := os.ReadDir(mountPoint)
 
 		if len(dir) == 0 {
 			file.RMDir(mountPoint)

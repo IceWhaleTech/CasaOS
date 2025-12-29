@@ -4,11 +4,12 @@ package main
 
 import (
 	"context"
-	_ "embed"
+	_ "embed" // Required for //go:embed directives to work
 	"flag"
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -55,6 +56,8 @@ var (
 	versionFlag = flag.Bool("v", false, "version")
 )
 
+var initError error
+
 func init() {
 	flag.Parse()
 	if *versionFlag {
@@ -62,31 +65,36 @@ func init() {
 		return
 	}
 
-	println("git commit:", commit)
-	println("build date:", date)
+	logger.Info("starting CasaOS", zap.String("commit", commit), zap.String("date", date))
 
-	config.InitSetup(*configFlag, _confSample)
+	if err := config.InitSetup(*configFlag, _confSample); err != nil {
+		initError = fmt.Errorf("failed to initialize config: %w", err)
+		return
+	}
 
 	logger.LogInit(config.AppInfo.LogPath, config.AppInfo.LogSaveName, config.AppInfo.LogFileExt)
 	if len(*dbFlag) == 0 {
 		*dbFlag = config.AppInfo.DBPath + "/db"
 	}
 
-	sqliteDB = sqlite.GetDb(*dbFlag)
-	// gredis.GetRedisConn(config.RedisInfo),
+	var err error
+	sqliteDB, err = sqlite.GetDb(*dbFlag)
+	if err != nil {
+		initError = fmt.Errorf("failed to initialize database: %w", err)
+		return
+	}
 
-	service.MyService = service.NewService(sqliteDB, config.CommonInfo.RuntimePath)
+	service.MyService, err = service.NewService(sqliteDB, config.CommonInfo.RuntimePath)
+	if err != nil {
+		initError = fmt.Errorf("failed to initialize services: %w", err)
+		return
+	}
 
 	service.Cache = cache.Init()
 
 	service.GetCPUThermalZone()
 
 	route.InitFunction()
-
-	//service.MyService.System().GenreateSystemEntry()
-	///
-	//service.MountLists = make(map[string]*mountlib.MountPoint)
-	//configfile.Install()
 }
 
 // @title casaOS API
@@ -104,6 +112,12 @@ func main() {
 	if *versionFlag {
 		return
 	}
+
+	if initError != nil {
+		logger.Error("initialization failed", zap.Error(initError))
+		os.Exit(1)
+	}
+
 	v1Router := route.InitV1Router()
 
 	v2Router := route.InitV2Router()
@@ -128,7 +142,8 @@ func main() {
 
 	listener, err := net.Listen("tcp", net.JoinHostPort(LOCALHOST, "0"))
 	if err != nil {
-		panic(err)
+		logger.Error("failed to create listener", zap.Error(err))
+		os.Exit(1)
 	}
 	routers := []string{
 		"/v1/sys",
@@ -155,8 +170,8 @@ func main() {
 			Target: "http://" + listener.Addr().String(),
 		})
 		if err != nil {
-			fmt.Println("err", err)
-			panic(err)
+			logger.Error("failed to create route", zap.Error(err), zap.String("path", apiPath))
+			os.Exit(1)
 		}
 	}
 
@@ -224,6 +239,7 @@ func main() {
 	// defer service.MyService.Storage().UnmountAllStorage()
 	err = s.Serve(listener) // not using http.serve() to fix G114: Use of net/http serve function that has no support for setting timeouts (see https://github.com/securego/gosec)
 	if err != nil {
-		panic(err)
+		logger.Error("server stopped", zap.Error(err))
+		os.Exit(1)
 	}
 }

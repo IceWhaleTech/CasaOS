@@ -12,7 +12,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -43,49 +42,54 @@ var (
 	ConfigFilePath string
 )
 
-// 初始化设置，获取系统的部分信息。
-func InitSetup(config string, sample string) {
+// InitSetup initializes settings and retrieves part of the system information.
+func InitSetup(config, sample string) error {
 	ConfigFilePath = CasaOSConfigFilePath
 	if len(config) > 0 {
 		ConfigFilePath = config
 	}
 
-	// create default config file if not exist
-	if _, err := os.Stat(ConfigFilePath); os.IsNotExist(err) {
-		fmt.Println("config file not exist, create it")
-		// create config file
-		file, err := os.Create(ConfigFilePath)
-		if err != nil {
-			panic(err)
-		}
+	// Atomically create config file if it doesn't exist (O_EXCL prevents race condition)
+	file, err := os.OpenFile(ConfigFilePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+	if err == nil {
+		// File was created, write default config
 		defer file.Close()
-
-		// write default config
-		_, err = file.WriteString(sample)
-		if err != nil {
-			panic(err)
+		if _, err = file.WriteString(sample); err != nil {
+			return fmt.Errorf("failed to write default config: %w", err)
 		}
+	} else if !os.IsExist(err) {
+		// Error other than "file exists"
+		return fmt.Errorf("failed to create config file: %w", err)
 	}
 
-	var err error
-
-	// 读取文件
 	Cfg, err = ini.Load(ConfigFilePath)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to load config file: %w", err)
 	}
 
-	mapTo("app", AppInfo)
-	mapTo("server", ServerInfo)
-	mapTo("system", SystemConfigInfo)
-	mapTo("file", FileSettingInfo)
-	mapTo("common", CommonInfo)
+	if err := mapTo("app", AppInfo); err != nil {
+		return err
+	}
+	if err := mapTo("server", ServerInfo); err != nil {
+		return err
+	}
+	if err := mapTo("system", SystemConfigInfo); err != nil {
+		return err
+	}
+	if err := mapTo("file", FileSettingInfo); err != nil {
+		return err
+	}
+	if err := mapTo("common", CommonInfo); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// 映射
-func mapTo(section string, v interface{}) {
+func mapTo(section string, v interface{}) error {
 	err := Cfg.Section(section).MapTo(v)
 	if err != nil {
-		log.Fatalf("Cfg.MapTo %s err: %v", section, err)
+		return fmt.Errorf("failed to map config section %s: %w", section, err)
 	}
+	return nil
 }

@@ -45,10 +45,10 @@ type Repository interface {
 	Other() OtherService
 }
 
-func NewService(db *gorm.DB, RuntimePath string) Repository {
+func NewService(db *gorm.DB, RuntimePath string) (Repository, error) {
 	gatewayManagement, err := external.NewManagementService(RuntimePath)
 	if err != nil && len(RuntimePath) > 0 {
-		panic(err)
+		return nil, err
 	}
 
 	return &store{
@@ -64,7 +64,7 @@ func NewService(db *gorm.DB, RuntimePath string) Repository {
 		other:       NewOtherService(),
 
 		peer: NewPeerService(db),
-	}
+	}, nil
 }
 
 type store struct {

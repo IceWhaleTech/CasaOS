@@ -1,22 +1,34 @@
 package v1
 
 import (
-	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
 	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 )
 
 var upGrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return true
+		}
+		return strings.HasPrefix(origin, "http://localhost") ||
+			strings.HasPrefix(origin, "http://127.0.0.1") ||
+			strings.HasPrefix(origin, "https://localhost") ||
+			strings.HasPrefix(origin, "https://127.0.0.1") ||
+			strings.HasPrefix(origin, "http://192.168.") ||
+			strings.HasPrefix(origin, "http://10.") ||
+			strings.HasPrefix(origin, "http://172.")
 	},
 }
 
-// @Summary websocket 接口,连接成功后发送一个"notify"字符串
+// @Summary websocket endpoint, sends "notify" string on successful connection
 // @Produce  application/json
 // @Accept application/json
 // @Tags notify
@@ -25,9 +37,9 @@ var upGrader = websocket.Upgrader{
 // @Success 200 {string} string "ok"
 // @Router /notify/ws [get]
 func NotifyWS(ctx echo.Context) error {
-	// 升级get请求为webSocket协议
 	ws, err := upGrader.Upgrade(ctx.Response().Writer, ctx.Request(), nil)
 	if err != nil {
+		logger.Error("failed to upgrade websocket connection", zap.Error(err))
 		return nil
 	}
 	defer ws.Close()
@@ -38,12 +50,18 @@ func NotifyWS(ctx echo.Context) error {
 		service.SendMeg()
 	}
 	for {
-		mt, message, err := ws.ReadMessage()
-		fmt.Println(mt, message, err)
+		_, _, err := ws.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				logger.Error("websocket read error", zap.Error(err))
+			}
+			break
+		}
 	}
+	return nil
 }
 
-// @Summary 标记notify已读
+// @Summary Mark notify as read
 // @Produce  application/json
 // @Accept application/json
 // @Tags notify
@@ -52,11 +70,6 @@ func NotifyWS(ctx echo.Context) error {
 // @Router /notify/read/{id} [put]
 func PutNotifyRead(ctx echo.Context) error {
 	id := ctx.Param("id")
-	// if len(id) == 0 {
-	// 	return ctx.JSON(http.StatusOK, model.Result{Success: oasis_err.INVALID_PARAMS, Message: oasis_err.GetMsg(oasis_err.INVALID_PARAMS)})
-	// 	return
-	// }
-	fmt.Println(id)
 	service.MyService.Notify().MarkRead(id, types.NOTIFY_READ)
 	return nil
 }

@@ -4,11 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
-	url2 "net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -64,17 +61,30 @@ type FsListResp struct {
 	Size     int       `json:"size"`
 }
 
-var (
-	// 升级成 WebSocket 协议
-	upgraderFile = websocket.Upgrader{
-		// 允许CORS跨域请求
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-	conn *websocket.Conn
-	err  error
+// HTTP header constants
+const (
+	headerContentDisposition = "Content-Disposition"
+	attachmentPrefix         = "attachment; filename*=utf-8''"
 )
+
+// upgraderFile handles WebSocket protocol upgrade
+// Note: CheckOrigin allows localhost connections for local development
+var upgraderFile = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return true
+		}
+		// Allow localhost and local network connections
+		return strings.HasPrefix(origin, "http://localhost") ||
+			strings.HasPrefix(origin, "http://127.0.0.1") ||
+			strings.HasPrefix(origin, "https://localhost") ||
+			strings.HasPrefix(origin, "https://127.0.0.1") ||
+			strings.HasPrefix(origin, "http://192.168.") ||
+			strings.HasPrefix(origin, "http://10.") ||
+			strings.HasPrefix(origin, "http://172.")
+	},
+}
 
 // @Summary 读取文件
 // @Produce  application/json
@@ -184,7 +194,7 @@ func GetDownloadFile(ctx echo.Context) error {
 
 			// 获取文件的名称
 			fileName := path.Base(filePath)
-			ctx.Response().Header().Add("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
+			ctx.Response().Header().Add(headerContentDisposition, attachmentPrefix+url.PathEscape(fileName))
 			ctx.File(filePath)
 		}
 	}
@@ -212,7 +222,7 @@ func GetDownloadFile(ctx echo.Context) error {
 
 	name := "_" + currentPath
 	name += extension
-	ctx.Request().Header.Add("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(name))
+	ctx.Request().Header.Add(headerContentDisposition, attachmentPrefix+url.PathEscape(name))
 	for _, fname := range list {
 		err = file.AddFile(ar, fname, commonDir)
 		if err != nil {
@@ -231,12 +241,14 @@ func GetDownloadSingleFile(ctx echo.Context) error {
 		})
 	}
 	fileName := path.Base(filePath)
-	// c.Header("Content-Disposition", "inline")
-	ctx.Request().Header.Add("Content-Disposition", "attachment; filename*=utf-8''"+url2.PathEscape(fileName))
+	ctx.Request().Header.Add(headerContentDisposition, attachmentPrefix+url.PathEscape(fileName))
 
 	fi, err := os.Open(filePath)
 	if err != nil {
-		panic(err)
+		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{
+			Success: common_err.FILE_DOES_NOT_EXIST,
+			Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
+		})
 	}
 
 	// We only have to pass the file header = first 261 bytes
@@ -927,14 +939,16 @@ func ConnectWebSocket(ctx echo.Context) error {
 	}
 	list = service.MyService.Peer().GetPeers()
 	if len(list) > 10 {
-		fmt.Println("解决完后依然有溢出", list)
+		logger.Warn("peer list overflow after cleanup", zap.Int("count", len(list)))
 	}
 	currentPeer := PeerModel{ID: client.ID, Name: client.Name, RtcSupported: client.RtcSupported}
 	pmsg := make(map[string]interface{})
 	pmsg["type"] = "peer-joined"
 	pmsg["peer"] = currentPeer
 	pby, err := json.Marshal(pmsg)
-	fmt.Println(err)
+	if err != nil {
+		logger.Error("failed to marshal peer message", zap.Error(err))
+	}
 	for _, v := range handler.clients {
 		v.send <- pby
 	}
@@ -950,7 +964,9 @@ func ConnectWebSocket(ctx echo.Context) error {
 	other["type"] = "peers"
 	other["peers"] = clients
 	otherBy, err := json.Marshal(other)
-	fmt.Println(err)
+	if err != nil {
+		logger.Error("failed to marshal peers message", zap.Error(err))
+	}
 	client.send <- otherBy
 
 	// 推给监控中心注册到用户集合中
@@ -1006,28 +1022,28 @@ func (c *Client) writePump() {
 		c.conn.Close()
 	}()
 	for {
-		// 广播推过来的新消息，马上通过websocket推给自己
-		message, _ := <-c.send
-		fmt.Println("推送消息", string(message), "1")
+		message, ok := <-c.send
+		if !ok {
+			return
+		}
 		if err := c.conn.WriteMessage(websocket.TextMessage, message); err != nil {
+			logger.Error("failed to write websocket message", zap.Error(err))
 			return
 		}
 	}
 }
 
-// 读，监听客户端是否有推送内容过来服务端
+// readPump listens for messages from the client
 func (c *Client) readPump() {
 	defer func() {
 		c.handler.unregister <- c
 		c.conn.Close()
 	}()
 	for {
-		// 循环监听是否该用户是否要发言
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
-			// 异常关闭的处理
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+				logger.Error("unexpected websocket close", zap.Error(err))
 			}
 			c.handler.broadcast <- []byte(`{"type":"peer-left","peerId":"` + c.ID + `"}`)
 			break
