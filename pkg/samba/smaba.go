@@ -48,7 +48,7 @@ func ConnectSambaService(host, port, username, password, directory string) error
 	return errors.New("directory not found")
 }
 
-//get share name list
+// get share name list
 func GetSambaSharesList(host, port, username, password string) ([]string, error) {
 	conn, err := net.Dial("tcp", host+":"+port)
 	if err != nil {
