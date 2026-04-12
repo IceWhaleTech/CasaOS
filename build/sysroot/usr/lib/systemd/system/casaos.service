@@ -4,6 +4,7 @@ After=rclone.service
 Description=CasaOS Main Service
 
 [Service]
+Environment=DOCKER_API_VERSION=1.41
 ExecStart=/usr/bin/casaos -c /etc/casaos/casaos.conf
 PIDFile=/var/run/casaos/casaos.pid
 Restart=always
