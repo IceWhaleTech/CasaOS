@@ -123,6 +123,7 @@ Official Support
 Community Support
 - Elementary 6.1 (✅ Tested)
 - Armbian 22.04 (✅ Tested)
+- Docker Engine (✅ Tested)
 - Alpine (🚧 Not Fully Tested Yet)
 - OpenWrt (🚧 Not Fully Tested Yet)
 - ArchLinux (🚧 Not Fully Tested Yet)
@@ -179,6 +180,12 @@ Before v0.3.3
 ```sh
 curl -fsSL https://get.icewhale.io/casaos-uninstall.sh | sudo bash
 ```
+
+
+## Run CasaOS as a Docker container
+
+See [dockur/casa](https://github.com/dockur/casa) for a  container, an ideal solution to try out CasaOS in a quick and simple way.
+
 
 ## Community 
 
