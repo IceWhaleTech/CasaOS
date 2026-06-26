@@ -14,12 +14,12 @@ __get_setup_script_directory_by_os_release() {
 		{
 			source /etc/os-release
 			{
-				pushd "${ID}"/"${VERSION_CODENAME}" >/dev/null
+				pushd "${ID}"/"${VERSION_CODENAME}" &>/dev/null
 			} || {
-				pushd "${ID}" >/dev/null
+				pushd "${ID}" &>/dev/null
 			} || {
                 [[ -n ${ID_LIKE} ]] && for ID in ${ID_LIKE}; do
-				    pushd "${ID}" >/dev/null && break
+				    pushd "${ID}" &>/dev/null && break
                 done
 			} || {
 				echo "Unsupported OS: ${ID} ${VERSION_CODENAME} (${ID_LIKE})"
