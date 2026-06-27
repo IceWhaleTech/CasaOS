@@ -5,8 +5,9 @@ Description=CasaOS Main Service
 
 [Service]
 ExecStart=/usr/bin/casaos -c /etc/casaos/casaos.conf
-PIDFile=/var/run/casaos/casaos.pid
+PIDFile=/run/casaos/casaos.pid
 Restart=always
+RuntimeDirectory=casaos
 Type=notify
 
 [Install]
