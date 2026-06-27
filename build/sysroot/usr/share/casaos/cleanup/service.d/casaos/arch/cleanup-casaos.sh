@@ -9,7 +9,7 @@ readonly CASA_SERVICES=(
 
 readonly CASA_EXEC=casaos
 readonly CASA_CONF=/etc/casaos/casaos.conf
-readonly CASA_URL=/var/run/casaos/casaos.url
+readonly CASA_URL=/run/casaos/casaos.url
 readonly CASA_SERVICE_USR=/usr/lib/systemd/system/casaos.service
 readonly CASA_SERVICE_LIB=/lib/systemd/system/casaos.service
 readonly CASA_SERVICE_ETC=/etc/systemd/system/casaos.service
