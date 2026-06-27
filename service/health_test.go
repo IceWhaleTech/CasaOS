@@ -1,6 +1,7 @@
 package service_test
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/IceWhaleTech/CasaOS/service"
@@ -8,6 +9,10 @@ import (
 )
 
 func TestPorts(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("port.ListPortsInUse reads /proc/net, which is only available on linux")
+	}
+
 	service := service.NewHealthService()
 
 	tcpPorts, udpPorts, err := service.Ports()
