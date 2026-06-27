@@ -13,7 +13,7 @@ In this section we will walk you through the general process of setting up your 
 
 ### Pre-requisites
 The following must be installed in order to get started. The details of how to install them is outside the scope of this doc, but generally they should be able to be installed with your systems package manager (apt, yum, brew, choco, etc).
-- Go > v1.17.0
+- Go 1.21 or newer
 - yarn
 - node.js
 
