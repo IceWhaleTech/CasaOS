@@ -49,7 +49,15 @@ func (d *Onedrive) GetInfo(ctx context.Context) (string, string, string, error) 
 		return "", "", "", err
 	}
 
-	return user.CreatedBy.User.Email, user.ParentReference.DriveID, user.ParentReference.DriveType, nil
+	identity := user.CreatedBy.User.Email
+	if identity == "" {
+		identity = user.CreatedBy.User.DisplayName
+	}
+	if identity == "" {
+		return "", "", "", fmt.Errorf("onedrive: could not determine user identity: createdBy.user.email and createdBy.user.displayName are both empty")
+	}
+
+	return identity, user.ParentReference.DriveID, user.ParentReference.DriveType, nil
 }
 
 func (d *Onedrive) GetSpaceSize(ctx context.Context) (used string, total string, err error) {
