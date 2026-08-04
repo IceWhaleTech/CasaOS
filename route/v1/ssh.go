@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/IceWhaleTech/CasaOS-Common/utils/common_err"
@@ -23,7 +24,17 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:   1024,
 	WriteBufferSize:  1024,
-	CheckOrigin:      func(r *http.Request) bool { return true },
+	CheckOrigin:      func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return true
+		}
+		if strings.Contains(origin, "127.0.0.1") || strings.Contains(origin, "localhost") ||
+			strings.Contains(origin, ".ts.net") || strings.Contains(origin, "100.") {
+			return true
+		}
+		return false
+	},
 	HandshakeTimeout: time.Duration(time.Second * 5),
 }
 

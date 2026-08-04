@@ -58,11 +58,10 @@ func IsNotExistMkDir(src string) error {
 
 // MkDir create a directory
 func MkDir(src string) error {
-	err := os.MkdirAll(src, os.ModePerm)
+	err := os.MkdirAll(src, 0o755)
 	if err != nil {
 		return err
 	}
-	os.Chmod(src, 0o777)
 
 	return nil
 }
@@ -165,7 +164,7 @@ func CreateFile(path string) error {
 }
 
 func CreateFileAndWriteContent(path string, content string) error {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o666)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
 	if err != nil {
 		return err
 	}
@@ -354,7 +353,7 @@ func WriteToPath(data []byte, path, name string) error {
 	} else {
 		fullPath += "/" + name
 	}
-	return WriteToFullPath(data, fullPath, 0o666)
+	return WriteToFullPath(data, fullPath, 0o644)
 }
 
 func WriteToFullPath(data []byte, fullPath string, perm fs.FileMode) error {
@@ -385,7 +384,7 @@ func SpliceFiles(dir, path string, length int, startPoint int) error {
 
 	file, _ := os.OpenFile(fullPath,
 		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
-		0o666,
+		0o644,
 	)
 
 	defer file.Close()

@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	client_id     = "private build"
-	client_secret = "private build"
+	client_id     = ""
+	client_secret = ""
 )
 
 // do others that not defined in Driver interface
@@ -38,7 +38,7 @@ func (d *GoogleDrive) getRefreshToken() error {
 	if err != nil {
 		return err
 	}
-	logger.Info("get refresh token", zap.String("res", res.String()))
+	logger.Info("get refresh token", zap.String("status", res.Status()))
 	if e.Error != "" {
 		return fmt.Errorf(e.Error)
 	}

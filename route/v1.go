@@ -20,16 +20,17 @@ func InitV1Router() http.Handler {
 	e.Use((echo_middleware.CORSWithConfig(echo_middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{echo.POST, echo.GET, echo.OPTIONS, echo.PUT, echo.DELETE},
-		AllowHeaders:     []string{echo.HeaderAuthorization, echo.HeaderContentLength, echo.HeaderXCSRFToken, echo.HeaderContentType, echo.HeaderAccessControlAllowOrigin, echo.HeaderAccessControlAllowHeaders, echo.HeaderAccessControlAllowMethods, echo.HeaderConnection, echo.HeaderOrigin, echo.HeaderXRequestedWith},
-		ExposeHeaders:    []string{echo.HeaderContentLength, echo.HeaderAccessControlAllowOrigin, echo.HeaderAccessControlAllowHeaders},
+		AllowHeaders:     []string{echo.HeaderAuthorization, echo.HeaderContentLength, echo.HeaderContentType},
+		ExposeHeaders:    []string{echo.HeaderContentLength},
 		MaxAge:           172800,
-		AllowCredentials: true,
+		AllowCredentials: false,
 	})))
 	e.Use(echo_middleware.Gzip())
 	e.Use(echo_middleware.Recover())
 	e.Use(echo_middleware.Logger())
 
-	e.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
+	// Rate limiting: 100 requests per minute per IP
+	e.Use(echo_middleware.RateLimiter(echo_middleware.NewRateLimiterMemoryStore(100)))
 
 	e.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
 	e.GET("/v1/sys/version/current", func(ctx echo.Context) error {
@@ -43,7 +44,9 @@ func InitV1Router() http.Handler {
 	//	e.Any("/v1/test", v1.CheckNetwork)
 	v1Group.Use(echo_middleware.JWTWithConfig(echo_middleware.JWTConfig{
 		Skipper: func(c echo.Context) bool {
-			return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
+			// Use TCP-level RemoteAddr instead of X-Forwarded-For to prevent auth bypass
+			addr := c.Request().RemoteAddr
+			return addr == "127.0.0.1" || addr == "[::1]" || addr == "::1"
 		},
 		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
 			valid, claims, err := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
@@ -57,10 +60,7 @@ func InitV1Router() http.Handler {
 		},
 		TokenLookupFuncs: []echo_middleware.ValuesExtractor{
 			func(ctx echo.Context) ([]string, error) {
-				if len(ctx.Request().Header.Get(echo.HeaderAuthorization)) > 0 {
-					return []string{ctx.Request().Header.Get(echo.HeaderAuthorization)}, nil
-				}
-				return []string{ctx.QueryParam("token")}, nil
+				return []string{ctx.Request().Header.Get(echo.HeaderAuthorization)}, nil
 			},
 		},
 	}))
@@ -70,6 +70,7 @@ func InitV1Router() http.Handler {
 		v1SysGroup.Use()
 		{
 			v1SysGroup.GET("/version", v1.GetSystemCheckVersion) // version/check
+			v1SysGroup.GET("/debug", v1.GetSystemConfigDebug)   // debug - now behind auth
 
 			v1SysGroup.POST("/update", v1.SystemUpdate)
 

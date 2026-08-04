@@ -88,7 +88,7 @@ func PostSambaSharesCreate(ctx echo.Context) error {
 		shareDBModel.Anonymous = true
 		shareDBModel.Path = v.Path
 		shareDBModel.Name = filepath.Base(v.Path)
-		os.Chmod(v.Path, 0o777)
+		os.Chmod(v.Path, 0o755)
 		service.MyService.Shares().CreateShare(shareDBModel)
 	}
 
@@ -156,7 +156,7 @@ func PostSambaConnectionsCreate(ctx echo.Context) error {
 	// check connect is ok
 	directories, err := samba.GetSambaSharesList(connection.Host, connection.Port, connection.Username, connection.Password)
 	if err != nil {
-		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
 	}
 
 	connectionDBModel := model2.ConnectionsDBModel{}
@@ -190,7 +190,7 @@ func DeleteSambaConnections(ctx echo.Context) error {
 	mountPointList, err := samba.GetSambaSharesList(connection.Host, connection.Port, connection.Username, connection.Password)
 	// mountPointList, err := service.MyService.System().GetDirPath(connection.MountPoint)
 	if err != nil {
-		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+		return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
 	}
 	baseHostPath := "/mnt/" + connection.Host
 	for _, v := range mountPointList {
@@ -198,7 +198,7 @@ func DeleteSambaConnections(ctx echo.Context) error {
 			err := service.MyService.Connections().UnmountSmaba(baseHostPath + "/" + v)
 			if err != nil {
 				logger.Error("unmount smaba error", zap.Error(err), zap.Any("path", baseHostPath+"/"+v))
-				return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: err.Error()})
+				return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
 			}
 		}
 	}

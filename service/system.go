@@ -261,6 +261,15 @@ func (c *systemService) GetDiskInfo() *disk.UsageStat {
 }
 
 func (c *systemService) GetNetState(name string) string {
+	// Validate network interface name to prevent command injection
+	if len(name) == 0 || len(name) > 15 {
+		return ""
+	}
+	for _, ch := range name {
+		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-' || ch == '_') {
+			return ""
+		}
+	}
 	if output, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;CatNetCardState " + name); err != nil {
 		return ""
 	} else {
@@ -362,7 +371,10 @@ func (c *systemService) GetNet(physics bool) []string {
 	if physics {
 		t = "2"
 	}
-
+	// Validate parameter is only "1" or "2"
+	if t != "1" && t != "2" {
+		return []string{}
+	}
 	if output, err := command.OnlyExec("source " + config.AppInfo.ShellPath + "/helper.sh ;GetNetCard " + t); err != nil {
 		return []string{}
 	} else {
@@ -377,16 +389,9 @@ func (s *systemService) UpdateSystemVersion(version string) {
 		os.Remove(config.AppInfo.LogPath + "/upgrade.log")
 	}
 	file.CreateFile(config.AppInfo.LogPath + "/upgrade.log")
-	// go command2.OnlyExec("curl -fsSL https://raw.githubusercontent.com/LinkLeong/casaos-alpha/main/update.sh | bash")
-	if len(config.ServerInfo.UpdateUrl) > 0 {
-		go command.OnlyExec("curl -fsSL " + config.ServerInfo.UpdateUrl + " | bash")
-	} else {
-		osRelease, _ := file.ReadOSRelease()
-		go command.OnlyExec("curl -fsSL https://get.casaos.io/update?t=" + osRelease["MANUFACTURER"] + " | bash")
-	}
-
-	// s.log.Error(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version)
-	// s.log.Error(command2.ExecResultStr(config.AppInfo.ProjectPath + "/shell/tool.sh -r " + version))
+	// NOTE: Remote update via curl|bash has been removed for security.
+	// Updates should be done manually or through the package manager.
+	logger.Info("System update requested - manual update required for security")
 }
 
 func (s *systemService) UpdateAssist() {

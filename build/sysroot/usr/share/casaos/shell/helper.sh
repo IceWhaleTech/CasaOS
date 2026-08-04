@@ -39,7 +39,7 @@ GetTimeZone(){
 #param 网卡名称
 CatNetCardState() {
   if [ -e "/sys/class/net/$1/operstate" ]; then
-    cat /sys/class/net/$1/operstate
+    cat "/sys/class/net/$1/operstate"
   fi
 }
 
@@ -55,8 +55,8 @@ GetDockerRootDir() {
 #删除安装应用文件夹
 #param 需要删除的文件夹路径
 DelAppConfigDir() {
-  if [ -d $1 ]; then
-    rm -fr $1
+  if [ -d "$1" ]; then
+    rm -fr "$1"
   fi
 }
 
@@ -342,8 +342,8 @@ EditSmabaUserPassword(){
 }
 
 AddSmabaUser(){
-  $sudo_cmd useradd $1
-  $sudo_cmd smbpasswd -a $1 <<EOF
+  $sudo_cmd useradd "$1"
+  $sudo_cmd smbpasswd -a "$1" <<EOF
     $2
     $2
 EOF
@@ -351,7 +351,7 @@ EOF
 
 # $1:username $2:host $3:share $4:port $5:mountpoint $6:password 
 MountCIFS(){
- $sudo_cmd mount -t cifs -o username=$1,password=$6,port=$4 //$2/$3 $5
+ $sudo_cmd mount -t cifs -o "username=$1,password=$6,port=$4" "//$2/$3" "$5"
 }
 
 UDEVILUmount(){
