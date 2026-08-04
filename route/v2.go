@@ -166,9 +166,16 @@ func InitFile() http.Handler {
 			return
 		}
 		filePath := r.URL.Query().Get("path")
-		fileName := path.Base(filePath)
+		sanitized, err := file.SanitizePath(filePath)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"message": "invalid file path"}`))
+			return
+		}
+		fileName := path.Base(sanitized)
 		w.Header().Add("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(fileName))
-		http.ServeFile(w, r, filePath)
+		http.ServeFile(w, r, sanitized)
 		// http.ServeFile(w, r, filePath)
 	})
 }

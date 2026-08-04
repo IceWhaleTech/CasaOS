@@ -176,7 +176,8 @@ do_mount() {
   fi
 
   # Get info for this drive: $ID_FS_LABEL and $ID_FS_TYPE
-  eval $(blkid -o udev ${DEVICE} | grep -i -e "ID_FS_LABEL" -e "ID_FS_TYPE")
+  # shellcheck disable=SC2046
+  eval "$(blkid -o udev "${DEVICE}" | grep -i -e "ID_FS_LABEL" -e "ID_FS_TYPE")"
 
   LABEL=$2
   if grep -q " ${LABEL} " /etc/mtab; then
@@ -248,14 +249,14 @@ PackageDocker() {
   #判断目录docker存在不存在则创建,存在检查是否为空
 
   if [ ! -d "$docker" ]; then
-    mkdir ${docker}
+    mkdir "${docker}"
   fi
 
-  if [ "$(ls -A $docker)" = "" ]; then
+  if [ "$(ls -A "$docker")" = "" ]; then
     echo "$docker count is 0"
   else
-    mkdir ${docker}_bak
-    mv -r ${docker} ${docker}_bak
+    mkdir "${docker}_bak"
+    mv -r "${docker}" "${docker}_bak"
   fi
 
   daemon="/etc/docker/daemon.json"
