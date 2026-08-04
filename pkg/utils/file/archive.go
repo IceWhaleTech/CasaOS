@@ -19,11 +19,10 @@ type ArchiveWriter interface {
 
 type zipArchiveWriter struct{ w *zip.Writer }
 func (z *zipArchiveWriter) Create(w io.Writer) error { z.w = zip.NewWriter(w); return nil }
-func (z *zipArchiveWriter) Write(n string, r io.Reader, sz int64, _ int64) error {
+func (z *zipArchiveWriter) Write(n string, r io.Reader, _ int64, _ int64) error {
 	f, err := z.w.Create(n)
 	if err != nil { return err }
-	_, err = io.Copy(f, r)
-	return err
+	_, err = io.Copy(f, r); return err
 }
 func (z *zipArchiveWriter) Close() error { return z.w.Close() }
 
@@ -31,22 +30,19 @@ type tarArchiveWriter struct{ w *tar.Writer }
 func (t *tarArchiveWriter) Create(w io.Writer) error { t.w = tar.NewWriter(w); return nil }
 func (t *tarArchiveWriter) Write(n string, r io.Reader, sz int64, _ int64) error {
 	if err := t.w.WriteHeader(&tar.Header{Name: n, Size: sz, Mode: 0644}); err != nil { return err }
-	_, err := io.Copy(t.w, r)
-	return err
+	_, err := io.Copy(t.w, r); return err
 }
 func (t *tarArchiveWriter) Close() error { return t.w.Close() }
 
 type tarGzArchiveWriter struct{ tw tarArchiveWriter; gw *gzip.Writer }
 func (tg *tarGzArchiveWriter) Create(w io.Writer) error {
-	tg.gw = gzip.NewWriter(w)
-	return tg.tw.Create(tg.gw)
+	tg.gw = gzip.NewWriter(w); return tg.tw.Create(tg.gw)
 }
 func (tg *tarGzArchiveWriter) Write(n string, r io.Reader, s int64, m int64) error {
 	return tg.tw.Write(n, r, s, m)
 }
 func (tg *tarGzArchiveWriter) Close() error {
-	if err := tg.tw.Close(); err != nil { return err }
-	return tg.gw.Close()
+	if err := tg.tw.Close(); err != nil { return err }; return tg.gw.Close()
 }
 
 func getCompressionWriter(t string) (string, ArchiveWriter, error) {
