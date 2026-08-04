@@ -70,6 +70,28 @@ func SanitizePaths(paths []string) ([]string, error) {
 	return sanitized, nil
 }
 
+// ValidatePath sanitizes a path and returns an error response message if invalid.
+// Returns ("", errMsg) on failure, or (cleanedPath, "") on success.
+func ValidatePath(rawPath string) (string, string) {
+	if len(rawPath) == 0 {
+		return "", "path is required"
+	}
+	cleaned, err := SanitizePath(rawPath)
+	if err != nil {
+		return "", "invalid file path"
+	}
+	return cleaned, ""
+}
+
+// ValidatePaths sanitizes multiple paths and returns an error message if any are invalid.
+func ValidatePaths(paths []string) ([]string, string) {
+	sanitized, err := SanitizePaths(paths)
+	if err != nil {
+		return nil, "invalid file path"
+	}
+	return sanitized, ""
+}
+
 // SoftDelete moves a file or directory to the trash directory instead of permanently deleting it.
 // The trash is organized as .casaos-trash/<timestamp>_<basename> to avoid collisions.
 func SoftDelete(sourcePath string) error {
