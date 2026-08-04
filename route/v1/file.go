@@ -512,17 +512,36 @@ func GetFileUpload(ctx echo.Context) error {
 	fileName := ctx.QueryParam("filename")
 	chunkNumber := ctx.QueryParam("chunkNumber")
 	totalChunks, _ := strconv.Atoi(utils.DefaultQuery(ctx, "totalChunks", "0"))
-	path := ctx.QueryParam("path")
+	rawPath := ctx.QueryParam("path")
 	dirPath := ""
+
+	if len(rawPath) == 0 {
+		return ctx.JSON(http.StatusBadRequest, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+	}
+	basePath, err := file.SanitizePath(rawPath)
+	if err != nil {
+		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: "invalid file path"})
+	}
+
+	// Sanitize relative path
+	relative = strings.ReplaceAll(relative, "..", "")
+	relative = strings.TrimLeft(relative, "/")
+
+	fullPath := filepath.Join(basePath, relative)
+	fullPath, err = file.SanitizePath(fullPath)
+	if err != nil {
+		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: "invalid file path"})
+	}
+
 	hash := file.GetHashByContent([]byte(fileName))
-	if file.Exists(path + "/" + relative) {
+	if file.Exists(fullPath) {
 		return ctx.JSON(http.StatusConflict, model.Result{Success: http.StatusConflict, Message: common_err.GetMsg(common_err.FILE_ALREADY_EXISTS)})
 	}
-	tempDir := filepath.Join(path, ".temp", hash+strconv.Itoa(totalChunks)) + "/"
+	tempDir := filepath.Join(basePath, ".temp", hash+strconv.Itoa(totalChunks)) + "/"
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
-		tempDir += dirPath
-		file.MkDir(path + "/" + dirPath)
+		tempDir = filepath.Join(basePath, ".temp", hash+strconv.Itoa(totalChunks), dirPath) + "/"
+		file.MkDir(filepath.Join(basePath, dirPath))
 	}
 	tempDir += chunkNumber
 	if !file.CheckNotExist(tempDir) {
@@ -556,22 +575,33 @@ func PostFileUpload(ctx echo.Context) error {
 		logger.Error("path should not be empty")
 		return ctx.JSON(http.StatusBadRequest, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	}
-	path, err := file.SanitizePath(rawPath)
+	basePath, err := file.SanitizePath(rawPath)
 	if err != nil {
 		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: "invalid file path"})
 	}
-	tempDir := filepath.Join(path, ".temp", hash+strconv.Itoa(totalChunks)) + "/"
+
+	// Sanitize relative path to prevent traversal in upload subdirectory
+	relative = strings.ReplaceAll(relative, "..", "")
+	relative = strings.TrimLeft(relative, "/")
+
+	path := filepath.Join(basePath, relative)
+
+	// Re-validate the combined path stays within allowed directories
+	path, err = file.SanitizePath(path)
+	if err != nil {
+		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: "invalid file path"})
+	}
+
+	tempDir := filepath.Join(basePath, ".temp", hash+strconv.Itoa(totalChunks)) + "/"
 
 	if fileName != relative {
 		dirPath = strings.TrimSuffix(relative, fileName)
-		tempDir += dirPath
-		if err := file.MkDir(path + "/" + dirPath); err != nil {
-			logger.Error("error when trying to create `"+path+"/"+dirPath+"`", zap.Error(err))
+		tempDir = filepath.Join(basePath, ".temp", hash+strconv.Itoa(totalChunks), dirPath) + "/"
+		if err := file.MkDir(filepath.Join(basePath, dirPath)); err != nil {
+			logger.Error("error when trying to create `"+filepath.Join(basePath, dirPath)+"`", zap.Error(err))
 			return ctx.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
 		}
 	}
-
-	path += "/" + relative
 
 	if !file.CheckNotExist(tempDir + chunkNumber) {
 		if err := file.RMDir(tempDir + chunkNumber); err != nil {

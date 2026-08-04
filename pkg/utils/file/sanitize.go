@@ -21,9 +21,8 @@ var AllowedBaseDirs = []string{
 	"/etc/samba",
 }
 
-// SanitizePath resolves the given path and ensures it stays within one of the
-// AllowedBaseDirs. It rejects any path containing ".." components or symlinks
-// that resolve outside the allowed directories.
+// SanitizePath validates the given path and ensures it stays within one of the
+// AllowedBaseDirs. It rejects any path containing ".." components.
 func SanitizePath(rawPath string) (string, error) {
 	if len(rawPath) == 0 {
 		return "", ErrEmptyPath
