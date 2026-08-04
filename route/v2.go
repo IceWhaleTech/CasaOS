@@ -20,6 +20,7 @@ import (
 	"github.com/deepmap/oapi-codegen/pkg/middleware"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 )
@@ -71,14 +72,14 @@ func InitV2Router() http.Handler {
 	// Rate limiting: 100 requests per minute per IP
 	e.Use(echo_middleware.RateLimiter(echo_middleware.NewRateLimiterMemoryStore(100)))
 
-	e.Use(echo_middleware.JWTWithConfig(echo_middleware.JWTConfig{
+	e.Use(echojwt.WithConfig(echojwt.Config{
 		Skipper: func(c echo.Context) bool {
 			// Use TCP-level RemoteAddr instead of X-Forwarded-For to prevent auth bypass
 			addr := c.Request().RemoteAddr
 			return addr == "127.0.0.1" || addr == "[::1]" || addr == "::1"
 		},
-		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
-			valid, claims, err := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
+		ParseTokenFunc: func(c echo.Context, auth string) (interface{}, error) {
+			valid, claims, err := jwt.Validate(auth, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
 			if err != nil || !valid {
 				return nil, echo.ErrUnauthorized
 			}
