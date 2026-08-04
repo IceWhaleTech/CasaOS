@@ -71,15 +71,15 @@ GetLocalJoinNetworks() {
 #param 格式
 FormatDisk() {
   if [ "$2" == "fat32" ]; then
-    mkfs.vfat -F 32 $1
+    mkfs.vfat -F 32 "$1"
   elif [ "$2" == "ntfs" ]; then
-    mkfs.ntfs $1
+    mkfs.ntfs "$1"
   elif [ "$2" == "ext4" ]; then
-    mkfs.ext4 -m 1 -F $1
+    mkfs.ext4 -m 1 -F "$1"
   elif [ "$2" == "exfat" ]; then
-    mkfs.exfat $1
+    mkfs.exfat "$1"
   else
-    mkfs.ext4 -m 1 -F $1
+    mkfs.ext4 -m 1 -F "$1"
   fi
 }
 
@@ -87,7 +87,7 @@ FormatDisk() {
 #param 路径   /dev/sdb
 #param 删除分区的区号
 DelPartition() {
-  fdisk $1 <<EOF
+  fdisk "$1" <<EOF
   d
   $2
   wq
@@ -99,14 +99,14 @@ EOF
 #param 要挂载的目录
 AddPartition() {
 
-  DelPartition $1
-  parted -s $1 mklabel gpt
+  DelPartition "$1"
+  parted -s "$1" mklabel gpt
 
-  parted -s $1 mkpart primary ext4 0 100%
-  P=`lsblk -r $1 | sort | grep part | head -n 1 | awk '{print $1}'`
-  mkfs.ext4 -m 1 -F /dev/${P}
+  parted -s "$1" mkpart primary ext4 0 100%
+  P=$(lsblk -r "$1" | sort | grep part | head -n 1 | awk '{print $1}')
+  mkfs.ext4 -m 1 -F "/dev/${P}"
 
-  partprobe $1
+  partprobe "$1"
 
 }
 
