@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/IceWhaleTech/CasaOS/types"
@@ -12,7 +13,15 @@ import (
 
 var upGrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
-		return true
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return true
+		}
+		if strings.Contains(origin, "127.0.0.1") || strings.Contains(origin, "localhost") ||
+			strings.Contains(origin, ".ts.net") || strings.Contains(origin, "100.") {
+			return true
+		}
+		return false
 	},
 }
 

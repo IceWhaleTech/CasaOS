@@ -3,12 +3,10 @@ package file
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"os"
 	"path"
@@ -17,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mholt/archiver/v3"
+
 )
 
 // GetSize get the file size
@@ -58,11 +56,10 @@ func IsNotExistMkDir(src string) error {
 
 // MkDir create a directory
 func MkDir(src string) error {
-	err := os.MkdirAll(src, os.ModePerm)
+	err := os.MkdirAll(src, 0o755)
 	if err != nil {
 		return err
 	}
-	os.Chmod(src, 0o777)
 
 	return nil
 }
@@ -165,7 +162,7 @@ func CreateFile(path string) error {
 }
 
 func CreateFileAndWriteContent(path string, content string) error {
-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o666)
+	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
 	if err != nil {
 		return err
 	}
@@ -354,7 +351,7 @@ func WriteToPath(data []byte, path, name string) error {
 	} else {
 		fullPath += "/" + name
 	}
-	return WriteToFullPath(data, fullPath, 0o666)
+	return WriteToFullPath(data, fullPath, 0o644)
 }
 
 func WriteToFullPath(data []byte, fullPath string, perm fs.FileMode) error {
@@ -385,7 +382,7 @@ func SpliceFiles(dir, path string, length int, startPoint int) error {
 
 	file, _ := os.OpenFile(fullPath,
 		os.O_WRONLY|os.O_TRUNC|os.O_CREATE,
-		0o666,
+		0o644,
 	)
 
 	defer file.Close()
@@ -409,74 +406,12 @@ func SpliceFiles(dir, path string, length int, startPoint int) error {
 	return nil
 }
 
-func GetCompressionAlgorithm(t string) (string, archiver.Writer, error) {
-	switch t {
-	case "zip", "":
-		return ".zip", archiver.NewZip(), nil
-	case "tar":
-		return ".tar", archiver.NewTar(), nil
-	case "targz":
-		return ".tar.gz", archiver.NewTarGz(), nil
-	case "tarbz2":
-		return ".tar.bz2", archiver.NewTarBz2(), nil
-	case "tarxz":
-		return ".tar.xz", archiver.NewTarXz(), nil
-	case "tarlz4":
-		return ".tar.lz4", archiver.NewTarLz4(), nil
-	case "tarsz":
-		return ".tar.sz", archiver.NewTarSz(), nil
-	default:
-		return "", nil, errors.New("format not implemented")
-	}
+func GetCompressionAlgorithm(t string) (string, ArchiveWriter, error) {
+	return getCompressionWriter(t)
 }
 
-func AddFile(ar archiver.Writer, path, commonPath string) error {
-	info, err := os.Stat(path)
-	if err != nil {
-		return err
-	}
-
-	if !info.IsDir() && !info.Mode().IsRegular() {
-		return nil
-	}
-
-	file, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	if path != commonPath {
-		//filename := info.Name()
-		filename := strings.TrimPrefix(path, commonPath)
-		filename = strings.TrimPrefix(filename, string(filepath.Separator))
-		err = ar.Write(archiver.File{
-			FileInfo: archiver.FileInfo{
-				FileInfo:   info,
-				CustomName: filename,
-			},
-			ReadCloser: file,
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	if info.IsDir() {
-		names, err := file.Readdirnames(0)
-		if err != nil {
-			return err
-		}
-
-		for _, name := range names {
-			err = AddFile(ar, filepath.Join(path, name), commonPath)
-			if err != nil {
-				log.Printf("Failed to archive %v", err)
-			}
-		}
-	}
-
-	return nil
+func AddFile(ar ArchiveWriter, path, commonPath string) error {
+	return AddFileToArchive(ar, path, commonPath)
 }
 
 func CommonPrefix(sep byte, paths ...string) string {

@@ -72,15 +72,15 @@ func (i *notifyServer) SendNotify(name string, message map[string]interface{}) {
 // Send periodic broadcast messages
 func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 	if nowSend {
-		len := 0
+		queueLen := 0
 		FileQueue.Range(func(k, v interface{}) bool {
-			len++
+			queueLen++
 			return true
 		})
 
 		model := notify.NotifyModel{}
 		listMsg := make(map[string]interface{})
-		if len == 0 {
+		if queueLen == 0 {
 			model.Data = []string{}
 			listMsg["file_operate"] = model
 			msg := make(map[string]string)
@@ -100,7 +100,10 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 
 		model.State = "NORMAL"
 		list := []notify.File{}
-		OpStrArrbak := OpStrArr
+		OpStrArrMu.Lock()
+		OpStrArrbak := make([]string, len(OpStrArr))
+		copy(OpStrArrbak, OpStrArr)
+		OpStrArrMu.Unlock()
 
 		for _, v := range OpStrArrbak {
 			tempItem, ok := FileQueue.Load(v)
@@ -125,7 +128,11 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 				task.Finished = true
 				task.Status = "FINISHED"
 				FileQueue.Delete(v)
-				OpStrArr = OpStrArr[1:]
+				OpStrArrMu.Lock()
+				if len(OpStrArr) > 0 {
+					OpStrArr = OpStrArr[1:]
+				}
+				OpStrArrMu.Unlock()
 				go ExecOpFile()
 				list = append(list, task)
 				continue
@@ -158,21 +165,24 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 	} else {
 		for {
 
-			len := 0
+			queueLen := 0
 			FileQueue.Range(func(k, v interface{}) bool {
-				len++
+				queueLen++
 				return true
 			})
-			if len == 0 {
+			if queueLen == 0 {
 				return
 			}
 			listMsg := make(map[string]interface{})
 			model := notify.NotifyModel{}
 			model.State = "NORMAL"
 			list := []notify.File{}
-			OpStrArrbak := OpStrArr
+			OpStrArrMu.Lock()
+			OpStrArrbak2 := make([]string, len(OpStrArr))
+			copy(OpStrArrbak2, OpStrArr)
+			OpStrArrMu.Unlock()
 
-			for _, v := range OpStrArrbak {
+			for _, v := range OpStrArrbak2 {
 				tempItem, ok := FileQueue.Load(v)
 				temp := tempItem.(model2.FileOperate)
 				if !ok {
@@ -194,7 +204,11 @@ func (i *notifyServer) SendFileOperateNotify(nowSend bool) {
 					task.Finished = true
 					task.Status = "FINISHED"
 					FileQueue.Delete(v)
-					OpStrArr = OpStrArr[1:]
+					OpStrArrMu.Lock()
+					if len(OpStrArr) > 0 {
+						OpStrArr = OpStrArr[1:]
+					}
+					OpStrArrMu.Unlock()
 					go ExecOpFile()
 					list = append(list, task)
 					continue

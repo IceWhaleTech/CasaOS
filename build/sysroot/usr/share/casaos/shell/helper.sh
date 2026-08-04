@@ -39,7 +39,7 @@ GetTimeZone(){
 #param 网卡名称
 CatNetCardState() {
   if [ -e "/sys/class/net/$1/operstate" ]; then
-    cat /sys/class/net/$1/operstate
+    cat "/sys/class/net/$1/operstate"
   fi
 }
 
@@ -55,8 +55,8 @@ GetDockerRootDir() {
 #删除安装应用文件夹
 #param 需要删除的文件夹路径
 DelAppConfigDir() {
-  if [ -d $1 ]; then
-    rm -fr $1
+  if [ -d "$1" ]; then
+    rm -fr "$1"
   fi
 }
 
@@ -71,15 +71,15 @@ GetLocalJoinNetworks() {
 #param 格式
 FormatDisk() {
   if [ "$2" == "fat32" ]; then
-    mkfs.vfat -F 32 $1
+    mkfs.vfat -F 32 "$1"
   elif [ "$2" == "ntfs" ]; then
-    mkfs.ntfs $1
+    mkfs.ntfs "$1"
   elif [ "$2" == "ext4" ]; then
-    mkfs.ext4 -m 1 -F $1
+    mkfs.ext4 -m 1 -F "$1"
   elif [ "$2" == "exfat" ]; then
-    mkfs.exfat $1
+    mkfs.exfat "$1"
   else
-    mkfs.ext4 -m 1 -F $1
+    mkfs.ext4 -m 1 -F "$1"
   fi
 }
 
@@ -87,7 +87,7 @@ FormatDisk() {
 #param 路径   /dev/sdb
 #param 删除分区的区号
 DelPartition() {
-  fdisk $1 <<EOF
+  fdisk "$1" <<EOF
   d
   $2
   wq
@@ -99,14 +99,14 @@ EOF
 #param 要挂载的目录
 AddPartition() {
 
-  DelPartition $1
-  parted -s $1 mklabel gpt
+  DelPartition "$1"
+  parted -s "$1" mklabel gpt
 
-  parted -s $1 mkpart primary ext4 0 100%
-  P=`lsblk -r $1 | sort | grep part | head -n 1 | awk '{print $1}'`
-  mkfs.ext4 -m 1 -F /dev/${P}
+  parted -s "$1" mkpart primary ext4 0 100%
+  P=$(lsblk -r "$1" | sort | grep part | head -n 1 | awk '{print $1}')
+  mkfs.ext4 -m 1 -F "/dev/${P}"
 
-  partprobe $1
+  partprobe "$1"
 
 }
 
@@ -176,7 +176,8 @@ do_mount() {
   fi
 
   # Get info for this drive: $ID_FS_LABEL and $ID_FS_TYPE
-  eval $(blkid -o udev ${DEVICE} | grep -i -e "ID_FS_LABEL" -e "ID_FS_TYPE")
+  # shellcheck disable=SC2046
+  eval "$(blkid -o udev "${DEVICE}" | grep -i -e "ID_FS_LABEL" -e "ID_FS_TYPE")"
 
   LABEL=$2
   if grep -q " ${LABEL} " /etc/mtab; then
@@ -248,14 +249,14 @@ PackageDocker() {
   #判断目录docker存在不存在则创建,存在检查是否为空
 
   if [ ! -d "$docker" ]; then
-    mkdir ${docker}
+    mkdir "${docker}"
   fi
 
-  if [ "$(ls -A $docker)" = "" ]; then
+  if [ "$(ls -A "$docker")" = "" ]; then
     echo "$docker count is 0"
   else
-    mkdir ${docker}_bak
-    mv -r ${docker} ${docker}_bak
+    mkdir "${docker}_bak"
+    mv -r "${docker}" "${docker}_bak"
   fi
 
   daemon="/etc/docker/daemon.json"
@@ -342,8 +343,8 @@ EditSmabaUserPassword(){
 }
 
 AddSmabaUser(){
-  $sudo_cmd useradd $1
-  $sudo_cmd smbpasswd -a $1 <<EOF
+  $sudo_cmd useradd "$1"
+  $sudo_cmd smbpasswd -a "$1" <<EOF
     $2
     $2
 EOF
@@ -351,7 +352,7 @@ EOF
 
 # $1:username $2:host $3:share $4:port $5:mountpoint $6:password 
 MountCIFS(){
- $sudo_cmd mount -t cifs -o username=$1,password=$6,port=$4 //$2/$3 $5
+ $sudo_cmd mount -t cifs -o "username=$1,password=$6,port=$4" "//$2/$3" "$5"
 }
 
 UDEVILUmount(){
