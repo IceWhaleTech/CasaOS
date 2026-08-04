@@ -17,44 +17,30 @@ type ArchiveWriter interface {
 	Close() error
 }
 
-type zipArchiveWriter struct {
-	zw *zip.Writer
-}
+type zipArchiveWriter struct{ w *zip.Writer }
 
-func (z *zipArchiveWriter) Create(w io.Writer) error {
-	z.zw = zip.NewWriter(w)
-	return nil
-}
-
-func (z *zipArchiveWriter) Write(filename string, r io.Reader, fileSize int64, modTime int64) error {
-	f, err := z.zw.Create(filename)
+func (z *zipArchiveWriter) Create(w io.Writer) error { z.w = zip.NewWriter(w); return nil }
+func (z *zipArchiveWriter) Write(name string, r io.Reader, sz int64, _ int64) error {
+	f, err := z.w.Create(name)
 	if err != nil {
 		return err
 	}
 	_, err = io.Copy(f, r)
 	return err
 }
+func (z *zipArchiveWriter) Close() error { return z.w.Close() }
 
-func (z *zipArchiveWriter) Close() error { return z.zw.Close() }
+type tarArchiveWriter struct{ w *tar.Writer }
 
-type tarArchiveWriter struct {
-	tw *tar.Writer
-}
-
-func (t *tarArchiveWriter) Create(w io.Writer) error {
-	t.tw = tar.NewWriter(w)
-	return nil
-}
-
-func (t *tarArchiveWriter) Write(filename string, r io.Reader, fileSize int64, modTime int64) error {
-	if err := t.tw.WriteHeader(&tar.Header{Name: filename, Size: fileSize, Mode: 0644}); err != nil {
+func (t *tarArchiveWriter) Create(w io.Writer) error { t.w = tar.NewWriter(w); return nil }
+func (t *tarArchiveWriter) Write(name string, r io.Reader, sz int64, _ int64) error {
+	if err := t.w.WriteHeader(&tar.Header{Name: name, Size: sz, Mode: 0644}); err != nil {
 		return err
 	}
-	_, err := io.Copy(t.tw, r)
+	_, err := io.Copy(t.w, r)
 	return err
 }
-
-func (t *tarArchiveWriter) Close() error { return t.tw.Close() }
+func (t *tarArchiveWriter) Close() error { return t.w.Close() }
 
 type tarGzArchiveWriter struct {
 	tw tarArchiveWriter
@@ -65,11 +51,9 @@ func (tg *tarGzArchiveWriter) Create(w io.Writer) error {
 	tg.gw = gzip.NewWriter(w)
 	return tg.tw.Create(tg.gw)
 }
-
-func (tg *tarGzArchiveWriter) Write(filename string, r io.Reader, fileSize int64, modTime int64) error {
-	return tg.tw.Write(filename, r, fileSize, modTime)
+func (tg *tarGzArchiveWriter) Write(n string, r io.Reader, s int64, m int64) error {
+	return tg.tw.Write(n, r, s, m)
 }
-
 func (tg *tarGzArchiveWriter) Close() error {
 	if err := tg.tw.Close(); err != nil {
 		return err
@@ -95,17 +79,14 @@ func AddFileToArchive(ar ArchiveWriter, path, commonPath string) error {
 	if err != nil {
 		return err
 	}
-
 	if !info.IsDir() && !info.Mode().IsRegular() {
 		return nil
 	}
-
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-
 	if path != commonPath {
 		filename := strings.TrimPrefix(path, commonPath)
 		filename = strings.TrimPrefix(filename, string(filepath.Separator))
