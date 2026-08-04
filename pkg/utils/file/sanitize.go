@@ -7,9 +7,11 @@ import (
 )
 
 var (
-	ErrPathTraversal  = errors.New("path traversal detected")
-	ErrEmptyPath      = errors.New("path is empty")
-	ErrPathNotAllowed = errors.New("path is not within allowed directories")
+	ErrPathTraversal          = errors.New("path traversal detected")
+	ErrEmptyPath              = errors.New("path is empty")
+	ErrPathNotAllowed         = errors.New("path is not within allowed directories")
+	errBlockedInternalResource = errors.New("access to internal resources is forbidden")
+	errSchemeNotAllowed       = errors.New("only http and https schemes are allowed")
 )
 
 // AllowedBaseDirs defines the directories that file operations are confined to.

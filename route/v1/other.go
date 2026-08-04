@@ -7,6 +7,7 @@ import (
 
 	"github.com/IceWhaleTech/CasaOS/model"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/labstack/echo/v4"
 )
@@ -46,12 +47,7 @@ func GetSearchResult(ctx echo.Context) error {
 		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: "URL domain not allowed"})
 	}
 
-	// Block internal/private IPs
-	if hostname == "127.0.0.1" || hostname == "localhost" || hostname == "::1" ||
-		hostname == "169.254.169.254" ||
-		strings.HasPrefix(hostname, "10.") ||
-		strings.HasPrefix(hostname, "172.") ||
-		strings.HasPrefix(hostname, "192.168.") {
+	if file.IsPrivateOrReservedIP(hostname) {
 		return ctx.JSON(common_err.CLIENT_ERROR, model.Result{Success: common_err.INVALID_PARAMS, Message: "access to internal resources is forbidden"})
 	}
 

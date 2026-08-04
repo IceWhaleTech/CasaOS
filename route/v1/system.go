@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 	"os"
 	"runtime"
 	"strconv"
@@ -21,6 +20,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -322,26 +322,8 @@ func GetSystemProxy(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
 	}
 
-	// SSRF protection: parse URL and block internal/private IPs
-	parsedURL, err := url.Parse(urlParam)
-	if err != nil {
-		return ctx.JSON(http.StatusBadRequest, model.Result{Success: common_err.INVALID_PARAMS, Message: "invalid URL"})
-	}
-
-	hostname := parsedURL.Hostname()
-	// Block localhost, private IPs, link-local, and metadata endpoints
-	if hostname == "127.0.0.1" || hostname == "localhost" || hostname == "::1" ||
-		hostname == "169.254.169.254" || hostname == "metadata.google.internal" ||
-		strings.HasPrefix(hostname, "10.") ||
-		strings.HasPrefix(hostname, "172.") ||
-		strings.HasPrefix(hostname, "192.168.") ||
-		hostname == "0.0.0.0" {
-		return ctx.JSON(http.StatusForbidden, model.Result{Success: common_err.SERVICE_ERROR, Message: "access to internal resources is forbidden"})
-	}
-
-	// Only allow HTTPS or explicitly trusted HTTP URLs
-	if parsedURL.Scheme != "https" && parsedURL.Scheme != "http" {
-		return ctx.JSON(http.StatusBadRequest, model.Result{Success: common_err.INVALID_PARAMS, Message: "only http and https schemes are allowed"})
+	if err := file.IsAllowedURL(urlParam, "http", "https"); err != nil {
+		return ctx.JSON(http.StatusForbidden, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
 	}
 
 	resp, err := http2.Get(urlParam, 30*time.Second)
