@@ -26,18 +26,16 @@ func (z *zipArchiveWriter) Create(w io.Writer) error {
 	return nil
 }
 
-func (z *zipArchiveWriter) Write(filename string, file io.Reader, fileSize int64, modTime int64) error {
+func (z *zipArchiveWriter) Write(filename string, r io.Reader, fileSize int64, modTime int64) error {
 	f, err := z.zw.Create(filename)
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(f, file)
+	_, err = io.Copy(f, r)
 	return err
 }
 
-func (z *zipArchiveWriter) Close() error {
-	return z.zw.Close()
-}
+func (z *zipArchiveWriter) Close() error { return z.zw.Close() }
 
 type tarArchiveWriter struct {
 	tw *tar.Writer
@@ -48,36 +46,28 @@ func (t *tarArchiveWriter) Create(w io.Writer) error {
 	return nil
 }
 
-func (t *tarArchiveWriter) Write(filename string, file io.Reader, fileSize int64, modTime int64) error {
-	header := &tar.Header{
-		Name: filename,
-		Size: fileSize,
-		Mode: 0644,
-	}
-	if err := t.tw.WriteHeader(header); err != nil {
+func (t *tarArchiveWriter) Write(filename string, r io.Reader, fileSize int64, modTime int64) error {
+	if err := t.tw.WriteHeader(&tar.Header{Name: filename, Size: fileSize, Mode: 0644}); err != nil {
 		return err
 	}
-	_, err := io.Copy(t.tw, file)
+	_, err := io.Copy(t.tw, r)
 	return err
 }
 
-func (t *tarArchiveWriter) Close() error {
-	return t.tw.Close()
-}
+func (t *tarArchiveWriter) Close() error { return t.tw.Close() }
 
 type tarGzArchiveWriter struct {
-	tw *tarArchiveWriter
+	tw tarArchiveWriter
 	gw *gzip.Writer
 }
 
 func (tg *tarGzArchiveWriter) Create(w io.Writer) error {
 	tg.gw = gzip.NewWriter(w)
-	tg.tw = &tarArchiveWriter{}
 	return tg.tw.Create(tg.gw)
 }
 
-func (tg *tarGzArchiveWriter) Write(filename string, file io.Reader, fileSize int64, modTime int64) error {
-	return tg.tw.Write(filename, file, fileSize, modTime)
+func (tg *tarGzArchiveWriter) Write(filename string, r io.Reader, fileSize int64, modTime int64) error {
+	return tg.tw.Write(filename, r, fileSize, modTime)
 }
 
 func (tg *tarGzArchiveWriter) Close() error {

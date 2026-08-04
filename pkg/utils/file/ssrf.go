@@ -3,7 +3,6 @@ package file
 import (
 	"net"
 	"net/url"
-	"strings"
 )
 
 // blockedHostnames contains hostnames that should never be accessed via SSRF.
@@ -21,19 +20,12 @@ func IsPrivateOrReservedIP(hostname string) bool {
 		}
 	}
 
-	// Parse as IP address
 	ip := net.ParseIP(hostname)
 	if ip != nil {
 		return ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast() ||
 			ip.IsLinkLocalMulticast() || ip.IsUnspecified() || ip.IsMulticast()
 	}
 
-	// Check common private IP prefix patterns for non-standard representations
-	for _, prefix := range []string{"10.", "172.", "192.168."} {
-		if strings.HasPrefix(hostname, prefix) {
-			return true
-		}
-	}
 	return false
 }
 
@@ -52,16 +44,12 @@ func IsAllowedURL(rawURL string, allowedSchemes ...string) error {
 	}
 
 	if len(allowedSchemes) > 0 {
-		schemeAllowed := false
 		for _, s := range allowedSchemes {
 			if parsedURL.Scheme == s {
-				schemeAllowed = true
-				break
+				return nil
 			}
 		}
-		if !schemeAllowed {
-			return errSchemeNotAllowed
-		}
+		return errSchemeNotAllowed
 	}
 
 	return nil
