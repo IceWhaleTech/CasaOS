@@ -18,8 +18,14 @@ import (
 func InitV1Router() http.Handler {
 	e := echo.New()
 
+	// CORS origins from config, default to * (all)
+	corsOrigins := []string{"*"}
+	if len(config.ServerInfo.CORSOrigins) > 0 {
+		corsOrigins = config.ServerInfo.CORSOrigins
+	}
+
 	e.Use((echo_middleware.CORSWithConfig(echo_middleware.CORSConfig{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     corsOrigins,
 		AllowMethods:     []string{echo.POST, echo.GET, echo.OPTIONS, echo.PUT, echo.DELETE},
 		AllowHeaders:     []string{echo.HeaderAuthorization, echo.HeaderContentLength, echo.HeaderContentType},
 		ExposeHeaders:    []string{echo.HeaderContentLength},
@@ -45,6 +51,10 @@ func InitV1Router() http.Handler {
 	//	e.Any("/v1/test", v1.CheckNetwork)
 	v1Group.Use(echojwt.WithConfig(echojwt.Config{
 		Skipper: func(c echo.Context) bool {
+			// Check if localhost bypass is enabled in config (default: true)
+			if config.ServerInfo.LocalhostBypass == false {
+				return false
+			}
 			// Use TCP-level RemoteAddr instead of X-Forwarded-For to prevent auth bypass
 			addr := c.Request().RemoteAddr
 			return addr == "127.0.0.1" || addr == "[::1]" || addr == "::1"

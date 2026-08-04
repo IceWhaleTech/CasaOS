@@ -2,6 +2,7 @@ package v1
 
 import (
 	"context"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
@@ -38,7 +39,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 			notify["message"] = "Initialization failure"
 			logger.Error("Then init error: ", zap.Error(err), zap.Any("name", "google_drive"))
 			service.MyService.Notify().SendNotify(event, notify)
-			return ctx.HTML(http.StatusOK, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
+			return ctx.HTML(http.StatusOK, `<p>Initialization failure:`+html.EscapeString(err.Error())+`</p><script>window.close()</script>`)
 		}
 
 		username, err := google_drive.GetUserInfo(context.Background())
@@ -47,7 +48,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 			notify["message"] = "Failed to get user information"
 			logger.Error("Then get user info error: ", zap.Error(err), zap.Any("name", "google_drive"))
 			service.MyService.Notify().SendNotify(event, notify)
-			return ctx.HTML(http.StatusOK, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			return ctx.HTML(http.StatusOK, `<p>Failed to get user information:`+html.EscapeString(err.Error())+`</p><script>window.close()</script>`)
 		}
 		dmap := make(map[string]string)
 		dmap["username"] = username
@@ -57,7 +58,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 			notify["message"] = "Failed to get rclone config"
 			logger.Error("Then get config error: ", zap.Error(err), zap.Any("name", "google_drive"))
 			service.MyService.Notify().SendNotify(event, notify)
-			return ctx.HTML(http.StatusOK, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
+			return ctx.HTML(http.StatusOK, `<p>Failed to get rclone config:`+html.EscapeString(err.Error())+`</p><script>window.close()</script>`)
 		}
 		for _, v := range configs.Remotes {
 			cf, err := service.MyService.Storage().GetConfigByName(v)
@@ -113,7 +114,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 			notify["message"] = "Initialization failure"
 			logger.Error("Then init error: ", zap.Error(err), zap.Any("name", "dropbox"))
 			service.MyService.Notify().SendNotify(event, notify)
-			return ctx.HTML(http.StatusOK, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
+			return ctx.HTML(http.StatusOK, `<p>Initialization failure:`+html.EscapeString(err.Error())+`</p><script>window.close()</script>`)
 		}
 		username, err := dropbox.GetUserInfo(context.Background())
 		if err != nil {
@@ -121,7 +122,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 			notify["message"] = "Failed to get user information"
 			logger.Error("Then get user information: ", zap.Error(err), zap.Any("name", "dropbox"))
 			service.MyService.Notify().SendNotify(event, notify)
-			return ctx.HTML(http.StatusOK, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			return ctx.HTML(http.StatusOK, `<p>Failed to get user information:`+html.EscapeString(err.Error())+`</p><script>window.close()</script>`)
 		}
 		dmap := make(map[string]string)
 		dmap["username"] = username
@@ -132,7 +133,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 			notify["message"] = "Failed to get rclone config"
 			logger.Error("Then get config error: ", zap.Error(err), zap.Any("name", "dropbox"))
 			service.MyService.Notify().SendNotify(event, notify)
-			return ctx.HTML(http.StatusOK, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
+			return ctx.HTML(http.StatusOK, `<p>Failed to get rclone config:`+html.EscapeString(err.Error())+`</p><script>window.close()</script>`)
 		}
 		for _, v := range configs.Remotes {
 			cf, err := service.MyService.Storage().GetConfigByName(v)
@@ -184,7 +185,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 			notify["message"] = "Initialization failure"
 			logger.Error("Then init error: ", zap.Error(err), zap.Any("name", "onedrive"))
 			service.MyService.Notify().SendNotify(event, notify)
-			return ctx.HTML(http.StatusOK, `<p>Initialization failure:`+err.Error()+`</p><script>window.close()</script>`)
+			return ctx.HTML(http.StatusOK, `<p>Initialization failure:`+html.EscapeString(err.Error())+`</p><script>window.close()</script>`)
 		}
 		username, driveId, driveType, err := onedrive.GetInfo(context.Background())
 		if err != nil {
@@ -192,7 +193,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 			notify["message"] = "Failed to get user information"
 			logger.Error("Then get user information: ", zap.Error(err), zap.Any("name", "onedrive"))
 			service.MyService.Notify().SendNotify(event, notify)
-			return ctx.HTML(http.StatusOK, `<p>Failed to get user information:`+err.Error()+`</p><script>window.close()</script>`)
+			return ctx.HTML(http.StatusOK, `<p>Failed to get user information:`+html.EscapeString(err.Error())+`</p><script>window.close()</script>`)
 		}
 		dmap := make(map[string]string)
 		dmap["username"] = username
@@ -203,7 +204,7 @@ func GetRecoverStorage(ctx echo.Context) error {
 			notify["message"] = "Failed to get rclone config"
 			logger.Error("Then get config error: ", zap.Error(err), zap.Any("name", "onedrive"))
 			service.MyService.Notify().SendNotify(event, notify)
-			return ctx.HTML(http.StatusOK, `<p>Failed to get rclone config:`+err.Error()+`</p><script>window.close()</script>`)
+			return ctx.HTML(http.StatusOK, `<p>Failed to get rclone config:`+html.EscapeString(err.Error())+`</p><script>window.close()</script>`)
 		}
 		for _, v := range configs.Remotes {
 			cf, err := service.MyService.Storage().GetConfigByName(v)

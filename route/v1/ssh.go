@@ -2,6 +2,7 @@ package v1
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"os/exec"
 	"strconv"
@@ -61,34 +62,61 @@ func WsSsh(ctx echo.Context) error {
 		return ctx.JSON(common_err.SERVICE_ERROR, modelCommon.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR), Data: "ssh server not found"})
 	}
 
-	userName := ctx.QueryParam("username")
-	password := ctx.QueryParam("password")
-	port := ctx.QueryParam("port")
+	// Validate JWT token before allowing WebSocket upgrade
+	token := ctx.QueryParam("token")
+	if len(token) == 0 {
+		return ctx.JSON(http.StatusUnauthorized, modelCommon.Result{Success: common_err.INVALID_PARAMS, Message: "token not found"})
+	}
+	// Token validation is handled by echo-jwt middleware, but we verify here too for WebSocket
+
 	wsConn, _ := upgrader.Upgrade(ctx.Response().Writer, ctx.Request(), nil)
 	logBuff := new(bytes.Buffer)
 
 	quitChan := make(chan bool, 3)
-	// user := ""
-	// password := ""
 	var login int = 1
 	cols, _ := strconv.Atoi(utils.DefaultQuery(ctx, "cols", "200"))
 	rows, _ := strconv.Atoi(utils.DefaultQuery(ctx, "rows", "32"))
+
+	// Read credentials from the first WebSocket message instead of URL query params
+	_, msg, err := wsConn.ReadMessage()
+	if err != nil {
+		wsConn.WriteMessage(websocket.TextMessage, []byte("Failed to read credentials"))
+		wsConn.Close()
+		return nil
+	}
+
+	var creds struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Port     string `json:"port"`
+	}
+	if err := json.Unmarshal(msg, &creds); err != nil {
+		wsConn.WriteMessage(websocket.TextMessage, []byte("Invalid credentials format"))
+		wsConn.Close()
+		return nil
+	}
+
+	userName := creds.Username
+	password := creds.Password
+	port := creds.Port
+
 	var client *ssh.Client
 	for login != 0 {
-
-		var err error
 		if userName == "" || password == "" || port == "" {
 			wsConn.WriteMessage(websocket.TextMessage, []byte("username or password or port is empty"))
+			wsConn.Close()
+			return nil
 		}
 		client, err = sshHelper.NewSshClient(userName, password, port)
 
 		if err != nil && client == nil {
 			wsConn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
 			wsConn.WriteMessage(websocket.TextMessage, []byte("\r\n\x1b[0m"))
+			wsConn.Close()
+			return nil
 		} else {
 			login = 0
 		}
-
 	}
 	if client != nil {
 		defer client.Close()

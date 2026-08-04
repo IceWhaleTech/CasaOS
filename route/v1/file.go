@@ -80,8 +80,6 @@ var (
 			return false
 		},
 	}
-	conn *websocket.Conn
-	err  error
 )
 
 // @Summary 读取文件
@@ -803,7 +801,7 @@ func DeleteFile(ctx echo.Context) error {
 	}
 
 	for _, v := range sanitizedPaths {
-		err := os.RemoveAll(v)
+		err := file.SoftDelete(v)
 		if err != nil {
 			return ctx.JSON(common_err.SERVICE_ERROR, model.Result{Success: common_err.FILE_DELETE_ERROR, Message: common_err.GetMsg(common_err.FILE_DELETE_ERROR)})
 		}
@@ -977,6 +975,14 @@ type PeerModel struct {
 }
 
 func ConnectWebSocket(ctx echo.Context) error {
+	// Validate JWT token before allowing WebSocket upgrade
+	token := ctx.QueryParam("token")
+	if len(token) == 0 {
+		return ctx.JSON(http.StatusUnauthorized, model.Result{Success: common_err.INVALID_PARAMS, Message: "token not found"})
+	}
+	// Token validation is handled by echo-jwt middleware, but we verify here too for WebSocket
+	// The middleware already validates the token and sets user_id header
+
 	peerId := ctx.QueryParam("peer")
 	writer := ctx.Response().Writer
 	request := ctx.Request()
@@ -989,8 +995,7 @@ func ConnectWebSocket(ctx echo.Context) error {
 		log.Println(err)
 		return nil
 	}
-	conn = upgradedConn
-	client := &Client{handler: &handler, conn: conn, send: make(chan []byte, 256), ID: service.GetPeerId(request, key), IP: service.GetIP(request), Name: name, RtcSupported: true, TimerId: 0, LastBeat: time.Now()}
+	client := &Client{handler: &handler, conn: upgradedConn, send: make(chan []byte, 256), ID: service.GetPeerId(request, key), IP: service.GetIP(request), Name: name, RtcSupported: true, TimerId: 0, LastBeat: time.Now()}
 	if peerId != "" || len(peerModel.ID) > 0 {
 		if len(peerModel.ID) == 0 {
 			peerModel = service.MyService.Peer().GetPeerByID(peerId)

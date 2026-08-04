@@ -31,7 +31,7 @@ func (d *Dropbox) getRefreshToken() error {
 	}
 	logger.Info("get refresh token", zap.String("status", res.Status()))
 	if e.Error != "" {
-		return fmt.Errorf(e.Error)
+		return fmt.Errorf("%s", e.Error)
 	}
 	d.RefreshToken = resp.RefreshToken
 	return nil
@@ -52,7 +52,7 @@ func (d *Dropbox) refreshToken() error {
 	}
 	logger.Info("refresh token", zap.String("status", res.Status()))
 	if e.Error != "" {
-		return fmt.Errorf(e.Error)
+		return fmt.Errorf("%s", e.Error)
 	}
 	d.AccessToken = resp.AccessToken
 	return nil

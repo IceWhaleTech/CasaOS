@@ -2,9 +2,12 @@ package v2
 
 import (
 	"net/http"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/IceWhaleTech/CasaOS/codegen"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/labstack/echo/v4"
 )
 
@@ -33,7 +36,7 @@ func (c *CasaOS) CheckUploadChunk(ctx echo.Context, params codegen.CheckUploadCh
 }
 
 func (c *CasaOS) PostUploadFile(ctx echo.Context) error {
-	path := ctx.FormValue("path")
+	rawPath := ctx.FormValue("path")
 
 	// handle the request
 	chunkNumber, err := strconv.ParseInt(ctx.FormValue("chunkNumber"), 10, 64)
@@ -62,6 +65,23 @@ func (c *CasaOS) PostUploadFile(ctx echo.Context) error {
 	relativePath := ctx.FormValue("relativePath")
 	bin, err := ctx.FormFile("file")
 
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+
+	// Sanitize the base path
+	path, err := file.SanitizePath(rawPath)
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err)
+	}
+
+	// Sanitize relative path to prevent traversal
+	relativePath = strings.ReplaceAll(relativePath, "..", "")
+	relativePath = strings.TrimLeft(relativePath, "/")
+
+	// Re-validate the combined path
+	fullPath := filepath.Join(path, relativePath)
+	_, err = file.SanitizePath(fullPath)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err)
 	}
