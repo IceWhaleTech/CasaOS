@@ -1,5 +1,7 @@
 package model
 
+import "github.com/shirou/gopsutil/v3/net"
+
 type IOCountersStat struct {
 	Name        string `json:"name"`        // interface name
 	BytesSent   uint64 `json:"bytesSent"`   // number of bytes sent
@@ -14,4 +16,25 @@ type IOCountersStat struct {
 	Fifoout     uint64 `json:"fifoout"`     // total number of FIFO buffers errors while sending
 	State       string `json:"state"`
 	Time        int64  `json:"time"`
+}
+
+// IOCountersFrom copies what gopsutil counted for one interface. It used to be a
+// reinterpretation through unsafe.Pointer, which read this struct's length out of
+// gopsutil's shorter one: the 24 bytes past its end landed in State and Time, so
+// State held whatever pointer sat there until the caller overwrote it, and the
+// garbage collector could find it first.
+func IOCountersFrom(counters net.IOCountersStat) IOCountersStat {
+	return IOCountersStat{
+		Name:        counters.Name,
+		BytesSent:   counters.BytesSent,
+		BytesRecv:   counters.BytesRecv,
+		PacketsSent: counters.PacketsSent,
+		PacketsRecv: counters.PacketsRecv,
+		Errin:       counters.Errin,
+		Errout:      counters.Errout,
+		Dropin:      counters.Dropin,
+		Dropout:     counters.Dropout,
+		Fifoin:      counters.Fifoin,
+		Fifoout:     counters.Fifoout,
+	}
 }
