@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unsafe"
 
 	http2 "github.com/IceWhaleTech/CasaOS-Common/utils/http"
 	"github.com/IceWhaleTech/CasaOS-Common/utils/port"
@@ -228,7 +227,7 @@ func GetSystemUtilization(ctx echo.Context) error {
 	for _, n := range netList {
 		for _, netCardName := range nets {
 			if n.Name == netCardName {
-				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
+				item := model.IOCountersStat{Name: n.Name, BytesSent: n.BytesSent, BytesRecv: n.BytesRecv, PacketsSent: n.PacketsSent, PacketsRecv: n.PacketsRecv, Errin: n.Errin, Errout: n.Errout, Dropin: n.Dropin, Dropout: n.Dropout, Fifoin: n.Fifoin, Fifoout: n.Fifoout}
 				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
 				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
@@ -299,7 +298,7 @@ func GetSystemNetInfo(ctx echo.Context) error {
 	for _, n := range netList {
 		for _, netCardName := range service.MyService.System().GetNet(true) {
 			if n.Name == netCardName {
-				item := *(*model.IOCountersStat)(unsafe.Pointer(&n))
+				item := model.IOCountersStat{Name: n.Name, BytesSent: n.BytesSent, BytesRecv: n.BytesRecv, PacketsSent: n.PacketsSent, PacketsRecv: n.PacketsRecv, Errin: n.Errin, Errout: n.Errout, Dropin: n.Dropin, Dropout: n.Dropout, Fifoin: n.Fifoin, Fifoout: n.Fifoout}
 				item.State = strings.TrimSpace(service.MyService.System().GetNetState(n.Name))
 				item.Time = time.Now().Unix()
 				newNet = append(newNet, item)
