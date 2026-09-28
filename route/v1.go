@@ -95,7 +95,7 @@ func InitV1Router() http.Handler {
 			v1SysGroup.PUT("/server-info", nil)
 			// v1SysGroup.GET("/port", v1.GetCasaOSPort)
 			// v1SysGroup.PUT("/port", v1.PutCasaOSPort)
-			v1SysGroup.GET("/proxy", v1.GetSystemProxy)
+			// v1SysGroup.GET("/proxy", v1.GetSystemProxy)
 			v1SysGroup.PUT("/state/:state", v1.PutSystemState)
 			v1SysGroup.GET("/entry", v1.GetSystemEntry)
 		}
