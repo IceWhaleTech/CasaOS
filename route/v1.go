@@ -43,7 +43,7 @@ func InitV1Router() http.Handler {
 	//	e.Any("/v1/test", v1.CheckNetwork)
 	v1Group.Use(echo_middleware.JWTWithConfig(echo_middleware.JWTConfig{
 		Skipper: func(c echo.Context) bool {
-			return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
+			return isLocalRequest(c.Request())
 		},
 		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
 			valid, claims, err := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
