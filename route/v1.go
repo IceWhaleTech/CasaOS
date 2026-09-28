@@ -29,8 +29,6 @@ func InitV1Router() http.Handler {
 	e.Use(echo_middleware.Recover())
 	e.Use(echo_middleware.Logger())
 
-	e.GET("/v1/sys/debug", v1.GetSystemConfigDebug) // //debug
-
 	e.GET("/v1/sys/version/check", v1.GetSystemCheckVersion)
 	e.GET("/v1/sys/version/current", func(ctx echo.Context) error {
 		return ctx.String(200, common.VERSION)
@@ -69,6 +67,7 @@ func InitV1Router() http.Handler {
 		v1SysGroup := v1Group.Group("/sys")
 		v1SysGroup.Use()
 		{
+			v1SysGroup.GET("/debug", v1.GetSystemConfigDebug)
 			v1SysGroup.GET("/version", v1.GetSystemCheckVersion) // version/check
 
 			v1SysGroup.POST("/update", v1.SystemUpdate)
