@@ -8,12 +8,13 @@ before:
     - go mod tidy
     - go test -race -v ./...
 
+# Avoid the intermittent amd64 UPX LZMA-stub exit-127 failure described in issue #2588.
 builds:
   - id: casaos-amd64
     binary: build/sysroot/usr/bin/casaos
     hooks:
       post:
-        - upx --best --lzma -v --no-progress "{{ .Path }}"
+        - upx --best -v --no-progress "{{ .Path }}"
     env:
       - CC=x86_64-linux-gnu-gcc
     ldflags:
@@ -120,7 +121,7 @@ builds:
     binary: build/sysroot/usr/bin/casaos-migration-tool
     hooks:
       post:
-        - upx --best --lzma -v --no-progress "{{ .Path }}"
+        - upx --best -v --no-progress "{{ .Path }}"
     main: ./cmd/migration-tool
     env:
       - CC=x86_64-linux-gnu-gcc
