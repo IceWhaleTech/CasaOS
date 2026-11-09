@@ -128,7 +128,8 @@ func main() {
 
 	listener, err := net.Listen("tcp", net.JoinHostPort(LOCALHOST, "0"))
 	if err != nil {
-		panic(err)
+		logger.Error("Failed to create TCP listener", zap.Error(err))
+		return
 	}
 	routers := []string{
 		"/v1/sys",
@@ -155,8 +156,8 @@ func main() {
 			Target: "http://" + listener.Addr().String(),
 		})
 		if err != nil {
-			fmt.Println("err", err)
-			panic(err)
+			logger.Error("Failed to create route", zap.Error(err), zap.String("path", apiPath))
+			continue
 		}
 	}
 
@@ -169,7 +170,7 @@ func main() {
 		if response != nil && response.StatusCode() != http.StatusOK {
 			logger.Error("error when trying to register one or more event types - some event type will not be discoverable", zap.String("status", response.Status()), zap.String("body", string(response.Body)))
 		}
-		if response.StatusCode() == http.StatusOK {
+		if response != nil && response.StatusCode() == http.StatusOK {
 			break
 		}
 		time.Sleep(time.Second)
@@ -224,6 +225,7 @@ func main() {
 	// defer service.MyService.Storage().UnmountAllStorage()
 	err = s.Serve(listener) // not using http.serve() to fix G114: Use of net/http serve function that has no support for setting timeouts (see https://github.com/securego/gosec)
 	if err != nil {
-		panic(err)
+		logger.Error("Server failed to start", zap.Error(err))
+		return
 	}
 }

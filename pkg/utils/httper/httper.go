@@ -95,7 +95,7 @@ func Post(url string, data []byte, contentType string, head map[string]string) (
 		req.Header.Add(k, v)
 	}
 	if err != nil {
-		panic(err)
+		return ""
 	}
 
 	client := &http.Client{Timeout: 5 * time.Second}
@@ -120,14 +120,14 @@ func ZeroTierGet(url string, head map[string]string) (content string, code int) 
 		req.Header.Add(k, v)
 	}
 	if err != nil {
-		panic(err)
+		return "", 0
 	}
 
 	client := &http.Client{Timeout: 20 * time.Second}
 	resp, error := client.Do(req)
 
 	if error != nil {
-		panic(error)
+		return "", 0
 	}
 	defer resp.Body.Close()
 	code = resp.StatusCode
