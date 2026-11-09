@@ -1,84 +1,68 @@
 name: Demo Reset
 
-# Controls when the workflow will run
 on:
   schedule:
-  - cron: "0 * * * *"
-
-  # Allows you to run this workflow manually from the Actions tab
+    - cron: "0 * * * *"
   workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/demo.yml
+      - .github/scripts/reset_demo.py
+      - .github/scripts/test_reset_demo.py
 
-# OLD_INSTANCE_SNAPSHOT_NAME=$(aws lightsail get-instance-snapshots | grep '"name": "CasaOS-Demo-Snapshot-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
-# OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')
-# NEW_INSTANCE_NAME=CasaOS-Demo-$(date +%s)
+permissions:
+  contents: read
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  reset:
-    # The type of runner that the job will run on
+  validate:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Test demo reset failure recovery
+        run: python3 -m unittest discover -s .github/scripts -p 'test_reset_demo.py' -v
+
+  reset:
+    needs: validate
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: casaos-demo-us-west-2
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      AWS_REGION: us-west-2
+      AWS_RETRY_MODE: standard
+      AWS_MAX_ATTEMPTS: "3"
+      DEMO_SNAPSHOT_NAME: CasaOS-v0.4.4-3-Demo-1700132299
+      DEMO_STATIC_IP_NAME: CasaOS-Demo-IP
+      DEMO_AVAILABILITY_ZONE: us-west-2a
+      DEMO_BUNDLE_ID: medium_2_0
+      DEMO_HOST: demo.casaos.io
+      DEMO_INSTANCE_NAME: CasaOS-Demo-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Configure AWS credentials from Test account
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-2
-          
-      - name: Get old instance and snapshot name, create new instance name
-        run: | 
-          echo "OLD_INSTANCE_SNAPSHOT_NAME=CasaOS-v0.4.4-3-Demo-1700132299" >> $GITHUB_ENV
-          echo "OLD_INSTANCE_NAME=$(aws lightsail get-instances | grep '"name": "CasaOS-Demo-[0-9]' | tail -1 | sed 's/ //g' | sed 's/"//g' | sed 's/,//g' | sed 's/name://g')" >> $GITHUB_ENV
-          # echo "OLD_INSTANCE_NAME=CasaOS-Demo-1687680295" >> $GITHUB_ENV
-          echo "NEW_INSTANCE_NAME= CasaOS-Demo-$(date +%s)" >> $GITHUB_ENV
-          
-      - name: Create instances from snapshot
-        run: | 
-          aws lightsail create-instances-from-snapshot \
-              --instance-snapshot-name ${{ env.OLD_INSTANCE_SNAPSHOT_NAME }} \
-              --instance-names ${{ env.NEW_INSTANCE_NAME }} \
-              --availability-zone us-west-2a \
-              --bundle-id medium_2_0
-              
-      - name: Wait for new instance running
-        run: |
-          TIMEOUT=$(($(date +%s)+600))
-          while [ $TIMEOUT -gt $(date +%s) ]
-          do
-            NEW_INSTANCE_STATE=$(aws lightsail get-instance-state --instance-name ${{ env.NEW_INSTANCE_NAME }} | grep '"name":' | sed 's/ //g' | sed 's/"//g' | sed 's/name://g')
-            if [ $NEW_INSTANCE_STATE == running ]
-            then
-              echo "New instance is running now"
-              sleep 10s
-              break
-            fi
-          done
-          
-      - name: Put instance public ports
-        run: |
-          aws lightsail put-instance-public-ports \
-            --port-infos fromPort=0,toPort=65535,protocol=all \
-            --instance-name ${{ env.NEW_INSTANCE_NAME }}
-            
-      - name: Attach static ip
-        run: | 
-          aws lightsail attach-static-ip \
-            --static-ip-name CasaOS-Demo-IP \
-            --instance-name ${{ env.NEW_INSTANCE_NAME }}
-            
-      - name: Delete old instance
-        run: | 
-          aws lightsail delete-instance \
-            --instance-name ${{ env.OLD_INSTANCE_NAME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Rebuild, verify, switch traffic, and retire old demo instances
+        run: python3 .github/scripts/reset_demo.py
       - name: Demo Reset Error Handling
-        if: ${{ failure() }}
+        if: failure()
+        env:
+          SSH_ROBOT_URL: ${{ secrets.SSH_ROBOT_URL }}
         run: |
-          curl -X POST -H "Content-Type: application/json" -d '{"msg_type":"text","content":{"text":"Demo Reset Error"}}' ${{ secrets.SSH_ROBOT_URL }} 
+          if [ -n "$SSH_ROBOT_URL" ]; then
+            curl --fail --silent --show-error --max-time 15 \
+              -H 'Content-Type: application/json' \
+              -d '{"msg_type":"text","content":{"text":"Demo Reset Error. Check the GitHub Actions run for recovery details."}}' \
+              "$SSH_ROBOT_URL"
+          fi
             
             
