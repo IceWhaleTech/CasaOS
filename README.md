@@ -84,14 +84,14 @@ In 2020, the team noticed three important trends:
 
 Based on these trends, the team proposed a thought experiment internally: what if personal clouds were available under $100 in next five years? This personal cloud would provide a low-cost data collaboration solution as a personal data center, storing and managing data for creators and small organizations. A distributed collaborative computing network can be formed by personal servers located around the world. It could also control and connect all smart devices, providing cross-ecosystem local intelligent services.
 
-Furthermore, the personal cloud could combine personal data to train personalized AI assistants. The idea is that this technology would be an effective way to solve the issue of consumer data asset ownership and , as well as provide a more affordable and efficient computing solution for individuals and small organizations.
+Furthermore, the personal cloud could combine personal data to train personalized AI assistants. The idea is that this technology would be an effective way to solve the issue of consumer data asset ownership and attribution, as well as provide a more affordable and efficient computing solution for individuals and small organizations.
 
-> If you think what we are doing is valuable. Please **give us a star ⭐** and **fork it 🤞**!
+> If you think what we are doing is valuable, please **give us a star ⭐** and **fork it 🤞**!
 
 ## Features
 
 - Friendly UI designed for home scenarios
-  - No code, no forms, intuitive, design for humanity
+  - No code, no forms, intuitive design for humanity
 - Multiple hardware and base system support
   - ZimaBoard, NUC, RPi, old computers, whatever is available.
 - Selected apps in the app store, one-click installation
@@ -157,7 +157,7 @@ or
 curl -fsSL https://get.casaos.io/update | sudo bash
 ```
 
-To determine version of CasaOS from a terminal session run this command:
+To determine the version of CasaOS from a terminal session, run this command:
 
 ```sh
 casaos -v
