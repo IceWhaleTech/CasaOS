@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	app_key    = "private build"
-	app_secret = "private build"
+	app_key    = ""
+	app_secret = ""
 )
 
 func (d *Dropbox) getRefreshToken() error {
@@ -29,9 +29,9 @@ func (d *Dropbox) getRefreshToken() error {
 	if err != nil {
 		return err
 	}
-	logger.Info("get refresh token", zap.String("res", res.String()))
+	logger.Info("get refresh token", zap.String("status", res.Status()))
 	if e.Error != "" {
-		return fmt.Errorf(e.Error)
+		return fmt.Errorf("%s", e.Error)
 	}
 	d.RefreshToken = resp.RefreshToken
 	return nil
@@ -50,9 +50,9 @@ func (d *Dropbox) refreshToken() error {
 	if err != nil {
 		return err
 	}
-	logger.Info("get refresh token", zap.String("res", res.String()))
+	logger.Info("refresh token", zap.String("status", res.Status()))
 	if e.Error != "" {
-		return fmt.Errorf(e.Error)
+		return fmt.Errorf("%s", e.Error)
 	}
 	d.AccessToken = resp.AccessToken
 	return nil

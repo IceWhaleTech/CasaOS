@@ -76,18 +76,23 @@ func (s *sharesStruct) UpdateConfigFile() {
 	configStr := ""
 	for _, share := range shares {
 		dirName := filepath.Base(share.Path)
+		// Sanitize dirName to prevent config injection
+		sanitizedDirName := strings.NewReplacer(
+			"[", "", "]", "", ";", "", "\n", "", "\r", "",
+		).Replace(dirName)
+		sanitizedPath := strings.NewReplacer(
+			";", "", "\n", "", "\r", "",
+		).Replace(share.Path)
 		configStr += `
-[` + dirName + `]
-comment = CasaOS share ` + dirName + `
-public = Yes
-path = ` + share.Path + `
+[` + sanitizedDirName + `]
+comment = CasaOS share ` + sanitizedDirName + `
+path = ` + sanitizedPath + `
 browseable = Yes
 read only = No
-guest ok = Yes
-create mask = 0777
-directory mask = 0777
-force user = root
-
+create mask = 0755
+directory mask = 0755
+force user = nobody
+force group = nogroup
 `
 	}
 	// write config file

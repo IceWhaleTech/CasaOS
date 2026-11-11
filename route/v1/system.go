@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime"
@@ -21,6 +20,7 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/common_err"
+	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/version"
 	"github.com/IceWhaleTech/CasaOS/service"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
@@ -165,8 +165,13 @@ func PutCasaOSPort(ctx echo.Context) error {
 // @Success 200 {string} string "ok"
 // @Router /sys/restart [post]
 func PostKillCasaOS(ctx echo.Context) error {
-	os.Exit(0)
-	return nil
+	// Graceful shutdown - send SIGTERM to self after responding
+	go func() {
+		time.Sleep(1 * time.Second)
+		p, _ := os.FindProcess(os.Getpid())
+		p.Signal(os.Interrupt)
+	}()
+	return ctx.JSON(common_err.SUCCESS, model.Result{Success: common_err.SUCCESS, Message: "CasaOS is shutting down"})
 }
 
 // @Summary get system hardware info
@@ -312,21 +317,28 @@ func GetSystemNetInfo(ctx echo.Context) error {
 }
 
 func GetSystemProxy(ctx echo.Context) error {
-	url := ctx.QueryParam("url")
-	resp, err := http2.Get(url, 30*time.Second)
+	urlParam := ctx.QueryParam("url")
+	if len(urlParam) == 0 {
+		return ctx.JSON(http.StatusBadRequest, model.Result{Success: common_err.INVALID_PARAMS, Message: common_err.GetMsg(common_err.INVALID_PARAMS)})
+	}
+
+	if err := file.IsAllowedURL(urlParam, "http", "https"); err != nil {
+		return ctx.JSON(http.StatusForbidden, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
+	}
+
+	resp, err := http2.Get(urlParam, 30*time.Second)
 	if err != nil {
-		return ctx.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: err.Error()})
+		return ctx.JSON(http.StatusInternalServerError, model.Result{Success: common_err.SERVICE_ERROR, Message: common_err.GetMsg(common_err.SERVICE_ERROR)})
 	}
 	defer resp.Body.Close()
-	for k, v := range ctx.Request().Header {
-		ctx.Request().Header.Add(k, v[0])
-	}
-	rda, _ := ioutil.ReadAll(resp.Body)
-	//	json.NewEncoder(c.Writer).Encode(json.RawMessage(string(rda)))
-	// 响应状态码
+
+	// Limit response size to 10MB to prevent memory exhaustion
+	const maxResponseSize = 10 * 1024 * 1024
+	limitedReader := io.LimitReader(resp.Body, maxResponseSize)
+	rda, _ := io.ReadAll(limitedReader)
+
 	ctx.Response().Writer.WriteHeader(resp.StatusCode)
-	// 复制转发的响应Body到响应Body
-	io.Copy(ctx.Response().Writer, ioutil.NopCloser(bytes.NewBuffer(rda)))
+	io.Copy(ctx.Response().Writer, bytes.NewBuffer(rda))
 	return nil
 }
 

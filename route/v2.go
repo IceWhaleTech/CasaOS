@@ -20,6 +20,7 @@ import (
 	"github.com/deepmap/oapi-codegen/pkg/middleware"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 )
@@ -55,26 +56,40 @@ func InitV2Router() http.Handler {
 
 	e := echo.New()
 
+	// CORS origins from config, default to * (all)
+	corsOrigins := []string{"*"}
+	if len(config.ServerInfo.CORSOrigins) > 0 {
+		corsOrigins = config.ServerInfo.CORSOrigins
+	}
+
 	e.Use((echo_middleware.CORSWithConfig(echo_middleware.CORSConfig{
-		AllowOrigins:     []string{"*"},
+		AllowOrigins:     corsOrigins,
 		AllowMethods:     []string{echo.POST, echo.GET, echo.OPTIONS, echo.PUT, echo.DELETE},
-		AllowHeaders:     []string{echo.HeaderAuthorization, echo.HeaderContentLength, echo.HeaderXCSRFToken, echo.HeaderContentType, echo.HeaderAccessControlAllowOrigin, echo.HeaderAccessControlAllowHeaders, echo.HeaderAccessControlAllowMethods, echo.HeaderConnection, echo.HeaderOrigin, echo.HeaderXRequestedWith},
-		ExposeHeaders:    []string{echo.HeaderContentLength, echo.HeaderAccessControlAllowOrigin, echo.HeaderAccessControlAllowHeaders},
+		AllowHeaders:     []string{echo.HeaderAuthorization, echo.HeaderContentLength, echo.HeaderContentType},
+		ExposeHeaders:    []string{echo.HeaderContentLength},
 		MaxAge:           172800,
-		AllowCredentials: true,
+		AllowCredentials: false,
 	})))
 
 	e.Use(echo_middleware.Gzip())
 
 	e.Use(echo_middleware.Logger())
 
-	e.Use(echo_middleware.JWTWithConfig(echo_middleware.JWTConfig{
+	// Rate limiting: 100 requests per minute per IP
+	e.Use(echo_middleware.RateLimiter(echo_middleware.NewRateLimiterMemoryStore(100)))
+
+	e.Use(echojwt.WithConfig(echojwt.Config{
 		Skipper: func(c echo.Context) bool {
-			return c.RealIP() == "::1" || c.RealIP() == "127.0.0.1"
-			// return true
+			// Check if localhost bypass is enabled in config (default: true)
+			if config.ServerInfo.LocalhostBypass == false {
+				return false
+			}
+			// Use TCP-level RemoteAddr instead of X-Forwarded-For to prevent auth bypass
+			addr := c.Request().RemoteAddr
+			return addr == "127.0.0.1" || addr == "[::1]" || addr == "::1"
 		},
-		ParseTokenFunc: func(token string, c echo.Context) (interface{}, error) {
-			valid, claims, err := jwt.Validate(token, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
+		ParseTokenFunc: func(c echo.Context, auth string) (interface{}, error) {
+			valid, claims, err := jwt.Validate(auth, func() (*ecdsa.PublicKey, error) { return external.GetPublicKey(config.CommonInfo.RuntimePath) })
 			if err != nil || !valid {
 				return nil, echo.ErrUnauthorized
 			}
@@ -84,10 +99,7 @@ func InitV2Router() http.Handler {
 		},
 		TokenLookupFuncs: []echo_middleware.ValuesExtractor{
 			func(ctx echo.Context) ([]string, error) {
-				if len(ctx.Request().Header.Get(echo.HeaderAuthorization)) > 0 {
-					return []string{ctx.Request().Header.Get(echo.HeaderAuthorization)}, nil
-				}
-				return []string{ctx.QueryParam("token")}, nil
+				return []string{ctx.Request().Header.Get(echo.HeaderAuthorization)}, nil
 			},
 		},
 	}))
@@ -164,9 +176,16 @@ func InitFile() http.Handler {
 			return
 		}
 		filePath := r.URL.Query().Get("path")
-		fileName := path.Base(filePath)
+		sanitized, err := file.SanitizePath(filePath)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"message": "invalid file path"}`))
+			return
+		}
+		fileName := path.Base(sanitized)
 		w.Header().Add("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(fileName))
-		http.ServeFile(w, r, filePath)
+		http.ServeFile(w, r, sanitized)
 		// http.ServeFile(w, r, filePath)
 	})
 }
@@ -192,67 +211,55 @@ func InitDir() http.Handler {
 		files := r.URL.Query().Get("files")
 
 		if len(files) == 0 {
-			// w.JSON(common_err.CLIENT_ERROR, model.Result{
-			// 	Success: common_err.INVALID_PARAMS,
-			// 	Message: common_err.GetMsg(common_err.INVALID_PARAMS),
-			// })
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"message": "no files specified"}`))
 			return
 		}
 		list := strings.Split(files, ",")
-		for _, v := range list {
+		sanitizedList, err := file.SanitizePaths(list)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"message": "invalid file path"}`))
+			return
+		}
+		for _, v := range sanitizedList {
 			if !file.Exists(v) {
-				// return ctx.JSON(common_err.SERVICE_ERROR, model.Result{
-				// 	Success: common_err.FILE_DOES_NOT_EXIST,
-				// 	Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
-				// })
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusNotFound)
+				w.Write([]byte(`{"message": "file not found"}`))
 				return
 			}
 		}
 		w.Header().Add("Content-Type", "application/octet-stream")
 		w.Header().Add("Content-Transfer-Encoding", "binary")
 		w.Header().Add("Cache-Control", "no-cache")
-		// handles only single files not folders and multiple files
-		//		if len(list) == 1 {
-
-		// filePath := list[0]
-		//			info, err := os.Stat(filePath)
-		//			if err != nil {
-
-		// w.JSON(http.StatusOK, model.Result{
-		// 	Success: common_err.FILE_DOES_NOT_EXIST,
-		// 	Message: common_err.GetMsg(common_err.FILE_DOES_NOT_EXIST),
-		// })
-		//return
-		//			}
-		//}
 
 		extension, ar, err := file.GetCompressionAlgorithm(t)
 		if err != nil {
-			// w.JSON(common_err.CLIENT_ERROR, model.Result{
-			// 	Success: common_err.INVALID_PARAMS,
-			// 	Message: common_err.GetMsg(common_err.INVALID_PARAMS),
-			// })
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(`{"message": "invalid compression format"}`))
 			return
 		}
 
 		err = ar.Create(w)
 		if err != nil {
-			//  return ctx.JSON(common_err.SERVICE_ERROR, model.Result{
-			// 	Success: common_err.SERVICE_ERROR,
-			// 	Message: common_err.GetMsg(common_err.SERVICE_ERROR),
-			// 	Data:    err.Error(),
-			// })
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"message": "failed to create archive"}`))
 			return
 		}
 		defer ar.Close()
-		commonDir := file.CommonPrefix(filepath.Separator, list...)
+		commonDir := file.CommonPrefix(filepath.Separator, sanitizedList...)
 
 		currentPath := filepath.Base(commonDir)
 
 		name := "_" + currentPath
 		name += extension
 		w.Header().Add("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(name))
-		for _, fname := range list {
+		for _, fname := range sanitizedList {
 			err = file.AddFile(ar, fname, commonDir)
 			if err != nil {
 				log.Printf("Failed to archive %s: %v", fname, err)

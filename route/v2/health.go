@@ -10,7 +10,6 @@ import (
 	"github.com/IceWhaleTech/CasaOS/pkg/utils/file"
 	"github.com/IceWhaleTech/CasaOS/service"
 	"github.com/labstack/echo/v4"
-	"github.com/mholt/archiver/v3"
 )
 
 func (s *CasaOS) GetHealthServices(ctx echo.Context) error {
@@ -49,7 +48,7 @@ func (s *CasaOS) GetHealthPorts(ctx echo.Context) error {
 func (c *CasaOS) GetHealthlogs(ctx echo.Context) error {
 	var name, currentPath, commonDir, extension string
 	var err error
-	var ar archiver.Writer
+	var ar file.ArchiveWriter
 	fileList, err := os.ReadDir("/var/log/casaos")
 	if err != nil {
 		message := err.Error()

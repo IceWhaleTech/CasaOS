@@ -29,6 +29,7 @@ import (
 var FileQueue sync.Map
 
 var OpStrArr []string
+var OpStrArrMu sync.Mutex
 
 type reader struct {
 	ctx context.Context
@@ -131,25 +132,36 @@ func FileOperate(k string) {
 }
 
 func ExecOpFile() {
-	len := len(OpStrArr)
-	if len == 0 {
+	OpStrArrMu.Lock()
+	length := len(OpStrArr)
+	if length == 0 {
+		OpStrArrMu.Unlock()
 		return
 	}
-	if len > 1 {
-		len = 1
+	if length > 1 {
+		length = 1
 	}
-	for i := 0; i < len; i++ {
-		go FileOperate(OpStrArr[i])
+	items := make([]string, length)
+	copy(items, OpStrArr[:length])
+	OpStrArrMu.Unlock()
+	for i := 0; i < length; i++ {
+		go FileOperate(items[i])
 	}
 }
 
 // file move or copy and send notify
 func CheckFileStatus() {
 	for {
-		if len(OpStrArr) == 0 {
+		OpStrArrMu.Lock()
+		length := len(OpStrArr)
+		if length == 0 {
+			OpStrArrMu.Unlock()
 			return
 		}
-		for _, v := range OpStrArr {
+		currentItems := make([]string, length)
+		copy(currentItems, OpStrArr)
+		OpStrArrMu.Unlock()
+		for _, v := range currentItems {
 			var total int64 = 0
 			item, ok := FileQueue.Load(v)
 			if !ok {
