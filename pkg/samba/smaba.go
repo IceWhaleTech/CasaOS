@@ -13,6 +13,7 @@ package samba
 import (
 	"errors"
 	"net"
+	"strings"
 
 	"github.com/hirochachacha/go-smb2"
 )
@@ -72,4 +73,17 @@ func GetSambaSharesList(host, port, username, password string) ([]string, error)
 		return nil, err
 	}
 	return names, err
+}
+
+// MountOptions returns the cifs mount data for a share on host:port.
+//
+// iocharset=utf8 keeps non-ASCII file names readable on kernels whose default
+// NLS is not UTF-8 (e.g. Armbian). Commas in the password are doubled, because
+// the kernel reads a single comma as the end of the option.
+func MountOptions(username, password, port string) string {
+	options := "username=" + username + ",password=" + strings.ReplaceAll(password, ",", ",,") + ",iocharset=utf8"
+	if port != "" {
+		options += ",port=" + port
+	}
+	return options
 }

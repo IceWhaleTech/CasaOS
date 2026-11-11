@@ -13,6 +13,7 @@ package service
 import (
 	"fmt"
 
+	"github.com/IceWhaleTech/CasaOS/pkg/samba"
 	"github.com/IceWhaleTech/CasaOS/service/model"
 	model2 "github.com/IceWhaleTech/CasaOS/service/model"
 	"github.com/moby/sys/mount"
@@ -68,7 +69,7 @@ func (s *connectionsStruct) MountSmaba(username, host, directory, port, mountPoi
 		mountPoint,
 		"cifs",
 		unix.MS_NOATIME|unix.MS_NODEV|unix.MS_NOSUID,
-		fmt.Sprintf("username=%s,password=%s", username, password),
+		samba.MountOptions(username, password, port),
 	)
 	return err
 	// str := command2.ExecResultStr("source " + config.AppInfo.ShellPath + "/helper.sh ;MountCIFS " + username + " " + host + " " + directory + " " + port + " " + mountPoint + " " + password)
