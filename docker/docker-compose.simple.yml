@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  casaos:
+    image: casaos/casaos:latest
+    container_name: casaos-simple
+    restart: unless-stopped
+    network_mode: bridge
+    volumes:
+      - casaos_config:/var/lib/casaos
+      - casaos_etc:/etc/casaos
+      - casaos_share:/usr/share/casaos
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/DATA
+    environment:
+      - CASAOS_ROOT_PATH=/
+    ports:
+      - "8080:80"
+      - "8443:443"
+    cap_add:
+      - SYS_ADMIN
+
+volumes:
+  casaos_config:
+  casaos_etc:
+  casaos_share:
