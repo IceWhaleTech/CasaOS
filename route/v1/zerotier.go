@@ -2,10 +2,11 @@ package v1
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -18,31 +19,30 @@ import (
 )
 
 func ZerotierProxy(ctx echo.Context) error {
-	// Read the port number from the file
 	w := ctx.Response().Writer
 	r := ctx.Request()
-	port, err := ioutil.ReadFile("/var/lib/zerotier-one/zerotier-one.port")
+	port, err := os.ReadFile("/var/lib/zerotier-one/zerotier-one.port")
 	if err != nil {
+		logger.Error("failed to read zerotier port file", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return nil
 	}
 
-	// Get the request path and remove "/zt"
 	path := strings.TrimPrefix(r.URL.Path, "/v1/zt")
-	fmt.Println(path)
-
-	// Build the target URL
 	targetURL := fmt.Sprintf("http://localhost:%s%s", strings.TrimSpace(string(port)), path)
 
-	// Create a new request
 	req, err := http.NewRequest(r.Method, targetURL, r.Body)
 	if err != nil {
+		logger.Error("failed to create proxy request", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return nil
 	}
 
-	// Add the X-ZT1-AUTH header
-	authToken, err := ioutil.ReadFile("/var/lib/zerotier-one/authtoken.secret")
+	authToken, err := os.ReadFile("/var/lib/zerotier-one/authtoken.secret")
 	if err != nil {
+		logger.Error("failed to read zerotier auth token", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return nil
 	}
 	req.Header.Set("X-ZT1-AUTH", strings.TrimSpace(string(authToken)))
 
@@ -51,21 +51,23 @@ func ZerotierProxy(ctx echo.Context) error {
 	client := http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
+		logger.Error("zerotier proxy request failed", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return nil
 	}
 	defer resp.Body.Close()
 
 	copyHeaders(w.Header(), resp.Header)
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
+		logger.Error("failed to read proxy response", zap.Error(err))
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return nil
 	}
 
-	// Return the response to the client
 	w.WriteHeader(resp.StatusCode)
 	w.Write(respBody)
-	// TODO
 	return nil
 }
 

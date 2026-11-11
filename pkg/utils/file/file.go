@@ -7,12 +7,9 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"os"
 	"path"
-	path2 "path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -20,9 +17,26 @@ import (
 	"github.com/mholt/archiver/v3"
 )
 
+// readDirInfo reads directory entries and returns FileInfo for compatibility
+func readDirInfo(dirname string) ([]os.FileInfo, error) {
+	entries, err := os.ReadDir(dirname)
+	if err != nil {
+		return nil, err
+	}
+	infos := make([]os.FileInfo, 0, len(entries))
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			return nil, err
+		}
+		infos = append(infos, info)
+	}
+	return infos, nil
+}
+
 // GetSize get the file size
 func GetSize(f multipart.File) (int, error) {
-	content, err := ioutil.ReadAll(f)
+	content, err := io.ReadAll(f)
 	return len(content), err
 }
 
@@ -47,12 +61,11 @@ func CheckPermission(src string) bool {
 
 // IsNotExistMkDir create a directory if it does not exist
 func IsNotExistMkDir(src string) error {
-	if notExist := CheckNotExist(src); notExist {
+	if CheckNotExist(src) {
 		if err := MkDir(src); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -164,7 +177,7 @@ func CreateFile(path string) error {
 	return nil
 }
 
-func CreateFileAndWriteContent(path string, content string) error {
+func CreateFileAndWriteContent(path, content string) error {
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o666)
 	if err != nil {
 		return err
@@ -181,12 +194,11 @@ func CreateFileAndWriteContent(path string, content string) error {
 
 // IsNotExistCreateFile create a file if it does not exist
 func IsNotExistCreateFile(src string) error {
-	if notExist := CheckNotExist(src); notExist {
+	if CheckNotExist(src) {
 		if err := CreateFile(src); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -196,7 +208,7 @@ func ReadFullFile(path string) []byte {
 		return []byte("")
 	}
 	defer file.Close()
-	content, err := ioutil.ReadAll(file)
+	content, err := io.ReadAll(file)
 	if err != nil {
 		return []byte("")
 	}
@@ -287,64 +299,68 @@ func CopySingleFile(src, dst, style string) error {
 
 // Check for duplicate file names
 func GetNoDuplicateFileName(fullPath string) string {
-	path, fileName := filepath.Split(fullPath)
-	fileSuffix := path2.Ext(fileName)
+	dir, fileName := filepath.Split(fullPath)
+	fileSuffix := filepath.Ext(fileName)
 	filenameOnly := strings.TrimSuffix(fileName, fileSuffix)
 	for i := 0; Exists(fullPath); i++ {
-		fullPath = path2.Join(path, filenameOnly+"("+strconv.Itoa(i+1)+")"+fileSuffix)
+		fullPath = filepath.Join(dir, filenameOnly+"("+strconv.Itoa(i+1)+")"+fileSuffix)
 	}
 	return fullPath
 }
 
-// Dir copies a whole directory recursively
-func CopyDir(src string, dst string, style string) error {
-	var err error
-	var fds []os.FileInfo
-	var srcinfo os.FileInfo
-
-	if srcinfo, err = os.Stat(src); err != nil {
+// CopyDir copies a whole directory recursively
+func CopyDir(src, dst, style string) error {
+	srcinfo, err := os.Stat(src)
+	if err != nil {
 		return err
 	}
+
+	// If source is a file, copy it directly
 	if !srcinfo.IsDir() {
-		if err = CopyFile(src, dst, style); err != nil {
-			fmt.Println(err)
-		}
+		return CopyFile(src, dst, style)
+	}
+
+	// Build destination path
+	lastPath := src[strings.LastIndex(src, "/")+1:]
+	dst = dst + "/" + lastPath
+
+	// Handle existing destination
+	if Exists(dst) && style == "skip" {
 		return nil
 	}
-	// dstPath := dst
-	lastPath := src[strings.LastIndex(src, "/")+1:]
-	dst += "/" + lastPath
-	// for i := 0; Exists(dst); i++ {
-	// 	dst = dstPath + "/" + lastPath + strconv.Itoa(i+1)
-	// }
 	if Exists(dst) {
-		if style == "skip" {
-			return nil
-		} else {
-			os.Remove(dst)
-		}
+		os.Remove(dst)
 	}
+
 	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
 		return err
 	}
-	if fds, err = ioutil.ReadDir(src); err != nil {
+
+	return copyDirContents(src, dst, style)
+}
+
+// copyDirContents copies the contents of a directory
+func copyDirContents(src, dst, style string) error {
+	fds, err := readDirInfo(src)
+	if err != nil {
 		return err
 	}
+
 	for _, fd := range fds {
 		srcfp := path.Join(src, fd.Name())
-		dstfp := dst // path.Join(dst, fd.Name())
-
-		if fd.IsDir() {
-			if err = CopyDir(srcfp, dstfp, style); err != nil {
-				fmt.Println(err)
-			}
-		} else {
-			if err = CopyFile(srcfp, dstfp, style); err != nil {
-				fmt.Println(err)
-			}
+		if err := copyEntry(srcfp, dst, style, fd.IsDir()); err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+// copyEntry copies a single file or directory entry
+func copyEntry(srcfp, dst, style string, isDir bool) error {
+	if isDir {
+		return CopyDir(srcfp, dst, style)
+	}
+	return CopyFile(srcfp, dst, style)
 }
 
 func WriteToPath(data []byte, path, name string) error {
@@ -395,7 +411,7 @@ func SpliceFiles(dir, path string, length int, startPoint int) error {
 	// todo: here should have a goroutine to remove each partial file after it is read, to save disk space
 
 	for i := 0; i < length+startPoint-1; i++ {
-		data, err := ioutil.ReadFile(dir + "/" + strconv.Itoa(i+startPoint))
+		data, err := os.ReadFile(dir + "/" + strconv.Itoa(i+startPoint))
 		if err != nil {
 			return err
 		}
@@ -597,7 +613,7 @@ func ReadLine(lineNumber int, path string) string {
 	return ""
 }
 
-func NameAccumulation(name string, dir string) string {
+func NameAccumulation(name, dir string) string {
 	path := filepath.Join(dir, name)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return name
@@ -616,7 +632,7 @@ func NameAccumulation(name string, dir string) string {
 	}
 }
 
-func ParseFileHeader(h []byte, boundary []byte) (map[string]string, bool) {
+func ParseFileHeader(h, boundary []byte) (map[string]string, bool) {
 	arr := bytes.Split(h, boundary)
 	//var out_header FileHeader
 	//out_header.ContentLength = -1

@@ -12,7 +12,6 @@ package v1
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -202,7 +201,7 @@ func DeleteSambaConnections(ctx echo.Context) error {
 			}
 		}
 	}
-	dir, _ := ioutil.ReadDir(connection.MountPoint)
+	dir, _ := os.ReadDir(connection.MountPoint)
 	if len(dir) == 0 {
 		os.RemoveAll(connection.MountPoint)
 	}

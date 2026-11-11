@@ -2,138 +2,121 @@ package httper
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
+	"github.com/IceWhaleTech/CasaOS-Common/utils/logger"
 	"github.com/IceWhaleTech/CasaOS/pkg/config"
 	"github.com/tidwall/gjson"
+	"go.uber.org/zap"
 )
 
-// 发送GET请求
-// url:请求地址
-// response:请求返回的内容
+// Get sends a GET request and returns the response body as a string
 func Get(url string, head map[string]string) (response string) {
 	client := &http.Client{Timeout: 30 * time.Second}
 	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logger.Error("failed to create GET request", zap.Error(err), zap.String("url", url))
+		return ""
+	}
 
 	for k, v := range head {
 		req.Header.Add(k, v)
 	}
-	if err != nil {
-		return ""
-	}
+
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println(err)
-		// 需要错误日志的处理
-		// logger.Error(error)
+		logger.Error("GET request failed", zap.Error(err), zap.String("url", url))
 		return ""
-		// panic(error)
 	}
 	defer resp.Body.Close()
-	var buffer [512]byte
-	result := bytes.NewBuffer(nil)
-	for {
-		n, err := resp.Body.Read(buffer[0:])
-		result.Write(buffer[0:n])
-		if err != nil && err == io.EOF {
-			break
-		} else if err != nil {
-			// logger.Error(err)
-			return ""
-			//	panic(err)
-		}
+
+	result, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("failed to read response body", zap.Error(err))
+		return ""
 	}
-	response = result.String()
-	return
+	return string(result)
 }
 
-// 发送GET请求
-// url:请求地址
-// response:请求返回的内容
+// PersonGet sends a GET request with a shorter timeout
 func PersonGet(url string) (response string) {
 	client := &http.Client{Timeout: 5 * time.Second}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
+		logger.Error("failed to create PersonGet request", zap.Error(err), zap.String("url", url))
 		return ""
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		// 需要错误日志的处理
-		// logger.Error(error)
+		logger.Error("PersonGet request failed", zap.Error(err), zap.String("url", url))
 		return ""
-		// panic(error)
 	}
 	defer resp.Body.Close()
-	var buffer [512]byte
-	result := bytes.NewBuffer(nil)
-	for {
-		n, err := resp.Body.Read(buffer[0:])
-		result.Write(buffer[0:n])
-		if err != nil && err == io.EOF {
-			break
-		} else if err != nil {
-			// logger.Error(err)
-			return ""
-			//	panic(err)
-		}
+
+	result, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("failed to read PersonGet response", zap.Error(err))
+		return ""
 	}
-	response = result.String()
-	return
+	return string(result)
 }
 
-// 发送POST请求
-// url:请求地址，data:POST请求提交的数据,contentType:请求体格式，如：application/json
-// content:请求放回的内容
+// Post sends a POST request with the specified data and content type
 func Post(url string, data []byte, contentType string, head map[string]string) (content string) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
+	if err != nil {
+		logger.Error("failed to create POST request", zap.Error(err), zap.String("url", url))
+		return ""
+	}
 	req.Header.Add("content-type", contentType)
 	for k, v := range head {
 		req.Header.Add(k, v)
 	}
-	if err != nil {
-		panic(err)
-	}
 
 	client := &http.Client{Timeout: 5 * time.Second}
-	resp, error := client.Do(req)
-	if error != nil {
-		fmt.Println(error)
-		return
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Error("POST request failed", zap.Error(err), zap.String("url", url))
+		return ""
 	}
 	defer resp.Body.Close()
 
-	result, _ := ioutil.ReadAll(resp.Body)
-	content = string(result)
-	return
+	result, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("failed to read POST response", zap.Error(err))
+		return ""
+	}
+	return string(result)
 }
 
-// 发送POST请求
-// url:请求地址，data:POST请求提交的数据,contentType:请求体格式，如：application/json
-// content:请求放回的内容
+// ZeroTierGet sends a GET request to ZeroTier API
 func ZeroTierGet(url string, head map[string]string) (content string, code int) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		logger.Error("failed to create ZeroTier request", zap.Error(err), zap.String("url", url))
+		return "", http.StatusInternalServerError
+	}
 	for k, v := range head {
 		req.Header.Add(k, v)
 	}
-	if err != nil {
-		panic(err)
-	}
 
 	client := &http.Client{Timeout: 20 * time.Second}
-	resp, error := client.Do(req)
-
-	if error != nil {
-		panic(error)
+	resp, err := client.Do(req)
+	if err != nil {
+		logger.Error("ZeroTier request failed", zap.Error(err), zap.String("url", url))
+		return "", http.StatusInternalServerError
 	}
 	defer resp.Body.Close()
+
 	code = resp.StatusCode
-	result, _ := ioutil.ReadAll(resp.Body)
-	content = string(result)
-	return
+	result, err := io.ReadAll(resp.Body)
+	if err != nil {
+		logger.Error("failed to read ZeroTier response", zap.Error(err))
+		return "", code
+	}
+	return string(result), code
 }
 
 // 发送GET请求
