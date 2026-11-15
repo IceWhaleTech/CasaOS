@@ -57,7 +57,6 @@ func EncodePath(path string, all ...bool) string {
 		Dst string
 	}{
 		{Src: "%", Dst: "%25"},
-		{"%", "%25"},
 		{"?", "%3F"},
 		{"#", "%23"},
 	}
